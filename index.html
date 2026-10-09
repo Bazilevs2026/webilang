@@ -2927,6 +2927,54 @@ button.primary,
   font-size:14.5px;
 }
 
+
+/* === Better version: Listen + Copy === */
+#tab-speaking .aiFbActions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+  padding-top:11px;
+  border-top:1px solid rgba(64,123,90,.16);
+}
+#tab-speaking .aiFbActionBtn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  min-height:38px;
+  padding:8px 12px;
+  border-radius:11px;
+  border:1px solid #c8d8ef;
+  background:#fff;
+  color:#29456f;
+  font-weight:900;
+  font-size:12.5px;
+  cursor:pointer;
+  transition:transform .14s ease, box-shadow .14s ease, background .14s ease;
+}
+#tab-speaking .aiFbActionBtn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 6px 14px rgba(34,61,108,.09);
+}
+#tab-speaking .aiFbListenBtn{
+  border-color:#b8d7c4;
+  background:#f4fbf7;
+  color:#2d6a47;
+}
+#tab-speaking .aiFbCopyBtn{
+  border-color:#cbd7f0;
+  background:#f6f8ff;
+  color:#405790;
+}
+#tab-speaking .aiFbCopyStatus{
+  align-self:center;
+  min-height:18px;
+  color:#5d6f8e;
+  font-size:11px;
+  font-weight:800;
+}
+
 </style>
 
 
@@ -11181,6 +11229,69 @@ if(storyResetButton){
     return "";
   }
 
+  function speakBetterVersion(text, button){
+    const clean=String(text||"").replace(/\s+/g," ").trim();
+    if(!clean) return;
+
+    const original=button?.textContent || "🔊 Listen";
+    if(button) button.textContent="⏹ Stop";
+
+    try{
+      if(window.speechSynthesis?.speaking){
+        window.speechSynthesis.cancel();
+        if(button) button.textContent=original;
+        return;
+      }
+
+      if(window.WebilangVoice?.speak){
+        window.WebilangVoice.speak(clean,{
+          lang:"en-US",
+          rate:.92,
+          pitch:1.0
+        });
+      }else if(window.speak){
+        window.speak(clean);
+      }
+
+      /* speechSynthesis has no reliable global finished promise across browsers.
+         Restore the label after a reasonable reading window. */
+      const ms=Math.min(45000,Math.max(3500,clean.split(/\s+/).length*430));
+      setTimeout(()=>{
+        if(button) button.textContent=original;
+      },ms);
+    }catch(e){
+      if(button) button.textContent=original;
+    }
+  }
+
+  async function copyBetterVersion(text, status){
+    const clean=String(text||"").trim();
+    if(!clean) return;
+
+    let ok=false;
+    try{
+      await navigator.clipboard.writeText(clean);
+      ok=true;
+    }catch(e){
+      try{
+        const ta=document.createElement("textarea");
+        ta.value=clean;
+        ta.setAttribute("readonly","");
+        ta.style.position="fixed";
+        ta.style.opacity="0";
+        document.body.appendChild(ta);
+        ta.select();
+        ok=document.execCommand("copy");
+        ta.remove();
+      }catch(err){}
+    }
+
+    if(status){
+      status.textContent=ok ? "Copied!" : "Copy failed";
+      setTimeout(()=>{ status.textContent=""; },1800);
+    }
+  }
+
   function renderFeedbackCards(text){
     body.className = "gsAiFeedbackBody";
     body.innerHTML = "";
@@ -11238,6 +11349,36 @@ if(storyResetButton){
       });
 
       card.appendChild(textWrap);
+
+      if(sec.num==="5"){
+        const betterText=sec.lines.join(" ").trim();
+
+        const actions=document.createElement("div");
+        actions.className="aiFbActions";
+
+        const listenBtn=document.createElement("button");
+        listenBtn.type="button";
+        listenBtn.className="aiFbActionBtn aiFbListenBtn";
+        listenBtn.textContent="🔊 Listen";
+        listenBtn.title="Listen to the better answer in English";
+        listenBtn.addEventListener("click",()=>speakBetterVersion(betterText,listenBtn));
+
+        const copyBtn=document.createElement("button");
+        copyBtn.type="button";
+        copyBtn.className="aiFbActionBtn aiFbCopyBtn";
+        copyBtn.textContent="📋 Copy";
+        copyBtn.title="Copy the better answer";
+
+        const copyStatus=document.createElement("span");
+        copyStatus.className="aiFbCopyStatus";
+        copyStatus.setAttribute("aria-live","polite");
+
+        copyBtn.addEventListener("click",()=>copyBetterVersion(betterText,copyStatus));
+
+        actions.append(listenBtn,copyBtn,copyStatus);
+        card.appendChild(actions);
+      }
+
       body.appendChild(card);
     });
   }
