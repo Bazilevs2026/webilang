@@ -4476,7 +4476,7 @@ body{margin:0;background:#f5f8fb}
   <div class="builderTitleRow">
     <div>
       <h3>Practise Selected Words</h3>
-      <p>Choose up to 6 items. One local practice round now gives many different encounters: Choose → Gap → Natural English → Build the sentence → Personalise → Speak → Mixed review. Use AI only when you want an extra fresh round.</p>
+      <p>Choose up to 6 items. One local practice round gives 8 varied activities: Choose → Gap → Natural English → Build the sentence → Personalise → Speak. Use AI only when you want one extra fresh 8-activity round.</p>
     </div>
     <button class="builderMainBtn" id="myStockBuild" type="button">Build exercises</button>
   </div>
@@ -9309,14 +9309,19 @@ function addFeedback(card){
         return;
       }
 
+      const pick=(start,count)=>{
+        const out=[];
+        for(let i=0;i<count;i++) out.push(entries[(start+i)%entries.length]);
+        return out;
+      };
+
       const stages=[
-        buildChooseStage(entries),
-        buildGapStage(entries),
-        buildNaturalStage(entries),
-        buildSentenceStage(entries),
-        buildPersonalStage(entries),
-        buildSpeakingStage(entries),
-        buildMixedStage(entries)
+        buildChooseStage(pick(0,2)),
+        buildGapStage(pick(2,2)),
+        buildNaturalStage(pick(1,1)),
+        buildSentenceStage(pick(3,1)),
+        buildPersonalStage(pick(0,1)),
+        buildSpeakingStage(pick(2,1))
       ];
 
       stages.forEach((stage,i)=>{
@@ -9325,7 +9330,6 @@ function addFeedback(card){
         list.appendChild(stage);
       });
 
-      // Make all cards trackable.
       qa('.practiceCard',list).forEach(card=>{
         if(!card.dataset.target){
           const text=card.querySelector('.practicePrompt')?.textContent||'';
@@ -9334,9 +9338,8 @@ function addFeedback(card){
         }
       });
 
-      const total=qa('.practiceCard',list).length;
       if(status){
-        status.textContent=`Built ${total} activities in 7 practice stages from ${entries.length} selected item${entries.length===1?'':'s'}.`;
+        status.textContent=`Built 8 varied activities from ${entries.length} selected item${entries.length===1?'':'s'}.`;
       }
 
       attachMistakeTracking(list);
@@ -12004,17 +12007,17 @@ if(storyResetButton){
     btn.textContent='✨ Generating...';
 
     try{
-      const endpoint=window.WEBILANG_WORDSTOCK_ENDPOINT||'/api/wordstock';
+      const endpoint=window.WEBILANG_WORDSTOCK_ENDPOINT||'/api/feedback';
       const r=await fetch(endpoint,{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({words,level:'A2',module:'Gaming'})
+        body:JSON.stringify({mode:'wordstock',words,level:'A2',module:'Gaming'})
       });
       const data=await r.json().catch(()=>({}));
       if(!r.ok)throw new Error(data?.error||`Server error (${r.status})`);
       render(data);
     }catch(err){
-      status.textContent='AI practice could not connect. Make sure /api/wordstock is deployed. '+(err?.message||'');
+      status.textContent='AI practice could not connect. The shared /api/feedback endpoint is not responding. '+(err?.message||'');
     }finally{
       btn.disabled=false;
       btn.textContent='✨ Generate more practice';
