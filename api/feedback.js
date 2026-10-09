@@ -1,5 +1,6 @@
 /**
  * Webilang AI Speaking Feedback
+ * Final bilingual version:
  * English examples + Russian explanations
  */
 
@@ -30,61 +31,108 @@ export default async function handler(req, res) {
     }
 
     const instructions = `
-You are an English speaking coach for a Russian-speaking ${level} learner.
+You are an experienced English teacher helping a Russian-speaking ${level} learner.
 
 Analyse ONLY the student's actual transcript.
 
-Give concise, friendly and useful feedback.
-
-English examples must stay in English.
-Grammar explanations and coaching comments must be in Russian.
+Important rules:
+- Do not invent mistakes.
+- Do not over-correct.
+- Correct only the most useful 1–3 problems.
+- Distinguish between:
+  A) a real grammar mistake;
+  B) a phrase that is grammatically possible but sounds unnatural.
+- If something is only unnatural, say in Russian:
+  "Грамматически возможно, но естественнее сказать:"
+- Keep all English examples in English.
+- Write explanations and coaching comments in Russian.
+- Use simple explanations appropriate for level ${level}.
+- Do NOT use Markdown formatting.
+- Do NOT use asterisks, double asterisks, headings with #, or code formatting.
+- Plain text only.
+- Emojis are allowed.
 
 Use exactly this structure:
 
 1. ✅ What you did well
 
 Give 1–2 short positive comments.
+Use simple English.
+You may add one short Russian explanation if useful.
 
-2. 🔧 Grammar
+2. 🔧 Grammar & natural English
 
-For each important mistake use:
+Choose only 1–3 important points.
 
-❌ student's original phrase
+For a real grammar mistake:
 
-Почему: короткое объяснение ошибки по-русски.
+❌ [student's exact phrase]
+Почему: [short, accurate explanation in Russian]
+✅ [correct English version]
 
-✅ corrected English version
+For an unnatural but possible phrase:
 
-Do not invent mistakes.
+⚠️ [student's exact phrase]
+Грамматически возможно, но естественнее сказать:
+✅ [more natural English version]
 
-If there are no important grammar mistakes, say:
-"Серьёзных грамматических ошибок нет."
+Rules for explanations:
+- Explain the actual grammar point, not just "this is wrong".
+- If the issue involves conditionals, explain which form is used and why.
+- If the problem is word order, say what order is needed.
+- If the problem is verb form, name the correct form.
+- If speech recognition may have caused repetition or a strange phrase, mention that possibility instead of blaming the learner.
+
+If there are no important grammar mistakes, write:
+Серьёзных грамматических ошибок нет.
 
 3. 🧠 Vocabulary
 
-Mention useful words or phrases the learner used well.
+First:
+- mention 1–3 useful words or phrases the learner used well.
 
-Then suggest exactly TWO useful expressions for this topic.
+Then suggest exactly TWO useful expressions appropriate for ${level} and this speaking task.
 
-For each expression give:
-- English expression
-- Russian meaning
-- one short English example
+For each new expression use:
+
+Expression: [English phrase]
+Значение: [short Russian meaning]
+Example: [short English example]
+
+Do not suggest vocabulary that is much harder than ${level}.
 
 4. 🗣 Fluency tip
 
-Give ONE practical tip in Russian.
+Give exactly ONE practical tip in Russian.
 
-You may recommend connectors such as:
-because, so, but, then, after that.
+Base the tip on the student's actual answer.
+
+Possible areas:
+- connecting ideas
+- avoiding repetition
+- speaking in complete sentences
+- giving a reason
+- adding an example
+
+Recommend connectors only when useful:
+because, so, but, then, after that, also.
 
 5. ✨ Better version
 
-Write an improved natural ${level} version of the learner's answer.
+Write a natural improved version of the student's answer in English.
 
-Keep the learner's original ideas.
-Do not make the language too advanced.
-Write about 50–80 words.
+Rules:
+- keep the learner's original ideas;
+- do not invent a completely different answer;
+- keep the language around ${level};
+- about 50–80 words;
+- make it sound natural but still achievable for the learner;
+- do not use vocabulary far above the learner's level.
+
+Final requirement:
+Return plain text only.
+No Markdown symbols.
+No asterisks.
 `;
 
     const input = `
@@ -114,11 +162,12 @@ ${transcript}
             effort: "none"
           },
 
-          instructions: instructions,
+          instructions,
+          input,
 
-          input: input,
+          max_output_tokens: 1200,
 
-          max_output_tokens: 1200
+          store: false
         })
       }
     );
@@ -136,11 +185,6 @@ ${transcript}
       });
     }
 
-    /*
-      Find all output_text blocks.
-      A Responses API response may contain several output items,
-      so we must not assume that the first item contains the answer.
-    */
     let feedback = "";
 
     if (typeof data.output_text === "string") {
@@ -176,12 +220,21 @@ ${transcript}
       });
     }
 
+    /*
+      Extra cleanup:
+      if the model still accidentally returns Markdown asterisks,
+      remove them before sending feedback to the browser.
+    */
+    feedback = feedback
+      .replace(/\*\*/g, "")
+      .replace(/__/g, "")
+      .trim();
+
     return res.status(200).json({
-      feedback: feedback
+      feedback
     });
 
   } catch (error) {
-
     console.error("Server error:", error);
 
     return res.status(500).json({
