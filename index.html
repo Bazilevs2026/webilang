@@ -2836,6 +2836,97 @@ button.primary,
 #tab-speaking .gsAiFeedbackBody.error{color:#93435a;background:#fff4f7;border:1px solid #efccd6;border-radius:10px;padding:10px}
 #tab-speaking .gsAiPrivacy{margin-top:11px;padding-top:9px;border-top:1px solid #e1e6f4;color:#77819b;font-size:11.5px;line-height:1.45}
 
+
+/* === AI Feedback: visual section cards === */
+#tab-speaking .gsAiFeedbackBody{
+  display:grid;
+  gap:12px;
+  white-space:normal;
+}
+#tab-speaking .gsAiFeedbackBody.loading,
+#tab-speaking .gsAiFeedbackBody.error{
+  display:block;
+  white-space:pre-wrap;
+}
+#tab-speaking .aiFbCard{
+  border:1px solid #dbe3f4;
+  border-radius:16px;
+  padding:14px 15px;
+  background:#fff;
+  box-shadow:0 7px 18px rgba(31,46,91,.05);
+}
+#tab-speaking .aiFbTitle{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:0 0 10px;
+  font-size:15px;
+  font-weight:1000;
+  color:#172044;
+}
+#tab-speaking .aiFbText{
+  display:grid;
+  gap:7px;
+  font-size:14px;
+  line-height:1.52;
+  color:#2c3a59;
+}
+#tab-speaking .aiFbLine{
+  margin:0;
+  white-space:pre-wrap;
+}
+#tab-speaking .aiFbLine.positive{
+  background:#f0fbf5;
+  border-left:4px solid #59b97a;
+  padding:8px 10px;
+  border-radius:9px;
+}
+#tab-speaking .aiFbLine.wrong{
+  background:#fff3f5;
+  border-left:4px solid #e56d82;
+  padding:8px 10px;
+  border-radius:9px;
+}
+#tab-speaking .aiFbLine.warning{
+  background:#fff9e7;
+  border-left:4px solid #e5b641;
+  padding:8px 10px;
+  border-radius:9px;
+}
+#tab-speaking .aiFbLine.correct{
+  background:#eefaf2;
+  border-left:4px solid #55b873;
+  padding:8px 10px;
+  border-radius:9px;
+}
+#tab-speaking .aiFbLine.ruExplain{
+  color:#52617f;
+  padding-left:2px;
+}
+#tab-speaking .aiFbCard[data-section="1"]{
+  background:linear-gradient(180deg,#fbfffd,#f4fbf7);
+  border-color:#cfe8d8;
+}
+#tab-speaking .aiFbCard[data-section="2"]{
+  background:linear-gradient(180deg,#fffdf9,#fff8ee);
+  border-color:#efd9b0;
+}
+#tab-speaking .aiFbCard[data-section="3"]{
+  background:linear-gradient(180deg,#fbfdff,#f1f7ff);
+  border-color:#cadcf5;
+}
+#tab-speaking .aiFbCard[data-section="4"]{
+  background:linear-gradient(180deg,#fdfbff,#f7f2ff);
+  border-color:#dfd0f5;
+}
+#tab-speaking .aiFbCard[data-section="5"]{
+  background:linear-gradient(180deg,#f8fffb,#effaf4);
+  border-color:#cbe6d6;
+}
+#tab-speaking .aiFbCard[data-section="5"] .aiFbText{
+  font-size:14.5px;
+}
+
 </style>
 
 
@@ -11080,9 +11171,86 @@ if(storyResetButton){
     return text;
   };
 
+  function classifyFeedbackLine(line){
+    const t=line.trim();
+    if(/^❌/.test(t)) return "wrong";
+    if(/^⚠️?/.test(t)) return "warning";
+    if(/^✅/.test(t)) return "correct";
+    if(/^Почему:|^Грамматически возможно|^Значение:/i.test(t)) return "ruExplain";
+    if(/^[-•]\s*/.test(t)) return "positive";
+    return "";
+  }
+
+  function renderFeedbackCards(text){
+    body.className = "gsAiFeedbackBody";
+    body.innerHTML = "";
+
+    const normalized=String(text||"").replace(/\r/g,"").trim();
+    const lines=normalized.split("\n");
+    const sections=[];
+    let current=null;
+
+    for(const raw of lines){
+      const line=raw.trim();
+      if(!line) continue;
+
+      const m=line.match(/^([1-5])\.\s*(.+)$/);
+      if(m){
+        current={num:m[1], title:m[2].trim(), lines:[]};
+        sections.push(current);
+      }else{
+        if(!current){
+          current={num:"0", title:"AI Feedback", lines:[]};
+          sections.push(current);
+        }
+        current.lines.push(line);
+      }
+    }
+
+    if(!sections.length){
+      const p=document.createElement("p");
+      p.className="aiFbLine";
+      p.textContent=normalized;
+      body.appendChild(p);
+      return;
+    }
+
+    sections.forEach(sec=>{
+      const card=document.createElement("section");
+      card.className="aiFbCard";
+      card.dataset.section=sec.num;
+
+      const h=document.createElement("div");
+      h.className="aiFbTitle";
+      h.textContent=(sec.num !== "0" ? sec.num + ". " : "") + sec.title;
+      card.appendChild(h);
+
+      const textWrap=document.createElement("div");
+      textWrap.className="aiFbText";
+
+      sec.lines.forEach(line=>{
+        const p=document.createElement("p");
+        p.className="aiFbLine";
+        const extra=classifyFeedbackLine(line);
+        if(extra) p.classList.add(extra);
+        p.textContent=line;
+        textWrap.appendChild(p);
+      });
+
+      card.appendChild(textWrap);
+      body.appendChild(card);
+    });
+  }
+
   function showMessage(text, kind=""){
     panel.hidden = false;
-    body.className = "gsAiFeedbackBody" + (kind ? " " + kind : "");
+
+    if(!kind){
+      renderFeedbackCards(text);
+      return;
+    }
+
+    body.className = "gsAiFeedbackBody " + kind;
     body.textContent = text;
   }
 
@@ -11134,6 +11302,7 @@ if(storyResetButton){
   clearBtn?.addEventListener("click", () => {
     panel.hidden = true;
     body.className = "gsAiFeedbackBody";
+    body.innerHTML = "";
     body.textContent = "Your feedback will appear here.";
   });
 })();
