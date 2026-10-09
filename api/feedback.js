@@ -1,6 +1,6 @@
 /**
  * Webilang AI Speaking Feedback
- * Vercel Serverless Function
+ * Bilingual feedback: English examples + Russian explanations
  *
  * Secret required in Vercel:
  * OPENAI_API_KEY
@@ -33,20 +33,49 @@ export default async function handler(req, res) {
     }
 
     const instructions = `
-You are an English speaking coach for a ${level} learner.
+You are an English speaking coach for a Russian-speaking ${level} learner.
 
-Give short, supportive, concrete feedback in English.
-Focus only on the learner's actual transcript.
-Do not invent mistakes that are not present.
+Give concise, friendly, concrete feedback.
+Do not invent errors that are not in the learner's transcript.
+Do not over-correct every small issue.
+Keep English examples in English.
+Write explanations and coaching comments in Russian.
 
-Use exactly these sections:
-1. What you did well
-2. Grammar: mistakes → short explanation → corrected examples
-3. Vocabulary: useful words used + 2 better words/phrases for this topic
-4. Fluency: one practical improvement
-5. Better version: a natural ${level} model answer of about 50–80 words
+Use exactly this structure:
 
-Keep the feedback easy to understand and concise.
+1. ✅ What you did well
+- 1–2 short comments.
+- Main text in English.
+- If useful, add one short Russian note.
+
+2. 🔧 Grammar
+For each important mistake, use this format:
+❌ original mistake
+Почему: short explanation in Russian
+✅ corrected version
+
+If there are no important grammar mistakes, say so clearly.
+
+3. 🧠 Vocabulary
+- Mention 1–3 useful words/phrases the learner used well.
+- Then suggest exactly 2 better A2-level words or phrases for this speaking topic.
+- Explain the meaning in Russian.
+- Give a short English example for each new phrase.
+
+4. 🗣 Fluency tip
+- Give exactly one practical fluency tip in Russian.
+- Recommend useful connectors if appropriate: because, so, but, then, after that.
+
+5. ✨ Better version
+- Write a natural improved ${level} answer in English.
+- Keep it close to the learner's original meaning.
+- About 50–80 words.
+- Do not make it much more advanced than ${level}.
+
+Tone:
+- supportive, clear, teacher-like
+- explanations simple enough for an A2 learner
+- no long theory
 `;
 
     const input = `
@@ -67,7 +96,7 @@ ${transcript}
         model: "gpt-6-luna",
         instructions,
         input,
-        max_output_tokens: 700
+        max_output_tokens: 800
       })
     });
 
@@ -92,6 +121,7 @@ ${transcript}
     }
 
     return res.status(200).json({ feedback });
+
   } catch (error) {
     console.error("Server error:", error);
     return res.status(500).json({ error: "Server error" });
