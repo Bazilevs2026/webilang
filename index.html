@@ -12876,10 +12876,10 @@ if(storyResetButton){
       personalStage.grid.appendChild(card);
     });
 
-    // 5. Pronunciation / word-level recognition only.
+    // 5. Final retrieval: learner can say OR write only the target word / phrase.
     const speakingStage=section(
-      '5 · Say the word or phrase',
-      'Recognition checks only the saved word / phrase — you do not need to say a full sentence.'
+      '5 · Say or write the word or phrase',
+      'Say the word or phrase or write it.'
     );
     stages.push(speakingStage.sec);
 
@@ -12887,14 +12887,27 @@ if(storyResetButton){
       const card=document.createElement('div');
       card.className='aiStockCard';
       card.innerHTML=`<div class="aiStockTarget"></div><div class="aiStockPrompt"></div>
-        <div class="aiStockInputRow"><input type="text" readonly placeholder="Recognised word / phrase"><button class="aiStockSmallBtn aiSayAnswer say" type="button">🎙 Say it</button></div>
-        <div class="aiStockRecognition">Say only the expression shown above.</div>
+        <div class="aiStockInputRow">
+          <input type="text" autocomplete="off" placeholder="Write the word or phrase">
+          <button class="aiStockSmallBtn check" type="button">Check</button>
+          <button class="aiStockSmallBtn aiSayAnswer say" type="button">🎙 Say it</button>
+        </div>
+        <div class="aiStockRecognition">Say the word or phrase or write it.</div>
         <div class="aiStockFeedback"></div>`;
       const target=String(ex.word||'').trim();
       card.querySelector('.aiStockTarget').textContent=target;
-      card.querySelector('.aiStockPrompt').textContent=ex.prompt||'Say the expression clearly.';
+      card.querySelector('.aiStockPrompt').textContent='Say the word or phrase or write it.';
       const inp=card.querySelector('input');
       const helper=helpTools(card,ex);
+
+      card.querySelector('.check').onclick=()=>{
+        if(!inp.value.trim()) return;
+        markAttempt(card);
+        const ok=clean(inp.value)===clean(target);
+        setFeedback(card,ok?'✓ Correct.':'Not yet. Try the word or phrase again.',ok);
+        if(!ok) helper.reveal();
+      };
+
       card.querySelector('.say').onclick=e=>recogniseTarget(card,target,inp,e.currentTarget,helper);
       speakingStage.grid.appendChild(card);
     });
