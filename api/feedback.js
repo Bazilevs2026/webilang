@@ -4,7 +4,9 @@
  *
  * Modes:
  * 1) speaking feedback: {task, transcript, level, module}
- * 2) Word Stock practice: {mode:"wordstock", words, level, module}
+ * 2) source-grounded feedback: {mode:"source_feedback", ...}
+ * 3) independent writing feedback: {mode:"writing_feedback", ...}
+ * 4) Word Stock practice: {mode:"wordstock", words, level, module}
  *
  * Uses OPENAI_API_KEY.
  */
@@ -113,6 +115,123 @@ export default async function handler(req,res){
 
   try{
     const body=req.body||{};
+
+    if(body.mode==="writing_feedback"){
+      const task=safeText(body.task,2200);
+      const draft=safeText(body.draft,7000);
+      const level=safeText(body.level||"A2",20);
+      const module=safeText(body.module||"Independent Writing",100);
+      const skeleton=body.skeleton&&typeof body.skeleton==="object"?body.skeleton:{};
+
+      if(!draft) return res.status(400).json({error:"No writing draft supplied"});
+
+      const instructions=`You are an English writing coach for an ${level} learner.
+Module: ${module}.
+
+Evaluate ONLY the learner's own draft against the writing task.
+Do not rewrite the whole essay for the learner.
+
+CHECK THESE AREAS:
+1) TASK ACHIEVEMENT
+- Does the learner answer whether video games are more helpful or more harmful?
+- Do they discuss BOTH benefits and possible harms?
+- Do they give relevant reasons/examples?
+- Is there a clear conclusion or advice?
+
+2) ORGANISATION
+- Is the paragraph easy to follow?
+- Are ideas linked naturally?
+- Is there a clear introduction, development and conclusion?
+
+3) VOCABULARY
+- Is topic vocabulary appropriate and understandable for A2?
+- Suggest at most 2 useful upgrades. Do not push advanced vocabulary unnecessarily.
+
+4) GRAMMAR
+- Identify ONLY genuine grammar errors in the learner's actual draft.
+- Ignore punctuation/capitalization unless it changes grammar or meaning.
+- Do not invent errors.
+- Preserve the learner's meaning in corrections.
+- If there are no clear grammar errors, grammarItems must be [].
+
+GRAMMAR STOCK:
+For each genuine grammar rule (maximum 3), create exactly 3 short A2 activities:
+1) RECOGNITION — exactly 3 plausible options, one correct.
+2) RETRIEVE — one short sentence with _____ and one exact missing form.
+3) PRODUCTION — one new communicative prompt and one natural model.
+Every activity must include a useful "support" clue.
+Distractors must be realistic learner errors, never nonsense.
+
+FEEDBACK STYLE:
+- Concise, specific, encouraging but not vague.
+- A2-friendly English.
+- Mention the actual draft, not generic advice.
+- Maximum about 220 words.
+- If the draft is outside 120–150 words, mention that briefly.
+- Give only 1–2 sentence-level corrections, not a rewritten essay.
+
+Use EXACTLY these lines:
+TASK ACHIEVEMENT: ...
+ORGANISATION: ...
+VOCABULARY: ...
+GRAMMAR: ...
+2 USEFUL CORRECTIONS:
+1) ...
+2) ...
+NEXT STEP: ...
+
+Return STRICT JSON only:
+{
+  "feedback":"...",
+  "grammarItems":[
+    {
+      "rule":"learner-friendly grammar rule",
+      "original":"exact learner wording",
+      "correction":"corrected wording",
+      "explanation":"one short explanation",
+      "practice":{
+        "recognition":{
+          "prompt":"Which sentence is correct?",
+          "options":["...","...","..."],
+          "answerIndex":0,
+          "support":"short clue"
+        },
+        "retrieve":{
+          "prompt":"Complete the sentence.",
+          "sentence":"... _____ ...",
+          "answer":"...",
+          "support":"short clue"
+        },
+        "production":{
+          "prompt":"...",
+          "model":"...",
+          "support":"short clue"
+        }
+      }
+    }
+  ]
+}`;
+
+      const raw=await ask({
+        instructions,
+        input:`WRITING TASK:\n${task}\n\nLEARNER'S SKELETON:\n${JSON.stringify(skeleton)}\n\nLEARNER'S FINAL DRAFT:\n${draft}`,
+        maxOutput:1100
+      });
+
+      let parsed=null;
+      try{parsed=JSON.parse(stripFence(raw));}catch(e){}
+      if(!parsed||typeof parsed!=="object"){
+        return res.status(200).json({
+          feedback:String(raw||"").trim(),
+          grammarItems:[]
+        });
+      }
+
+      return res.status(200).json({
+        feedback:String(parsed.feedback||"").trim(),
+        grammarItems:sanitizeGrammarItems(parsed.grammarItems,module)
+      });
+    }
 
     if(body.mode==="source_feedback"){
       const task=safeText(body.task,1800);
