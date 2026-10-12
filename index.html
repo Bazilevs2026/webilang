@@ -3260,6 +3260,146 @@ button.primary,
   .roleplayTypedRow{display:grid}
 }
 
+
+/* ===== Simplified Word Stock practice: one builder + adaptive help ===== */
+#tab-mywordstock .wordStockAiPanel{
+  margin-top:16px!important;
+}
+#tab-mywordstock .aiStockHelpTools{
+  display:flex;gap:7px;flex-wrap:wrap;margin-top:8px
+}
+#tab-mywordstock .aiStockHelpTools[hidden]{display:none!important}
+#tab-mywordstock .aiHelpBtn{
+  border:1px solid #ddc68a;background:#fff9e5;color:#735a17;
+  border-radius:9px;padding:7px 9px;font-size:11px;font-weight:900;cursor:pointer
+}
+#tab-mywordstock .aiRuBtn{
+  border:1px solid #e2b2a8;background:#fff0ec;color:#955044;
+  border-radius:9px;padding:7px 9px;font-size:11px;font-weight:900;cursor:pointer
+}
+#tab-mywordstock .aiStockHelpBox{
+  margin-top:7px;padding:8px 9px;border-radius:9px;background:#fffaf0;
+  border:1px solid #ead9aa;color:#6e5a24;font-size:11px;line-height:1.42
+}
+#tab-mywordstock .aiStockHelpBox[hidden]{display:none!important}
+#tab-mywordstock .aiSayAnswer{
+  background:#f2eef9!important;border-color:#cabee1!important;color:#604d89!important
+}
+#tab-mywordstock .aiStockUnlock{
+  margin:10px 0 0;padding:8px 10px;border-radius:10px;
+  background:#f4f8fb;border:1px dashed #c8d9e4;color:#647d90;
+  font-size:11px;font-weight:800;line-height:1.4
+}
+#tab-mywordstock .aiStockStage[hidden]{display:none!important}
+#tab-mywordstock .aiStockRecognition{
+  margin-top:5px;color:#6d8191;font-size:10px;font-weight:750
+}
+#tab-mywordstock .aiStockOption.wrong{
+  opacity:.78
+}
+
+
+/* ===== My Grammar Stock · saved from AI Roleplay feedback ===== */
+#tab-grammarstock{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  color:#2e485b;
+}
+.grammarStockHero{
+  display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;
+  padding:18px 20px;margin-bottom:16px;border:1px solid #d8e4ec;border-radius:18px;
+  background:linear-gradient(135deg,#f7fbff,#f8f4ff);
+}
+.grammarStockHero h2{margin:4px 0 6px;font-size:27px;letter-spacing:-.02em}
+.grammarStockHero p{margin:0;max-width:780px;color:#657d90;line-height:1.55}
+.grammarStockEyebrow{
+  font-size:10px;font-weight:950;letter-spacing:.11em;text-transform:uppercase;color:#735fa8
+}
+.grammarStockCount{
+  padding:7px 10px;border-radius:999px;background:#fff;border:1px solid #d8e2eb;
+  color:#536f83;font-size:11px;font-weight:900
+}
+.grammarStockToolbar{
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 14px;
+  padding:10px 12px;border:1px solid #dbe6ed;border-radius:12px;background:#fbfdff
+}
+.grammarStockToolbar .grammarStockSaved{margin-right:auto;font-size:12px;font-weight:900;color:#47667c}
+.grammarStockBtn{
+  border:1px solid #c5d6e2;background:#fff;color:#49677d;border-radius:9px;
+  padding:7px 10px;font-size:11px;font-weight:900;cursor:pointer
+}
+.grammarStockBtn.danger{background:#fff4f2;color:#945044;border-color:#e3b6ae}
+.grammarStockList{display:grid;gap:15px}
+.grammarRuleCard{
+  border:1px solid #d9e4ec;border-radius:16px;background:#fff;padding:15px;
+  box-shadow:0 6px 20px rgba(53,82,103,.045)
+}
+.grammarRuleTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.grammarRuleTitle{font-size:17px;font-weight:950;color:#34566f;line-height:1.35}
+.grammarRuleSeen{
+  flex:0 0 auto;padding:4px 7px;border-radius:999px;background:#eef5fa;color:#607b8f;
+  font-size:9px;font-weight:900
+}
+.grammarExample{
+  margin-top:8px;padding:9px 10px;border-radius:10px;background:#fff9e9;border:1px solid #ead9a5;
+  font-size:12px;line-height:1.45
+}
+.grammarExample .bad{color:#9a4d44;text-decoration:line-through;text-decoration-thickness:1px}
+.grammarExample .good{color:#2f7248;font-weight:850}
+.grammarRuleExplain{
+  margin-top:8px;padding:8px 10px;border-left:4px solid #8e79bd;background:#f7f4fc;
+  border-radius:9px;color:#5e5278;font-size:12px;line-height:1.45
+}
+.grammarPracticeGrid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px
+}
+.grammarPractice{
+  border:1px solid #dce6ed;border-radius:12px;padding:11px;background:#fbfdff;min-width:0
+}
+.grammarPracticeKicker{
+  display:inline-block;margin-bottom:6px;padding:3px 7px;border-radius:999px;
+  background:#eaf4fa;color:#37647f;font-size:9px;font-weight:950;text-transform:uppercase;letter-spacing:.06em
+}
+.grammarPracticePrompt{font-size:12.5px;line-height:1.45;font-weight:750;color:#38566b}
+.grammarOptionList{display:grid;gap:6px;margin-top:8px}
+.grammarOption{
+  width:100%;text-align:left;border:1px solid #cddbe5;background:#fff;color:#405f75;
+  border-radius:9px;padding:7px 8px;font-size:11px;font-weight:750;cursor:pointer
+}
+.grammarOption.correct{background:#eaf7ee;border-color:#88bf99;color:#2c683e}
+.grammarOption.wrong{background:#fff1ee;border-color:#d99c91;color:#8b453c}
+.grammarInputRow{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.grammarInputRow input,.grammarProduction{
+  width:100%;border:1px solid #cad9e4;border-radius:9px;padding:8px 9px;font:inherit;font-size:12px;background:#fff
+}
+.grammarInputRow input{flex:1;min-width:130px}
+.grammarMiniBtn{
+  border:1px solid #bfd0dc;background:#fff;color:#44677e;border-radius:8px;
+  padding:6px 8px;font-size:10px;font-weight:900;cursor:pointer
+}
+.grammarProduction{min-height:66px;resize:vertical;margin-top:8px}
+.grammarFeedback{
+  min-height:16px;margin-top:7px;font-size:10.5px;font-weight:800;color:#6a8091;line-height:1.4
+}
+.grammarFeedback.ok{color:#2f7248}.grammarFeedback.bad{color:#955044}
+.grammarModel{
+  margin-top:7px;padding:7px 8px;border-radius:8px;background:#eef6fb;color:#426479;
+  font-size:11px;line-height:1.4
+}
+.grammarModel[hidden]{display:none!important}
+.grammarEmpty{
+  padding:22px;border:1px dashed #cbd9e3;border-radius:14px;text-align:center;
+  background:#fbfdff;color:#748999;font-size:12px;line-height:1.55
+}
+.roleGrammarSavedNote{
+  margin-top:9px;padding:8px 10px;border-radius:9px;background:#eef8f1;border:1px solid #b8d7c0;
+  color:#356846;font-size:11px;font-weight:850
+}
+.roleGrammarOpenBtn{
+  margin-left:6px;border:1px solid #9fc8aa;background:#fff;color:#346b44;
+  border-radius:8px;padding:5px 8px;font-size:10px;font-weight:900;cursor:pointer
+}
+@media(max-width:900px){.grammarPracticeGrid{grid-template-columns:1fr}}
+
 </style>
 
 
@@ -3344,6 +3484,7 @@ body{margin:0;background:#f5f8fb}
         <button class="wlTab" type="button" data-tab="mywordstock">My Word Stock</button>
         <button class="wlTab" type="button" data-tab="watching">Watching</button>
         <button class="wlTab" type="button" data-tab="roleplay">AI Roleplay</button>
+        <button class="wlTab" type="button" data-tab="grammarstock">My Grammar Stock</button>
         <button class="wlTab" type="button" data-tab="vocab">Vocab</button>
         <button class="wlTab" type="button" data-tab="grammar">Grammar</button>
         <button class="wlTab" type="button" data-tab="speaking">Speaking</button>
@@ -3970,6 +4111,27 @@ body{margin:0;background:#f5f8fb}
       <div class="gsChallengeChip"><b>INSIDE A GAME</b>One crazy day there.</div>
       <div class="gsChallengeChip"><b>FIX THE PROBLEM</b>Gaming problem + solution.</div>
     </div>
+  </div>
+</section>
+
+
+<section class="wlPane" id="tab-grammarstock">
+  <div class="grammarStockHero">
+    <div>
+      <div class="grammarStockEyebrow">PERSONAL GRAMMAR · FROM YOUR AI ROLEPLAY</div>
+      <h2>My Grammar Stock</h2>
+      <p>Grammar patterns from your conversation with Leo are saved here automatically. For each rule, practise three steps: <b>Recognition → Retrieve → Production</b>.</p>
+    </div>
+    <div class="grammarStockCount" id="grammarStockCount">0 rules</div>
+  </div>
+
+  <div class="grammarStockToolbar">
+    <span class="grammarStockSaved" id="grammarStockSaved">No grammar rules saved yet.</span>
+    <button type="button" class="grammarStockBtn danger" id="grammarStockClear">Clear Grammar Stock</button>
+  </div>
+
+  <div class="grammarStockList" id="grammarStockList">
+    <div class="grammarEmpty">Complete the AI Roleplay and press <b>Finish & get feedback</b>. Genuine grammar errors from your own speech will appear here with targeted practice.</div>
   </div>
 </section>
 
@@ -4672,9 +4834,9 @@ body{margin:0;background:#f5f8fb}
   <div class="builderTitleRow">
     <div>
       <h3>Practise Selected Words</h3>
-      <p>Choose up to 6 items. One local practice round gives 8 varied activities: Choose → Gap → Natural English → Build the sentence → Personalise → Speak. Use AI only when you want one extra fresh 8-activity round.</p>
+      <p>Choose up to 6 items and build one 8-activity practice round. The answer stays hidden at first. After a wrong attempt, use <b>Support</b> or <b>RU hint</b> if you need help.</p>
     </div>
-    <button class="builderMainBtn" id="myStockBuild" type="button">Build exercises</button>
+    <button class="builderMainBtn" id="myStockBuild" type="button">Build practice</button>
   </div>
 
   <div class="stockSelectionBar">
@@ -4682,28 +4844,23 @@ body{margin:0;background:#f5f8fb}
     <button class="stockSelectBtn" id="myStockSelectAll" type="button">Select all (max 6)</button>
     <button class="stockSelectBtn" id="myStockClearSelection" type="button">Clear selection</button>
   </div>
-  <div class="wordStockPowerBar">
-    <button class="stockPowerBtn review" id="myStockReviewMistakes" type="button">🎯 Practice my mistakes</button>
-    <button class="stockPowerBtn ai" id="myStockGenerateAI" type="button">✨ Generate more practice</button>
-    <span class="wordStockAiNote">AI makes a fresh A2 round only from the words you selected.</span>
-  </div>
 
   <div class="wordStockAiPanel" id="myStockAiPanel" hidden>
     <div class="wordStockAiHead">
       <div>
-        <div class="wordStockAiKicker">✨ FRESH AI PRACTICE</div>
-        <h4>New contexts for your own words</h4>
+        <div class="wordStockAiKicker">PERSONAL PRACTICE</div>
+        <h4>Practice from your own Word Stock</h4>
       </div>
-      <button class="stockSelectBtn" id="myStockAiClear" type="button">Clear AI round</button>
+      <button class="stockSelectBtn" id="myStockAiClear" type="button">Clear practice</button>
     </div>
     <div class="wordStockAiStatus" id="myStockAiStatus"></div>
     <div class="wordStockAiList" id="myStockAiList"></div>
   </div>
 
-  <div class="builderStatus" id="myStockStatus">Add unknown words or phrases in Story or Reading first.</div>
+  <div class="builderStatus" id="myStockStatus">Select words, then press Build practice.</div>
 
   <div class="micCheckRow">
-    <button class="micTestBtn" id="myStockMicTest" type="button">🎙 Check shared microphone</button>
+    <button class="micTestBtn" id="myStockMicTest" type="button">🎙 Check microphone</button>
     <span class="micState" id="myStockMicState">Microphone not tested.</span>
   </div>
 
@@ -8931,8 +9088,8 @@ function safeSpec(item){
     if(count) count.textContent=`${entries.length} selected`;
     if(build){
       build.textContent=entries.length
-        ? `Build exercises with selected words (${entries.length})`
-        : 'Build exercises';
+        ? `Build practice (${entries.length})`
+        : 'Build practice';
       build.disabled=entries.length===0;
     }
 
@@ -9968,7 +10125,12 @@ function addFeedback(card){
     btn.onclick=(event)=>{
       event.preventDefault();
       event.stopPropagation();
-      buildPractice();
+      if(typeof window.WebilangBuildSelectedWordPractice==="function"){
+        window.WebilangBuildSelectedWordPractice();
+      }else{
+        const status=q('#myStockStatus');
+        if(status) status.textContent='Practice builder is loading. Please try again.';
+      }
     };
   }
 
@@ -10024,7 +10186,6 @@ function addFeedback(card){
     new MutationObserver(()=>bindBuildButton()).observe(buildHost,{childList:true,subtree:true});
   }
 
-  q('#myStockReviewMistakes')?.addEventListener('click',buildMistakePractice);
 
   renderAll();
 })();
@@ -12463,133 +12624,314 @@ if(storyResetButton){
 </script>
 
 
-<script id="wl-wordstock-ai-v1">
+<script id="wl-wordstock-ai-v2">
 (() => {
   'use strict';
 
-  const btn=document.getElementById('myStockGenerateAI');
+  const btn=document.getElementById('myStockBuild');
   const panel=document.getElementById('myStockAiPanel');
   const list=document.getElementById('myStockAiList');
   const status=document.getElementById('myStockAiStatus');
   const clear=document.getElementById('myStockAiClear');
   if(!btn||!panel||!list||!status)return;
 
-  const clean=s=>String(s||'').trim().toLowerCase().replace(/[’‘]/g,"'").replace(/\s+/g,' ');
-  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+  const clean=s=>String(s||'')
+    .trim()
+    .toLowerCase()
+    .replace(/[’‘]/g,"'")
+    .replace(/[“”]/g,'"')
+    .replace(/[.,!?;:]+$/g,'')
+    .replace(/\s+/g,' ');
 
-  function section(title){
+  function section(title,subtitle=''){
     const sec=document.createElement('section');
     sec.className='aiStockStage';
     const h=document.createElement('h5');
     h.textContent=title;
+    sec.appendChild(h);
+    if(subtitle){
+      const p=document.createElement('div');
+      p.className='wordStockAiStatus';
+      p.textContent=subtitle;
+      sec.appendChild(p);
+    }
     const grid=document.createElement('div');
     grid.className='aiStockGrid';
-    sec.append(h,grid);
+    sec.appendChild(grid);
     list.appendChild(sec);
-    return grid;
+    return {sec,grid};
   }
 
-  function feedback(card,text,ok){
+  function setFeedback(card,text,ok){
     const fb=card.querySelector('.aiStockFeedback');
     fb.textContent=text;
     fb.className='aiStockFeedback '+(ok?'ok':'bad');
   }
 
+  function helpTools(card,ex,{ru=true}={}){
+    const tools=document.createElement('div');
+    tools.className='aiStockHelpTools';
+    tools.hidden=true;
+
+    const support=document.createElement('button');
+    support.type='button';
+    support.className='aiHelpBtn';
+    support.textContent='💡 Support';
+
+    const ruBtn=document.createElement('button');
+    ruBtn.type='button';
+    ruBtn.className='aiRuBtn';
+    ruBtn.textContent='RU hint';
+
+    const box=document.createElement('div');
+    box.className='aiStockHelpBox';
+    box.hidden=true;
+
+    support.onclick=()=>{
+      box.textContent=String(ex.support||'Read the context again and think about the meaning and grammar around the gap.');
+      box.hidden=false;
+    };
+    ruBtn.onclick=()=>{
+      box.textContent='RU: '+String(ex.ruHint||'Перевод-подсказка недоступен.');
+      box.hidden=false;
+    };
+
+    tools.appendChild(support);
+    if(ru) tools.appendChild(ruBtn);
+    card.append(tools,box);
+
+    return {
+      reveal(){tools.hidden=false;},
+      tools,box
+    };
+  }
+
+  function markAttempt(card){
+    card.dataset.attempted='1';
+    card.dispatchEvent(new CustomEvent('wlAiPracticeAttempt',{bubbles:true}));
+  }
+
+  async function recogniseTarget(card,answer,input,button,helper){
+    const mic=window.WebilangMic;
+    if(!mic?.recognizeOnce){
+      setFeedback(card,'Microphone recognition is unavailable. Type the answer instead.',false);
+      helper.reveal();
+      return;
+    }
+    button.disabled=true;
+    const old=button.textContent;
+    button.textContent='🎙 Listening…';
+    const note=card.querySelector('.aiStockRecognition');
+    if(note) note.textContent='Say only the missing word or phrase — not the whole sentence.';
+    try{
+      const heard=String(await mic.recognizeOnce({lang:'en-US',durationMs:3200})||'').trim();
+      input.value=heard;
+      markAttempt(card);
+      const ok=clean(heard)===clean(answer);
+      setFeedback(
+        card,
+        ok ? `✓ Recognised: “${heard}”.` : `I heard “${heard||'—'}”. Try the target word or phrase again.`,
+        ok
+      );
+      if(!ok) helper.reveal();
+    }catch(err){
+      markAttempt(card);
+      setFeedback(card,err?.message||'Could not recognise the word or phrase.',false);
+      helper.reveal();
+    }finally{
+      button.disabled=false;
+      button.textContent=old;
+    }
+  }
+
   function render(data){
     list.innerHTML='';
 
-    const gapGrid=section('1 · Fresh gaps');
+    const stages=[];
+
+    // 1. Retrieval from context: target is NEVER shown before the learner attempts it.
+    const gapStage=section(
+      '1 · Discover from context',
+      'The English answer is hidden. Type it or say only the missing word / phrase.'
+    );
+    stages.push(gapStage.sec);
+
     (data.gaps||[]).forEach(ex=>{
-      const card=document.createElement('div');card.className='aiStockCard';
-      card.innerHTML=`<div class="aiStockPrompt">${esc(ex.sentence)}</div>
-        <div class="aiStockInputRow"><input type="text" autocomplete="off" placeholder="Type the missing word or phrase"><button class="aiStockSmallBtn">Check</button></div>
+      const card=document.createElement('div');
+      card.className='aiStockCard';
+      card.innerHTML=`<div class="aiStockPrompt"></div>
+        <div class="aiStockInputRow">
+          <input type="text" autocomplete="off" placeholder="Type the missing word or phrase">
+          <button class="aiStockSmallBtn check" type="button">Check</button>
+          <button class="aiStockSmallBtn aiSayAnswer say" type="button">🎙 Say answer</button>
+        </div>
+        <div class="aiStockRecognition">You can type OR say only the missing word / phrase.</div>
         <div class="aiStockFeedback"></div>`;
+      card.querySelector('.aiStockPrompt').textContent=ex.sentence||'';
       const inp=card.querySelector('input');
-      card.querySelector('button').onclick=()=>{
-        const ok=clean(inp.value)===clean(ex.answer)||clean(inp.value).includes(clean(ex.answer));
-        feedback(card,ok?'✓ Correct.':'Try again. Read the whole sentence.',ok);
+      const helper=helpTools(card,ex);
+
+      card.querySelector('.check').onclick=()=>{
+        if(!inp.value.trim()) return;
+        markAttempt(card);
+        const ok=clean(inp.value)===clean(ex.answer);
+        setFeedback(card,ok?'✓ Correct.':'Not yet. Use the context first; Support is now available.',ok);
+        if(!ok) helper.reveal();
       };
-      gapGrid.appendChild(card);
+      card.querySelector('.say').onclick=e=>recogniseTarget(card,ex.answer,inp,e.currentTarget,helper);
+      gapStage.grid.appendChild(card);
     });
 
-    const choiceGrid=section('2 · Choose the best sentence');
+    // 2. Context choices: distractors must be plausible and same-category.
+    const choiceStage=section(
+      '2 · Choose the best fit',
+      'All options are plausible. Choose the one that fits this exact context best.'
+    );
+    stages.push(choiceStage.sec);
+
     (data.choices||[]).forEach(ex=>{
-      const card=document.createElement('div');card.className='aiStockCard';
-      card.innerHTML=`<div class="aiStockPrompt">${esc(String(ex.prompt||"").replace(new RegExp(String(ex.word||"").replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"ig"),"this saved expression"))}</div><div class="aiStockOptions"></div><div class="aiStockFeedback"></div>`;
+      const card=document.createElement('div');
+      card.className='aiStockCard';
+      card.innerHTML=`<div class="aiStockPrompt"></div><div class="aiStockOptions"></div><div class="aiStockFeedback"></div>`;
+      card.querySelector('.aiStockPrompt').textContent=ex.sentence||'Choose the best option.';
       const box=card.querySelector('.aiStockOptions');
-      (ex.options||[]).forEach((option,i)=>{
-        const b=document.createElement('button');b.type='button';b.className='aiStockOption';b.textContent=option;
-        b.onclick=()=>{
-          [...box.children].forEach(x=>x.classList.remove('correct','wrong'));
-          if(i===ex.correctIndex){b.classList.add('correct');feedback(card,'✓ Correct.',true);}
-          else{b.classList.add('wrong');feedback(card,'Not this one. Try again.',false);}
-        };
-        box.appendChild(b);
-      });
-      choiceGrid.appendChild(card);
-    });
+      const helper=helpTools(card,ex);
 
-    const naturalGrid=section('3 · Natural or unnatural?');
-    (data.natural||[]).forEach(ex=>{
-      const card=document.createElement('div');card.className='aiStockCard';
-      card.innerHTML=`<div class="aiStockTarget">${esc(ex.word)}</div><div class="aiStockPrompt">Which sentence sounds natural?</div><div class="aiStockOptions"></div><div class="aiStockFeedback"></div>`;
-      const box=card.querySelector('.aiStockOptions');
-      [ex.a,ex.b].forEach((option,i)=>{
-        const b=document.createElement('button');b.type='button';b.className='aiStockOption';b.textContent=(i===0?'A. ':'B. ')+option;
+      (ex.options||[]).forEach(option=>{
+        const b=document.createElement('button');
+        b.type='button';
+        b.className='aiStockOption';
+        b.textContent=option;
         b.onclick=()=>{
-          [...box.children].forEach(x=>x.classList.remove('correct','wrong'));
-          const ok=(i===0?'A':'B')===ex.answer;
+          markAttempt(card);
+          [...box.children].forEach(x=>x.classList.remove('correct'));
+          b.classList.remove('wrong');
+          const ok=clean(option)===clean(ex.answer);
           b.classList.add(ok?'correct':'wrong');
-          feedback(card,ok?'✓ Natural English.':'Try the other sentence.',ok);
+          setFeedback(card,ok?'✓ Best fit.':'Close, but not the best fit here. Support is now available.',ok);
+          if(!ok) helper.reveal();
         };
         box.appendChild(b);
       });
-      naturalGrid.appendChild(card);
+      choiceStage.grid.appendChild(card);
     });
 
-    const personalGrid=section('4 · Make it personal');
+    // 3. Natural English.
+    const naturalStage=section(
+      '3 · Natural English',
+      'Choose the sentence that uses your saved expression naturally.'
+    );
+    stages.push(naturalStage.sec);
+
+    (data.natural||[]).forEach(ex=>{
+      const card=document.createElement('div');
+      card.className='aiStockCard';
+      card.innerHTML=`<div class="aiStockTarget"></div><div class="aiStockPrompt">Which sentence sounds natural?</div><div class="aiStockOptions"></div><div class="aiStockFeedback"></div>`;
+      card.querySelector('.aiStockTarget').textContent=ex.word||'';
+      const box=card.querySelector('.aiStockOptions');
+      const helper=helpTools(card,ex);
+
+      [ex.a,ex.b].forEach((option,i)=>{
+        const b=document.createElement('button');
+        b.type='button';
+        b.className='aiStockOption';
+        b.textContent=(i===0?'A. ':'B. ')+(option||'');
+        b.onclick=()=>{
+          markAttempt(card);
+          [...box.children].forEach(x=>x.classList.remove('correct'));
+          b.classList.remove('wrong');
+          const ok=(i===0?'A':'B')===String(ex.answer||'').toUpperCase();
+          b.classList.add(ok?'correct':'wrong');
+          setFeedback(card,ok?'✓ Natural English.':'Not quite. Compare the collocation and grammar. Support is now available.',ok);
+          if(!ok) helper.reveal();
+        };
+        box.appendChild(b);
+      });
+      naturalStage.grid.appendChild(card);
+    });
+
+    // 4. Personal use.
+    const personalStage=section(
+      '4 · Make it personal',
+      'Use the saved expression in one short sentence of your own.'
+    );
+    stages.push(personalStage.sec);
+
     (data.personal||[]).forEach(ex=>{
-      const card=document.createElement('div');card.className='aiStockCard';
-      card.innerHTML=`<div class="aiStockTarget">${esc(ex.word)}</div><div class="aiStockPrompt">${esc(ex.prompt)}</div>
-        <div class="aiStockInputRow"><textarea rows="2" placeholder="Write your own answer..."></textarea><button class="aiStockSmallBtn">Done</button></div>
+      const card=document.createElement('div');
+      card.className='aiStockCard';
+      card.innerHTML=`<div class="aiStockTarget"></div><div class="aiStockPrompt"></div>
+        <div class="aiStockInputRow"><textarea rows="2" placeholder="Write one short sentence..."></textarea><button class="aiStockSmallBtn check" type="button">Check use</button></div>
         <div class="aiStockFeedback"></div>`;
+      card.querySelector('.aiStockTarget').textContent=ex.word||'';
+      card.querySelector('.aiStockPrompt').textContent=ex.prompt||'Write one short sentence.';
       const ta=card.querySelector('textarea');
-      card.querySelector('button').onclick=()=>{
-        const ok=ta.value.trim().length>=8 && clean(ta.value).includes(clean(ex.word));
-        feedback(card,ok?'✓ You used your word in a personal context.':`Try to include “${ex.word}” in your answer.`,ok);
+      const helper=helpTools(card,ex);
+      card.querySelector('.check').onclick=()=>{
+        markAttempt(card);
+        const ok=ta.value.trim().split(/\s+/).length>=4 && clean(ta.value).includes(clean(ex.word));
+        setFeedback(card,ok?'✓ You used the saved expression in your own context.':`Use the saved expression in a complete short sentence.`,ok);
+        if(!ok) helper.reveal();
       };
-      personalGrid.appendChild(card);
+      personalStage.grid.appendChild(card);
     });
 
-    const speakingGrid=section('5 · Mini speaking');
+    // 5. Pronunciation / word-level recognition only.
+    const speakingStage=section(
+      '5 · Say the word or phrase',
+      'Recognition checks only the saved word / phrase — you do not need to say a full sentence.'
+    );
+    stages.push(speakingStage.sec);
+
     (data.speaking||[]).forEach(ex=>{
-      const card=document.createElement('div');card.className='aiStockCard';
-      const targets=(ex.words||[]).join(' + ');
-      card.innerHTML=`<div class="aiStockTarget">${esc(targets)}</div><div class="aiStockPrompt">${esc(ex.prompt)}</div>
-        <div class="aiStockInputRow"><textarea rows="2" placeholder="Recognised speech / type here..."></textarea><button class="aiStockSmallBtn speak">🎙 Speak</button><button class="aiStockSmallBtn check">Check words</button></div>
+      const card=document.createElement('div');
+      card.className='aiStockCard';
+      card.innerHTML=`<div class="aiStockTarget"></div><div class="aiStockPrompt"></div>
+        <div class="aiStockInputRow"><input type="text" readonly placeholder="Recognised word / phrase"><button class="aiStockSmallBtn aiSayAnswer say" type="button">🎙 Say it</button></div>
+        <div class="aiStockRecognition">Say only the expression shown above.</div>
         <div class="aiStockFeedback"></div>`;
-      const ta=card.querySelector('textarea');
-      const check=()=>{
-        const missing=(ex.words||[]).filter(w=>!clean(ta.value).includes(clean(w)));
-        feedback(card,missing.length?`Try again. Include: ${missing.join(', ')}`:'✓ You used the target words.',missing.length===0);
-      };
-      card.querySelector('.check').onclick=check;
-      card.querySelector('.speak').onclick=async e=>{
-        const b=e.currentTarget;
-        const mic=window.WebilangMic;
-        if(!mic?.recognizeOnce){feedback(card,'Speech recognition is not available. Type instead.',false);return;}
-        b.disabled=true;b.textContent='🎙 Listening…';
-        try{ta.value=await mic.recognizeOnce({lang:'en-US'})||'';check();}
-        catch(err){feedback(card,err?.message||'Could not recognise speech.',false);}
-        finally{b.disabled=false;b.textContent='🎙 Speak';}
-      };
-      speakingGrid.appendChild(card);
+      const target=String(ex.word||'').trim();
+      card.querySelector('.aiStockTarget').textContent=target;
+      card.querySelector('.aiStockPrompt').textContent=ex.prompt||'Say the expression clearly.';
+      const inp=card.querySelector('input');
+      const helper=helpTools(card,ex);
+      card.querySelector('.say').onclick=e=>recogniseTarget(card,target,inp,e.currentTarget,helper);
+      speakingStage.grid.appendChild(card);
     });
 
-    status.textContent=`Fresh round ready: ${(data.gaps||[]).length+(data.choices||[]).length+(data.natural||[]).length+(data.personal||[]).length+(data.speaking||[]).length} activities.`;
+    // Progressive reveal: only Stage 1 is visible at the start.
+    stages.forEach((stage,i)=>{
+      if(i>0) stage.hidden=true;
+      const note=document.createElement('div');
+      note.className='aiStockUnlock';
+      if(i===0) note.textContent='Try both context cards first. The next stage opens after your attempts; the answers are not shown in advance.';
+      stage.appendChild(note);
+    });
+
+    const unlock=()=>{
+      for(let i=0;i<stages.length-1;i++){
+        const current=stages[i], next=stages[i+1];
+        if(current.hidden || !next.hidden) continue;
+        const cards=[...current.querySelectorAll('.aiStockCard')];
+        if(cards.length && cards.every(c=>c.dataset.attempted==='1')){
+          next.hidden=false;
+          const note=current.querySelector('.aiStockUnlock');
+          if(note) note.textContent='Stage attempted. The next stage is open.';
+        }
+      }
+    };
+    list.addEventListener('wlAiPracticeAttempt',unlock);
+
+    const total=
+      (data.gaps||[]).length+
+      (data.choices||[]).length+
+      (data.natural||[]).length+
+      (data.personal||[]).length+
+      (data.speaking||[]).length;
+    status.textContent=`Practice ready: ${total} activities. Start with Stage 1.`;
   }
 
-  btn.addEventListener('click',async()=>{
+  async function build(){
     const entries=window.WebilangStockBridge?.selectedEntries?.()||[];
     const words=entries.slice(0,6).map(e=>e.item);
     if(!words.length){
@@ -12600,9 +12942,10 @@ if(storyResetButton){
 
     panel.hidden=false;
     list.innerHTML='';
-    status.textContent='Creating a fresh A2 practice round with different contexts...';
+    status.textContent='Building context-based practice with plausible distractors...';
     btn.disabled=true;
-    btn.textContent='✨ Generating...';
+    const normalText=words.length?`Build practice (${words.length})`:'Build practice';
+    btn.textContent='Building…';
 
     try{
       const endpoint=window.WEBILANG_WORDSTOCK_ENDPOINT||'/api/feedback';
@@ -12612,15 +12955,18 @@ if(storyResetButton){
         body:JSON.stringify({mode:'wordstock',words,level:'A2',module:'Gaming'})
       });
       const data=await r.json().catch(()=>({}));
-      if(!r.ok)throw new Error(data?.error||`Server error (${r.status})`);
+      if(!r.ok) throw new Error(data?.error||`Server error (${r.status})`);
       render(data);
+      try{panel.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}
     }catch(err){
-      status.textContent='AI practice could not connect. The shared /api/feedback endpoint is not responding. '+(err?.message||'');
+      status.textContent='Practice could not connect to /api/feedback. '+(err?.message||'');
     }finally{
       btn.disabled=false;
-      btn.textContent='✨ Generate more practice';
+      btn.textContent=normalText;
     }
-  });
+  }
+
+  window.WebilangBuildSelectedWordPractice=build;
 
   clear?.addEventListener('click',()=>{
     list.innerHTML='';
@@ -12885,6 +13231,7 @@ if(storyResetButton){
   async function getFeedback(){
     if(busy||studentTurns<2) return;
     busy=true;updateCounters();
+    feedbackBox.querySelectorAll(".roleGrammarSavedNote").forEach(x=>x.remove());
     feedbackBox.hidden=false;
     feedbackBody.textContent="Reviewing your speaking…";
     feedbackBox.scrollIntoView({behavior:"smooth",block:"nearest"});
@@ -12902,6 +13249,25 @@ if(storyResetButton){
       let data={};try{data=await response.json();}catch(e){}
       if(!response.ok) throw new Error(data?.error||`Feedback server error (${response.status})`);
       feedbackBody.textContent=String(data?.feedback||"No feedback returned.");
+
+      const grammarItems=Array.isArray(data?.grammarItems)?data.grammarItems:[];
+      if(grammarItems.length && window.WebilangGrammarStock?.add){
+        window.WebilangGrammarStock.add(grammarItems);
+
+        const note=document.createElement("div");
+        note.className="roleGrammarSavedNote";
+        note.appendChild(document.createTextNode(
+          `${grammarItems.length} grammar rule${grammarItems.length===1?"":"s"} saved to My Grammar Stock.`
+        ));
+        const open=document.createElement("button");
+        open.type="button";
+        open.className="roleGrammarOpenBtn";
+        open.textContent="Open Grammar Stock →";
+        open.onclick=()=>window.WebilangGrammarStock?.open?.();
+        note.appendChild(open);
+        feedbackBox.appendChild(note);
+      }
+
       setState("","Feedback ready.");
     }catch(err){
       feedbackBody.textContent="Feedback could not connect. "+(err?.message||"");
@@ -12921,6 +13287,7 @@ if(storyResetButton){
     agentAudio.pause();agentAudio.removeAttribute("src");agentAudio.hidden=true;
     studentAudio.pause();studentAudio.removeAttribute("src");studentAudio.hidden=true;
     log.innerHTML='<div class="roleEmpty" id="roleplayEmpty">🎙 Speak first. Leo will answer your question and gradually reveal what happened.</div>';
+    feedbackBox.querySelectorAll(".roleGrammarSavedNote").forEach(x=>x.remove());
     feedbackBox.hidden=true;feedbackBody.textContent="Your feedback will appear here.";
     typedInput.value="";
     setState("","Ready. Press Start answer and speak naturally.");
@@ -12955,6 +13322,193 @@ if(storyResetButton){
   });
 
   updateCounters();
+})();
+</script>
+
+
+<script id="wl-grammar-stock-v1">
+(() => {
+  'use strict';
+
+  const KEY="webilang_gaming_grammar_stock_v1";
+  const list=document.getElementById("grammarStockList");
+  const count=document.getElementById("grammarStockCount");
+  const saved=document.getElementById("grammarStockSaved");
+  const clear=document.getElementById("grammarStockClear");
+  const tabBtn=document.querySelector('.wlTab[data-tab="grammarstock"]');
+  if(!list) return;
+
+  let items=[];
+
+  const clean=s=>String(s||"").replace(/\s+/g," ").trim();
+  const norm=s=>clean(s).toLowerCase().replace(/[’‘]/g,"'").replace(/[.,!?;:]+$/g,"");
+
+  function load(){
+    try{
+      const data=JSON.parse(localStorage.getItem(KEY)||"[]");
+      items=Array.isArray(data)?data.slice(0,20):[];
+    }catch(e){items=[];}
+  }
+
+  function saveState(){
+    try{localStorage.setItem(KEY,JSON.stringify(items.slice(0,20)));}catch(e){}
+  }
+
+  function updateHeader(){
+    if(count) count.textContent=`${items.length} rule${items.length===1?"":"s"}`;
+    if(saved) saved.textContent=items.length
+      ? `${items.length} personal grammar rule${items.length===1?"":"s"} saved on this device.`
+      : "No grammar rules saved yet.";
+    if(tabBtn) tabBtn.textContent=items.length?`My Grammar Stock (${items.length})`:"My Grammar Stock";
+  }
+
+  function feedback(el,text,ok){
+    el.textContent=text;
+    el.className="grammarFeedback "+(ok?"ok":"bad");
+  }
+
+  function render(){
+    updateHeader();
+    if(!items.length){
+      list.innerHTML='<div class="grammarEmpty">Complete the AI Roleplay and press <b>Finish & get feedback</b>. Genuine grammar errors from your own speech will appear here with targeted practice.</div>';
+      return;
+    }
+
+    list.innerHTML="";
+    items.forEach((item,index)=>{
+      const p=item.practice||{};
+      const rec=p.recognition||{};
+      const ret=p.retrieve||{};
+      const prod=p.production||{};
+
+      const card=document.createElement("article");
+      card.className="grammarRuleCard";
+
+      const top=document.createElement("div");
+      top.className="grammarRuleTop";
+      const title=document.createElement("div");
+      title.className="grammarRuleTitle";
+      title.textContent=item.rule||"Grammar rule";
+      const seen=document.createElement("div");
+      seen.className="grammarRuleSeen";
+      seen.textContent=`seen ${item.seen||1}×`;
+      top.append(title,seen);
+
+      const example=document.createElement("div");
+      example.className="grammarExample";
+      const bad=document.createElement("span");
+      bad.className="bad";
+      bad.textContent=item.original||"";
+      const arrow=document.createTextNode("  →  ");
+      const good=document.createElement("span");
+      good.className="good";
+      good.textContent=item.correction||"";
+      example.append(bad,arrow,good);
+
+      const explain=document.createElement("div");
+      explain.className="grammarRuleExplain";
+      explain.textContent=item.explanation||"Review the corrected form and practise it in a new context.";
+
+      const grid=document.createElement("div");
+      grid.className="grammarPracticeGrid";
+
+      // Recognition
+      const r1=document.createElement("div");
+      r1.className="grammarPractice";
+      r1.innerHTML='<span class="grammarPracticeKicker">1 · Recognition</span><div class="grammarPracticePrompt"></div><div class="grammarOptionList"></div><div class="grammarFeedback"></div>';
+      r1.querySelector(".grammarPracticePrompt").textContent=rec.prompt||"Which sentence is correct?";
+      const optBox=r1.querySelector(".grammarOptionList");
+      const r1fb=r1.querySelector(".grammarFeedback");
+      (rec.options||[]).slice(0,3).forEach((option,i)=>{
+        const b=document.createElement("button");
+        b.type="button";b.className="grammarOption";b.textContent=option;
+        b.onclick=()=>{
+          [...optBox.children].forEach(x=>x.classList.remove("correct","wrong"));
+          const ok=i===Number(rec.answerIndex);
+          b.classList.add(ok?"correct":"wrong");
+          feedback(r1fb,ok?"✓ Correct.":(rec.support||"Use the rule above and compare the verb form."),ok);
+        };
+        optBox.appendChild(b);
+      });
+
+      // Retrieve
+      const r2=document.createElement("div");
+      r2.className="grammarPractice";
+      r2.innerHTML='<span class="grammarPracticeKicker">2 · Retrieve</span><div class="grammarPracticePrompt"></div><div class="grammarPracticePrompt retrieveSentence"></div><div class="grammarInputRow"><input type="text" autocomplete="off" placeholder="Type the missing form"><button type="button" class="grammarMiniBtn">Check</button></div><div class="grammarFeedback"></div>';
+      r2.querySelector(".grammarPracticePrompt").textContent=ret.prompt||"Complete the sentence.";
+      r2.querySelector(".retrieveSentence").textContent=ret.sentence||"";
+      const r2in=r2.querySelector("input");
+      const r2fb=r2.querySelector(".grammarFeedback");
+      r2.querySelector("button").onclick=()=>{
+        const ok=norm(r2in.value)===norm(ret.answer);
+        feedback(r2fb,ok?"✓ Retrieved correctly.":(ret.support||"Look again at the rule and try the missing form."),ok);
+      };
+
+      // Production
+      const r3=document.createElement("div");
+      r3.className="grammarPractice";
+      r3.innerHTML='<span class="grammarPracticeKicker">3 · Production</span><div class="grammarPracticePrompt"></div><textarea class="grammarProduction" placeholder="Write your own sentence..."></textarea><div class="grammarInputRow"><button type="button" class="grammarMiniBtn compare">Compare with model</button></div><div class="grammarFeedback"></div><div class="grammarModel" hidden></div>';
+      r3.querySelector(".grammarPracticePrompt").textContent=prod.prompt||"Write one new sentence using this rule.";
+      const r3ta=r3.querySelector("textarea");
+      const r3fb=r3.querySelector(".grammarFeedback");
+      const model=r3.querySelector(".grammarModel");
+      r3.querySelector(".compare").onclick=()=>{
+        if(clean(r3ta.value).split(/\s+/).filter(Boolean).length<3){
+          feedback(r3fb,"Write a complete sentence first.",false);
+          return;
+        }
+        feedback(r3fb,prod.support||"Compare your grammar pattern with the model, not just the vocabulary.",true);
+        model.hidden=false;
+        model.textContent="Model: "+String(prod.model||item.correction||"");
+      };
+
+      grid.append(r1,r2,r3);
+      card.append(top,example,explain,grid);
+      list.appendChild(card);
+    });
+  }
+
+  function addFromFeedback(newItems){
+    if(!Array.isArray(newItems)||!newItems.length) return 0;
+    let added=0;
+    newItems.slice(0,3).forEach(raw=>{
+      const rule=clean(raw?.rule);
+      if(!rule) return;
+      const key=norm(rule);
+      const existing=items.find(x=>norm(x.rule)===key);
+      if(existing){
+        existing.seen=(existing.seen||1)+1;
+        existing.original=raw.original||existing.original;
+        existing.correction=raw.correction||existing.correction;
+        existing.explanation=raw.explanation||existing.explanation;
+        existing.practice=raw.practice||existing.practice;
+      }else{
+        items.unshift({...raw,seen:1,savedAt:Date.now()});
+        added++;
+      }
+    });
+    items=items.slice(0,20);
+    saveState();render();
+    return added;
+  }
+
+  function openTab(){
+    document.querySelector('.wlTab[data-tab="grammarstock"]')?.click();
+  }
+
+  clear?.addEventListener("click",()=>{
+    if(!confirm("Clear all saved grammar rules?")) return;
+    items=[];saveState();render();
+  });
+
+  load();render();
+
+  window.WebilangGrammarStock={
+    add:addFromFeedback,
+    open:openTab,
+    render,
+    get:()=>items.slice()
+  };
 })();
 </script>
 
