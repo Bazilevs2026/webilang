@@ -109,9 +109,11 @@ CRITICAL PEDAGOGY:
    - Each natural pair contains the target expression, but only one sentence is clearly idiomatic/natural.
 7. PERSONAL.
    - Ask for one short personal sentence using the target.
-8. WORD-LEVEL SPEECH.
-   - The speaking activity is NOT a full-sentence speaking task.
-   - It asks the learner to say only one saved word or phrase for recognition.
+8. FINAL RETRIEVAL — STAGE 5 ONLY.
+   - There is NO Stage 6.
+   - The final activity lets the learner SAY OR WRITE only one saved word or phrase.
+   - It is NOT a full-sentence speaking task.
+   - Use the instruction exactly: "Say the word or phrase or write it."
 9. Use contemporary, realistic everyday contexts. No bizarre sentences.
 10. Return JSON only. No markdown or commentary.
 
@@ -133,7 +135,7 @@ Return STRICT JSON with exactly this shape:
     {"word":"target","prompt":"short personal prompt","support":"short usage clue","ruHint":"краткий перевод"}
   ],
   "speaking":[
-    {"word":"target","prompt":"Say this saved word or phrase clearly.","support":"short pronunciation/use reminder","ruHint":"краткий перевод"}
+    {"word":"target","prompt":"Say the word or phrase or write it.","support":"short meaning/use reminder","ruHint":"краткий перевод"}
   ]
 }`;
 
