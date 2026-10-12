@@ -3676,6 +3676,16 @@ button.primary,
   .adhdLetters{grid-template-columns:1fr}
 }
 
+
+/* ===== Independent Writing · AI feedback ===== */
+#tab-writing .writingAiPanel{margin-top:12px}
+#tab-writing #iwAiFeedbackBtn{
+  background:#9b2f59;
+  border-color:#9b2f59;
+  color:#fff;
+}
+#tab-writing #iwAiFeedbackBtn:disabled{opacity:.5;cursor:not-allowed}
+
 </style>
 
 
@@ -4829,9 +4839,22 @@ body{margin:0;background:#f5f8fb}
               <label class="self-check"><input type="checkbox" data-iwcheck="links">I connected ideas with linking words.</label>
               <label class="self-check"><input type="checkbox" data-iwcheck="conclusion">I finished with a clear conclusion / advice.</label>
             </div>
-            <div class="actions"><button type="button" class="wbtn" id="iwFinalCheck">✓ Check final version</button><button type="button" class="adaptive-support-btn" id="iwImproveHelpBtn">💡 Support</button><button type="button" class="tiny" id="iwFinalListen">🔊 Read aloud</button></div>
+            <div class="actions">
+              <button type="button" class="wbtn" id="iwFinalCheck">✓ Check final version</button>
+              <button type="button" class="watchAiBtn" id="iwAiFeedbackBtn">✨ AI Check &amp; Feedback</button>
+              <button type="button" class="adaptive-support-btn" id="iwImproveHelpBtn">💡 Support</button>
+              <button type="button" class="tiny" id="iwFinalListen">🔊 Read aloud</button>
+            </div>
             <div class="writing-health" id="iwHealth"></div>
             <div class="feedback" id="iwImproveFb"></div><div class="whelp" id="iwImproveHelp"></div>
+
+            <div class="watchAiPanel writingAiPanel" id="iwAiFeedbackPanel" hidden>
+              <div class="watchAiHead">
+                <h4>✨ AI feedback: task, structure, vocabulary &amp; grammar</h4>
+                <button type="button" class="watchAiClear" id="iwAiFeedbackClear">Clear</button>
+              </div>
+              <div class="watchAiBody" id="iwAiFeedbackBody">Your feedback will appear here.</div>
+            </div>
           </div>
         </div>
       </article>
@@ -11975,6 +11998,110 @@ if(storyResetButton){
     $("#iwImproveHelp").classList.add("show");
   };
 
+  // --- Independent Writing · AI Check & Feedback ---
+  function renderIwAiFeedback(text){
+    const body=$("#iwAiFeedbackBody");
+    body.className="watchAiBody";
+    body.innerHTML="";
+    String(text||"").replace(/\r/g,"").split("\n").filter(x=>x.trim()).forEach(line=>{
+      const section=document.createElement("section");
+      section.className="watchAiSection";
+      const p=document.createElement("div");
+      p.className="watchAiLine";
+      p.textContent=line.trim();
+      section.appendChild(p);
+      body.appendChild(section);
+    });
+  }
+
+  function saveIwGrammar(items){
+    const panel=$("#iwAiFeedbackPanel");
+    panel.querySelectorAll(".roleGrammarSavedNote").forEach(x=>x.remove());
+    if(!Array.isArray(items)||!items.length||!window.WebilangGrammarStock?.add)return;
+    window.WebilangGrammarStock.add(items);
+
+    const note=document.createElement("div");
+    note.className="roleGrammarSavedNote";
+    note.appendChild(document.createTextNode(
+      `${items.length} grammar rule${items.length===1?"":"s"} saved to My Grammar Stock.`
+    ));
+
+    const open=document.createElement("button");
+    open.type="button";
+    open.className="roleGrammarOpenBtn";
+    open.textContent="Open Grammar Stock →";
+    open.onclick=()=>window.WebilangGrammarStock?.open?.();
+
+    note.appendChild(open);
+    panel.appendChild(note);
+  }
+
+  $("#iwAiFeedbackBtn").onclick=async()=>{
+    const draft=clean($("#iwDraft").value);
+    const panel=$("#iwAiFeedbackPanel");
+    const body=$("#iwAiFeedbackBody");
+    const btn=$("#iwAiFeedbackBtn");
+    const words=countWords(draft);
+
+    if(words<40){
+      panel.hidden=false;
+      body.className="watchAiBody error";
+      body.textContent="Write more of your paragraph first. AI feedback needs at least about 40 words.";
+      return;
+    }
+
+    const skeleton={
+      intro:clean($("#iwSkIntro").value),
+      argument1:clean($("#iwSkArg1").value),
+      example1:clean($("#iwSkEx1").value),
+      argument2:clean($("#iwSkArg2").value),
+      example2:clean($("#iwSkEx2").value),
+      conclusion:clean($("#iwSkConclusion").value)
+    };
+
+    btn.disabled=true;
+    btn.textContent="✨ Checking…";
+    panel.hidden=false;
+    body.className="watchAiBody loading";
+    body.textContent="Checking task achievement, structure, vocabulary and grammar…";
+    panel.querySelectorAll(".roleGrammarSavedNote").forEach(x=>x.remove());
+
+    try{
+      const response=await fetch(window.WEBILANG_AI_ENDPOINT||"/api/feedback",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          mode:"writing_feedback",
+          level:"A2",
+          module:"Gaming · Independent Writing",
+          task:"Do you think video games are more helpful or more harmful for young people? Give your opinion and explain your reasons in 120–150 words. Discuss benefits and possible harms, use examples, and finish with a clear conclusion or advice.",
+          skeleton,
+          draft
+        })
+      });
+
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(data?.error||`Server error (${response.status})`);
+      renderIwAiFeedback(data?.feedback||"No feedback returned.");
+      saveIwGrammar(data?.grammarItems||[]);
+    }catch(err){
+      body.className="watchAiBody error";
+      body.textContent="AI Feedback could not connect. "+(err?.message||"");
+    }finally{
+      btn.disabled=false;
+      btn.textContent="✨ AI Check & Feedback";
+    }
+  };
+
+  $("#iwAiFeedbackClear").onclick=()=>{
+    const panel=$("#iwAiFeedbackPanel");
+    const body=$("#iwAiFeedbackBody");
+    panel.hidden=true;
+    body.className="watchAiBody";
+    body.textContent="Your feedback will appear here.";
+    panel.querySelectorAll(".roleGrammarSavedNote").forEach(x=>x.remove());
+  };
+
   // --- reset ---
   window.WebilangWritingReset=()=>{
     state.guided={plan:null,built:{},own:"",resultOwn:"",finalDone:false};
@@ -12000,6 +12127,12 @@ if(storyResetButton){
     $("#iwIdeaSaveStatus").textContent="Your notes are saved to the idea bank automatically as you type.";
     $("#iwKeyBank").innerHTML="";
     $("#iwSkeletonReview").innerHTML="";
+    if($("#iwAiFeedbackPanel")){
+      $("#iwAiFeedbackPanel").hidden=true;
+      $("#iwAiFeedbackBody").className="watchAiBody";
+      $("#iwAiFeedbackBody").textContent="Your feedback will appear here.";
+      $("#iwAiFeedbackPanel").querySelectorAll(".roleGrammarSavedNote").forEach(x=>x.remove());
+    }
   };
 })();
 </script>
