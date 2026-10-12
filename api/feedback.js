@@ -1,282 +1,171 @@
 /**
- * Webilang shared AI endpoint
- * /api/feedback.js
- * Handles Speaking Feedback + My Word Stock
+ * Webilang shared AI feedback + Word Stock practice
+ * Vercel Function: /api/feedback.js
+ *
+ * Modes:
+ * 1) speaking feedback: {task, transcript, level, module}
+ * 2) Word Stock practice: {mode:"wordstock", words, level, module}
+ *
+ * Uses OPENAI_API_KEY.
  */
+function outputText(data){
+  if(typeof data?.output_text==="string" && data.output_text.trim()) return data.output_text.trim();
+  const out=[];
+  for(const item of (data?.output||[])){
+    for(const part of (item?.content||[])){
+      if(typeof part?.text==="string") out.push(part.text);
+      else if(typeof part?.output_text==="string") out.push(part.output_text);
+    }
+  }
+  return out.join("\n").trim();
+}
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
-    return res.status(405).json({ error: "Method not allowed" });
+function stripFence(s){
+  return String(s||"").trim()
+    .replace(/^```(?:json)?\s*/i,"")
+    .replace(/\s*```$/,"")
+    .trim();
+}
+
+async function ask({instructions,input,maxOutput=500}){
+  const r=await fetch("https://api.openai.com/v1/responses",{
+    method:"POST",
+    headers:{
+      "Authorization":`Bearer ${process.env.OPENAI_API_KEY}`,
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+      model:"gpt-5.6-luna",
+      instructions,
+      input,
+      reasoning:{effort:"none"},
+      max_output_tokens:maxOutput,
+      store:false
+    })
+  });
+  const data=await r.json();
+  if(!r.ok){
+    console.error("OpenAI feedback error",data);
+    throw new Error(data?.error?.message||"AI service error");
+  }
+  return outputText(data);
+}
+
+function cleanWords(words){
+  if(!Array.isArray(words)) return [];
+  const out=[];
+  for(const w of words){
+    const s=String(w||"").replace(/\s+/g," ").trim().slice(0,80);
+    if(s && !out.some(x=>x.toLowerCase()===s.toLowerCase())) out.push(s);
+  }
+  return out.slice(0,6);
+}
+
+export default async function handler(req,res){
+  if(req.method!=="POST"){
+    res.setHeader("Allow","POST");
+    return res.status(405).json({error:"Method not allowed"});
+  }
+  if(!process.env.OPENAI_API_KEY){
+    return res.status(500).json({error:"OPENAI_API_KEY is not configured"});
   }
 
-  try {
-    if (!process.env.OPENAI_API_KEY) {
-      return res.status(500).json({ error: "OPENAI_API_KEY is not configured on the server" });
-    }
+  try{
+    const body=req.body||{};
 
-    const body = req.body || {};
+    if(body.mode==="wordstock"){
+      const words=cleanWords(body.words);
+      if(!words.length) return res.status(400).json({error:"No Word Stock items supplied"});
 
-    if (body.mode === "wordstock") {
-      const words = Array.isArray(body.words)
-        ? body.words.map(x => String(x || "").trim()).filter(Boolean).slice(0, 6)
-        : [];
-      const level = String(body.level || "A2").slice(0, 20);
+      const instructions=`You create fresh English vocabulary practice for an A2 learner.
+Use ONLY the supplied saved words/phrases as target vocabulary.
+Create exactly 8 activities total:
+- gaps: 2
+- choices: 2
+- natural: 2
+- personal: 1
+- speaking: 1
 
-      if (!words.length) {
-        return res.status(400).json({ error: "Select at least one word or phrase" });
-      }
+Pedagogy:
+- Stage 1 gaps must NOT show the answer anywhere in the sentence.
+- Keep sentences short, natural, and easy to infer from context.
+- Do not put the target word in a gap sentence except in the hidden "answer" field.
+- Choice activities should test meaning/use in a new context.
+- Natural/unnatural pairs must have only one clearly natural answer.
+- Personal and speaking prompts must be short and practical.
+- Do not add explanations outside the JSON.
 
-      const instructions = `
-You create varied English vocabulary practice for a Russian-speaking ${level} learner.
+Return STRICT JSON only with this exact shape:
+{
+  "gaps":[
+    {"sentence":"... _____ ...","answer":"target"},
+    {"sentence":"... _____ ...","answer":"target"}
+  ],
+  "choices":[
+    {"word":"target","prompt":"Which sentence uses this saved expression correctly?","options":["...","...","..."],"correctIndex":0},
+    {"word":"target","prompt":"Which sentence uses this saved expression correctly?","options":["...","...","..."],"correctIndex":1}
+  ],
+  "natural":[
+    {"word":"target","a":"...","b":"...","answer":"A"},
+    {"word":"target","a":"...","b":"...","answer":"B"}
+  ],
+  "personal":[{"word":"target","prompt":"..."}],
+  "speaking":[{"words":["target","target"],"prompt":"..."}]
+}`;
 
-Selected target items:
-${words.map(w => "- " + w).join("\n")}
-
-Create exactly 8 activities:
-- 2 gaps
-- 2 choices
-- 1 natural-English task
-- 1 personal task
-- 2 speaking tasks
-
-Use ONLY selected items as target vocabulary.
-Vary contexts across school, home, friends, hobbies, travel, shopping, family, daily life and gaming.
-Do not repeat the same context.
-Keep grammar and vocabulary at ${level}.
-Preserve multi-word target phrases exactly.
-
-For gaps: exactly one _____ and answer must be a selected item.
-For choices: exactly four options and one clearly correct answer.
-For natural: one sentence natural, one with a clear usage/collocation problem.
-Return JSON only matching the schema.
-`;
-
-      const schema = {
-        type: "object",
-        additionalProperties: false,
-        properties: {
-          gaps: {
-            type: "array", minItems: 2, maxItems: 2,
-            items: {
-              type: "object", additionalProperties: false,
-              properties: {
-                word: { type: "string" },
-                sentence: { type: "string" },
-                answer: { type: "string" }
-              },
-              required: ["word","sentence","answer"]
-            }
-          },
-          choices: {
-            type: "array", minItems: 2, maxItems: 2,
-            items: {
-              type: "object", additionalProperties: false,
-              properties: {
-                word: { type: "string" },
-                prompt: { type: "string" },
-                options: {
-                  type: "array", minItems: 4, maxItems: 4,
-                  items: { type: "string" }
-                },
-                correctIndex: { type: "integer", minimum: 0, maximum: 3 }
-              },
-              required: ["word","prompt","options","correctIndex"]
-            }
-          },
-          natural: {
-            type: "array", minItems: 1, maxItems: 1,
-            items: {
-              type: "object", additionalProperties: false,
-              properties: {
-                word: { type: "string" },
-                a: { type: "string" },
-                b: { type: "string" },
-                answer: { type: "string", enum: ["A","B"] }
-              },
-              required: ["word","a","b","answer"]
-            }
-          },
-          personal: {
-            type: "array", minItems: 1, maxItems: 1,
-            items: {
-              type: "object", additionalProperties: false,
-              properties: {
-                word: { type: "string" },
-                prompt: { type: "string" }
-              },
-              required: ["word","prompt"]
-            }
-          },
-          speaking: {
-            type: "array", minItems: 2, maxItems: 2,
-            items: {
-              type: "object", additionalProperties: false,
-              properties: {
-                words: {
-                  type: "array", minItems: 1, maxItems: 2,
-                  items: { type: "string" }
-                },
-                prompt: { type: "string" }
-              },
-              required: ["words","prompt"]
-            }
-          }
-        },
-        required: ["gaps","choices","natural","personal","speaking"]
-      };
-
-      const ai = await fetch("https://api.openai.com/v1/responses", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "gpt-6-luna",
-          reasoning: { effort: "none" },
-          instructions,
-          input: "Generate a fresh compact 8-activity vocabulary round.",
-          text: {
-            format: {
-              type: "json_schema",
-              name: "word_stock_practice",
-              strict: true,
-              schema
-            }
-          },
-          max_output_tokens: 1300,
-          store: false
-        })
+      const raw=await ask({
+        instructions,
+        input:`Saved words/phrases: ${JSON.stringify(words)}`,
+        maxOutput:900
       });
 
-      const data = await ai.json();
-      if (!ai.ok) {
-        return res.status(ai.status).json({
-          error: data?.error?.message || "AI service error"
-        });
-      }
+      let data;
+      try{data=JSON.parse(stripFence(raw));}
+      catch(e){throw new Error("AI returned invalid Word Stock JSON");}
 
-      let outputText = typeof data.output_text === "string" ? data.output_text.trim() : "";
-      if (!outputText && Array.isArray(data.output)) {
-        outputText = data.output
-          .flatMap(item => Array.isArray(item.content) ? item.content : [])
-          .filter(part => part?.type === "output_text" && typeof part.text === "string")
-          .map(part => part.text)
-          .join("\n")
-          .trim();
-      }
-
-      if (!outputText) return res.status(502).json({ error: "AI returned no practice data" });
-
-      try {
-        return res.status(200).json(JSON.parse(outputText));
-      } catch {
-        return res.status(502).json({ error: "Could not parse AI practice data" });
-      }
+      const result={
+        gaps:Array.isArray(data.gaps)?data.gaps.slice(0,2):[],
+        choices:Array.isArray(data.choices)?data.choices.slice(0,2):[],
+        natural:Array.isArray(data.natural)?data.natural.slice(0,2):[],
+        personal:Array.isArray(data.personal)?data.personal.slice(0,1):[],
+        speaking:Array.isArray(data.speaking)?data.speaking.slice(0,1):[]
+      };
+      const total=result.gaps.length+result.choices.length+result.natural.length+result.personal.length+result.speaking.length;
+      if(total!==8) throw new Error("AI practice round did not contain exactly 8 activities");
+      return res.status(200).json(result);
     }
 
-    const task = String(body.task || "").slice(0, 1200);
-    const transcript = String(body.transcript || "").slice(0, 5000);
-    const level = String(body.level || "A2").slice(0, 20);
-    const moduleName = String(body.module || "Gaming").slice(0, 100);
+    const task=String(body.task||"").trim().slice(0,1800);
+    const transcript=String(body.transcript||"").trim().slice(0,5000);
+    const level=String(body.level||"A2").trim().slice(0,20);
+    const module=String(body.module||"Gaming").trim().slice(0,80);
+    if(!transcript) return res.status(400).json({error:"No transcript supplied"});
 
-    if (!transcript.trim()) {
-      return res.status(400).json({ error: "Transcript is required" });
-    }
+    const instructions=`You are a concise English speaking coach.
+Learner level: ${level}. Module: ${module}.
+Evaluate ONLY the learner transcript against the speaking task.
+Do not invent errors or content the learner did not say.
+Keep feedback under 180 words.
+Use this compact structure:
+COMMUNICATION: ...
+GRAMMAR: ...
+VOCABULARY: ...
+PRONUNCIATION / FLUENCY: Comment only on what a transcript can support; do not pretend you heard sounds.
+2 USEFUL CORRECTIONS:
+1) learner wording -> better wording
+2) learner wording -> better wording
+NEXT STEP: ...
+If there are fewer than two genuine errors, give natural upgrades instead.`;
 
-    const instructions = `
-You are an experienced English teacher helping a Russian-speaking ${level} learner.
-
-Analyse ONLY the student's actual transcript.
-Do not invent mistakes.
-Do not over-correct.
-Correct only 1–3 useful points.
-Keep English examples in English.
-Write grammar explanations and coaching comments in Russian.
-Plain text only. No Markdown asterisks.
-
-Use exactly this structure:
-
-1. ✅ What you did well
-Give 1–2 short positive comments.
-
-2. 🔧 Grammar & natural English
-For a real grammar mistake:
-❌ student's exact phrase
-Почему: short explanation in Russian
-✅ corrected English version
-
-For an unnatural but possible phrase:
-⚠️ student's exact phrase
-Грамматически возможно, но естественнее сказать:
-✅ more natural English version
-
-3. 🧠 Vocabulary
-Mention useful language the learner used well.
-Suggest exactly TWO useful ${level} expressions.
-For each:
-Expression: English phrase
-Значение: Russian meaning
-Example: short English example
-
-4. 🗣 Fluency tip
-Give exactly ONE practical tip in Russian.
-
-5. ✨ Better version
-Write a natural improved ${level} version in English.
-Keep the learner's original ideas.
-About 50–80 words.
-`;
-
-    const input = `
-Module: ${moduleName}
-Speaking task: ${task}
-Student transcript: ${transcript}
-`;
-
-    const ai = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-6-luna",
-        reasoning: { effort: "none" },
-        instructions,
-        input,
-        max_output_tokens: 1200,
-        store: false
-      })
+    const feedbackText=await ask({
+      instructions,
+      input:`TASK:\n${task}\n\nLEARNER TRANSCRIPT:\n${transcript}`,
+      maxOutput:320
     });
 
-    const data = await ai.json();
-    if (!ai.ok) {
-      return res.status(ai.status).json({
-        error: data?.error?.message || "OpenAI API error"
-      });
-    }
-
-    let feedback = typeof data.output_text === "string" ? data.output_text.trim() : "";
-    if (!feedback && Array.isArray(data.output)) {
-      feedback = data.output
-        .flatMap(item => Array.isArray(item.content) ? item.content : [])
-        .filter(part => part?.type === "output_text" && typeof part.text === "string")
-        .map(part => part.text)
-        .join("\n")
-        .trim();
-    }
-
-    if (!feedback) {
-      return res.status(502).json({ error: "OpenAI returned no visible text. Please try again." });
-    }
-
-    feedback = feedback.replace(/\*\*/g, "").replace(/__/g, "").trim();
-    return res.status(200).json({ feedback });
-
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: error?.message || "Server error" });
+    return res.status(200).json({feedback:feedbackText});
+  }catch(err){
+    console.error(err);
+    return res.status(500).json({error:err?.message||"Server error"});
   }
 }
