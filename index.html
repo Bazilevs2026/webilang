@@ -3552,6 +3552,130 @@ button.primary,
   line-height:1.4;
 }
 
+
+/* ===== Lesson lead-ins + ADHD note ===== */
+.readingWarmUp{
+  margin:9px 0 12px;
+  padding:9px 11px;
+  display:flex;
+  gap:9px;
+  align-items:center;
+  flex-wrap:wrap;
+  border:1px solid #d6e1da;
+  border-radius:10px;
+  background:#f7fbf8;
+  color:#3d5c50;
+}
+.readingWarmUp span,
+.comicTaskBox>span,
+.readingInfoKicker{
+  font-size:9px;
+  letter-spacing:.10em;
+  font-weight:950;
+  color:#7a5bc0;
+}
+.readingWarmUp b{font-size:12px;line-height:1.35}
+
+.readingInfoTerm{
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  border:0;
+  border-bottom:1px dashed #6d59b6;
+  background:transparent;
+  color:#5b49a4;
+  padding:0 1px;
+  font:inherit;
+  font-weight:900;
+  cursor:pointer;
+}
+.readingInfoTerm:hover{background:#f5f1ff;border-radius:4px}
+.readingInfoOverlay{
+  position:fixed;
+  inset:0;
+  z-index:10020;
+  display:grid;
+  place-items:center;
+  padding:18px;
+  background:rgba(18,28,44,.58);
+  backdrop-filter:blur(4px);
+}
+.readingInfoOverlay[hidden]{display:none!important}
+.readingInfoDialog{
+  position:relative;
+  width:min(480px,94vw);
+  padding:20px;
+  border-radius:18px;
+  border:1px solid #d8d1ef;
+  background:#fff;
+  box-shadow:0 24px 70px rgba(23,31,48,.28);
+  color:#334e61;
+}
+.readingInfoDialog h3{margin:4px 38px 12px 0;font-size:20px;color:#263f54}
+.readingInfoDialog p{font-size:12px;line-height:1.5;margin:10px 0 0}
+.readingInfoSimple{padding:9px 10px;border-radius:9px;background:#f6f8fb;border:1px solid #e1e7eb}
+.readingInfoClose{
+  position:absolute;
+  right:11px;
+  top:10px;
+  width:32px;
+  height:32px;
+  border:0;
+  border-radius:50%;
+  background:#f2eefb;
+  color:#5c4b97;
+  font-size:22px;
+  line-height:1;
+  cursor:pointer;
+}
+.adhdLetters{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+}
+.adhdLetters span{
+  padding:7px 8px;
+  border:1px solid #e1daf2;
+  border-radius:9px;
+  background:#faf8ff;
+  font-size:11px;
+}
+.adhdLetters b{
+  display:inline-grid;
+  place-items:center;
+  width:21px;height:21px;
+  margin-right:5px;
+  border-radius:6px;
+  background:#6955bd;
+  color:#fff;
+}
+
+.comicTaskBox{
+  margin:8px 0 12px;
+  padding:10px 12px;
+  border:1px solid #d9e1ea;
+  border-left:4px solid #7657ff;
+  border-radius:11px;
+  background:linear-gradient(135deg,#f8f7ff,#f7fbff);
+}
+.comicTaskBox b{
+  display:block;
+  margin-top:3px;
+  color:#304d63;
+  font-size:12.5px;
+  line-height:1.4;
+}
+.comicTaskBox small{
+  display:block;
+  margin-top:4px;
+  color:#6d8191;
+  font-size:10.5px;
+  line-height:1.4;
+}
+@media(max-width:520px){
+  .adhdLetters{grid-template-columns:1fr}
+}
+
 </style>
 
 
@@ -3661,7 +3785,11 @@ body{margin:0;background:#f5f8fb}
 <div class="card">
 <div class="gamingStoryEyebrow">STORY · GAMING & REAL LIFE</div>
 <h1>Fortnite Saved My Life</h1>
-<p><b>Choose how you want to collect language:</b> a word, an expression, or a whole reply.</p>
+<div class="comicTaskBox">
+  <span>TASK</span>
+  <b>Read the comic. Click useful words or replies. Then explain what happened.</b>
+  <small>Choose how you want to collect language: a word, an expression, or a whole reply.</small>
+</div>
 <div class="controls">
   <div class="group" id="modeGroup">
     <button class="mode active" data-mode="word">Word</button>
@@ -3874,6 +4002,7 @@ body{margin:0;background:#f5f8fb}
     <article class="readCard" data-reading="andrew">
       <h3>Reading 1 · Andrew: When Gaming Took Over</h3>
       <div class="readMeta">A1–A2 short interview · about 200 words · based only on the interview provided</div>
+      <div class="readingWarmUp"><span>WARM-UP</span><b>Can video games become a problem? Why?</b></div>
       <div class="readText" id="andrewText">
 
 <figure class="readingHero andrewHero">
@@ -3985,6 +4114,7 @@ body{margin:0;background:#f5f8fb}
     <article class="readCard" data-reading="fabu">
       <h3>Reading 2 · Short Interview with FabuRocks</h3>
       <div class="readMeta">A1–A2 adaptation based only on the interview details provided</div>
+      <div class="readingWarmUp"><span>WARM-UP</span><b>Can gaming help someone learn or communicate? How?</b></div>
       <div class="readText" id="fabuText">
         
 
@@ -3995,7 +4125,7 @@ body{margin:0;background:#f5f8fb}
 
 <div class="interviewBlock">
   <div class="interviewQ q1">Hi FabuRocks! Tell us a little about yourself.</div>
-  <div class="interviewA">I’m 14. I’m a gamer, YouTuber, livestreamer and podcaster. I have ADHD. <b>ADHD means Attention-Deficit/Hyperactivity Disorder</b>: <b>A</b> = Attention, <b>D</b> = Deficit, <b>H</b> = Hyperactivity, <b>D</b> = Disorder. It is a condition that can make it difficult to focus, stay still, or control attention.</div>
+  <div class="interviewA">I’m 14. I’m a gamer, YouTuber, livestreamer and podcaster. I have <button type="button" class="readingInfoTerm" id="adhdInfoBtn" aria-haspopup="dialog">ADHD <span aria-hidden="true">ⓘ</span></button>.</div>
 
   <div class="interviewQ q2">How did you start creating gaming content?</div>
   <div class="interviewA">I started when I was 7. I had problems with speaking, and normal speech therapy did not help me much. My parents saw that gaming and making videos helped me speak more. First, I made YouTube videos. Later, I started livestreaming.</div>
@@ -4163,6 +4293,22 @@ body{margin:0;background:#f5f8fb}
   </div>
 
 
+
+<div class="readingInfoOverlay" id="adhdInfoOverlay" hidden>
+  <div class="readingInfoDialog" role="dialog" aria-modal="true" aria-labelledby="adhdInfoTitle">
+    <button type="button" class="readingInfoClose" id="adhdInfoClose" aria-label="Close">×</button>
+    <div class="readingInfoKicker">QUICK NOTE</div>
+    <h3 id="adhdInfoTitle">What does ADHD mean?</h3>
+    <div class="adhdLetters">
+      <span><b>A</b> Attention</span>
+      <span><b>D</b> Deficit</span>
+      <span><b>H</b> Hyperactivity</span>
+      <span><b>D</b> Disorder</span>
+    </div>
+    <p><b>ADHD</b> means <b>Attention-Deficit/Hyperactivity Disorder</b>.</p>
+    <p class="readingInfoSimple">It can make it difficult to focus, stay still, or control attention.</p>
+  </div>
+</div>
 </section>
 
 
@@ -13552,6 +13698,32 @@ if(storyResetButton){
     render,
     get:()=>items.slice()
   };
+})();
+</script>
+
+
+<script id="wl-reading-adhd-popup-v1">
+(() => {
+  const open=document.getElementById("adhdInfoBtn");
+  const overlay=document.getElementById("adhdInfoOverlay");
+  const close=document.getElementById("adhdInfoClose");
+  if(!open||!overlay||!close)return;
+
+  const hide=()=>{
+    overlay.hidden=true;
+    open.focus();
+  };
+  const show=()=>{
+    overlay.hidden=false;
+    close.focus();
+  };
+
+  open.addEventListener("click",show);
+  close.addEventListener("click",hide);
+  overlay.addEventListener("click",e=>{if(e.target===overlay)hide();});
+  document.addEventListener("keydown",e=>{
+    if(e.key==="Escape"&&!overlay.hidden)hide();
+  });
 })();
 </script>
 
