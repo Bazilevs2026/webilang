@@ -77,40 +77,64 @@ export default async function handler(req,res){
       const words=cleanWords(body.words);
       if(!words.length) return res.status(400).json({error:"No Word Stock items supplied"});
 
-      const instructions=`You create fresh English vocabulary practice for an A2 learner.
-Use ONLY the supplied saved words/phrases as target vocabulary.
-Create exactly 8 activities total:
+      const instructions=`You create an adaptive English vocabulary practice round for an A2 learner.
+Use ONLY the supplied saved words/phrases as TARGET vocabulary.
+Create exactly 8 activities:
 - gaps: 2
 - choices: 2
 - natural: 2
 - personal: 1
 - speaking: 1
 
-Pedagogy:
-- Stage 1 gaps must NOT show the answer anywhere in the sentence.
-- Keep sentences short, natural, and easy to infer from context.
-- Do not put the target word in a gap sentence except in the hidden "answer" field.
-- Choice activities should test meaning/use in a new context.
-- Natural/unnatural pairs must have only one clearly natural answer.
-- Personal and speaking prompts must be short and practical.
-- Do not add explanations outside the JSON.
+CRITICAL PEDAGOGY:
+1. CONTEXT FIRST.
+   - The 2 gap sentences are Stage 1.
+   - NEVER print the English target anywhere in a Stage-1 sentence or support clue.
+   - The learner must infer it from context before seeing later stages.
+2. SHORT CONTEXT.
+   - Keep gap and choice sentences natural and usually 6–12 words.
+3. DISTRACTORS MUST BE LOGICAL.
+   - In each choice activity, give exactly 3 word/phrase options.
+   - One is the saved target.
+   - The other 2 must be plausible in the same topic and the same grammatical category / phrase type.
+   - They should be tempting but wrong in this exact context because of meaning, collocation, or grammar.
+   - NEVER use absurd, random, obviously unrelated distractors.
+4. SUPPORT AFTER A MISTAKE.
+   - Every activity must include "support": one short English clue that helps the learner reason toward the answer.
+   - Support must NOT directly state the English answer.
+5. RU HINT.
+   - Every activity must include "ruHint": a concise Russian meaning/translation of the target expression.
+   - Do not include the English target inside ruHint.
+6. NATURAL ENGLISH.
+   - Each natural pair contains the target expression, but only one sentence is clearly idiomatic/natural.
+7. PERSONAL.
+   - Ask for one short personal sentence using the target.
+8. WORD-LEVEL SPEECH.
+   - The speaking activity is NOT a full-sentence speaking task.
+   - It asks the learner to say only one saved word or phrase for recognition.
+9. Use contemporary, realistic everyday contexts. No bizarre sentences.
+10. Return JSON only. No markdown or commentary.
 
-Return STRICT JSON only with this exact shape:
+Return STRICT JSON with exactly this shape:
 {
   "gaps":[
-    {"sentence":"... _____ ...","answer":"target"},
-    {"sentence":"... _____ ...","answer":"target"}
+    {"sentence":"... _____ ...","answer":"target","support":"short clue without the English target","ruHint":"краткий перевод"},
+    {"sentence":"... _____ ...","answer":"target","support":"short clue without the English target","ruHint":"краткий перевод"}
   ],
   "choices":[
-    {"word":"target","prompt":"Which sentence uses this saved expression correctly?","options":["...","...","..."],"correctIndex":0},
-    {"word":"target","prompt":"Which sentence uses this saved expression correctly?","options":["...","...","..."],"correctIndex":1}
+    {"sentence":"... _____ ...","answer":"target","options":["target","plausible distractor","plausible distractor"],"support":"short clue","ruHint":"краткий перевод"},
+    {"sentence":"... _____ ...","answer":"target","options":["plausible distractor","target","plausible distractor"],"support":"short clue","ruHint":"краткий перевод"}
   ],
   "natural":[
-    {"word":"target","a":"...","b":"...","answer":"A"},
-    {"word":"target","a":"...","b":"...","answer":"B"}
+    {"word":"target","a":"natural/unnatural sentence","b":"natural/unnatural sentence","answer":"A","support":"short collocation or grammar clue","ruHint":"краткий перевод"},
+    {"word":"target","a":"natural/unnatural sentence","b":"natural/unnatural sentence","answer":"B","support":"short collocation or grammar clue","ruHint":"краткий перевод"}
   ],
-  "personal":[{"word":"target","prompt":"..."}],
-  "speaking":[{"words":["target","target"],"prompt":"..."}]
+  "personal":[
+    {"word":"target","prompt":"short personal prompt","support":"short usage clue","ruHint":"краткий перевод"}
+  ],
+  "speaking":[
+    {"word":"target","prompt":"Say this saved word or phrase clearly.","support":"short pronunciation/use reminder","ruHint":"краткий перевод"}
+  ]
 }`;
 
       const raw=await ask({
@@ -130,8 +154,33 @@ Return STRICT JSON only with this exact shape:
         personal:Array.isArray(data.personal)?data.personal.slice(0,1):[],
         speaking:Array.isArray(data.speaking)?data.speaking.slice(0,1):[]
       };
+
       const total=result.gaps.length+result.choices.length+result.natural.length+result.personal.length+result.speaking.length;
       if(total!==8) throw new Error("AI practice round did not contain exactly 8 activities");
+
+      for(const ex of result.gaps){
+        if(!ex?.answer || !ex?.sentence || !String(ex.sentence).includes("_____")){
+          throw new Error("Invalid context-gap activity");
+        }
+        if(String(ex.sentence).toLowerCase().includes(String(ex.answer).toLowerCase())){
+          throw new Error("Stage-1 gap revealed its answer");
+        }
+      }
+
+      for(const ex of result.choices){
+        if(!ex?.answer || !ex?.sentence || !Array.isArray(ex.options) || ex.options.length!==3){
+          throw new Error("Invalid choice activity");
+        }
+        const answer=String(ex.answer).trim().toLowerCase();
+        const options=ex.options.map(x=>String(x).trim().toLowerCase());
+        if(options.filter(x=>x===answer).length!==1){
+          throw new Error("Choice activity must contain the target exactly once");
+        }
+        if(new Set(options).size!==3){
+          throw new Error("Choice distractors must be distinct");
+        }
+      }
+
       return res.status(200).json(result);
     }
 

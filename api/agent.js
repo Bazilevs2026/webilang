@@ -18,6 +18,54 @@ function outputText(data){
   return out.join("\n").trim();
 }
 
+function stripFence(s){
+  return String(s||"").trim()
+    .replace(/^```(?:json)?\s*/i,"")
+    .replace(/\s*```$/,"")
+    .trim();
+}
+
+function sanitizeGrammarItems(items){
+  if(!Array.isArray(items)) return [];
+  const out=[];
+  for(const raw of items.slice(0,3)){
+    const rule=String(raw?.rule||"").replace(/\s+/g," ").trim().slice(0,180);
+    const original=String(raw?.original||"").replace(/\s+/g," ").trim().slice(0,220);
+    const correction=String(raw?.correction||"").replace(/\s+/g," ").trim().slice(0,220);
+    const explanation=String(raw?.explanation||"").replace(/\s+/g," ").trim().slice(0,260);
+    const p=raw?.practice||{};
+    const rec=p.recognition||{};
+    const ret=p.retrieve||{};
+    const prod=p.production||{};
+    const options=Array.isArray(rec.options)?rec.options.map(x=>String(x||"").trim().slice(0,180)).filter(Boolean).slice(0,3):[];
+    const answerIndex=Math.max(0,Math.min(2,Number(rec.answerIndex)||0));
+    if(!rule||!original||!correction||options.length!==3) continue;
+    out.push({
+      rule,original,correction,explanation,
+      practice:{
+        recognition:{
+          prompt:String(rec.prompt||"Which sentence is correct?").trim().slice(0,220),
+          options,
+          answerIndex,
+          support:String(rec.support||"Use the grammar rule above.").trim().slice(0,220)
+        },
+        retrieve:{
+          prompt:String(ret.prompt||"Complete the sentence.").trim().slice(0,220),
+          sentence:String(ret.sentence||"").trim().slice(0,220),
+          answer:String(ret.answer||"").trim().slice(0,100),
+          support:String(ret.support||"Use the grammar rule above.").trim().slice(0,220)
+        },
+        production:{
+          prompt:String(prod.prompt||"Write one new sentence using this rule.").trim().slice(0,260),
+          model:String(prod.model||correction).trim().slice(0,240),
+          support:String(prod.support||"Follow the rule, but use your own idea.").trim().slice(0,220)
+        }
+      }
+    });
+  }
+  return out;
+}
+
 function sanitizeHistory(history){
   if(!Array.isArray(history)) return [];
   return history.slice(-20).map(m=>({
@@ -76,24 +124,87 @@ export default async function handler(req,res){
     if(mode==="feedback"){
       const instructions=`You are a concise English speaking coach for an A2-B1 learner.
 The learner just completed a roleplay with Leo, their younger brother.
-Do not continue the roleplay. Give supportive, specific feedback based only on the learner's actual lines.
-Keep the whole feedback under 170 words.
-Use exactly this structure:
-COMMUNICATION: ...
-GRAMMAR: ...
-VOCABULARY: ...
-2 USEFUL CORRECTIONS:
-1) learner wording -> better wording
-2) learner wording -> better wording
-NEXT STEP: ...
-If there are not two genuine errors, give one correction and one natural upgrade instead.
-Do not invent mistakes.`;
-      const feedback=await callResponses({
+
+TASK 1 — feedback:
+Give supportive, specific feedback based ONLY on the learner's actual lines.
+Do not continue the roleplay.
+Do not invent errors.
+Keep feedback under 150 words.
+
+TASK 2 — Grammar Stock:
+Identify ONLY genuine grammar errors made by the learner.
+Ignore pronunciation, spelling artifacts that are clearly transcription noise, vocabulary upgrades, and stylistic preferences.
+Return at most 3 distinct grammar rules.
+If the learner made no clear grammar errors, return an empty grammarItems array.
+
+For EACH genuine grammar rule, build exactly 3 short practice activities:
+1) RECOGNITION: 3 plausible sentence options; only one is grammatically correct. Distractors must reflect realistic learner errors, not nonsense.
+2) RETRIEVE: one short sentence with _____ and one exact missing form.
+3) PRODUCTION: one new, simple communicative prompt plus a natural model answer.
+
+Rules for practice:
+- A2-B1 language.
+- Use a fresh context related to everyday life, family, plans, technology, gaming, or the fishing-trip scenario.
+- Do not copy the learner's original sentence as the recognition question.
+- Keep examples short and natural.
+- The rule should be a learner-friendly label, e.g. "Past Simple questions: did + base verb".
+- "explanation" should be one short plain-English explanation.
+- Recognition options must be plausible and distinct.
+- answerIndex is 0, 1, or 2.
+- Retrieve "answer" must be the exact text replacing _____.
+- Production model is shown only after the learner attempts the task.
+
+Return STRICT JSON only:
+{
+  "feedback":"COMMUNICATION: ...\nGRAMMAR: ...\nVOCABULARY: ...\n2 USEFUL CORRECTIONS:\n1) ...\n2) ...\nNEXT STEP: ...",
+  "grammarItems":[
+    {
+      "rule":"...",
+      "original":"learner's exact or minimally cleaned wording",
+      "correction":"corrected version",
+      "explanation":"...",
+      "practice":{
+        "recognition":{
+          "prompt":"Which sentence is correct?",
+          "options":["...","...","..."],
+          "answerIndex":1,
+          "support":"..."
+        },
+        "retrieve":{
+          "prompt":"Complete the sentence.",
+          "sentence":"Why did you _____ so late?",
+          "answer":"arrive",
+          "support":"..."
+        },
+        "production":{
+          "prompt":"Ask one new Past Simple question about yesterday.",
+          "model":"What did you do after school?",
+          "support":"..."
+        }
+      }
+    }
+  ]
+}`;
+
+      const raw=await callResponses({
         instructions,
         input:history,
-        maxOutput:260
+        maxOutput:900
       });
-      return res.status(200).json({feedback});
+
+      let parsed=null;
+      try{parsed=JSON.parse(stripFence(raw));}catch(e){}
+      if(!parsed || typeof parsed!=="object"){
+        return res.status(200).json({
+          feedback:String(raw||"").trim()||"Feedback unavailable.",
+          grammarItems:[]
+        });
+      }
+
+      return res.status(200).json({
+        feedback:String(parsed.feedback||"").trim()||"Feedback complete.",
+        grammarItems:sanitizeGrammarItems(parsed.grammarItems)
+      });
     }
 
     const phase={
