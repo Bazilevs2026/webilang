@@ -61,6 +61,47 @@ function cleanWords(words){
   return out.slice(0,6);
 }
 
+function safeText(v,max=220){
+  return String(v||"").replace(/\s+/g," ").trim().slice(0,max);
+}
+
+function sanitizeGrammarItems(items,source){
+  if(!Array.isArray(items)) return [];
+  const out=[];
+  for(const raw of items.slice(0,3)){
+    const rule=safeText(raw?.rule,180);
+    const original=safeText(raw?.original,220);
+    const correction=safeText(raw?.correction,220);
+    const explanation=safeText(raw?.explanation,260);
+    const p=raw?.practice||{},rec=p.recognition||{},ret=p.retrieve||{},prod=p.production||{};
+    const options=Array.isArray(rec.options)?rec.options.map(x=>safeText(x,180)).filter(Boolean).slice(0,3):[];
+    const answerIndex=Math.max(0,Math.min(2,Number(rec.answerIndex)||0));
+    if(!rule||!original||!correction||options.length!==3) continue;
+    out.push({
+      rule,original,correction,explanation,source,
+      practice:{
+        recognition:{
+          prompt:safeText(rec.prompt||"Which sentence is correct?",220),
+          options,answerIndex,
+          support:safeText(rec.support||"Use the grammar rule above.",220)
+        },
+        retrieve:{
+          prompt:safeText(ret.prompt||"Complete the sentence.",220),
+          sentence:safeText(ret.sentence,220),
+          answer:safeText(ret.answer,100),
+          support:safeText(ret.support||"Use the grammar rule above.",220)
+        },
+        production:{
+          prompt:safeText(prod.prompt||"Write one new sentence using this rule.",260),
+          model:safeText(prod.model||correction,240),
+          support:safeText(prod.support||"Use the rule in your own idea.",220)
+        }
+      }
+    });
+  }
+  return out;
+}
+
 export default async function handler(req,res){
   if(req.method!=="POST"){
     res.setHeader("Allow","POST");
@@ -72,6 +113,86 @@ export default async function handler(req,res){
 
   try{
     const body=req.body||{};
+
+    if(body.mode==="source_feedback"){
+      const task=safeText(body.task,1800);
+      const reference=safeText(body.reference,6000);
+      const transcript=safeText(body.transcript,5000);
+      const level=safeText(body.level||"A2",20);
+      const module=safeText(body.module||"Gaming",100);
+      if(!transcript) return res.status(400).json({error:"No transcript supplied"});
+      if(!reference) return res.status(400).json({error:"No source reference supplied"});
+
+      const instructions=`You are an English coach for an ${level} learner.
+Module: ${module}.
+
+Evaluate ONLY the learner's actual transcript against:
+1) the speaking task;
+2) the SOURCE REFERENCE NOTES supplied below.
+
+CONTENT:
+- Say which factual ideas are supported by the source notes.
+- Do not reward invented facts because they sound plausible.
+- If an idea is absent from the notes, call it "not supported by the source notes"; do not automatically call it false.
+- Personal opinions are allowed when the task asks for them.
+- Be specific about one useful missing or inaccurate content point.
+- Do not require every reference detail when a shorter correct answer is enough.
+
+GRAMMAR:
+- Identify only genuine grammar errors in the learner's actual wording.
+- Ignore punctuation, capitalization and likely speech-to-text noise.
+- Do not invent errors.
+- If there are no clear grammar errors, grammarItems must be [].
+
+For EACH genuine grammar rule (maximum 3), create exactly 3 short A2 activities:
+1) RECOGNITION: exactly 3 plausible options; one correct.
+2) RETRIEVE: one short sentence with _____ and one exact missing form.
+3) PRODUCTION: one new communicative prompt and one natural model.
+Every activity must include a useful "support" clue.
+Distractors must be realistic learner errors, never nonsense.
+
+Feedback: under 180 words, using exactly these lines:
+CONTENT MATCH: ...
+SUPPORTED IDEAS: ...
+CHECK / IMPROVE: ...
+GRAMMAR: ...
+USEFUL CORRECTION: ...
+NEXT STEP: ...
+
+Return STRICT JSON only:
+{
+  "feedback":"...",
+  "grammarItems":[
+    {
+      "rule":"...",
+      "original":"...",
+      "correction":"...",
+      "explanation":"...",
+      "practice":{
+        "recognition":{"prompt":"Which sentence is correct?","options":["...","...","..."],"answerIndex":0,"support":"..."},
+        "retrieve":{"prompt":"Complete the sentence.","sentence":"... _____ ...","answer":"...","support":"..."},
+        "production":{"prompt":"...","model":"...","support":"..."}
+      }
+    }
+  ]
+}`;
+
+      const raw=await ask({
+        instructions,
+        input:`TASK:\n${task}\n\nSOURCE REFERENCE NOTES:\n${reference}\n\nLEARNER TRANSCRIPT:\n${transcript}`,
+        maxOutput:950
+      });
+
+      let parsed=null;
+      try{parsed=JSON.parse(stripFence(raw));}catch(e){}
+      if(!parsed||typeof parsed!=="object"){
+        return res.status(200).json({feedback:String(raw||"").trim(),grammarItems:[]});
+      }
+      return res.status(200).json({
+        feedback:String(parsed.feedback||"").trim(),
+        grammarItems:sanitizeGrammarItems(parsed.grammarItems,module)
+      });
+    }
 
     if(body.mode==="wordstock"){
       const words=cleanWords(body.words);
