@@ -104,6 +104,29 @@ function sanitizeGrammarItems(items,source){
   return out;
 }
 
+
+function normPhrase(s){
+  return String(s||"")
+    .toLowerCase()
+    .replace(/[’‘]/g,"'")
+    .replace(/[^a-z0-9' -]+/gi," ")
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+function containsExactPhrase(text,target){
+  const a=normPhrase(text),b=normPhrase(target);
+  if(!a||!b) return false;
+  if(a===b) return true;
+  return (` ${a} `).includes(` ${b} `);
+}
+
+function hideLeakingHint(text,target,fallback){
+  const value=String(text||"").trim();
+  if(!value || containsExactPhrase(value,target)) return fallback;
+  return value;
+}
+
 export default async function handler(req,res){
   if(req.method!=="POST"){
     res.setHeader("Allow","POST");
@@ -319,18 +342,26 @@ Return STRICT JSON only:
 
       const instructions=`You create an adaptive English vocabulary practice round for an A2 learner.
 Use ONLY the supplied saved words/phrases as TARGET vocabulary.
-Create exactly 8 activities:
-- gaps: 2
+
+The number of selected targets is N (1–6).
+Create exactly N + 6 activities:
+- gaps: N — EXACTLY ONE Stage-1 gap for EVERY selected target
 - choices: 2
 - natural: 2
 - personal: 1
 - speaking: 1
 
+COVERAGE RULES:
+- Stage 1 MUST contain every selected target exactly once.
+- The 6 later activities MUST also cover every selected target at least once.
+- Distribute the 6 later activities as evenly as possible across the selected targets.
+- Do not repeatedly practise one selected item while ignoring another.
+
 CRITICAL PEDAGOGY:
 1. CONTEXT FIRST.
-   - The 2 gap sentences are Stage 1.
-   - NEVER print the English target anywhere in a Stage-1 sentence or support clue.
-   - The learner must infer it from context before seeing later stages.
+   - Stage 1 has one gap sentence for EACH selected target.
+   - NEVER print the English target anywhere in its Stage-1 sentence or support clue.
+   - The learner must infer every selected item from context before seeing later stages.
 2. SHORT CONTEXT.
    - Keep gap and choice sentences natural and usually 6–12 words.
 3. DISTRACTORS MUST BE LOGICAL.
@@ -351,17 +382,18 @@ CRITICAL PEDAGOGY:
    - Ask for one short personal sentence using the target.
 8. FINAL RETRIEVAL — STAGE 5 ONLY.
    - There is NO Stage 6.
-   - The final activity lets the learner SAY OR WRITE only one saved word or phrase.
-   - It is NOT a full-sentence speaking task.
-   - Use the instruction exactly: "Say the word or phrase or write it."
+   - The English target must NOT be displayed before the learner answers.
+   - Add "cue": one short English meaning/use clue that does NOT contain the target.
+   - The learner should SAY the target word/phrase only.
+   - If typing, the learner may type the target alone OR use it naturally in a short sentence.
+   - Keep the prompt: "Say the word or phrase or write it."
 9. Use contemporary, realistic everyday contexts. No bizarre sentences.
 10. Return JSON only. No markdown or commentary.
 
 Return STRICT JSON with exactly this shape:
 {
   "gaps":[
-    {"sentence":"... _____ ...","answer":"target","support":"short clue without the English target","ruHint":"краткий перевод"},
-    {"sentence":"... _____ ...","answer":"target","support":"short clue without the English target","ruHint":"краткий перевод"}
+    {"sentence":"... _____ ...","answer":"one selected target","support":"short clue without the English target","ruHint":"краткий перевод"}
   ],
   "choices":[
     {"sentence":"... _____ ...","answer":"target","options":["target","plausible distractor","plausible distractor"],"support":"short clue","ruHint":"краткий перевод"},
@@ -375,7 +407,7 @@ Return STRICT JSON with exactly this shape:
     {"word":"target","prompt":"short personal prompt","support":"short usage clue","ruHint":"краткий перевод"}
   ],
   "speaking":[
-    {"word":"target","prompt":"Say the word or phrase or write it.","support":"short meaning/use reminder","ruHint":"краткий перевод"}
+    {"word":"target","cue":"short English clue without the target","prompt":"Say the word or phrase or write it.","support":"second short clue without the target","ruHint":"краткий перевод"}
   ]
 }`;
 
@@ -390,21 +422,53 @@ Return STRICT JSON with exactly this shape:
       catch(e){throw new Error("AI returned invalid Word Stock JSON");}
 
       const result={
-        gaps:Array.isArray(data.gaps)?data.gaps.slice(0,2):[],
-        choices:Array.isArray(data.choices)?data.choices.slice(0,2):[],
-        natural:Array.isArray(data.natural)?data.natural.slice(0,2):[],
-        personal:Array.isArray(data.personal)?data.personal.slice(0,1):[],
-        speaking:Array.isArray(data.speaking)?data.speaking.slice(0,1):[]
+        gaps:Array.isArray(data.gaps)?data.gaps.slice(0,words.length).map(ex=>({
+          ...ex,
+          support:hideLeakingHint(ex?.support,ex?.answer,"Think about the meaning, word type and grammar around the gap."),
+          ruHint:hideLeakingHint(ex?.ruHint,ex?.answer,"Перевод-подсказка недоступен.")
+        })):[],
+        choices:Array.isArray(data.choices)?data.choices.slice(0,2).map(ex=>({
+          ...ex,
+          support:hideLeakingHint(ex?.support,ex?.answer,"Compare meaning, grammar and collocation in this exact context."),
+          ruHint:hideLeakingHint(ex?.ruHint,ex?.answer,"Перевод-подсказка недоступен.")
+        })):[],
+        natural:Array.isArray(data.natural)?data.natural.slice(0,2).map(ex=>({
+          ...ex,
+          support:String(ex?.support||"Compare the collocation and grammar in the two sentences."),
+          ruHint:hideLeakingHint(ex?.ruHint,ex?.word,"Перевод-подсказка недоступен.")
+        })):[],
+        personal:Array.isArray(data.personal)?data.personal.slice(0,1).map(ex=>({
+          ...ex,
+          support:String(ex?.support||"Use the saved expression in a complete sentence about yourself."),
+          ruHint:hideLeakingHint(ex?.ruHint,ex?.word,"Перевод-подсказка недоступен.")
+        })):[],
+        speaking:Array.isArray(data.speaking)?data.speaking.slice(0,1).map(ex=>({
+          ...ex,
+          cue:hideLeakingHint(ex?.cue,ex?.word,"Recall the saved item from its meaning and use."),
+          support:hideLeakingHint(ex?.support,ex?.word,"Think about the clue and the kind of word or phrase you need."),
+          ruHint:hideLeakingHint(ex?.ruHint,ex?.word,"Перевод-подсказка недоступен.")
+        })):[]
       };
 
       const total=result.gaps.length+result.choices.length+result.natural.length+result.personal.length+result.speaking.length;
-      if(total!==8) throw new Error("AI practice round did not contain exactly 8 activities");
+      const expectedTotal=words.length+6;
+      if(total!==expectedTotal) throw new Error(`AI practice round did not contain exactly ${expectedTotal} activities`);
+      if(result.gaps.length!==words.length) throw new Error("Stage 1 must contain one gap for every selected item");
+
+      const selectedNorm=words.map(normPhrase);
+      const gapTargets=result.gaps.map(ex=>normPhrase(ex?.answer));
+      const sortedSelected=[...selectedNorm].sort();
+      const sortedGaps=[...gapTargets].sort();
+      if(JSON.stringify(sortedSelected)!==JSON.stringify(sortedGaps)){
+        throw new Error("Stage 1 must practise every selected target exactly once");
+      }
 
       for(const ex of result.gaps){
         if(!ex?.answer || !ex?.sentence || !String(ex.sentence).includes("_____")){
           throw new Error("Invalid context-gap activity");
         }
-        if(String(ex.sentence).toLowerCase().includes(String(ex.answer).toLowerCase())){
+        const sentenceWithoutGap=String(ex.sentence).replace(/_+/g," ");
+        if(containsExactPhrase(sentenceWithoutGap,ex.answer)){
           throw new Error("Stage-1 gap revealed its answer");
         }
       }
@@ -413,14 +477,60 @@ Return STRICT JSON with exactly this shape:
         if(!ex?.answer || !ex?.sentence || !Array.isArray(ex.options) || ex.options.length!==3){
           throw new Error("Invalid choice activity");
         }
-        const answer=String(ex.answer).trim().toLowerCase();
-        const options=ex.options.map(x=>String(x).trim().toLowerCase());
+        if(!String(ex.sentence).includes("_____")){
+          throw new Error("Choice activity must contain a visible gap");
+        }
+        const answer=normPhrase(ex.answer);
+        const options=ex.options.map(x=>normPhrase(x));
         if(options.filter(x=>x===answer).length!==1){
           throw new Error("Choice activity must contain the target exactly once");
         }
         if(new Set(options).size!==3){
           throw new Error("Choice distractors must be distinct");
         }
+      }
+
+      for(const ex of result.natural){
+        if(!ex?.word || !ex?.a || !ex?.b || !["A","B"].includes(String(ex?.answer||"").toUpperCase())){
+          throw new Error("Invalid Natural English activity");
+        }
+        if(!containsExactPhrase(ex.a,ex.word) || !containsExactPhrase(ex.b,ex.word)){
+          throw new Error("Both Natural English options must use the saved expression");
+        }
+      }
+
+      for(const ex of result.personal){
+        if(!ex?.word || !ex?.prompt){
+          throw new Error("Invalid personal-use activity");
+        }
+      }
+
+      for(const ex of result.speaking){
+        if(!ex?.word || !ex?.cue || !ex?.prompt){
+          throw new Error("Invalid final-retrieval activity");
+        }
+        if(containsExactPhrase(ex.cue,ex.word)){
+          throw new Error("Final-retrieval cue revealed the target");
+        }
+      }
+
+      const laterTargets=[
+        ...result.choices.map(ex=>normPhrase(ex.answer)),
+        ...result.natural.map(ex=>normPhrase(ex.word)),
+        ...result.personal.map(ex=>normPhrase(ex.word)),
+        ...result.speaking.map(ex=>normPhrase(ex.word))
+      ];
+      const allowed=new Set(selectedNorm);
+      if(laterTargets.some(x=>!allowed.has(x))){
+        throw new Error("Later practice used a target outside the selected Word Stock items");
+      }
+
+      const counts=selectedNorm.map(target=>laterTargets.filter(x=>x===target).length);
+      if(counts.some(x=>x<1)){
+        throw new Error("Every selected item must appear again in the later practice stages");
+      }
+      if(Math.max(...counts)-Math.min(...counts)>1){
+        throw new Error("Later practice must distribute selected items evenly");
       }
 
       return res.status(200).json(result);
