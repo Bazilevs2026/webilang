@@ -5166,7 +5166,7 @@ body{margin:0;background:#f5f8fb}
   <div class="builderTitleRow">
     <div>
       <h3>Practise Selected Words</h3>
-      <p>Choose up to 6 items and build one 8-activity practice round. The answer stays hidden at first. After a wrong attempt, use <b>Support</b> or <b>RU hint</b> if you need help.</p>
+      <p>Choose up to 6 items. Stage 1 gives one context task for every selected item. Later stages recycle the same items for deeper practice. After a wrong attempt, use <b>Support</b> or <b>RU hint</b>.</p>
     </div>
     <button class="builderMainBtn" id="myStockBuild" type="button">Build practice</button>
   </div>
@@ -10448,7 +10448,7 @@ function addFeedback(card){
       list.addEventListener('wlPracticeAttempt',unlockNext);
 
       if(status){
-        status.textContent=`Built 8 activities from ${entries.length} selected item${entries.length===1?'':'s'}. Start with context discovery; later stages unlock after your attempt.`;
+        status.textContent=`Built practice from ${entries.length} selected item${entries.length===1?'':'s'}. Start with context discovery; later stages unlock after your attempt.`;
       }
 
       attachMistakeTracking(list);
@@ -10456,7 +10456,7 @@ function addFeedback(card){
 
     }catch(err){
       console.error('Build exercises failed:',err);
-      if(status) status.textContent='Could not build exercises. Please click Build exercises again.';
+      if(status) status.textContent='Could not build practice. Please click Build practice again.';
     }
   }
 
@@ -13048,6 +13048,32 @@ if(storyResetButton){
     .replace(/[.,!?;:]+$/g,'')
     .replace(/\s+/g,' ');
 
+  const matchClean=s=>String(s||'')
+    .toLowerCase()
+    .replace(/[’‘]/g,"'")
+    .replace(/[“”]/g,'"')
+    .replace(/[^a-z0-9' -]+/gi,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+
+  function containsTarget(response,target){
+    const r=matchClean(response);
+    const t=matchClean(target);
+    if(!r||!t) return false;
+    if(r===t) return true;
+    return (` ${r} `).includes(` ${t} `);
+  }
+
+  function targetAnswerOK(response,target){
+    return clean(response)===clean(target) || containsTarget(response,target);
+  }
+
+  function safeHelpText(text,target,fallback){
+    const value=String(text||'').trim();
+    if(!value) return fallback;
+    return containsTarget(value,target) ? fallback : value;
+  }
+
   function section(title,subtitle=''){
     const sec=document.createElement('section');
     sec.className='aiStockStage';
@@ -13092,12 +13118,18 @@ if(storyResetButton){
     box.className='aiStockHelpBox';
     box.hidden=true;
 
+    const target=String(ex.answer||ex.word||'').trim();
     support.onclick=()=>{
-      box.textContent=String(ex.support||'Read the context again and think about the meaning and grammar around the gap.');
+      box.textContent=safeHelpText(
+        ex.support,
+        target,
+        'Read the context again and think about the meaning, word type and grammar.'
+      );
       box.hidden=false;
     };
     ruBtn.onclick=()=>{
-      box.textContent='RU: '+String(ex.ruHint||'Перевод-подсказка недоступен.');
+      const ru=safeHelpText(ex.ruHint,target,'Перевод-подсказка недоступен.');
+      box.textContent='RU: '+ru;
       box.hidden=false;
     };
 
@@ -13132,10 +13164,13 @@ if(storyResetButton){
       const heard=String(await mic.recognizeOnce({lang:'en-US',durationMs:3200})||'').trim();
       input.value=heard;
       markAttempt(card);
-      const ok=clean(heard)===clean(answer);
+      const ok=targetAnswerOK(heard,answer);
+      const exact=clean(heard)===clean(answer);
       setFeedback(
         card,
-        ok ? `✓ Recognised: “${heard}”.` : `I heard “${heard||'—'}”. Try the target word or phrase again.`,
+        ok
+          ? (exact ? `✓ Recognised: “${heard}”.` : `✓ Correct — I found the target in “${heard}”.`)
+          : `I heard “${heard||'—'}”. Try the target word or phrase again.`,
         ok
       );
       if(!ok) helper.reveal();
@@ -13179,7 +13214,7 @@ if(storyResetButton){
       card.querySelector('.check').onclick=()=>{
         if(!inp.value.trim()) return;
         markAttempt(card);
-        const ok=clean(inp.value)===clean(ex.answer);
+        const ok=targetAnswerOK(inp.value,ex.answer);
         setFeedback(card,ok?'✓ Correct.':'Not yet. Use the context first; Support is now available.',ok);
         if(!ok) helper.reveal();
       };
@@ -13274,8 +13309,17 @@ if(storyResetButton){
       const helper=helpTools(card,ex);
       card.querySelector('.check').onclick=()=>{
         markAttempt(card);
-        const ok=ta.value.trim().split(/\s+/).length>=4 && clean(ta.value).includes(clean(ex.word));
-        setFeedback(card,ok?'✓ You used the saved expression in your own context.':`Use the saved expression in a complete short sentence.`,ok);
+        const complete=ta.value.trim().split(/\s+/).filter(Boolean).length>=4;
+        const ok=complete && containsTarget(ta.value,ex.word);
+        setFeedback(
+          card,
+          ok
+            ? '✓ You used the saved expression in your own context.'
+            : (complete
+                ? 'The sentence is complete, but I cannot find the saved word or phrase in it.'
+                : 'Write a complete short sentence using the saved word or phrase.'),
+          ok
+        );
         if(!ok) helper.reveal();
       };
       personalStage.grid.appendChild(card);
@@ -13284,32 +13328,43 @@ if(storyResetButton){
     // 5. Final retrieval: learner can say OR write only the target word / phrase.
     const speakingStage=section(
       '5 · Say or write the word or phrase',
-      'Say the word or phrase or write it.'
+      'Recall the target from the clue. Say it, type it, or use it in a short sentence.'
     );
     stages.push(speakingStage.sec);
 
     (data.speaking||[]).forEach(ex=>{
       const card=document.createElement('div');
       card.className='aiStockCard';
-      card.innerHTML=`<div class="aiStockTarget"></div><div class="aiStockPrompt"></div>
+      card.innerHTML=`<div class="aiStockPrompt finalCue"></div>
         <div class="aiStockInputRow">
-          <input type="text" autocomplete="off" placeholder="Write the word or phrase">
+          <input type="text" autocomplete="off" placeholder="Write the word / phrase or a short sentence">
           <button class="aiStockSmallBtn check" type="button">Check</button>
           <button class="aiStockSmallBtn aiSayAnswer say" type="button">🎙 Say it</button>
         </div>
-        <div class="aiStockRecognition">Say the word or phrase or write it.</div>
+        <div class="aiStockRecognition">Say only the target word or phrase. You may also type it or use it in a short sentence.</div>
         <div class="aiStockFeedback"></div>`;
       const target=String(ex.word||'').trim();
-      card.querySelector('.aiStockTarget').textContent=target;
-      card.querySelector('.aiStockPrompt').textContent='Say the word or phrase or write it.';
+      const cue=safeHelpText(
+        ex.cue,
+        target,
+        'Recall the saved word or phrase from its meaning and use.'
+      );
+      card.querySelector('.finalCue').textContent=cue;
       const inp=card.querySelector('input');
       const helper=helpTools(card,ex);
 
       card.querySelector('.check').onclick=()=>{
         if(!inp.value.trim()) return;
         markAttempt(card);
-        const ok=clean(inp.value)===clean(target);
-        setFeedback(card,ok?'✓ Correct.':'Not yet. Try the word or phrase again.',ok);
+        const ok=targetAnswerOK(inp.value,target);
+        const exact=clean(inp.value)===clean(target);
+        setFeedback(
+          card,
+          ok
+            ? (exact ? '✓ Correct.' : '✓ Correct — the target is used in your sentence.')
+            : 'Not yet. Try the target word or phrase again.',
+          ok
+        );
         if(!ok) helper.reveal();
       };
 
@@ -13322,7 +13377,7 @@ if(storyResetButton){
       if(i>0) stage.hidden=true;
       const note=document.createElement('div');
       note.className='aiStockUnlock';
-      if(i===0) note.textContent='Try both context cards first. The next stage opens after your attempts; the answers are not shown in advance.';
+      if(i===0) note.textContent='Try all context cards first. The next stage opens after your attempts; the answers are not shown in advance.';
       stage.appendChild(note);
     });
 
