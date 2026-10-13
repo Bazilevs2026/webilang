@@ -344,18 +344,18 @@ Return STRICT JSON only:
 Use ONLY the supplied saved words/phrases as TARGET vocabulary.
 
 The number of selected targets is N (1–6).
-Create exactly N + 6 activities:
-- gaps: N — EXACTLY ONE Stage-1 gap for EVERY selected target
-- choices: 2
-- natural: 2
-- personal: 1
-- speaking: 1
+Create exactly 5 × N activities:
+- gaps: N — one Stage-1 context gap for EVERY selected target
+- choices: N — one Stage-2 best-fit task for EVERY selected target
+- natural: N — one Stage-3 Natural English task for EVERY selected target
+- personal: N — one Stage-4 personal-use task for EVERY selected target
+- speaking: N — one Stage-5 retrieval task for EVERY selected target
 
 COVERAGE RULES:
-- Stage 1 MUST contain every selected target exactly once.
-- The 6 later activities MUST also cover every selected target at least once.
-- Distribute the 6 later activities as evenly as possible across the selected targets.
-- Do not repeatedly practise one selected item while ignoring another.
+- EACH stage MUST contain every selected target exactly once.
+- Keep the SAME target order as the supplied Saved words/phrases array in every stage.
+- No selected word/phrase may disappear from a stage.
+- Do not repeat one target twice in a stage while omitting another.
 
 CRITICAL PEDAGOGY:
 1. CONTEXT FIRST.
@@ -364,11 +364,15 @@ CRITICAL PEDAGOGY:
    - The learner must infer every selected item from context before seeing later stages.
 2. SHORT CONTEXT.
    - Keep gap and choice sentences natural and usually 6–12 words.
-3. DISTRACTORS MUST BE LOGICAL.
+3. DISTRACTORS MUST BE LOGICAL AND THE CONTEXT MUST BE DECISIVE.
    - In each choice activity, give exactly 3 word/phrase options.
    - One is the saved target.
    - The other 2 must be plausible in the same topic and the same grammatical category / phrase type.
-   - They should be tempting but wrong in this exact context because of meaning, collocation, or grammar.
+   - BUT the sentence itself must contain enough context so only ONE option is clearly the best answer.
+   - Avoid underspecified sentences where two choices are equally natural.
+   - Example of BAD ambiguity: "He felt _____ during the storm." because "scared" and "worried" can both fit.
+   - Better: "When lightning hit the tree beside him, he felt _____ and ran inside."
+   - They should be tempting but wrong because of meaning, collocation, or grammar.
    - NEVER use absurd, random, obviously unrelated distractors.
 4. SUPPORT AFTER A MISTAKE.
    - Every activity must include "support": one short English clue that helps the learner reason toward the answer.
@@ -407,14 +411,14 @@ Return STRICT JSON with exactly this shape:
     {"word":"target","prompt":"short personal prompt","support":"short usage clue","ruHint":"краткий перевод"}
   ],
   "speaking":[
-    {"word":"target","cue":"short English clue without the target","prompt":"Say the word or phrase or write it.","support":"second short clue without the target","ruHint":"краткий перевод"}
+    {"word":"one selected target","cue":"short English clue without the target","prompt":"Say the word or phrase or write it.","support":"second short clue without the target","ruHint":"краткий перевод"}
   ]
 }`;
 
       const raw=await ask({
         instructions,
         input:`Saved words/phrases: ${JSON.stringify(words)}`,
-        maxOutput:900
+        maxOutput:Math.min(3600,900+(words.length*450))
       });
 
       let data;
@@ -427,22 +431,22 @@ Return STRICT JSON with exactly this shape:
           support:hideLeakingHint(ex?.support,ex?.answer,"Think about the meaning, word type and grammar around the gap."),
           ruHint:hideLeakingHint(ex?.ruHint,ex?.answer,"Перевод-подсказка недоступен.")
         })):[],
-        choices:Array.isArray(data.choices)?data.choices.slice(0,2).map(ex=>({
+        choices:Array.isArray(data.choices)?data.choices.slice(0,words.length).map(ex=>({
           ...ex,
           support:hideLeakingHint(ex?.support,ex?.answer,"Compare meaning, grammar and collocation in this exact context."),
           ruHint:hideLeakingHint(ex?.ruHint,ex?.answer,"Перевод-подсказка недоступен.")
         })):[],
-        natural:Array.isArray(data.natural)?data.natural.slice(0,2).map(ex=>({
+        natural:Array.isArray(data.natural)?data.natural.slice(0,words.length).map(ex=>({
           ...ex,
           support:String(ex?.support||"Compare the collocation and grammar in the two sentences."),
           ruHint:hideLeakingHint(ex?.ruHint,ex?.word,"Перевод-подсказка недоступен.")
         })):[],
-        personal:Array.isArray(data.personal)?data.personal.slice(0,1).map(ex=>({
+        personal:Array.isArray(data.personal)?data.personal.slice(0,words.length).map(ex=>({
           ...ex,
           support:String(ex?.support||"Use the saved expression in a complete sentence about yourself."),
           ruHint:hideLeakingHint(ex?.ruHint,ex?.word,"Перевод-подсказка недоступен.")
         })):[],
-        speaking:Array.isArray(data.speaking)?data.speaking.slice(0,1).map(ex=>({
+        speaking:Array.isArray(data.speaking)?data.speaking.slice(0,words.length).map(ex=>({
           ...ex,
           cue:hideLeakingHint(ex?.cue,ex?.word,"Recall the saved item from its meaning and use."),
           support:hideLeakingHint(ex?.support,ex?.word,"Think about the clue and the kind of word or phrase you need."),
@@ -451,9 +455,13 @@ Return STRICT JSON with exactly this shape:
       };
 
       const total=result.gaps.length+result.choices.length+result.natural.length+result.personal.length+result.speaking.length;
-      const expectedTotal=words.length+6;
+      const expectedTotal=words.length*5;
       if(total!==expectedTotal) throw new Error(`AI practice round did not contain exactly ${expectedTotal} activities`);
-      if(result.gaps.length!==words.length) throw new Error("Stage 1 must contain one gap for every selected item");
+      if(result.gaps.length!==words.length) throw new Error("Stage 1 must contain one task for every selected item");
+      if(result.choices.length!==words.length) throw new Error("Stage 2 must contain one task for every selected item");
+      if(result.natural.length!==words.length) throw new Error("Stage 3 must contain one task for every selected item");
+      if(result.personal.length!==words.length) throw new Error("Stage 4 must contain one task for every selected item");
+      if(result.speaking.length!==words.length) throw new Error("Stage 5 must contain one task for every selected item");
 
       const selectedNorm=words.map(normPhrase);
       const gapTargets=result.gaps.map(ex=>normPhrase(ex?.answer));
@@ -514,23 +522,19 @@ Return STRICT JSON with exactly this shape:
         }
       }
 
-      const laterTargets=[
-        ...result.choices.map(ex=>normPhrase(ex.answer)),
-        ...result.natural.map(ex=>normPhrase(ex.word)),
-        ...result.personal.map(ex=>normPhrase(ex.word)),
-        ...result.speaking.map(ex=>normPhrase(ex.word))
+      const expected=[...selectedNorm].sort();
+      const stageTargets=[
+        ["Stage 2",result.choices.map(ex=>normPhrase(ex.answer))],
+        ["Stage 3",result.natural.map(ex=>normPhrase(ex.word))],
+        ["Stage 4",result.personal.map(ex=>normPhrase(ex.word))],
+        ["Stage 5",result.speaking.map(ex=>normPhrase(ex.word))]
       ];
-      const allowed=new Set(selectedNorm);
-      if(laterTargets.some(x=>!allowed.has(x))){
-        throw new Error("Later practice used a target outside the selected Word Stock items");
-      }
 
-      const counts=selectedNorm.map(target=>laterTargets.filter(x=>x===target).length);
-      if(counts.some(x=>x<1)){
-        throw new Error("Every selected item must appear again in the later practice stages");
-      }
-      if(Math.max(...counts)-Math.min(...counts)>1){
-        throw new Error("Later practice must distribute selected items evenly");
+      for(const [stageName,targets] of stageTargets){
+        const sorted=[...targets].sort();
+        if(JSON.stringify(sorted)!==JSON.stringify(expected)){
+          throw new Error(`${stageName} must practise every selected target exactly once`);
+        }
       }
 
       return res.status(200).json(result);
