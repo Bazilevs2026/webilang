@@ -60,8 +60,15 @@ export default async function handler(req,res){
      const pal=process.env[env];
      if(!validId(pal))return json(res,503,{error:`${env} is missing or invalid`});
      const token=crypto.randomBytes(24).toString("hex");
-     const lock=await redis(["SET",`${PREFIX}:active`,token,"EX",360,"NX"]);
-     if(lock!=="OK")return json(res,429,{error:"An avatar session is already active. Please try after it ends."});
+     const lock=await redis(["SET",`${PREFIX}:active`,token,"EX",315,"NX"]);
+     if(lock!=="OK"){
+       const remaining=Math.max(0,Number(await redis(["TTL",`${PREFIX}:active`]))||0);
+       const seconds=remaining>0?remaining:15;
+       return json(res,429,{
+         error:`Another avatar session is still reserved. Please wait about ${Math.ceil(seconds/60)} minute(s), or return to an open call and press “End call now”.`,
+         retryAfterSeconds:seconds
+       });
+     }
      const budget=monthKey();
      let reserved=false;
      try{
