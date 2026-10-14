@@ -3821,7 +3821,26 @@ html{scroll-padding-top:90px}
 .wlTavusButton{display:block;width:100%;margin:8px 0;background:#e6f3ff}
 #wlTavusLive p{line-height:1.5;font-size:13px}#wlTavusStatus{font-weight:750}
 @media(max-width:650px){#wlTavusFrame{aspect-ratio:4/5}}
-</style></head>
+
+/* Navigation stays available when the embedded Tavus call ends inside its iframe. */
+.wlTavusVideoWrap{position:relative}
+.wlTavusReturnOverlay{
+ position:absolute;z-index:5;right:14px;bottom:26px;
+ background:#fff;color:#12385d;border:3px solid #2563a5;border-radius:12px;
+ font:inherit;font-size:16px;font-weight:850;padding:13px 18px;
+ box-shadow:0 5px 18px #101d2d66;cursor:pointer
+}
+.wlTavusReturnOverlay:focus-visible{outline:4px solid #f9b21b;outline-offset:3px}
+@media(max-width:650px){.wlTavusReturnOverlay{right:8px;bottom:18px;padding:10px 12px;font-size:14px}}
+</style><style id="wl-tavus-evaluation-css">
+#wlTavusAssessment[hidden]{display:none!important}
+#wlTavusAssessment{border:2px solid #b9cce2;background:#fff;border-radius:13px;padding:16px;margin-top:14px;color:#1d3554}
+#wlTavusAssessment h3{margin:0 0 8px;font-size:21px}
+#wlTavusAssessment h4{margin:13px 0 7px;font-size:17px}
+#wlTavusAssessment p{margin:7px 0;line-height:1.5}
+.wlTavusHired{color:#19643d}.wlTavusNotHired{color:#a52232}.wlTavusConsider{color:#275a97}
+</style>
+</head>
 <body>
 <a class="skipLink" href="#main-content">Skip to main content</a>
 
@@ -5511,11 +5530,21 @@ html{scroll-padding-top:90px}
   <section id="wlTavusLive" hidden aria-labelledby="wlTavusTitle">
 <div class="wlTavusTop"><div><h2 id="wlTavusTitle">Live Avatar</h2><p>AI-generated video character · A2 English · Microphone only · No student camera</p></div>
 <div id="wlTavusClock" role="timer" aria-label="Time remaining">05:00</div></div>
-<div id="wlTavusFrame" role="group" aria-label="Live video conversation"></div>
+<div class="wlTavusVideoWrap">
+  <div id="wlTavusFrame" role="group" aria-label="Live video conversation"></div>
+  <button class="wlTavusReturnOverlay" type="button" id="wlTavusReturnOverlay" aria-label="End video call and return to roleplay scenarios">← Return to Roleplay</button>
+</div>
 <p id="wlTavusStatus" role="status" aria-live="polite">Ready.</p>
 <button class="wlTavusAction" id="wlTavusEnd" type="button">End call now</button>
-<button class="wlTavusAction" id="wlTavusClose" type="button">Back to scenarios</button>
-<p><strong>Learning note:</strong> Video calls are not yet automatically assessed for missions or My Grammar Stock. Use the existing text/speech roleplay for scored feedback. Tavus may show its own join and caption controls.</p>
+<button class="wlTavusAction" id="wlTavusClose" type="button">← Return to Roleplay</button>
+<section id="wlTavusAssessment" class="wlTavusAssessment" aria-labelledby="wlTavusAssessmentTitle" hidden>
+  <h3 id="wlTavusAssessmentTitle">Your live interview feedback</h3>
+  <p id="wlTavusAssessmentStatus" role="status" aria-live="polite">Your assessment will appear here after the call.</p>
+  <div id="wlTavusAssessmentResults"></div>
+  <button type="button" class="wlTavusAction" id="wlTavusRetry" hidden>↻ Check transcript again</button>
+  <button type="button" class="wlTavusAction" id="wlTavusOpenGrammar" hidden>Open My Grammar Stock →</button>
+</section>
+<p><strong>Learning note:</strong> After the call, Webilang evaluates the actual Tavus speech transcript. Wait briefly if Tavus has not processed it yet. Camera is off; speech may be transcribed for learning feedback.</p>
 </section><div class="rp2Session" id="rp2Session" hidden>
     <div class="rp2SessionTop">
       <button type="button" class="rp2BackBtn" id="rp2Back">← Choose another scenario</button>
@@ -14273,9 +14302,139 @@ finally{busy=false}
 $("wlTavusCreatorStart")?.addEventListener("click",()=>start("creator"));
 $("wlTavusEmployerStart")?.addEventListener("click",()=>start("job"));
 $("wlTavusEnd")?.addEventListener("click",()=>end("Call ended."));
-$("wlTavusClose")?.addEventListener("click",async()=>{await end("Call closed.");panel.hidden=true});
+async function returnToRoleplay(){
+  const btn=$("wlTavusReturnOverlay");
+  if(btn)btn.disabled=true;
+  try{
+    await end("Video call ended. You can choose another scenario.");
+  }finally{
+    panel.hidden=true;
+    const chooser=$("rp2Chooser");
+    if(chooser){
+      chooser.hidden=false;
+      chooser.scrollIntoView({block:"start",behavior:"auto"});
+      const focusTarget=chooser.querySelector("input,button,[tabindex='0']");
+      if(focusTarget)focusTarget.focus({preventScroll:true});
+    }
+    if(btn)btn.disabled=false;
+  }
+}
+$("wlTavusClose")?.addEventListener("click",returnToRoleplay);
+$("wlTavusReturnOverlay")?.addEventListener("click",returnToRoleplay);
 window.addEventListener("pagehide",()=>{if(call)navigator.sendBeacon("/api/tavus",new Blob([JSON.stringify({action:"end",conversationId:call.id,token:call.token})],{type:"application/json"}))});
 })();
 </script>
+
+<script id="wl-tavus-evaluation-v1">
+(()=>{
+"use strict";
+const $=id=>document.getElementById(id);
+const panel=$("wlTavusAssessment"),status=$("wlTavusAssessmentStatus"),results=$("wlTavusAssessmentResults");
+if(!panel||!status||!results)return;
+// Keep the assessment outside the hidden video call so it remains visible
+// after clicking "Return to Roleplay".
+const videoPanel=$("wlTavusLive");
+if(videoPanel?.parentElement)videoPanel.parentElement.insertBefore(panel,videoPanel.nextSibling);
+let active=null,pending=null,attempts=0,busy=false;
+const nativeFetch=window.fetch.bind(window);
+let timer=null;
+function say(s){status.textContent=s}
+function clearTimer(){if(timer){clearTimeout(timer);timer=null}}
+function render(data){
+ panel.hidden=false;
+ results.replaceChildren();
+ const make=(tag,text)=>{const el=document.createElement(tag);el.textContent=text;results.appendChild(el);return el};
+ if(data.empty){make("p",data.message||"No speech was recorded.");say("Assessment unavailable.");return}
+ say("Assessment complete.");
+ panel.scrollIntoView({block:"start",behavior:"auto"});
+ const g=data.goals||{};
+ if(data.scenario==="creator"){
+  make("h4","Interview missions");
+  [
+   ["Get 3 facts",`${g.facts||0} / 3`],
+   ["Find biggest challenge",g.biggestChallenge?"✓ Complete":"Not completed"],
+   ["Ask about company income",g.companyIncome?"✓ Complete":"Not completed"],
+   ["Pitch feature idea",g.featureIdea?"✓ Complete":"Not completed"]
+  ].forEach(([name,v])=>make("p",name+": "+v));
+ }else{
+  const verdict=g.decision==="hired"?"YOU'RE HIRED!":g.decision==="not_hired"?"NOT HIRED":"WE'LL THINK ABOUT IT";
+  const h=make("h4",verdict);
+  h.className=g.decision==="hired"?"wlTavusHired":g.decision==="not_hired"?"wlTavusNotHired":"wlTavusConsider";
+ }
+ if(g.summary)make("p",g.summary);
+ make("h4","English feedback");
+ make("p",data.feedback||"No language feedback was returned.").style.whiteSpace="pre-line";
+ make("p",`Student speaking turns recorded: ${data.turns||0}.`);
+ const items=Array.isArray(data.grammarItems)?data.grammarItems:[];
+ if(items.length && window.WebilangGrammarStock?.add){
+  const memoKey="wlTavusGrammarSaved:"+active?.conversationId;
+  let saved=false;try{saved=sessionStorage.getItem(memoKey)==="1"}catch{}
+  if(!saved){
+   window.WebilangGrammarStock.add(items);
+   try{sessionStorage.setItem(memoKey,"1")}catch{}
+  }
+  make("p",`${items.length} grammar item(s) saved to My Grammar Stock.`);
+  $("wlTavusOpenGrammar").hidden=false;
+ }else make("p","No clear grammar errors requiring practice were identified.");
+}
+async function run(){
+ if(!pending||busy)return;
+ busy=true;panel.hidden=false;$("wlTavusRetry").hidden=true;
+ say("Checking Tavus speech transcript and evaluating your interview…");
+ try{
+  const response=await nativeFetch("/api/tavus-evaluate",{
+   method:"POST",headers:{"Content-Type":"application/json"},
+   body:JSON.stringify(pending)
+  });
+  const data=await response.json().catch(()=>({}));
+  if(response.status===202 && !data.ready){
+   attempts++;
+   if(attempts<9){
+    say("Tavus is preparing the transcript. Checking again shortly…");
+    clearTimer();timer=setTimeout(run,4000);
+   }else{
+    say("Transcript not ready yet. Select “Check transcript again” later.");
+    $("wlTavusRetry").hidden=false;
+   }
+   return;
+  }
+  if(!response.ok)throw Error(data.error||"Assessment failed");
+  active=pending;pending=null;render(data);
+ }catch(e){say("Assessment couldn't finish: "+String(e.message||e));$("wlTavusRetry").hidden=false}
+ finally{busy=false}
+}
+function finish(){
+ if(!pending||busy)return;
+ panel.hidden=false;
+ attempts=0;
+ run();
+}
+const interceptedFetch=async (input,init)=>{
+ const url=typeof input==="string"?input:input?.url||"";
+ const result=await nativeFetch(input,init);
+ if(url==="/api/tavus" && init?.method==="POST"){
+  try{
+   const request=JSON.parse(init.body||"{}");
+   if(request.action==="start"&&result.ok){
+    const d=await result.clone().json();
+    active=null;pending=null;attempts=0;clearTimer();
+    panel.hidden=true;results.replaceChildren();$("wlTavusOpenGrammar").hidden=true;
+    if(d.conversationId&&d.token)pending={conversationId:d.conversationId,token:d.token};
+   }
+   if(request.action==="end"&&pending){
+    // The end request is awaited by the original controller before this runs.
+    if(result.ok)setTimeout(finish,1000);
+    else{panel.hidden=false;say("The session end could not be confirmed; finish the call and retry assessment.");$("wlTavusRetry").hidden=false}
+   }
+  }catch{}
+ }
+ return result;
+};
+window.fetch=interceptedFetch;
+$("wlTavusRetry")?.addEventListener("click",()=>{attempts=0;run()});
+$("wlTavusOpenGrammar")?.addEventListener("click",()=>window.WebilangGrammarStock?.open?.());
+})();
+</script>
+
 </body>
 </html>
