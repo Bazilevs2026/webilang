@@ -3810,7 +3810,18 @@ html{scroll-padding-top:90px}
 }
 </style>
 
-</head>
+<style id="wl-tavus-css">
+#wlTavusLive[hidden]{display:none!important}#wlTavusLive{border:2px solid #8bb4dc;border-radius:16px;background:#f7fbff;padding:17px;margin:20px 0;color:#243e5b}
+#wlTavusLive h2{font-size:22px;margin:0}#wlTavusLive .wlTavusTop{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
+#wlTavusClock{font-weight:900;font-size:24px;font-variant-numeric:tabular-nums}#wlTavusClock.warning{color:#ad2929}
+#wlTavusFrame{aspect-ratio:16/9;background:#172b41;border-radius:12px;overflow:hidden;margin:12px 0}
+#wlTavusFrame iframe{width:100%;height:100%;border:0;display:block}
+#wlTavusLive .wlTavusAction,.wlTavusButton{border-radius:10px;border:2px solid #3a6ea0;padding:10px 12px;background:white;color:#1d4b77;font:inherit;font-weight:800;cursor:pointer}
+#wlTavusLive #wlTavusEnd{background:#a12930;border-color:#a12930;color:white}
+.wlTavusButton{display:block;width:100%;margin:8px 0;background:#e6f3ff}
+#wlTavusLive p{line-height:1.5;font-size:13px}#wlTavusStatus{font-weight:750}
+@media(max-width:650px){#wlTavusFrame{aspect-ratio:4/5}}
+</style></head>
 <body>
 <a class="skipLink" href="#main-content">Skip to main content</a>
 
@@ -5472,7 +5483,7 @@ html{scroll-padding-top:90px}
         </div>
         <label class="rp2FieldLabel" for="rp2GameInput">Your favourite game</label>
         <input class="rp2TextField" id="rp2GameInput" type="text" maxlength="80" placeholder="e.g. Minecraft">
-        <button class="rp2StartBtn creator" id="rp2StartCreator" type="button">Start Interview →</button>
+        <button type="button" class="wlTavusButton" id="wlTavusCreatorStart">🎥 Live avatar interview · 5 min</button><button class="rp2StartBtn creator" id="rp2StartCreator" type="button">Start Interview →</button>
         <div class="rp2CardStatus" id="rp2CreatorStatus"></div>
       </div>
     </article>
@@ -5492,12 +5503,20 @@ html{scroll-padding-top:90px}
           <button type="button" class="rp2Job" data-job="tutor">Tutor</button>
           <button type="button" class="rp2Job" data-job="nanny">Nanny</button>
         </div>
-        <button class="rp2StartBtn employer" id="rp2StartEmployer" type="button">Start Challenge →</button>
+        <button type="button" class="wlTavusButton" id="wlTavusEmployerStart">🎥 Live avatar job challenge · 5 min</button><button class="rp2StartBtn employer" id="rp2StartEmployer" type="button">Start Challenge →</button>
       </div>
     </article>
   </div>
 
-  <div class="rp2Session" id="rp2Session" hidden>
+  <section id="wlTavusLive" hidden aria-labelledby="wlTavusTitle">
+<div class="wlTavusTop"><div><h2 id="wlTavusTitle">Live Avatar</h2><p>AI-generated video character · A2 English · Microphone only · No student camera</p></div>
+<div id="wlTavusClock" role="timer" aria-label="Time remaining">05:00</div></div>
+<div id="wlTavusFrame" role="group" aria-label="Live video conversation"></div>
+<p id="wlTavusStatus" role="status" aria-live="polite">Ready.</p>
+<button class="wlTavusAction" id="wlTavusEnd" type="button">End call now</button>
+<button class="wlTavusAction" id="wlTavusClose" type="button">Back to scenarios</button>
+<p><strong>Learning note:</strong> Video calls are not yet automatically assessed for missions or My Grammar Stock. Use the existing text/speech roleplay for scored feedback. Tavus may show its own join and caption controls.</p>
+</section><div class="rp2Session" id="rp2Session" hidden>
     <div class="rp2SessionTop">
       <button type="button" class="rp2BackBtn" id="rp2Back">← Choose another scenario</button>
       <div>
@@ -14197,5 +14216,66 @@ if(storyResetButton){
 })();
 </script>
 
+<script id="wl-tavus-live">
+(()=>{
+"use strict";
+const $=id=>document.getElementById(id);
+const panel=$("wlTavusLive"),frame=$("wlTavusFrame"),status=$("wlTavusStatus"),clock=$("wlTavusClock");
+if(!panel||!frame)return;
+let call=null,clockInterval=null,busy=false,last=0;
+try{last=Number(localStorage.getItem("wl_tavus_creator_last")||0)}catch{}
+const buttons=[$("wlTavusCreatorStart"),$("wlTavusEmployerStart")];
+function setBusy(v){buttons.forEach(b=>{if(b)b.disabled=v})}
+function say(s){status.textContent=s}
+function time(ms){const n=Math.max(0,Math.ceil(ms/1000));return `${String(Math.floor(n/60)).padStart(2,"0")}:${String(n%60).padStart(2,"0")}`}
+async function end(reason="Call ended."){
+clearInterval(clockInterval);clockInterval=null;
+const previous=call;call=null;frame.replaceChildren();clock.textContent="00:00";
+if(!previous){say(reason);setBusy(false);return}
+say("Ending Tavus session…");
+try{
+const r=await fetch("/api/tavus",{method:"POST",headers:{"Content-Type":"application/json"},
+body:JSON.stringify({action:"end",conversationId:previous.id,token:previous.token})});
+const d=await r.json().catch(()=>({}));
+say(r.ok?reason:"End request failed. Tavus provider-side five-minute limit remains active. "+(d.error||""));
+}catch{say("End request could not be confirmed. Tavus provider-side five-minute limit remains active.")}
+setBusy(false)
+}
+async function start(scenario){
+if(busy||call)return;busy=true;setBusy(true);panel.hidden=false;panel.scrollIntoView({block:"start"});
+clock.textContent="05:00";clock.classList.remove("warning");
+const game=($("rp2GameInput")?.value||"").trim();
+if(scenario==="creator"&&!game){say("Please enter a game name first.");busy=false;setBusy(false);$("rp2GameInput")?.focus();return}
+const creatorNumber=last===1?2:1;
+const job=document.querySelector("#rp2JobChoices .rp2Job.active")?.dataset.job||"teacher";
+say("Connecting to Tavus…");
+try{
+const r=await fetch("/api/tavus",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"start",scenario,game,job,creatorNumber})});
+const d=await r.json().catch(()=>({}));
+if(!r.ok)throw Error(d.error||"Could not start conversation");
+if(!/^https:\/\/[a-z0-9.-]*tavus\.daily\.co\//i.test(d.url))throw Error("Unexpected video URL");
+call={id:d.conversationId,token:d.token,endsAt:Date.now()+300000};
+$("wlTavusTitle").textContent=scenario==="creator"?`Game Creator ${creatorNumber===1?"A":"B"} · ${game}`:`Morgan · ${job} interview`;
+if(scenario==="creator"){last=creatorNumber;try{localStorage.setItem("wl_tavus_creator_last",String(last))}catch{}}
+const iframe=document.createElement("iframe");iframe.title="Tavus AI video conversation; microphone only";
+iframe.src=d.url;iframe.allow="microphone; autoplay; fullscreen";iframe.referrerPolicy="no-referrer";
+frame.appendChild(iframe);
+say("Conversation is active. Allow microphone if prompted. Student camera access is not delegated.");
+clockInterval=setInterval(()=>{
+if(!call)return;
+const ms=call.endsAt-Date.now();clock.textContent=time(ms);
+if(ms<=60000&&!clock.classList.contains("warning")){clock.classList.add("warning");say("One minute remaining.")}
+if(ms<=0)end("Five-minute limit reached.");
+},1000);
+}catch(e){say("Unable to start: "+String(e.message||e));setBusy(false)}
+finally{busy=false}
+}
+$("wlTavusCreatorStart")?.addEventListener("click",()=>start("creator"));
+$("wlTavusEmployerStart")?.addEventListener("click",()=>start("job"));
+$("wlTavusEnd")?.addEventListener("click",()=>end("Call ended."));
+$("wlTavusClose")?.addEventListener("click",async()=>{await end("Call closed.");panel.hidden=true});
+window.addEventListener("pagehide",()=>{if(call)navigator.sendBeacon("/api/tavus",new Blob([JSON.stringify({action:"end",conversationId:call.id,token:call.token})],{type:"application/json"}))});
+})();
+</script>
 </body>
 </html>
