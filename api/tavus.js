@@ -69,7 +69,7 @@ export default async function handler(req,res){
        reserved=true;
        await redis(["EXPIRE",budget,nextMonthExpiry()]);
        const monthlyLimit=Math.max(MAX_SECONDS,Math.min(144000,Number(process.env.TAVUS_MONTHLY_LIMIT_MINUTES||240)*60||MONTH_SECONDS));
-       if(used>monthlyLimit)return json(res,429,{error:"Monthly live-avatar allowance reached. Use the text roleplay or ask the teacher."});
+       if(used>monthlyLimit){await redis(["INCRBY",budget,-MAX_SECONDS]);reserved=false;return json(res,429,{error:"Monthly live-avatar allowance reached. Use the text roleplay or ask the teacher."});}
        const context=scenario==="creator"
         ?`This is a fictional game developer interview in A2 English. The student's selected game is ${game}. Explain game facts without claiming you are an actual employee. Help student gather three facts, major challenge, income model, and propose a feature. Each reply <=15 words.`
         :`A2 job interview for ${job} position. You are Morgan, a concerned parent whose child plays too much. Ask one short question per turn about homework, sleep, screen time, calm boundaries and practical solutions. Each reply <=15 words.`;
@@ -79,7 +79,7 @@ export default async function handler(req,res){
          properties:{max_call_duration:MAX_SECONDS,participant_left_timeout:15,enable_closed_captions:true}
        });
        if(!validId(data.conversation_id)||!/^https:\/\/[a-z0-9.-]*tavus\.daily\.co\//i.test(data.conversation_url||""))throw Error("Tavus returned invalid conversation details");
-       await redis(["SET",`${PREFIX}:session:${token}`,JSON.stringify({id:data.conversation_id,scenario,game,job,creatorNumber,expiresAt:Date.now()+MAX_SECONDS*1000}),"EX",7200]);
+       await redis(["SET",`${PREFIX}:session:${token}`,JSON.stringify({id:data.conversation_id,scenario,game,job,creatorNumber:creator,expiresAt:Date.now()+MAX_SECONDS*1000}),"EX",7200]);
        return json(res,200,{conversationId:data.conversation_id,url:data.conversation_url,token,maxSeconds:MAX_SECONDS});
      }catch(e){
        if(reserved){try{await redis(["INCRBY",budget,-MAX_SECONDS])}catch{}}
