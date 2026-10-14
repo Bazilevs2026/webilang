@@ -79,7 +79,7 @@ export default async function handler(req,res){
          properties:{max_call_duration:MAX_SECONDS,participant_left_timeout:15,enable_closed_captions:true}
        });
        if(!validId(data.conversation_id)||!/^https:\/\/[a-z0-9.-]*tavus\.daily\.co\//i.test(data.conversation_url||""))throw Error("Tavus returned invalid conversation details");
-       await redis(["SET",`${PREFIX}:session:${token}`,JSON.stringify({id:data.conversation_id,expiresAt:Date.now()+MAX_SECONDS*1000}),"EX",420]);
+       await redis(["SET",`${PREFIX}:session:${token}`,JSON.stringify({id:data.conversation_id,scenario,game,job,creatorNumber,expiresAt:Date.now()+MAX_SECONDS*1000}),"EX",7200]);
        return json(res,200,{conversationId:data.conversation_id,url:data.conversation_url,token,maxSeconds:MAX_SECONDS});
      }catch(e){
        if(reserved){try{await redis(["INCRBY",budget,-MAX_SECONDS])}catch{}}
@@ -99,7 +99,7 @@ export default async function handler(req,res){
      const saved=JSON.parse(raw);
      if(saved.id!==id)return json(res,403,{error:"Session mismatch"});
      await tavus(`/${encodeURIComponent(id)}/end`);
-     await redis(["DEL",`${PREFIX}:session:${token}`]);
+     await redis(["SET",`${PREFIX}:ended:${token}`,"1","EX",7200]);
      await releaseLock(token);
      return json(res,200,{ended:true});
    }
