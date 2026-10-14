@@ -3758,8 +3758,61 @@ body{margin:0;background:#f5f8fb}
 }
 </style>
 
+
+<style id="webilang-accessibility-uta">
+.srOnly{
+  position:absolute!important;width:1px!important;height:1px!important;padding:0!important;
+  margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important;border:0!important;
+}
+.skipLink{
+  position:fixed;left:12px;top:10px;z-index:20000;transform:translateY(-160%);
+  padding:10px 14px;border:3px solid #003865;border-radius:8px;background:#fff;
+  color:#003865;font-weight:900;text-decoration:underline;box-shadow:0 4px 16px rgba(0,0,0,.2);
+}
+.skipLink:focus{transform:translateY(0)}
+:where(a,button,input,textarea,select,[role="button"],[role="tab"],[tabindex]):focus-visible{
+  outline:3px solid #0064B1!important;outline-offset:3px!important;box-shadow:0 0 0 2px #fff!important;
+}
+a:not(.skipLink){text-decoration:underline;text-underline-offset:2px}
+:root{--muted:#52677A!important;--gm-muted:#52677A!important}
+.wlMicStatus,.voiceHint,.unknownModeHelp,.stockSourceTag,.quickCheckHead span,.evalMissing,
+.sharedMicNote,.readMeta,.rp2SessionMeta,.rp2Who,.rp2ScenarioTag,.watchKicker,.watchMini,
+.autosave-note,.meta,.builderStatus,.stockEmpty{color:#40556A!important}
+.voiceHint,.unknownModeHelp,.stockSourceTag,.quickCheckHead span,.evalMissing,.sharedMicNote,
+.readMeta,.rp2SessionMeta,.rp2Who,.rp2ScenarioTag,.watchKicker,.watchMini,.autosave-note{
+  font-size:12px!important;line-height:1.4!important
+}
+.miniBtn,.sharedStockBtn,.sideBtn,.grammarMiniBtn,.grammarSupportBtn,.rp2Ctl{font-size:12px!important}
+
+.wlTabs{
+  scrollbar-width:auto!important;scrollbar-color:#506987 #E7EDF4!important;
+  scrollbar-gutter:stable!important;padding-bottom:8px!important
+}
+.wlTabs::-webkit-scrollbar{height:10px!important}
+.wlTabs::-webkit-scrollbar-track{background:#E7EDF4!important;border-radius:999px!important}
+.wlTabs::-webkit-scrollbar-thumb{
+  background:#506987!important;border:2px solid #E7EDF4!important;border-radius:999px!important
+}
+@media(max-width:1200px){
+  .wlHeaderInner{display:grid!important;grid-template-columns:1fr auto!important;gap:8px 10px!important}
+  .wlTabs{grid-column:1/-1!important;width:100%!important;flex-wrap:wrap!important;overflow-x:visible!important;padding-bottom:2px!important}
+  .wlMic{grid-column:2!important;grid-row:1!important}
+}
+html{scroll-padding-top:90px}
+.a11yKeyboardControl{border-radius:6px}
+.a11yKeyboardControl:focus-visible{background:#FFF4B8!important}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    scroll-behavior:auto!important;animation-duration:.01ms!important;
+    animation-iteration-count:1!important;transition-duration:.01ms!important
+  }
+}
+</style>
+
 </head>
 <body>
+<a class="skipLink" href="#main-content">Skip to main content</a>
 
 <div class="wlApp">
   <header class="wlHeader">
@@ -3786,7 +3839,7 @@ body{margin:0;background:#f5f8fb}
     </div>
   </header>
 
-  <main class="wlMain">
+  <main class="wlMain" id="main-content" tabindex="-1">
     <section class="wlPane active" id="tab-story">
       
 <div class="wrap">
@@ -3794,7 +3847,7 @@ body{margin:0;background:#f5f8fb}
 <div class="storyMain">
 <div class="card">
 <div class="gamingStoryEyebrow">STORY · GAMING & REAL LIFE</div>
-<h1>Fortnite Saved My Life</h1>
+<h1 id="pageTitle-story">Fortnite Saved My Life</h1>
 <div class="comicTaskBox">
   <span>TASK</span>
   <b>Read the comic. Click useful words or replies. Then explain what happened.</b>
@@ -3851,7 +3904,7 @@ body{margin:0;background:#f5f8fb}
 
 <div class="localUnknownBox" id="comicLocalUnknownBox">
   <div class="localUnknownHead">
-    <h4>My words</h4>
+    <h2>My words</h2>
     <button class="saveToStockBtn" id="saveComicToMyStock" type="button">Save to My Word Stock</button>
   </div>
   <div class="localUnknownHint">Collect unknown words or phrases here first. Then save them to your personal Word Stock.</div>
@@ -3884,7 +3937,7 @@ body{margin:0;background:#f5f8fb}
 <div class="gapTrainer" id="storyGapTrainer">
   <div class="builderTitleRow">
     <div>
-      <h4>Exercise Builder · My Unknown Words</h4>
+      <h3>Exercise Builder · My Unknown Words</h3>
       <p>Save your unknown words or phrases, then practise them in specific new A2+ situations. The sentence details help you guess the missing item.</p>
     </div>
     <button class="builderMainBtn" id="storyBuildExercises" type="button">Save my unknown words & build</button>
@@ -4000,6 +4053,7 @@ body{margin:0;background:#f5f8fb}
 
     
 <section class="wlPane" id="tab-reading">
+<h1 class="srOnly" id="pageTitle-reading">Reading</h1>
 
 <div class="wlPageResetRow"><button type="button" class="wlPageResetBtn" data-reset-tab="reading">↺ Reset page</button></div>
 <div class="unknownSelectMode readingHighlightGuide" id="readingUnknownMode">
@@ -4010,7 +4064,7 @@ body{margin:0;background:#f5f8fb}
   <div class="readingGrid">
 
     <article class="readCard" data-reading="andrew">
-      <h3>Reading 1 · Andrew: When Gaming Took Over</h3>
+      <h2>Reading 1 · Andrew: When Gaming Took Over</h2>
       <div class="readMeta">A1–A2 short interview · about 200 words · based only on the interview provided</div>
       <div class="readingWarmUp"><span>WARM-UP</span><b>Can video games become a problem? Why?</b></div>
       <div class="readText" id="andrewText">
@@ -4034,7 +4088,7 @@ body{margin:0;background:#f5f8fb}
 <div class="readTools">
         <div class="readStock">
           <div class="localUnknownHead">
-            <h4>My words</h4>
+            <h3>My words</h3>
             <button class="saveToStockBtn" id="saveAndrewToMyStock" type="button">Save to My Word Stock</button>
           </div>
           <div class="localUnknownHint">Highlighted items stay here first. Review them, then save them to My Word Stock.</div>
@@ -4051,7 +4105,7 @@ body{margin:0;background:#f5f8fb}
 <div class="gapTrainer" id="andrewGapTrainer">
   <div class="builderTitleRow">
     <div>
-      <h4>Exercise Builder · My Unknown Words</h4>
+      <h3>Exercise Builder · My Unknown Words</h3>
       <p>Save your unknown words or phrases, then practise them in specific new A2+ situations. The sentence details help you guess the missing item.</p>
     </div>
     <button class="builderMainBtn" id="andrewBuildExercises" type="button">Save my unknown words & build</button>
@@ -4092,7 +4146,7 @@ body{margin:0;background:#f5f8fb}
       
 <div class="quickCheck" data-qc="andrew">
   <div class="quickCheckHead">
-    <h4>Quick Check · Andrew</h4>
+    <h3>Quick Check · Andrew</h3>
     <span>3 key ideas</span>
   </div>
   <div class="qcQuestion" data-answer="a">
@@ -4122,7 +4176,7 @@ body{margin:0;background:#f5f8fb}
     </article>
 
     <article class="readCard" data-reading="fabu">
-      <h3>Reading 2 · Short Interview with FabuRocks</h3>
+      <h2>Reading 2 · Short Interview with FabuRocks</h2>
       <div class="readMeta">A1–A2 adaptation based only on the interview details provided</div>
       <div class="readingWarmUp"><span>WARM-UP</span><b>Can gaming help someone learn or communicate? How?</b></div>
       <div class="readText" id="fabuText">
@@ -4163,7 +4217,7 @@ body{margin:0;background:#f5f8fb}
 <div class="readTools">
         <div class="readStock">
           <div class="localUnknownHead">
-            <h4>My words</h4>
+            <h3>My words</h3>
             <button class="saveToStockBtn" id="saveFabuToMyStock" type="button">Save to My Word Stock</button>
           </div>
           <div class="localUnknownHint">Highlighted items stay here first. Review them, then save them to My Word Stock.</div>
@@ -4180,7 +4234,7 @@ body{margin:0;background:#f5f8fb}
 <div class="gapTrainer" id="fabuGapTrainer">
   <div class="builderTitleRow">
     <div>
-      <h4>Exercise Builder · My Unknown Words</h4>
+      <h3>Exercise Builder · My Unknown Words</h3>
       <p>Save your unknown words or phrases, then practise them in specific new A2+ situations. The sentence details help you guess the missing item.</p>
     </div>
     <button class="builderMainBtn" id="fabuBuildExercises" type="button">Save my unknown words & build</button>
@@ -4220,7 +4274,7 @@ body{margin:0;background:#f5f8fb}
       
 <div class="quickCheck" data-qc="fabu">
   <div class="quickCheckHead">
-    <h4>Quick Check · FabuRocks</h4>
+    <h3>Quick Check · FabuRocks</h3>
     <span>3 key ideas</span>
   </div>
   <div class="qcQuestion" data-answer="b">
@@ -4296,7 +4350,7 @@ body{margin:0;background:#f5f8fb}
   </div>
   <div class="watchAiPanel" id="readingAiFeedbackPanel" hidden>
     <div class="watchAiHead">
-      <h4>✨ AI feedback: Reading content + grammar</h4>
+      <h3>✨ AI feedback: Reading content + grammar</h3>
       <button type="button" class="watchAiClear" id="readingAiFeedbackClear">Clear</button>
     </div>
     <div class="watchAiBody" id="readingAiFeedbackBody">Your feedback will appear here.</div>
@@ -4330,6 +4384,7 @@ body{margin:0;background:#f5f8fb}
 
 
 <section class="wlPane" id="tab-speaking">
+<h1 class="srOnly" id="pageTitle-speaking">Speaking</h1>
   <div class="wlPageResetRow">
     <button type="button" class="wlPageResetBtn" id="speakingResetBtn">↺ Reset page</button>
   </div>
@@ -4431,6 +4486,7 @@ body{margin:0;background:#f5f8fb}
 
 
 <section class="wlPane" id="tab-grammarstock">
+<h1 class="srOnly" id="pageTitle-grammarstock">My Grammar Stock</h1>
   <div class="grammarStockHero">
     <div>
       <div class="grammarStockEyebrow">PERSONAL GRAMMAR · FROM YOUR AI ROLEPLAY</div>
@@ -4451,6 +4507,7 @@ body{margin:0;background:#f5f8fb}
 </section>
 
 <section class="wlPane" id="tab-vocab">
+<h1 class="srOnly" id="pageTitle-vocab">Vocabulary</h1>
   <div class="wlPageResetRow"><button type="button" class="wlPageResetBtn" data-reset-tab="vocab">↺ Reset page</button></div>
   <div class="vocabPage">
     <div class="vocabHero">
@@ -4544,6 +4601,7 @@ body{margin:0;background:#f5f8fb}
 
 
 <section class="wlPane" id="tab-grammar">
+<h1 class="srOnly" id="pageTitle-grammar">Grammar</h1>
   <div class="wlPageResetRow"><button type="button" class="wlPageResetBtn" data-reset-tab="grammar">↺ Reset page</button></div>
 
   <div class="grammarPage">
@@ -4656,6 +4714,7 @@ body{margin:0;background:#f5f8fb}
 
 
 <section class="wlPane" id="tab-writing">
+<h1 class="srOnly" id="pageTitle-writing">Writing</h1>
   <div class="wlPageResetRow"><button type="button" class="wlPageResetBtn" data-reset-tab="writing">↺ Reset page</button></div>
   <div class="writingPage">
     <div class="writingHead">
@@ -4869,6 +4928,7 @@ body{margin:0;background:#f5f8fb}
 
 
 <section class="wlPane" id="tab-game">
+<h1 class="srOnly" id="pageTitle-game">Game</h1>
   <div class="wlPageResetRow">
     <button type="button" class="wlPageResetBtn" data-reset-tab="game">↺ Reset page</button>
   </div>
@@ -4914,7 +4974,7 @@ body{margin:0;background:#f5f8fb}
 
         <div class="codeHowCols">
           <div class="codeHowLang">
-            <h4>🇬🇧 English</h4>
+            <h3>🇬🇧 English</h3>
             <div class="codeHowStep"><b>1</b><span><strong>You play together.</strong> Teacher knows the secret. Student guesses.</span></div>
             <div class="codeHowStep"><b>2</b><span><strong>Teacher opens the key.</strong> Only Teacher sees which words are ours, Opponent, Neutral and Danger.</span></div>
             <div class="codeHowStep"><b>3</b><span><strong>Teacher gives one clue + a number.</strong> Example: <em>school — 2</em>.</span></div>
@@ -4924,7 +4984,7 @@ body{margin:0;background:#f5f8fb}
           </div>
 
           <div class="codeHowLang">
-            <h4>🇷🇺 Русский</h4>
+            <h3>🇷🇺 Русский</h3>
             <div class="codeHowStep"><b>1</b><span><strong>Вы играете вместе.</strong> Учитель знает секрет. Ученик угадывает.</span></div>
             <div class="codeHowStep"><b>2</b><span><strong>Учитель открывает ключ.</strong> Только учитель видит наши слова, Opponent, Neutral и Danger.</span></div>
             <div class="codeHowStep"><b>3</b><span><strong>Учитель говорит одно слово + число.</strong> Например: <em>school — 2</em>.</span></div>
@@ -5136,6 +5196,7 @@ body{margin:0;background:#f5f8fb}
 
 
 <section class="wlPane" id="tab-mywordstock">
+<h1 class="srOnly" id="pageTitle-mywordstock">My Word Stock</h1>
   <div class="wlPageResetRow"><button type="button" class="wlPageResetBtn" data-reset-tab="mywordstock">↺ Reset page</button></div>
 <div class="myStockPage">
     <div class="myStockIntro">
@@ -5204,6 +5265,7 @@ body{margin:0;background:#f5f8fb}
 
 
 <section class="wlPane" id="tab-watching">
+<h1 class="srOnly" id="pageTitle-watching">Watching</h1>
   <div class="wlPageResetRow"><button type="button" class="wlPageResetBtn" data-reset-tab="watching">↺ Reset page</button></div>
 <div class="watchPage">
     <div class="watchHero">
@@ -5384,6 +5446,7 @@ body{margin:0;background:#f5f8fb}
 
 
 <section class="wlPane" id="tab-roleplay">
+<h1 class="srOnly" id="pageTitle-roleplay">AI Roleplay</h1>
   <div class="rp2Hero">
     <div>
       <div class="rp2Eyebrow">AI ROLEPLAY · A2</div>
@@ -13912,6 +13975,225 @@ if(storyResetButton){
   document.addEventListener("keydown",e=>{
     if(e.key==="Escape"&&!overlay.hidden)hide();
   });
+})();
+</script>
+
+
+<script id="webilang-accessibility-uta-js">
+(() => {
+  "use strict";
+  const q=(s,r=document)=>r.querySelector(s);
+  const qa=(s,r=document)=>[...r.querySelectorAll(s)];
+  const textOf=el=>String(el?.textContent||"").replace(/\s+/g," ").trim();
+  const cleanLabel=s=>String(s||"").replace(/[.…]+$/g,"").replace(/\s+/g," ").trim();
+
+  // WAI-ARIA tab semantics + keyboard arrows.
+  const nav=q(".wlTabs"), tabs=qa(".wlTab",nav||document), panes=qa(".wlPane");
+  const selectedTab=()=>{
+    const active=panes.find(p=>p.classList.contains("active"));
+    const name=active?.id?.replace(/^tab-/,"")||"story";
+    return tabs.find(t=>t.dataset.tab===name)||tabs[0];
+  };
+  const syncTabs=(active=selectedTab())=>{
+    tabs.forEach(tab=>{
+      const name=tab.dataset.tab,pane=q("#tab-"+name),on=tab===active;
+      if(!tab.id)tab.id="module-tab-"+name;
+      tab.setAttribute("role","tab");
+      tab.setAttribute("aria-controls","tab-"+name);
+      tab.setAttribute("aria-selected",on?"true":"false");
+      tab.tabIndex=on?0:-1;
+      if(on)tab.setAttribute("aria-current","page");else tab.removeAttribute("aria-current");
+      if(pane){
+        pane.setAttribute("role","tabpanel");
+        pane.setAttribute("aria-labelledby",tab.id);
+        pane.setAttribute("aria-hidden",pane.classList.contains("active")?"false":"true");
+      }
+    });
+  };
+  if(nav){nav.setAttribute("role","tablist");nav.setAttribute("aria-label","Learning sections")}
+  tabs.forEach(tab=>{
+    tab.addEventListener("click",()=>setTimeout(()=>syncTabs(tab),0));
+    tab.addEventListener("keydown",e=>{
+      const i=tabs.indexOf(tab);let next=null;
+      if(e.key==="ArrowRight")next=tabs[(i+1)%tabs.length];
+      if(e.key==="ArrowLeft")next=tabs[(i-1+tabs.length)%tabs.length];
+      if(e.key==="Home")next=tabs[0];
+      if(e.key==="End")next=tabs[tabs.length-1];
+      if(next){e.preventDefault();next.focus();next.click()}
+    });
+  });
+  syncTabs();
+
+  // Form controls: connect existing visual labels or provide an accessible name.
+  function ensureControlName(el){
+    if(!(el instanceof HTMLElement)||!el.matches("input:not([type='hidden']),textarea,select"))return;
+    if(el.getAttribute("aria-label")||el.getAttribute("aria-labelledby")||(el.labels&&el.labels.length))return;
+    const field=el.closest(".wfield,.codeClueField,.voiceBox,.single-idea-field,.grammarInputRow,.rp2TypeRow,.gapAnswerRow,.practiceInputRow,.aiStockInputRow");
+    const label=field?.querySelector("label");
+    if(label&&el.id&&!label.getAttribute("for")){label.setAttribute("for",el.id);return}
+    let name=cleanLabel(el.placeholder||"");
+    if(!name&&el.id)name=el.id.replace(/([a-z])([A-Z])/g,"$1 $2").replace(/[-_]/g," ").replace(/\b(gw|iw|rp2|code)\b/gi,"").trim();
+    el.setAttribute("aria-label",name||(el.tagName==="SELECT"?"Choose an option":"Enter your answer"));
+  }
+
+  // Icon-only audio/translation/remove controls.
+  function contextName(btn){
+    for(const [holder,child] of [
+      [".sharedStockItem",".sharedStockText"],[".readItem",".readItemText"],
+      [".sideItem",".sideText"],[".localUnknownItem","span"],[".vocabFlip",".vocabWord"],[".bubble",null]
+    ]){
+      const h=btn.closest(holder);
+      if(h){
+        if(child){const c=q(child,h);if(c)return textOf(c)}
+        return cleanLabel(h.dataset?.text||textOf(h).replace(/[🔊×]/g,""));
+      }
+    }
+    return "";
+  }
+  function ensureButtonName(btn){
+    if(!(btn instanceof HTMLElement)||btn.tagName!=="BUTTON"||btn.getAttribute("aria-label")||btn.getAttribute("aria-labelledby"))return;
+    const raw=textOf(btn),ctx=contextName(btn);let label="";
+    if(btn.classList.contains("bubbleAudio")||btn.classList.contains("hear")||raw==="🔊"||btn.title==="Listen")label=ctx?`Listen to ${ctx}`:"Play audio";
+    else if(raw==="RU"||btn.classList.contains("ru"))label=ctx?`Show Russian translation for ${ctx}`:"Show Russian translation";
+    else if(["×","✕","✖"].includes(raw))label=btn.matches(".readingInfoClose,.codeHowClose,.watchModalClose")?"Close dialog":(ctx?`Remove ${ctx}`:"Remove item");
+    else if(raw==="A−")label="Decrease text size";
+    else if(raw==="A+")label="Increase text size";
+    else if(raw==="A")label="Reset text size";
+    if(label){btn.setAttribute("aria-label",label);if(!btn.title)btn.title=label}
+  }
+  function ensureAudioName(audio){
+    if(!(audio instanceof HTMLElement)||audio.tagName!=="AUDIO"||audio.getAttribute("aria-label"))return;
+    let label="Audio playback";
+    if(/student/i.test(audio.id))label="Your recorded answer";
+    if(/agent/i.test(audio.id))label="AI character voice";
+    if(/retell|opinion|speak/i.test(audio.id))label="Recorded speaking response";
+    audio.setAttribute("aria-label",label);
+  }
+
+  // Polite announcements for dynamic feedback/status.
+  const liveSelectors=[
+    ".feedback",".vocabFeedback",".grammarFeedback",".aiStockFeedback",".gapFeedback",".watchFeedback",
+    ".recStatus",".builderStatus",".codeMessage",".codeShareFeedback",".rp2Status",".rp2FeedbackBody",
+    ".watchAiBody",".readingEvalBox",".evalFeedback"
+  ];
+  function ensureLive(el){
+    if(!(el instanceof HTMLElement))return;
+    if(!el.getAttribute("role"))el.setAttribute("role","status");
+    if(!el.getAttribute("aria-live"))el.setAttribute("aria-live","polite");
+    el.setAttribute("aria-atomic","true");
+  }
+
+  // Custom mouse controls also work with Enter / Space.
+  function keyboardActivate(el,pressed=false){
+    if(!(el instanceof HTMLElement)||el.dataset.a11yKeyboard==="1")return;
+    el.dataset.a11yKeyboard="1";el.classList.add("a11yKeyboardControl");
+    if(!el.getAttribute("role"))el.setAttribute("role","button");
+    if(!el.hasAttribute("tabindex"))el.tabIndex=0;
+    el.addEventListener("keydown",e=>{
+      if(e.key==="Enter"||e.key===" "){e.preventDefault();el.click()}
+    });
+    if(pressed){
+      const sync=()=>el.setAttribute("aria-pressed",el.classList.contains("active")||el.classList.contains("flipped")?"true":"false");
+      el.addEventListener("click",()=>setTimeout(sync,0));sync();
+    }
+  }
+
+  qa(".oralQuestion[data-rq]").forEach(card=>{
+    keyboardActivate(card,true);
+    if(!card.getAttribute("aria-label"))card.setAttribute("aria-label",textOf(card));
+  });
+  qa("#tab-vocab .vocabFlip").forEach(card=>{
+    keyboardActivate(card,true);
+    const word=q(".vocabWord",card);
+    if(word)card.setAttribute("aria-label",`Vocabulary card: ${textOf(word)}. Press Enter to flip.`);
+    const sync=()=>card.setAttribute("aria-expanded",card.classList.contains("flipped")?"true":"false");
+    card.addEventListener("click",()=>setTimeout(sync,0));sync();
+  });
+
+  // Comic: roving focus so keyboard users do not tab through every word.
+  const comicMode=()=>q("#modeGroup .mode.active")?.dataset.mode||"word";
+  function setupComicKeyboard(){
+    const words=qa("#layer .word"),bubbles=qa("#layer .bubble");
+    const mode=comicMode(),active=mode==="bubble"?bubbles:words,inactive=mode==="bubble"?words:bubbles;
+    inactive.forEach(el=>{if(!el.matches("button")){el.removeAttribute("role");el.tabIndex=-1}el.classList.remove("a11yKeyboardControl")});
+    active.forEach((el,i)=>{
+      if(el.matches("button"))return;
+      el.setAttribute("role","button");el.classList.add("a11yKeyboardControl");el.tabIndex=i===0?0:-1;
+      const word=el.dataset?.word||"",full=cleanLabel(el.dataset?.text||textOf(el).replace("🔊",""));
+      el.setAttribute("aria-label",mode==="word"?`Add word ${word||full}`:mode==="phrase"?`Select an expression using ${word||full}`:`Add whole comic reply: ${full}`);
+      if(el.dataset.a11yComic==="1")return;
+      el.dataset.a11yComic="1";
+      el.addEventListener("keydown",e=>{
+        const list=comicMode()==="bubble"?qa("#layer .bubble"):qa("#layer .word"),idx=list.indexOf(el);
+        if(["ArrowRight","ArrowDown"].includes(e.key)){e.preventDefault();const n=list[(idx+1)%list.length];list.forEach(x=>x.tabIndex=-1);n.tabIndex=0;n.focus()}
+        else if(["ArrowLeft","ArrowUp"].includes(e.key)){e.preventDefault();const n=list[(idx-1+list.length)%list.length];list.forEach(x=>x.tabIndex=-1);n.tabIndex=0;n.focus()}
+        else if(e.key==="Enter"||e.key===" "){e.preventDefault();el.click()}
+      });
+    });
+  }
+  qa("#modeGroup .mode").forEach(btn=>{
+    btn.setAttribute("aria-pressed",btn.classList.contains("active")?"true":"false");
+    btn.addEventListener("click",()=>setTimeout(()=>{
+      qa("#modeGroup .mode").forEach(b=>b.setAttribute("aria-pressed",b.classList.contains("active")?"true":"false"));
+      setupComicKeyboard();
+    },0));
+  });
+  setupComicKeyboard();
+
+  // Reading: arrow through words; Enter/Space adds focused word to My words.
+  function setupReadingKeyboard(root,prefix){
+    if(!root)return;
+    const words=qa(".readWordUnit",root);if(!words.length)return;
+    root.setAttribute("aria-label","Reading text. Keyboard: Tab into the text, use arrow keys word by word, press Enter to add the focused word to My words.");
+    words.forEach((span,i)=>{
+      span.setAttribute("role","button");span.classList.add("a11yKeyboardControl");span.tabIndex=i===0?0:-1;
+      span.setAttribute("aria-label",`Add word ${span.dataset.word||textOf(span)} to My words`);
+      if(span.dataset.a11yReading==="1")return;
+      span.dataset.a11yReading="1";
+      span.addEventListener("keydown",e=>{
+        const list=qa(".readWordUnit",root),idx=list.indexOf(span);
+        if(["ArrowRight","ArrowDown"].includes(e.key)){e.preventDefault();const n=list[(idx+1)%list.length];list.forEach(x=>x.tabIndex=-1);n.tabIndex=0;n.focus()}
+        else if(["ArrowLeft","ArrowUp"].includes(e.key)){e.preventDefault();const n=list[(idx-1+list.length)%list.length];list.forEach(x=>x.tabIndex=-1);n.tabIndex=0;n.focus()}
+        else if(e.key==="Enter"||e.key===" "){
+          e.preventDefault();
+          if(typeof addReadingUnknown==="function")addReadingUnknown(prefix,span.dataset.word||textOf(span),[span]);
+        }
+      });
+    });
+  }
+  setupReadingKeyboard(q("#andrewText"),"andrew");
+  setupReadingKeyboard(q("#fabuText"),"fabu");
+
+  // Keep keyboard focus inside an open modal dialog.
+  document.addEventListener("keydown",e=>{
+    if(e.key!=="Tab")return;
+    const dialog=qa('[role="dialog"]').find(d=>d.offsetParent!==null);if(!dialog)return;
+    const f=qa('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])',dialog).filter(x=>!x.disabled&&x.offsetParent!==null);
+    if(!f.length)return;
+    const first=f[0],last=f[f.length-1];
+    if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+    else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+  });
+
+  function remediate(root=document){
+    const scope=root===document?document:root;
+    if(scope.matches?.("input,textarea,select"))ensureControlName(scope);
+    qa("input:not([type='hidden']),textarea,select",scope).forEach(ensureControlName);
+    if(scope.matches?.("button"))ensureButtonName(scope);
+    qa("button",scope).forEach(ensureButtonName);
+    if(scope.matches?.("audio"))ensureAudioName(scope);
+    qa("audio",scope).forEach(ensureAudioName);
+    liveSelectors.forEach(sel=>{
+      if(scope.matches?.(sel))ensureLive(scope);
+      qa(sel,scope).forEach(ensureLive);
+    });
+  }
+  remediate(document);
+  new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1)remediate(n)})))
+    .observe(document.body,{childList:true,subtree:true});
+
+  const mic=q("#globalMicBtn"),status=q("#globalMicStatus");
+  if(mic&&status){status.setAttribute("role","status");status.setAttribute("aria-live","polite");mic.setAttribute("aria-describedby","globalMicStatus")}
 })();
 </script>
 
