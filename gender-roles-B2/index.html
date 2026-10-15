@@ -966,18 +966,45 @@ function line(role,txt){
  const title=document.createElement('strong');title.textContent=role==='agent'?(scenario==='engineering'?'Emma':'Daniel'):'You (interviewer)';
  const text=document.createElement('span');text.textContent=txt;node.append(title,text);$('rp-log').append(node);$('rp-log').scrollTop=$('rp-log').scrollHeight;
 }
-function speak(t){
- lastReply=t;buttons();
- if(mute||!('speechSynthesis'in window))return;
- try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='en-GB';u.rate=.94;
- const english=speechSynthesis.getVoices().filter(x=>x.lang.toLowerCase().startsWith('en'));
- if(english.length)u.voice=english.find(x=>scenario==='babysitter'&&/male|daniel|george/i.test(x.name))||english[0];
- speechSynthesis.speak(u)}catch(e){status('Reply ready. Voice playback not supported here.')}
+let voiceAudio=null,voiceURL='',voiceController=null,voiceSerial=0;
+function stopVoice(){
+ voiceSerial++;
+ if(voiceController){voiceController.abort();voiceController=null}
+ if(voiceAudio){voiceAudio.pause();voiceAudio.removeAttribute('src');voiceAudio.load();voiceAudio=null}
+ if(voiceURL){URL.revokeObjectURL(voiceURL);voiceURL=''}
+}
+async function speak(t){
+ lastReply=t;buttons();stopVoice();
+ if(mute||!t)return;
+ const ticket=voiceSerial;
+ const chosen=scenario;
+ try{
+  status('Preparing a natural voice for '+(chosen==='babysitter'?'Daniel':'Emma')+'…');
+  voiceController=new AbortController();
+  const r=await fetch('/api/gender-voice',{
+   method:'POST',headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({text:t,scenario:chosen}),signal:voiceController.signal
+  });
+  if(!r.ok){
+   const problem=await r.json().catch(()=>({}));
+   throw Error(problem.error||'Voice service is unavailable');
+  }
+  const blob=await r.blob();
+  if(ticket!==voiceSerial||mute||scenario!==chosen)return;
+  voiceURL=URL.createObjectURL(blob);
+  voiceAudio=new Audio(voiceURL);
+  voiceAudio.onended=()=>{if(ticket===voiceSerial)status('Your turn. Ask the next question.')};
+  await voiceAudio.play();
+  if(ticket===voiceSerial)status('Your turn. Ask the next question.');
+ }catch(e){
+  if(e.name==='AbortError'||ticket!==voiceSerial)return;
+  status('Reply is visible, but natural voice playback failed: '+e.message+'. Click Replay to try again.');
+ }finally{if(ticket===voiceSerial)voiceController=null}
 }
 function stopRecording(){if(recorder&&recorder.state==='recording')recorder.stop()}
 function end(reason='Interview finished. Make a fair decision, then request AI feedback.'){
  active=false;clearInterval(timer);timer=null;
- if(recorder)stopRecording();try{speechSynthesis.cancel()}catch(e){}
+ if(recorder)stopRecording();stopVoice();
  buttons();status(reason);
 }
 async function agentReply(){
@@ -986,13 +1013,13 @@ async function agentReply(){
  const r=await fetch('/api/gender-roleplay',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scenario,history})});
  const d=await r.json().catch(()=>({}));
  if(!r.ok)throw Error(d.error||'AI server error');
- history.push({role:'agent',text:d.reply});line('agent',d.reply);speak(d.reply);status('Your turn. Ask a follow-up question.');
+ history.push({role:'agent',text:d.reply});line('agent',d.reply);speak(d.reply);
  }catch(e){status('AI unavailable: '+e.message+'. You may retry the same question.');}
  finally{busy=false;buttons()}
 }
 document.querySelectorAll('[data-rp-choose]').forEach(b=>b.onclick=()=>{
  if(active){status('Finish your current interview before switching candidates.');return}
- scenario=b.dataset.rpChoose;history=[];lastReply='';$('rp-log').replaceChildren();
+ stopVoice();scenario=b.dataset.rpChoose;history=[];lastReply='';$('rp-log').replaceChildren();
  $('rp-text').value='';$('rp-reason').value='';$('rp-decision').value='';$('rp-feedback').hidden=true;
  $('rp-session').hidden=false;$('rp-session-heading').textContent='Voice interview · '+scenarioNames[scenario];
  document.querySelectorAll('.rp-choice').forEach(c=>c.classList.toggle('rp-active',c.id==='rp-card-'+scenario));
@@ -1002,7 +1029,7 @@ document.querySelectorAll('[data-rp-choose]').forEach(b=>b.onclick=()=>{
 });
 $('rp-start').onclick=async()=>{
  if(!scenario||active||busy)return;
- history=[];lastReply='';$('rp-log').replaceChildren();$('rp-feedback').hidden=true;startedAt=Date.now();active=true;
+ stopVoice();history=[];lastReply='';$('rp-log').replaceChildren();$('rp-feedback').hidden=true;startedAt=Date.now();active=true;
  timer=setInterval(stamp,500);buttons();await agentReply();
 };
 $('rp-send').onclick=async()=>{
@@ -1017,7 +1044,7 @@ $('rp-send').onclick=async()=>{
 };
 $('rp-end').onclick=()=>end();
 $('rp-replay').onclick=()=>{if(lastReply)speak(lastReply)};
-$('rp-mute').onclick=()=>{mute=!mute;$('rp-mute').textContent=mute?'🔇 Voice off':'🔊 Voice on';if(mute)try{speechSynthesis.cancel()}catch(e){}};
+$('rp-mute').onclick=()=>{mute=!mute;$('rp-mute').textContent=mute?'🔇 Voice off':'🔊 Voice on';if(mute)stopVoice();};
 $('rp-record').onclick=async()=>{
  if(!active||busy||recorder)return;
  if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){status('Recording is unavailable; type your question instead.');return}
@@ -1078,8 +1105,8 @@ $('rp-evaluate').onclick=async()=>{
  }catch(e){status('Could not analyze interview: '+e.message)}
  finally{busy=false;buttons()}
 };
-document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{if(tab.dataset.tab!=='roleplays'){try{speechSynthesis.cancel()}catch(e){}}}));
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&'speechSynthesis'in window)speechSynthesis.cancel()});
+document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{if(tab.dataset.tab!=='roleplays')stopVoice();}));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopVoice()});
 buttons();
 })();
 
