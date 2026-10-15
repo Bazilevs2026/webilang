@@ -1120,7 +1120,7 @@ buttons();
 #gtavus-overlay{position:absolute;top:10px;right:10px;z-index:3;border:2px solid white;box-shadow:0 2px 12px #0008;background:#183d70;color:white;padding:11px 15px;border-radius:9px;font-weight:800;cursor:pointer}
 .gtavus-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
 .gtavus-actions button{border:0;border-radius:9px;padding:12px 15px;font-weight:800;cursor:pointer}
-#gtavus-start{background:#2864ae;color:white}
+#gtavus-emma,#gtavus-daniel{background:#2864ae;color:white}
 #gtavus-end{background:#9c3337;color:white}
 #gtavus-return{background:#e4edfa;color:#163c6b}
 #gtavus-timer{font-variant-numeric:tabular-nums;font-weight:900}
@@ -1137,15 +1137,16 @@ const block=document.createElement("section");
 block.id="gtavus-panel";
 block.innerHTML=`
  <h3>🎥 Live Tavus Video Interview · B2</h3>
- <p>First select Emma or Daniel above. You are the employer; the AI is the applicant. Video is optional: the existing Voice Only interview remains available.</p>
+ <p>You are the employer; the AI is the applicant. Choose the specific avatar below. Voice Only interviews above remain available.</p>
  <p><b>5-minute maximum · one Tavus call across Webilang · microphone only, no student camera.</b></p>
  <div class="gtavus-actions">
-  <button id="gtavus-start" type="button">Start video interview</button>
+  <button id="gtavus-emma" type="button">🎥 Start Emma</button>
+  <button id="gtavus-daniel" type="button">🎥 Start Daniel</button>
   <button id="gtavus-end" type="button" disabled>■ End call now</button>
   <button id="gtavus-return" type="button">← Return to Roleplays</button>
   <span id="gtavus-timer" role="timer">05:00</span>
  </div>
- <p id="gtavus-status" aria-live="polite">Choose Emma or Daniel to begin.</p>
+ <p id="gtavus-status" aria-live="polite">Choose Start Emma or Start Daniel for a Tavus interview.</p>
  <div id="gtavus-player" hidden><button type="button" id="gtavus-overlay">← Return to Roleplays</button><div id="gtavus-frame"></div></div>
  <details id="gtavus-feedback">
   <summary>After the call: AI analysis &amp; Grammar Stock (Tavus transcript)</summary>
@@ -1166,7 +1167,8 @@ function selected(){
  return active?.id==="rp-card-engineering"?"engineering":active?.id==="rp-card-babysitter"?"babysitter":null;
 }
 function buttonState(){
- $("gtavus-start").disabled=!!call||busy;
+ $("gtavus-emma").disabled=!!call||busy;
+ $("gtavus-daniel").disabled=!!call||busy;
  $("gtavus-end").disabled=!call||busy;
 }
 function stopTick(){if(tick){clearInterval(tick);tick=null}}
@@ -1192,9 +1194,7 @@ function back(){
 $("gtavus-end").addEventListener("click",()=>finish());
 $("gtavus-return").addEventListener("click",back);
 $("gtavus-overlay").addEventListener("click",back);
-$("gtavus-start").addEventListener("click",async()=>{
- const scenario=selected();
- if(!scenario){say("First select Emma or Daniel using the character cards above.");return}
+async function startVideo(scenario){
  if(call||busy)return;
  busy=true;buttonState();say("Creating your 5-minute Tavus video session…");
  try{
@@ -1208,7 +1208,7 @@ $("gtavus-start").addEventListener("click",async()=>{
   $("gtavus-frame").replaceChildren(iframe);$("gtavus-player").hidden=false;
   call={id:data.conversationId,token:data.token,started:Date.now(),scenario};
   $("gtavus-transcript").value="";$("gtavus-results").hidden=true;
-  say("Interview started. Ask job-related questions. Click End call now, or Return to Roleplays, when finished.");
+  say((scenario==="engineering"?"Emma":"Daniel")+" is connected. Ask job-related questions. End call now when finished.");
   const until=Date.now()+300000;
   stopTick();tick=setInterval(()=>{
    if(!call){stopTick();return}
@@ -1216,9 +1216,11 @@ $("gtavus-start").addEventListener("click",async()=>{
    $("gtavus-timer").textContent=String(Math.floor(secs/60)).padStart(2,"0")+":"+String(secs%60).padStart(2,"0");
    if(secs<=0)finish("The five-minute time limit has been reached.");
   },500);
- }catch(e){say("Unable to start: "+e.message)}
+ }catch(e){say("Unable to start "+(scenario==="engineering"?"Emma":"Daniel")+": "+e.message)}
  finally{busy=false;buttonState()}
-});
+}
+$("gtavus-emma").addEventListener("click",()=>startVideo("engineering"));
+$("gtavus-daniel").addEventListener("click",()=>startVideo("babysitter"));
 $("gtavus-fetch").onclick=async()=>{
  const st=$("gtavus-feedback-status");
  if(!last){st.textContent="Finish one Tavus video call first.";return}
