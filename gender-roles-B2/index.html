@@ -1111,4 +1111,164 @@ buttons();
 })();
 
 </script>
+
+<style id="gender-tavus-styles">
+#gtavus-panel{margin:18px 0;background:#fff;border:2px solid #b9c9df;border-radius:18px;padding:20px}
+#gtavus-panel[hidden],#gtavus-player[hidden]{display:none!important}
+#gtavus-player{position:relative;border-radius:14px;overflow:hidden;background:#101a2b;min-height:320px}
+#gtavus-player iframe{width:100%;height:min(70vh,580px);min-height:320px;border:0;display:block}
+#gtavus-overlay{position:absolute;top:10px;right:10px;z-index:3;border:2px solid white;box-shadow:0 2px 12px #0008;background:#183d70;color:white;padding:11px 15px;border-radius:9px;font-weight:800;cursor:pointer}
+.gtavus-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.gtavus-actions button{border:0;border-radius:9px;padding:12px 15px;font-weight:800;cursor:pointer}
+#gtavus-start{background:#2864ae;color:white}
+#gtavus-end{background:#9c3337;color:white}
+#gtavus-return{background:#e4edfa;color:#163c6b}
+#gtavus-timer{font-variant-numeric:tabular-nums;font-weight:900}
+#gtavus-status{min-height:24px;color:#334761}
+#gtavus-transcript{width:100%;min-height:120px;border:1px solid #b8c6db;border-radius:8px;padding:10px;font:inherit}
+</style>
+<script id="gender-tavus-video-v1">
+(()=>{
+"use strict";
+const $=id=>document.getElementById(id);
+const section=$("panel-roleplays");
+if(!section)return;
+const block=document.createElement("section");
+block.id="gtavus-panel";
+block.innerHTML=`
+ <h3>🎥 Live Tavus Video Interview · B2</h3>
+ <p>First select Emma or Daniel above. You are the employer; the AI is the applicant. Video is optional: the existing Voice Only interview remains available.</p>
+ <p><b>5-minute maximum · one Tavus call across Webilang · microphone only, no student camera.</b></p>
+ <div class="gtavus-actions">
+  <button id="gtavus-start" type="button">Start video interview</button>
+  <button id="gtavus-end" type="button" disabled>■ End call now</button>
+  <button id="gtavus-return" type="button">← Return to Roleplays</button>
+  <span id="gtavus-timer" role="timer">05:00</span>
+ </div>
+ <p id="gtavus-status" aria-live="polite">Choose Emma or Daniel to begin.</p>
+ <div id="gtavus-player" hidden><button type="button" id="gtavus-overlay">← Return to Roleplays</button><div id="gtavus-frame"></div></div>
+ <details id="gtavus-feedback">
+  <summary>After the call: AI analysis &amp; Grammar Stock (Tavus transcript)</summary>
+  <p>After ending your video call, try retrieving its transcript. Tavus may need additional processing time. Only recognised student speech should be assessed for grammar.</p>
+  <button class="btn pale" type="button" id="gtavus-fetch">Get my transcript</button>
+  <p id="gtavus-feedback-status" aria-live="polite"></p>
+  <label for="gtavus-transcript">Student utterances (editable — remove avatar speech and fix recognition mistakes)</label>
+  <textarea id="gtavus-transcript" placeholder="Your interview questions will appear here if Tavus supplies a transcript. You may also type them."></textarea>
+  <button type="button" class="btn green" id="gtavus-assess">Analyze student speaking &amp; save Grammar Stock</button>
+  <div id="gtavus-results" class="card" hidden></div>
+ </details>`;
+const grid=section.querySelector(".rp-grid");
+if(grid)grid.after(block);else section.append(block);
+let call=null,tick=null,last=null,busy=false;
+const say=x=>{$("gtavus-status").textContent=x};
+function selected(){
+ const active=section.querySelector(".rp-choice.rp-active");
+ return active?.id==="rp-card-engineering"?"engineering":active?.id==="rp-card-babysitter"?"babysitter":null;
+}
+function buttonState(){
+ $("gtavus-start").disabled=!!call||busy;
+ $("gtavus-end").disabled=!call||busy;
+}
+function stopTick(){if(tick){clearInterval(tick);tick=null}}
+function closeView(){
+ $("gtavus-frame").replaceChildren();$("gtavus-player").hidden=true;stopTick();$("gtavus-timer").textContent="05:00";
+}
+async function finish(reason="Video call ended."){
+ if(busy)return;
+ const prev=call;call=null;closeView();
+ if(!prev){say(reason);buttonState();return}
+ last=prev;busy=true;buttonState();say("Ending Tavus session…");
+ try{
+  const r=await fetch("/api/gender-tavus",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"end",token:prev.token,conversationId:prev.id})});
+  const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||"Failed to end session");
+  say(reason+" You may now request the Tavus transcript.");
+ }catch(e){say("Call window closed. Server confirmation failed: "+e.message+"; if blocked, wait for the five-minute lock to expire.")}
+ finally{busy=false;buttonState()}
+}
+function back(){
+ if(call){finish("You returned to Roleplays.").then(()=>section.scrollIntoView({behavior:"smooth",block:"start"}))}
+ else{closeView();section.scrollIntoView({behavior:"smooth",block:"start"})}
+}
+$("gtavus-end").addEventListener("click",()=>finish());
+$("gtavus-return").addEventListener("click",back);
+$("gtavus-overlay").addEventListener("click",back);
+$("gtavus-start").addEventListener("click",async()=>{
+ const scenario=selected();
+ if(!scenario){say("First select Emma or Daniel using the character cards above.");return}
+ if(call||busy)return;
+ busy=true;buttonState();say("Creating your 5-minute Tavus video session…");
+ try{
+  const r=await fetch("/api/gender-tavus",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"start",scenario})});
+  const data=await r.json().catch(()=>({}));
+  if(!r.ok)throw Error(data.error||"Unable to start Tavus");
+  const link=new URL(data.url);if(link.protocol!=="https:"||!link.hostname.endsWith("tavus.daily.co"))throw Error("Invalid Tavus video address");
+  const iframe=document.createElement("iframe");
+  iframe.src=data.url;iframe.title=(scenario==="engineering"?"Emma":"Daniel")+" Tavus interview";
+  iframe.allow="microphone; autoplay; fullscreen";iframe.referrerPolicy="strict-origin-when-cross-origin";
+  $("gtavus-frame").replaceChildren(iframe);$("gtavus-player").hidden=false;
+  call={id:data.conversationId,token:data.token,started:Date.now(),scenario};
+  $("gtavus-transcript").value="";$("gtavus-results").hidden=true;
+  say("Interview started. Ask job-related questions. Click End call now, or Return to Roleplays, when finished.");
+  const until=Date.now()+300000;
+  stopTick();tick=setInterval(()=>{
+   if(!call){stopTick();return}
+   const secs=Math.max(0,Math.ceil((until-Date.now())/1000));
+   $("gtavus-timer").textContent=String(Math.floor(secs/60)).padStart(2,"0")+":"+String(secs%60).padStart(2,"0");
+   if(secs<=0)finish("The five-minute time limit has been reached.");
+  },500);
+ }catch(e){say("Unable to start: "+e.message)}
+ finally{busy=false;buttonState()}
+});
+$("gtavus-fetch").onclick=async()=>{
+ const st=$("gtavus-feedback-status");
+ if(!last){st.textContent="Finish one Tavus video call first.";return}
+ st.textContent="Checking whether Tavus has prepared the transcript…";
+ try{
+  const r=await fetch("/api/gender-tavus",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"transcript",conversationId:last.id,token:last.token})});
+  const data=await r.json().catch(()=>({}));
+  if(!r.ok)throw Error(data.error||"Transcript not ready");
+  $("gtavus-transcript").value=data.transcript||"";
+  st.textContent="Transcript retrieved. Check that it contains only your words before requesting feedback.";
+ }catch(e){st.textContent=e.message}
+};
+$("gtavus-assess").onclick=async()=>{
+ const st=$("gtavus-feedback-status"),spoken=$("gtavus-transcript").value.trim();
+ if(spoken.length<45){st.textContent="Please enter at least 45 characters of your own speech.";return}
+ const scenario=last?.scenario||selected()||"babysitter",b=$("gtavus-assess");
+ b.disabled=true;st.textContent="Checking interview and analysing your English…";
+ try{
+  const task="Gender Roles B2 roleplay: learner is an 18-year-old interviewer hiring "+(scenario==="babysitter"?"Daniel, a male babysitter":"Emma, a female engineering apprentice")+". Evaluate professional interviewing questions, fairness, evidence-based judgement and diplomatic language. Correct only errors from STUDENT speech; do not invent errors from AI applicant. Do not evaluate pronunciation from text.";
+  const r=await fetch("/api/gender-feedback",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({kind:"speaking",task,response:spoken})});
+  const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||"Feedback unavailable");
+  const root=$("gtavus-results");root.replaceChildren();root.hidden=false;
+  const add=(tag,text)=>{const el=document.createElement(tag);el.textContent=text;root.append(el)};
+  add("h3","AI feedback · B2");
+  for(const k of ["taskAchievement","contentFeedback","organizationFeedback","vocabularyFeedback","grammarFeedback","nextTask"])if(data[k])add("p",k.replace("Feedback","")+": "+data[k]);
+  for(const x of (data.corrections||[]))add("p","Original: "+x.original+" → "+x.corrected+". "+x.explanation);
+  const KEY="genderRolesAIStocks_v1";let store;
+  try{store=JSON.parse(localStorage.getItem(KEY)||"{}")}catch{store={}}
+  if(!Array.isArray(store.grammar))store.grammar=[];
+  let n=0;
+  for(const g of data.grammarPatterns||[]){
+   if(!g.original||!spoken.includes(g.original)||!g.corrected||g.corrected===g.original)continue;
+   if(store.grammar.some(x=>x.pattern===g.pattern&&x.original===g.original))continue;
+   store.grammar.push({...g,id:"g"+Date.now()+Math.random().toString(36).slice(2),source:"Gender Roles · Tavus "+scenario,date:new Date().toISOString()});n++;
+  }
+  localStorage.setItem(KEY,JSON.stringify(store));
+  window.dispatchEvent(new Event("gender-roleplay-stock-updated"));
+  st.textContent="Feedback ready. "+n+" verified grammar pattern(s) saved to My Grammar Stock.";
+ }catch(e){st.textContent="Feedback failed: "+e.message}
+ finally{b.disabled=false}
+};
+window.addEventListener("pagehide",()=>{
+ if(!call)return;
+ const info=call;call=null;
+ try{navigator.sendBeacon("/api/gender-tavus",new Blob([JSON.stringify({action:"end",conversationId:info.id,token:info.token})],{type:"application/json"}))}catch{}
+});
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
+ if(t.dataset.tab!=="roleplays"&&call)finish("You left Roleplays, so the video call was ended.");
+}));
+buttonState();
+})();
+</script>
 </body></html>
