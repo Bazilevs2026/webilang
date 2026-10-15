@@ -9,7 +9,7 @@ async function redis(cmd){
 }
 async function tavus(path,body){
  const r=await fetch(TAVUS+path,{method:"POST",headers:{"x-api-key":process.env.TAVUS_API_KEY,...(body?{"Content-Type":"application/json"}:{})},...(body?{body:JSON.stringify(body)}:{})});
- const d=await r.json().catch(()=>({}));if(!r.ok)throw Error("Tavus error "+r.status+": "+String(d.message||d.error||"Call failed").slice(0,110));return d;
+ const d=await r.json().catch(()=>({}));if(!r.ok)throw Error("Tavus provider rejected the call (possible exhausted provider credits or account limit), HTTP "+r.status+": "+String(d.message||d.error||"Call failed").slice(0,110));return d;
 }
 async function unlock(t){if(await redis(["GET",PREFIX+":active"])===t)await redis(["DEL",PREFIX+":active"])}
 function month(){const x=new Date();return PREFIX+":budget:"+x.getUTCFullYear()+"-"+String(x.getUTCMonth()+1).padStart(2,"0")}
