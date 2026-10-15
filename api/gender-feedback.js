@@ -16,7 +16,7 @@ Output safe plain text, not HTML.`;
  try{
  const r=await fetch("https://api.openai.com/v1/responses",{
   method:"POST",headers:{"Authorization":`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},
-  body:JSON.stringify({model:process.env.GENDER_AI_MODEL||"gpt-4.1-mini",instructions,input:`TASK:\n${task}\n\nSTUDENT ${kind.toUpperCase()}:\n${response}`,temperature:0.2,max_output_tokens:1800,store:false,
+  body:JSON.stringify({model:process.env.GENDER_AI_MODEL||"gpt-4.1-mini",instructions,input:`Return a valid JSON object only. Use JSON syntax and the fields specified in the instructions.\n\nTASK:\n${task}\n\nSTUDENT ${kind.toUpperCase()}:\n${response}`,temperature:0.2,max_output_tokens:1800,store:false,
    text:{format:{type:"json_object"}}})
  });
  const d=await r.json();if(!r.ok)throw Error(d.error?.message||"AI provider request failed");
