@@ -40,7 +40,6 @@ async function ask({instructions,input,maxOutput=500}){
       model:process.env.WEBILANG_FEEDBACK_MODEL||"gpt-4.1-mini",
       instructions,
       input,
-      reasoning:{effort:"none"},
       max_output_tokens:maxOutput,
       store:false
     })
