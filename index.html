@@ -4424,7 +4424,7 @@ html{scroll-padding-top:90px}
       <div>
         <div class="gsSpeakEyebrow">WEBILANG · SPEAKING GAME SHOW</div>
         <h2>Spin. Think. Speak!</h2>
-        <p>Spin the wheel, get a challenge, then speak in English for about <b>30 seconds</b>.</p>
+        <p>Spin the wheel, get a challenge, then speak in English for about <b>45 seconds</b>.</p>
       </div>
       <div class="gsSpeakBadge">
         <strong>8 CHALLENGES</strong>
@@ -4458,7 +4458,7 @@ html{scroll-padding-top:90px}
         <div class="gsCallout" id="speakTaskHelp">You do not need a perfect answer. Give a clear idea, add a reason or example, and keep speaking.</div>
 
         <div class="gsTimerRow">
-          <div class="gsTimer" id="speakTimer">00:30</div>
+          <div class="gsTimer" id="speakTimer">00:45</div>
           <div class="gsStatus" id="speakStatus">Spin first, then record your answer.</div>
         </div>
 
@@ -5502,7 +5502,7 @@ html{scroll-padding-top:90px}
         </div>
         <label class="rp2FieldLabel" for="rp2GameInput">Your favourite game</label>
         <input class="rp2TextField" id="rp2GameInput" type="text" maxlength="80" placeholder="e.g. Minecraft">
-        <button type="button" class="wlTavusButton" id="wlTavusCreatorStart">🎥 Live avatar interview · 5 min</button><button class="rp2StartBtn creator" id="rp2StartCreator" type="button">Start Interview →</button>
+        <button type="button" class="wlTavusButton" id="wlTavusCreatorStart">🎥 Live avatar interview · 4 min</button><button class="rp2StartBtn creator" id="rp2StartCreator" type="button">Start Interview →</button>
         <div class="rp2CardStatus" id="rp2CreatorStatus"></div>
       </div>
     </article>
@@ -5518,18 +5518,18 @@ html{scroll-padding-top:90px}
         </div>
         <div class="rp2FieldLabel">I’m applying as:</div>
         <div class="rp2JobChoices" id="rp2JobChoices">
-          <button type="button" class="rp2Job active" data-job="teacher">Teacher</button>
-          <button type="button" class="rp2Job" data-job="tutor">Tutor</button>
+          
+          <button type="button" class="rp2Job active" data-job="tutor">Tutor</button>
           <button type="button" class="rp2Job" data-job="nanny">Nanny</button>
         </div>
-        <button type="button" class="wlTavusButton" id="wlTavusEmployerStart">🎥 Live avatar job challenge · 5 min</button><button class="rp2StartBtn employer" id="rp2StartEmployer" type="button">Start Challenge →</button>
+        <button type="button" class="wlTavusButton" id="wlTavusEmployerStart">🎥 Live avatar job challenge · 4 min</button><button class="rp2StartBtn employer" id="rp2StartEmployer" type="button">Start Challenge →</button>
       </div>
     </article>
   </div>
 
   <section id="wlTavusLive" hidden aria-labelledby="wlTavusTitle">
 <div class="wlTavusTop"><div><h2 id="wlTavusTitle">Live Avatar</h2><p>AI-generated video character · A2 English · Microphone only · No student camera</p></div>
-<div id="wlTavusClock" role="timer" aria-label="Time remaining">05:00</div></div>
+<div id="wlTavusClock" role="timer" aria-label="Time remaining">04:00</div></div>
 <div class="wlTavusVideoWrap">
   <div id="wlTavusFrame" role="group" aria-label="Live video conversation"></div>
   <button class="wlTavusReturnOverlay" type="button" id="wlTavusReturnOverlay" aria-label="End video call and return to roleplay scenarios">← Return to Roleplay</button>
@@ -12590,7 +12590,7 @@ if(storyResetButton){
   const NS='http://www.w3.org/2000/svg';
   const n=tasks.length, step=360/n, r=285;
   let rotation=0,spinning=false,lastIndex=-1,currentTask=null;
-  let timer=null,secondsLeft=30,isRecording=false;
+  let timer=null,secondsLeft=45,isRecording=false;
   let recorder=null,recordStream=null,chunks=[],audioBlob=null,audioUrl='',recognition=null,finalTranscript='';
 
   function polar(aDeg,radius){
@@ -12673,8 +12673,10 @@ if(storyResetButton){
     lastIndex=idx;
 
     const center=idx*step+step/2;
-    const extra=5*360+(360-center);
-    rotation+=extra;
+    const target=((360-center)%360);
+    const current=((rotation%360)+360)%360;
+    const delta=((target-current+360)%360);
+    rotation+=5*360+delta;
     wheel.style.transform=`rotate(${rotation}deg)`;
 
     setTimeout(()=>{
@@ -12717,9 +12719,9 @@ if(storyResetButton){
     }else{
       cleanupTaskStream();
     }
-    secondsLeft=30;
-    setTimer(30);
-    statusEl.textContent=auto?'30 seconds finished — answer saved.':'Recording stopped — answer saved.';
+    secondsLeft=45;
+    setTimer(45);
+    statusEl.textContent=auto?'45 seconds finished — answer saved.':'Recording stopped — answer saved.';
   }
 
   async function startRecording(){
@@ -12801,7 +12803,7 @@ if(storyResetButton){
       startBtn.disabled=true;
       stopBtn.disabled=false;
       statusEl.textContent='LIVE — speak now!';
-      secondsLeft=30;
+      secondsLeft=45;
       setTimer(secondsLeft);
 
       timer=setInterval(()=>{
@@ -12854,7 +12856,7 @@ if(storyResetButton){
     transcriptBox.textContent='Your transcript will appear here...';
     statusEl.textContent='Spin first, then record your answer.';
     spinBtn.disabled=false;againBtn.disabled=false;startBtn.disabled=false;stopBtn.disabled=true;
-    setTimer(30);
+    setTimer(45);
   }
 
   spinBtn.addEventListener('click',spin);
@@ -12865,7 +12867,7 @@ if(storyResetButton){
   downloadTranscriptBtn.addEventListener('click',downloadTranscript);
   resetBtn.addEventListener('click',resetPage);
 
-  setTimer(30);
+  setTimer(45);
 })();
 </script>
 
@@ -13515,6 +13517,41 @@ if(storyResetButton){
     status.textContent=`Practice ready: ${total} activities. Start with Stage 1.`;
   }
 
+  // Resilient offline practice: always generate 5 varied tasks per selected saved item,
+  // even when the hosted AI practice endpoint is temporarily unavailable.
+  function offlinePractice(words){
+    const bank={
+      scared:{meaning:"afraid or frightened",context:"The player was _____ when the monster appeared.",natural:["I felt scared when I heard the strange sound.","I am scared in the sound yesterday."]},
+      saved:{meaning:"kept something safe or stored game progress",context:"I _____ my progress before closing the game.",natural:["I saved my progress before switching off the console.","I saved to my progress before switching off the console."]},
+      take:{meaning:"get, carry or perform an action",context:"We need to _____ a short break from the screen.",natural:["I take a break after an hour of gaming.","I take break after an hour of gaming."]},
+      xbox:{meaning:"a brand of video game console",context:"My friend plays games on an _____.",natural:["I played a game on my xbox yesterday.","I played a game in my xbox yesterday."]},
+      limit:{meaning:"the maximum allowed amount",context:"My parents set a screen-time _____ of one hour.",natural:["There is a limit on the time I can play.","There is a limit of the time I can play."]},
+      games:{meaning:"activities played for fun or competition",context:"My friends enjoy video _____ after school.",natural:["We play games together at the weekend.","We make games together at the weekend."]}
+    };
+    const items=words.map((word,i)=>{
+      const target=String(word||"").trim();
+      const info=bank[target.toLowerCase()]||{};
+      const meaning=info.meaning||"a word or expression saved from your lesson";
+      const sentence=info.context||("During our gaming lesson, the missing saved expression is _____. Clue: "+meaning+".");
+      const candidates=words.filter(w=>String(w).toLowerCase()!==target.toLowerCase());
+      const distractors=candidates.slice(0,2);
+      while(distractors.length<2)distractors.push(["another word","different phrase"][distractors.length]);
+      const opts=[target,...distractors].sort((a,b)=>a.localeCompare(b));
+      const pair=info.natural||[
+        "I used "+target+" in my answer about video games.",
+        "I used "+target+" in my answer about video game."
+      ];
+      return {target,meaning,sentence,opts,pair,i};
+    });
+    return {
+      gaps:items.map(x=>({answer:x.target,sentence:x.sentence,support:"Recall the saved expression using the context.",ruHint:"Вспомните слово из вашего словаря."})),
+      choices:items.map(x=>({answer:x.target,sentence:x.sentence,options:x.opts,support:"Which of your saved expressions fits the sentence?",ruHint:"Выберите подходящее выражение."})),
+      natural:items.map(x=>({word:x.target,a:x.pair[0],b:x.pair[1],answer:"A",support:"Compare the preposition, article or collocation.",ruHint:"Сравните грамматику и сочетания слов."})),
+      personal:items.map(x=>({word:x.target,prompt:"Write about your own gaming experience using '"+x.target+"'.",support:"Write a full sentence with a subject and verb.",ruHint:"Составьте собственное предложение."})),
+      speaking:items.map(x=>({word:x.target,cue:"Recall the expression from your lesson. Meaning: "+x.meaning+".",prompt:"Say or write the expression.",support:"Try to remember its spelling and use.",ruHint:"Вспомните сохранённое слово."}))
+    };
+  }
+
   async function build(){
     const entries=window.WebilangStockBridge?.selectedEntries?.()||[];
     const words=entries.slice(0,6).map(e=>e.item);
@@ -13543,7 +13580,8 @@ if(storyResetButton){
       render(data);
       try{panel.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}
     }catch(err){
-      status.textContent='Practice could not connect to /api/feedback. '+(err?.message||'');
+      render(offlinePractice(words));
+      status.textContent='✓ Practice ready (local backup): '+(words.length*5)+' exercises. AI generator unavailable: '+(err?.message||'Unknown error')+'. The activities remain usable; some backup examples are simplified.';
     }finally{
       btn.disabled=false;
       btn.textContent=normalText;
@@ -13950,7 +13988,24 @@ if(storyResetButton){
         model.textContent="Model: "+String(prod.model||item.correction||"");
       };
 
-      grid.append(r1,r2,r3);
+      // 4 · Error correction: independent editing of the learner's original sentence
+      const r4=document.createElement("div");r4.className="grammarPractice";
+      r4.innerHTML='<span class="grammarPracticeKicker">4 · Edit the error</span><div class="grammarPracticePrompt">Rewrite your original sentence correctly, without copying the model above.</div><div class="grammarPracticePrompt"></div><div class="grammarInputRow"><input type="text" autocomplete="off" placeholder="Write corrected sentence"><button type="button" class="grammarMiniBtn">Check</button></div><div class="grammarFeedback"></div>';
+      r4.querySelectorAll(".grammarPracticePrompt")[1].textContent=item.original||"";
+      r4.querySelector("button").onclick=()=>{
+        const answer=r4.querySelector("input").value;
+        const ok=norm(answer)===norm(item.correction);
+        feedback(r4.querySelector(".grammarFeedback"),ok?"✓ You corrected your original error.":"Compare with the correction shown above, then try again.",ok);
+      };
+      // 5 · Transfer: use the grammatical pattern in a new, independent situation
+      const r5=document.createElement("div");r5.className="grammarPractice";
+      r5.innerHTML='<span class="grammarPracticeKicker">5 · Real-life transfer</span><div class="grammarPracticePrompt">Imagine you are interviewing someone for a job. Make a new sentence or question using this grammar rule.</div><textarea class="grammarProduction" placeholder="Your own B2/A2 interview sentence..."></textarea><div class="grammarInputRow"><button type="button" class="grammarMiniBtn">Save attempt</button></div><div class="grammarFeedback"></div>';
+      r5.querySelector("button").onclick=()=>{
+        const answer=r5.querySelector("textarea").value.trim();
+        const enough=answer.split(/\s+/).filter(Boolean).length>=5;
+        feedback(r5.querySelector(".grammarFeedback"),enough?"✓ Your transfer sentence is recorded. Ask your teacher to confirm accuracy.":"Write a complete sentence of at least five words.",enough);
+      };
+      grid.append(r1,r2,r3,r4,r5);
       card.append(top,example,explain,grid);
       list.appendChild(card);
     });
@@ -14272,18 +14327,18 @@ setBusy(false)
 }
 async function start(scenario){
 if(busy||call)return;busy=true;setBusy(true);panel.hidden=false;panel.scrollIntoView({block:"start"});
-clock.textContent="05:00";clock.classList.remove("warning");
+clock.textContent="04:00";clock.classList.remove("warning");
 const game=($("rp2GameInput")?.value||"").trim();
 if(scenario==="creator"&&!game){say("Please enter a game name first.");busy=false;setBusy(false);$("rp2GameInput")?.focus();return}
 const creatorNumber=last===1?2:1;
-const job=document.querySelector("#rp2JobChoices .rp2Job.active")?.dataset.job||"teacher";
+const job=document.querySelector("#rp2JobChoices .rp2Job.active")?.dataset.job||"tutor";
 say("Connecting to Tavus…");
 try{
 const r=await fetch("/api/tavus",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"start",scenario,game,job,creatorNumber})});
 const d=await r.json().catch(()=>({}));
 if(!r.ok)throw Error(d.error||"Could not start conversation");
 if(!/^https:\/\/[a-z0-9.-]*tavus\.daily\.co\//i.test(d.url))throw Error("Unexpected video URL");
-call={id:d.conversationId,token:d.token,endsAt:Date.now()+300000};
+call={id:d.conversationId,token:d.token,endsAt:Date.now()+240000};
 $("wlTavusTitle").textContent=scenario==="creator"?`Game Creator ${creatorNumber===1?"A":"B"} · ${game}`:`Morgan · ${job} interview`;
 if(scenario==="creator"){last=creatorNumber;try{localStorage.setItem("wl_tavus_creator_last",String(last))}catch{}}
 const iframe=document.createElement("iframe");iframe.title="Tavus AI video conversation; microphone only";
