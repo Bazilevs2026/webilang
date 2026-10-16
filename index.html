@@ -13144,465 +13144,92 @@ if(storyResetButton){
 
 <script id="wl-wordstock-ai-v2">
 (() => {
-  'use strict';
-
-  const btn=document.getElementById('myStockBuild');
-  const panel=document.getElementById('myStockAiPanel');
-  const list=document.getElementById('myStockAiList');
-  const status=document.getElementById('myStockAiStatus');
-  const clear=document.getElementById('myStockAiClear');
+  "use strict";
+  const btn=document.getElementById("myStockBuild");
+  const panel=document.getElementById("myStockAiPanel");
+  const list=document.getElementById("myStockAiList");
+  const status=document.getElementById("myStockAiStatus");
+  const clear=document.getElementById("myStockAiClear");
   if(!btn||!panel||!list||!status)return;
-
-  const clean=s=>String(s||'')
-    .trim()
-    .toLowerCase()
-    .replace(/[’‘]/g,"'")
-    .replace(/[“”]/g,'"')
-    .replace(/[.,!?;:]+$/g,'')
-    .replace(/\s+/g,' ');
-
-  const matchClean=s=>String(s||'')
-    .toLowerCase()
-    .replace(/[’‘]/g,"'")
-    .replace(/[“”]/g,'"')
-    .replace(/[^a-z0-9' -]+/gi,' ')
-    .replace(/\s+/g,' ')
-    .trim();
-
-  function containsTarget(response,target){
-    const r=matchClean(response);
-    const t=matchClean(target);
-    if(!r||!t) return false;
-    if(r===t) return true;
-    return (` ${r} `).includes(` ${t} `);
+  const endpoint=()=>window.WEBILANG_WORDSTOCK_ENDPOINT||"/api/feedback";
+  const norm=s=>String(s||"").trim().toLowerCase().replace(/[’‘]/g,"'").replace(/[.!?,;:]+$/,"").replace(/\s+/g," ");
+  const el=(tag,cl,txt)=>{const n=document.createElement(tag);if(cl)n.className=cl;if(txt!==undefined)n.textContent=txt;return n;};
+  const feedback=(container,msg,ok)=>{container.textContent=msg;container.className="aiStockFeedback "+(ok?"ok":"bad");};
+  async function api(payload){
+    const r=await fetch(endpoint(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok)throw Error(data.error||`AI endpoint error ${r.status}`);
+    return data;
   }
-
-  function targetAnswerOK(response,target){
-    return clean(response)===clean(target) || containsTarget(response,target);
-  }
-
-  function safeHelpText(text,target,fallback){
-    const value=String(text||'').trim();
-    if(!value) return fallback;
-    return containsTarget(value,target) ? fallback : value;
-  }
-
-  function section(title,subtitle=''){
-    const sec=document.createElement('section');
-    sec.className='aiStockStage';
-    const h=document.createElement('h5');
-    h.textContent=title;
-    sec.appendChild(h);
-    if(subtitle){
-      const p=document.createElement('div');
-      p.className='wordStockAiStatus';
-      p.textContent=subtitle;
-      sec.appendChild(p);
-    }
-    const grid=document.createElement('div');
-    grid.className='aiStockGrid';
-    sec.appendChild(grid);
-    list.appendChild(sec);
-    return {sec,grid};
-  }
-
-  function setFeedback(card,text,ok){
-    const fb=card.querySelector('.aiStockFeedback');
-    fb.textContent=text;
-    fb.className='aiStockFeedback '+(ok?'ok':'bad');
-  }
-
-  function helpTools(card,ex,{ru=true}={}){
-    const tools=document.createElement('div');
-    tools.className='aiStockHelpTools';
-    tools.hidden=true;
-
-    const support=document.createElement('button');
-    support.type='button';
-    support.className='aiHelpBtn';
-    support.textContent='💡 Support';
-
-    const ruBtn=document.createElement('button');
-    ruBtn.type='button';
-    ruBtn.className='aiRuBtn';
-    ruBtn.textContent='RU hint';
-
-    const box=document.createElement('div');
-    box.className='aiStockHelpBox';
-    box.hidden=true;
-
-    const target=String(ex.answer||ex.word||'').trim();
-    support.onclick=()=>{
-      box.textContent=safeHelpText(
-        ex.support,
-        target,
-        'Read the context again and think about the meaning, word type and grammar.'
-      );
-      box.hidden=false;
-    };
-    ruBtn.onclick=()=>{
-      const ru=safeHelpText(ex.ruHint,target,'Перевод-подсказка недоступен.');
-      box.textContent='RU: '+ru;
-      box.hidden=false;
-    };
-
-    tools.appendChild(support);
-    if(ru) tools.appendChild(ruBtn);
-    card.append(tools,box);
-
-    return {
-      reveal(){tools.hidden=false;},
-      tools,box
-    };
-  }
-
-  function markAttempt(card){
-    card.dataset.attempted='1';
-    card.dispatchEvent(new CustomEvent('wlAiPracticeAttempt',{bubbles:true}));
-  }
-
-  async function recogniseTarget(card,answer,input,button,helper){
-    const mic=window.WebilangMic;
-    if(!mic?.recognizeOnce){
-      setFeedback(card,'Microphone recognition is unavailable. Type the answer instead.',false);
-      helper.reveal();
-      return;
-    }
-    button.disabled=true;
-    const old=button.textContent;
-    button.textContent='🎙 Listening…';
-    const note=card.querySelector('.aiStockRecognition');
-    if(note) note.textContent='Say only the missing word or phrase — not the whole sentence.';
-    try{
-      const heard=String(await mic.recognizeOnce({lang:'en-US',durationMs:3200})||'').trim();
-      input.value=heard;
-      markAttempt(card);
-      const ok=targetAnswerOK(heard,answer);
-      const exact=clean(heard)===clean(answer);
-      setFeedback(
-        card,
-        ok
-          ? (exact ? `✓ Recognised: “${heard}”.` : `✓ Correct — I found the target in “${heard}”.`)
-          : `I heard “${heard||'—'}”. Try the target word or phrase again.`,
-        ok
-      );
-      if(!ok) helper.reveal();
-    }catch(err){
-      markAttempt(card);
-      setFeedback(card,err?.message||'Could not recognise the word or phrase.',false);
-      helper.reveal();
-    }finally{
-      button.disabled=false;
-      button.textContent=old;
-    }
-  }
-
-  function render(data){
-    list.innerHTML='';
-
-    const stages=[];
-
-    // 1. Retrieval from context: target is NEVER shown before the learner attempts it.
-    const gapStage=section(
-      '1 · Discover from context',
-      'The English answer is hidden. Type it or say only the missing word / phrase.'
-    );
-    stages.push(gapStage.sec);
-
-    (data.gaps||[]).forEach(ex=>{
-      const card=document.createElement('div');
-      card.className='aiStockCard';
-      card.innerHTML=`<div class="aiStockPrompt"></div>
-        <div class="aiStockInputRow">
-          <input type="text" autocomplete="off" placeholder="Type the missing word or phrase">
-          <button class="aiStockSmallBtn check" type="button">Check</button>
-          <button class="aiStockSmallBtn aiSayAnswer say" type="button">🎙 Say answer</button>
-        </div>
-        <div class="aiStockRecognition">You can type OR say only the missing word / phrase.</div>
-        <div class="aiStockFeedback"></div>`;
-      card.querySelector('.aiStockPrompt').textContent=ex.sentence||'';
-      const inp=card.querySelector('input');
-      const helper=helpTools(card,ex);
-
-      card.querySelector('.check').onclick=()=>{
-        if(!inp.value.trim()) return;
-        markAttempt(card);
-        const ok=targetAnswerOK(inp.value,ex.answer);
-        setFeedback(card,ok?'✓ Correct.':'Not yet. Use the context first; Support is now available.',ok);
-        if(!ok) helper.reveal();
-      };
-      card.querySelector('.say').onclick=e=>recogniseTarget(card,ex.answer,inp,e.currentTarget,helper);
-      gapStage.grid.appendChild(card);
-    });
-
-    // 2. Context choices: distractors must be plausible and same-category.
-    const choiceStage=section(
-      '2 · Choose the best fit',
-      'All options are plausible. Choose the one that fits this exact context best.'
-    );
-    stages.push(choiceStage.sec);
-
-    (data.choices||[]).forEach(ex=>{
-      const card=document.createElement('div');
-      card.className='aiStockCard';
-      card.innerHTML=`<div class="aiStockPrompt"></div><div class="aiStockOptions"></div><div class="aiStockFeedback"></div>`;
-      card.querySelector('.aiStockPrompt').textContent=ex.sentence||'Choose the best option.';
-      const box=card.querySelector('.aiStockOptions');
-      const helper=helpTools(card,ex);
-
-      (ex.options||[]).forEach(option=>{
-        const b=document.createElement('button');
-        b.type='button';
-        b.className='aiStockOption';
-        b.textContent=option;
-        b.onclick=()=>{
-          markAttempt(card);
-          [...box.children].forEach(x=>x.classList.remove('correct'));
-          b.classList.remove('wrong');
-          const ok=clean(option)===clean(ex.answer);
-          b.classList.add(ok?'correct':'wrong');
-          setFeedback(card,ok?'✓ Best fit.':'Close, but not the best fit here. Support is now available.',ok);
-          if(!ok) helper.reveal();
-        };
-        box.appendChild(b);
-      });
-      choiceStage.grid.appendChild(card);
-    });
-
-    // 3. Natural English.
-    const naturalStage=section(
-      '3 · Natural English',
-      'Choose the sentence that uses your saved expression naturally.'
-    );
-    stages.push(naturalStage.sec);
-
-    (data.natural||[]).forEach(ex=>{
-      const card=document.createElement('div');
-      card.className='aiStockCard';
-      card.innerHTML=`<div class="aiStockTarget"></div><div class="aiStockPrompt">Which sentence sounds natural?</div><div class="aiStockOptions"></div><div class="aiStockFeedback"></div>`;
-      card.querySelector('.aiStockTarget').textContent=ex.word||'';
-      const box=card.querySelector('.aiStockOptions');
-      const helper=helpTools(card,ex);
-
-      [ex.a,ex.b].forEach((option,i)=>{
-        const b=document.createElement('button');
-        b.type='button';
-        b.className='aiStockOption';
-        b.textContent=(i===0?'A. ':'B. ')+(option||'');
-        b.onclick=()=>{
-          markAttempt(card);
-          [...box.children].forEach(x=>x.classList.remove('correct'));
-          b.classList.remove('wrong');
-          const ok=(i===0?'A':'B')===String(ex.answer||'').toUpperCase();
-          b.classList.add(ok?'correct':'wrong');
-          setFeedback(card,ok?'✓ Natural English.':'Not quite. Compare the collocation and grammar. Support is now available.',ok);
-          if(!ok) helper.reveal();
-        };
-        box.appendChild(b);
-      });
-      naturalStage.grid.appendChild(card);
-    });
-
-    // 4. Personal use.
-    const personalStage=section(
-      '4 · Make it personal',
-      'Use the saved expression in one short sentence of your own.'
-    );
-    stages.push(personalStage.sec);
-
-    (data.personal||[]).forEach(ex=>{
-      const card=document.createElement('div');
-      card.className='aiStockCard';
-      card.innerHTML=`<div class="aiStockTarget"></div><div class="aiStockPrompt"></div>
-        <div class="aiStockInputRow"><textarea rows="2" placeholder="Write one short sentence..."></textarea><button class="aiStockSmallBtn check" type="button">Check use</button></div>
-        <div class="aiStockFeedback"></div>`;
-      card.querySelector('.aiStockTarget').textContent=ex.word||'';
-      card.querySelector('.aiStockPrompt').textContent=ex.prompt||'Write one short sentence.';
-      const ta=card.querySelector('textarea');
-      const helper=helpTools(card,ex);
-      card.querySelector('.check').onclick=()=>{
-        markAttempt(card);
-        const complete=ta.value.trim().split(/\s+/).filter(Boolean).length>=4;
-        const ok=complete && containsTarget(ta.value,ex.word);
-        setFeedback(
-          card,
-          ok
-            ? '✓ You used the saved expression in your own context.'
-            : (complete
-                ? 'The sentence is complete, but I cannot find the saved word or phrase in it.'
-                : 'Write a complete short sentence using the saved word or phrase.'),
-          ok
-        );
-        if(!ok) helper.reveal();
-      };
-      personalStage.grid.appendChild(card);
-    });
-
-    // 5. Final retrieval: learner can say OR write only the target word / phrase.
-    const speakingStage=section(
-      '5 · Say or write the word or phrase',
-      'Recall the target from the clue. Say it, type it, or use it in a short sentence.'
-    );
-    stages.push(speakingStage.sec);
-
-    (data.speaking||[]).forEach(ex=>{
-      const card=document.createElement('div');
-      card.className='aiStockCard';
-      card.innerHTML=`<div class="aiStockPrompt finalCue"></div>
-        <div class="aiStockInputRow">
-          <input type="text" autocomplete="off" placeholder="Write the word / phrase or a short sentence">
-          <button class="aiStockSmallBtn check" type="button">Check</button>
-          <button class="aiStockSmallBtn aiSayAnswer say" type="button">🎙 Say it</button>
-        </div>
-        <div class="aiStockRecognition">Say only the target word or phrase. You may also type it or use it in a short sentence.</div>
-        <div class="aiStockFeedback"></div>`;
-      const target=String(ex.word||'').trim();
-      const cue=safeHelpText(
-        ex.cue,
-        target,
-        'Recall the saved word or phrase from its meaning and use.'
-      );
-      card.querySelector('.finalCue').textContent=cue;
-      const inp=card.querySelector('input');
-      const helper=helpTools(card,ex);
-
-      card.querySelector('.check').onclick=()=>{
-        if(!inp.value.trim()) return;
-        markAttempt(card);
-        const ok=targetAnswerOK(inp.value,target);
-        const exact=clean(inp.value)===clean(target);
-        setFeedback(
-          card,
-          ok
-            ? (exact ? '✓ Correct.' : '✓ Correct — the target is used in your sentence.')
-            : 'Not yet. Try the target word or phrase again.',
-          ok
-        );
-        if(!ok) helper.reveal();
-      };
-
-      card.querySelector('.say').onclick=e=>recogniseTarget(card,target,inp,e.currentTarget,helper);
-      speakingStage.grid.appendChild(card);
-    });
-
-    // Progressive reveal: only Stage 1 is visible at the start.
-    stages.forEach((stage,i)=>{
-      if(i>0) stage.hidden=true;
-      const note=document.createElement('div');
-      note.className='aiStockUnlock';
-      if(i===0) note.textContent='Try all context cards first. The next stage opens after your attempts; the answers are not shown in advance.';
-      stage.appendChild(note);
-    });
-
-    const unlock=()=>{
-      for(let i=0;i<stages.length-1;i++){
-        const current=stages[i], next=stages[i+1];
-        if(current.hidden || !next.hidden) continue;
-        const cards=[...current.querySelectorAll('.aiStockCard')];
-        if(cards.length && cards.every(c=>c.dataset.attempted==='1')){
-          next.hidden=false;
-          const note=current.querySelector('.aiStockUnlock');
-          if(note) note.textContent='Stage attempted. The next stage is open.';
-        }
-      }
-    };
-    list.addEventListener('wlAiPracticeAttempt',unlock);
-
-    const total=
-      (data.gaps||[]).length+
-      (data.choices||[]).length+
-      (data.natural||[]).length+
-      (data.personal||[]).length+
-      (data.speaking||[]).length;
-    status.textContent=`Practice ready: ${total} activities. Start with Stage 1.`;
-  }
-
-  // Resilient offline practice: always generate 5 varied tasks per selected saved item,
-  // even when the hosted AI practice endpoint is temporarily unavailable.
-  // Offline fallback is intentionally conservative. Never fabricate an exercise
-  // that simply mentions "the saved word" or asks students to guess blindly.
-  function offlinePractice(words){
-    const bank={
-      scared:{meaning:"afraid",gap:"When I heard footsteps in the dark, I felt _____.",choice:"She was _____ when the huge spider crawled onto her desk.",options:["scared","excited","relaxed"],natural:["I felt scared when I heard the strange sound.","I was scared from the strange sound."],ru:"испуганный"},
-      saved:{meaning:"stored safely",gap:"Before switching off the console, I _____ my game progress.",choice:"She _____ her homework before the laptop battery died.",options:["saved","borrowed","forgot"],natural:["I saved my progress before switching off the console.","I saved to my progress before switching off the console."],ru:"сохранил"},
-      take:{meaning:"to do or get something",gap:"After two hours at the screen, we decided to _____ a break.",choice:"You should _____ regular breaks to rest your eyes.",options:["take","build","play"],natural:["I take a break after an hour of gaming.","I take break after an hour of gaming."],ru:"брать; сделать (перерыв)"},
-      xbox:{meaning:"a gaming console",gap:"His favourite console is an _____, not a PlayStation.",choice:"To play this console game, he switched on his _____.",options:["Xbox","tablet","headphones"],natural:["I played a game on my Xbox yesterday.","I played a game in my Xbox yesterday."],ru:"игровая консоль Xbox"},
-      limit:{meaning:"the maximum allowed",gap:"My parents set a two-hour _____ on my gaming time.",choice:"The library has a three-book borrowing _____.",options:["limit","reward","level"],natural:["There is a limit on the time I can play.","There is a limit of the time I can play."],ru:"ограничение"},
-      games:{meaning:"activities you play",gap:"After homework, she sometimes plays board _____ with her family.",choice:"They played two video _____ together after school.",options:["games","screens","levels"],natural:["We play games together at the weekend.","We make games together at the weekend."],ru:"игры"},
-      homework:{meaning:"schoolwork done at home",gap:"He could not play until he finished his _____ for tomorrow's class.",choice:"The teacher asked us to hand in our _____ on Friday.",options:["homework","controller","break"],natural:["I finished my homework before dinner.","I made my homework before dinner."],ru:"домашняя работа"},
-      confident:{meaning:"sure of yourself",gap:"After practising his speech ten times, he felt more _____.",choice:"She spoke clearly in front of the class because she felt _____.",options:["confident","exhausted","confused"],natural:["She feels confident speaking English.","She feels confidence speaking English."],ru:"уверенный"},
-      community:{meaning:"a group sharing interests",gap:"The online gaming _____ helped new players learn the rules.",choice:"Fans created a friendly _____ to discuss their favourite game.",options:["community","controller","mission"],natural:["I joined an online gaming community.","I joined to an online gaming community."],ru:"сообщество"},
-      'video games':{meaning:"digital games",gap:"Instead of watching TV, they played _____ together on the console.",choice:"He enjoys _____ because he can explore imaginary worlds.",options:["video games","board exams","phone calls"],natural:["I play video games after school.","I do video games after school."],ru:"видеоигры"},
-      'community college':{meaning:"a local college",gap:"After leaving university, he studied at a nearby _____ instead.",choice:"She took affordable courses at a local _____ before transferring to university.",options:["community college","shopping centre","gaming console"],natural:["He studied at a community college.","He studied in a community college."],ru:"общественный колледж"},
-      'speech therapy':{meaning:"help with speaking difficulties",gap:"The child went to _____ to practise speaking more clearly.",choice:"A specialist helped her pronounce sounds during _____.",options:["speech therapy","driving lessons","basketball practice"],natural:["She received speech therapy as a child.","She received speaking therapy as a child."],ru:"логопедическая терапия"},
-      'stay connected':{meaning:"keep in touch",gap:"After moving abroad, they video-called every week to _____.",choice:"They use group chats to _____ even though they live far apart.",options:["stay connected","lose contact","turn off"],natural:["We use messages to stay connected.","We use messages to stay connecting."],ru:"оставаться на связи"},
-      'take over':{meaning:"gain control",gap:"Gaming began to _____ his evenings, leaving no time for homework.",choice:"Without clear rules, work can _____ your whole weekend.",options:["take over","look after","turn on"],natural:["Games began to take over his life.","Games began to take on his life."],ru:"захватить контроль; занять всё время"},
-      'in moderation':{meaning:"not too much",gap:"Playing games can be healthy when you do it _____.",choice:"You can enjoy sweets _____ without eating them all day.",options:["in moderation","every minute","without stopping"],natural:["I play video games in moderation.","I play video games with moderation."],ru:"в умеренных количествах"},
-      'be yourself':{meaning:"act naturally",gap:"You don't need to copy anyone online. Just _____.",choice:"Her advice was simple: relax and _____ during the interview.",options:["be yourself","be somebody else","give up"],natural:["Don't pretend. Just be yourself.","Don't pretend. Just do yourself."],ru:"будь собой"}
-    };
-    const selected=words.map(w=>({word:String(w||'').trim(),info:bank[String(w||'').trim().toLowerCase()]}));
-    const supported=selected.filter(x=>x.info);
-    const missing=selected.filter(x=>!x.info).map(x=>x.word);
-    const items=supported.map(({word:target,info})=>({target,info}));
-    return {
-      gaps:items.map(({target,info})=>({answer:target,sentence:info.gap,support:info.meaning,ruHint:info.ru})),
-      choices:items.map(({target,info})=>({answer:target,sentence:info.choice,options:info.options,support:info.meaning,ruHint:info.ru})),
-      natural:items.map(({target,info})=>({word:target,a:info.natural[0],b:info.natural[1],answer:"A",support:"Look for a natural collocation.",ruHint:info.ru})),
-      personal:items.map(({target,info})=>({word:target,prompt:"Write a true sentence about yourself using '"+target+"'.",support:info.meaning,ruHint:info.ru})),
-      speaking:items.map(({target,info})=>({word:target,cue:info.meaning,prompt:"Say or write the expression.",support:info.meaning,ruHint:info.ru})),
-      unavailable:missing
-    };
-  }
-
   async function build(){
     const entries=window.WebilangStockBridge?.selectedEntries?.()||[];
     const words=entries.slice(0,6).map(e=>e.item);
-    if(!words.length){
-      panel.hidden=false;
-      status.textContent='Select at least one Word Stock item first.';
-      return;
-    }
-
-    panel.hidden=false;
-    list.innerHTML='';
-    status.textContent='Building context-based practice with plausible distractors...';
-    btn.disabled=true;
-    const normalText=words.length?`Build practice (${words.length})`:'Build practice';
-    btn.textContent='Building…';
-
+    panel.hidden=false;list.innerHTML="";
+    if(!words.length){status.textContent="Select words in My Word Stock first.";return;}
+    btn.disabled=true;status.textContent="Connecting to live AI…";
     try{
-      const endpoint=window.WEBILANG_WORDSTOCK_ENDPOINT||'/api/feedback';
-      const r=await fetch(endpoint,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({mode:'wordstock',words,level:'A2',module:'Gaming'})
-      });
-      const data=await r.json().catch(()=>({}));
-      if(!r.ok) throw new Error(data?.error||`Server error (${r.status})`);
-      const badContext=(data.gaps||[]).some(ex=>/during our gaming lesson|missing saved expression|word or expression saved from your lesson/i.test(String(ex.sentence||'')));
-      if(badContext) throw new Error('AI returned generic context rather than a real sentence');
-      render(data);
-      try{panel.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}
-    }catch(err){
-      const backup=offlinePractice(words);
-      if(backup.gaps.length) render(backup);
-      else list.innerHTML='';
-      const missing=backup.unavailable.length?' No offline examples for: '+backup.unavailable.join(', ')+'.':'';
-      status.textContent=(backup.gaps.length?'Local practice: '+(backup.gaps.length*5)+' meaningful activities. ':'No suitable offline exercises for the selected words. ')+missing+' Connect the AI generator to create unique contexts for the remaining items.';
-
-    }finally{
-      btn.disabled=false;
-      btn.textContent=normalText;
-    }
+      const data=await api({mode:"stock_three",words,level:"A2",module:"Video Games"});
+      if(data.source!=="openai_live")throw Error("Live AI response was not confirmed.");
+      status.textContent=`Live AI generated 3 short tasks for each of ${data.items.length} selected items.`;
+      for(const [i,item] of data.items.entries()){
+        const block=el("section","aiStockStage");
+        block.append(el("h5","",`${i+1}. ${item.word}`));
+        const stages=[
+          ["1 · Recognize",item.recognize],
+          ["2 · Retrieve",item.retrieve],
+          ["3 · Practice + AI feedback",item.practice]
+        ];
+        for(const [j,[heading,task]] of stages.entries()){
+          const card=el("div","aiStockCard");
+          card.style.marginBottom="12px";
+          card.append(el("strong","",heading));
+          card.append(el("div","aiStockPrompt",j===2?task.prompt:task.sentence));
+          const f=el("div","aiStockFeedback");
+          if(j===0){
+            const opts=el("div","aiStockOptions");
+            task.options.forEach(opt=>{
+              const b=el("button","aiStockOption",opt);b.type="button";
+              b.onclick=()=>feedback(f,norm(opt)===norm(task.answer)?"✓ Correct.":"Try again: read the entire sentence.",norm(opt)===norm(task.answer));
+              opts.append(b);
+            });
+            card.append(opts,f);
+          } else {
+            const row=el("div","aiStockInputRow");
+            const input=j===1?el("input"):el("textarea");
+            if(j===1){input.type="text";input.placeholder="Missing word / phrase";}
+            else {input.rows=2;input.placeholder="Your own short sentence";}
+            const check=el("button","aiStockSmallBtn",j===1?"Check":"Get AI feedback");
+            check.type="button";
+            row.append(input,check);
+            if(j===1){
+              check.onclick=()=>feedback(f,norm(input.value)===norm(task.answer)?"✓ Correct.":"Not quite. Check the meaning and form.",norm(input.value)===norm(task.answer));
+              if(task.ruHint){
+                const hint=el("button","aiStockSmallBtn","RU hint");hint.type="button";
+                const hintText=el("div","aiStockRecognition");hintText.hidden=true;hintText.textContent=task.ruHint;
+                hint.onclick=()=>hintText.hidden=!hintText.hidden;row.append(hint);card.append(row,hintText,f);
+              }else card.append(row,f);
+            }else{
+              check.onclick=async()=>{
+                if(input.value.trim().split(/\s+/).length<3){feedback(f,"Write a short complete sentence first.",false);return;}
+                check.disabled=true;feedback(f,"Checking with live AI…",true);
+                try{
+                  const ans=await api({mode:"stock_assess",kind:"word",target:item.word,answer:input.value,context:task.prompt});
+                  feedback(f,(ans.correct?"✓ ":"Try again. ")+ans.feedback+(ans.better?" Example: "+ans.better:""),ans.correct);
+                }catch(e){feedback(f,"AI feedback unavailable: "+e.message,false);}
+                finally{check.disabled=false;}
+              };
+              card.append(row,f);
+            }
+          }
+          block.append(card);
+        }
+        list.append(block);
+      }
+    }catch(e){status.textContent="Live LLM unavailable: "+e.message+". No fabricated exercises were created.";}
+    finally{btn.disabled=false;}
   }
-
   window.WebilangBuildSelectedWordPractice=build;
-
-  clear?.addEventListener('click',()=>{
-    list.innerHTML='';
-    status.textContent='';
-    panel.hidden=true;
-  });
+  clear?.addEventListener("click",()=>{list.innerHTML="";panel.hidden=true;status.textContent="";});
 })();
 </script>
 
@@ -13986,14 +13613,25 @@ if(storyResetButton){
         r3SupportText.textContent=prod.support||"Use the grammar pattern above, but make the idea your own.";
         r3SupportText.hidden=false;
       };
-      r3.querySelector(".compare").onclick=()=>{
+      r3.querySelector(".compare").textContent="Get AI feedback";
+      r3.querySelector(".compare").onclick=async()=>{
         if(clean(r3ta.value).split(/\s+/).filter(Boolean).length<3){
-          feedback(r3fb,"Write a complete sentence first.",false);
-          return;
+          feedback(r3fb,"Write a short complete sentence first.",false);return;
         }
-        feedback(r3fb,prod.support||"Compare your grammar pattern with the model, not just the vocabulary.",true);
-        model.hidden=false;
-        model.textContent="Model: "+String(prod.model||item.correction||"");
+        const button=r3.querySelector(".compare");button.disabled=true;
+        feedback(r3fb,"Checking with live AI…",true);
+        try{
+          const response=await fetch("/api/feedback",{
+            method:"POST",headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({mode:"stock_assess",kind:"grammar",target:item.rule,
+              answer:r3ta.value,context:prod.prompt||item.explanation})
+          });
+          const result=await response.json().catch(()=>({}));
+          if(!response.ok)throw Error(result.error||"AI unavailable");
+          feedback(r3fb,(result.correct?"✓ ":"Try again. ")+result.feedback+
+            (result.better?" Example: "+result.better:""),result.correct);
+        }catch(e){feedback(r3fb,"AI feedback unavailable: "+e.message,false);}
+        finally{button.disabled=false;}
       };
 
       // 4 · Error correction: independent editing of the learner's original sentence
@@ -14013,7 +13651,7 @@ if(storyResetButton){
         const enough=answer.split(/\s+/).filter(Boolean).length>=5;
         feedback(r5.querySelector(".grammarFeedback"),enough?"✓ Your transfer sentence is recorded. Ask your teacher to confirm accuracy.":"Write a complete sentence of at least five words.",enough);
       };
-      grid.append(r1,r2,r3,r4,r5);
+      grid.append(r1,r2,r3);
       card.append(top,example,explain,grid);
       list.appendChild(card);
     });
