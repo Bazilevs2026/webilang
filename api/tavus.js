@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 
-const MAX_SECONDS = 300;
+const MAX_SECONDS = 240;
 const MONTH_SECONDS = 240*60; // Reserved quota, not actual billed usage.
 const PREFIX="webilang:tavus:v1";
 const TAVUS="https://tavusapi.com/v2/conversations";
@@ -52,15 +52,15 @@ export default async function handler(req,res){
      const scenario=body.scenario;
      if(!["creator","job"].includes(scenario))return json(res,400,{error:"Unknown scenario"});
      const game=String(body.game||"").trim().slice(0,80);
-     const job=String(body.job||"teacher").toLowerCase();
+     const job=String(body.job||"tutor").toLowerCase();
      if(scenario==="creator"&&!game)return json(res,400,{error:"Please enter a game"});
-     if(scenario==="job"&&!["teacher","tutor","nanny"].includes(job))return json(res,400,{error:"Invalid job"});
+     if(scenario==="job"&&!["tutor","nanny"].includes(job))return json(res,400,{error:"Invalid job"});
      const creator=Number(body.creatorNumber)===2?2:1;
      const env=scenario==="job"?"TAVUS_JOB_INTERVIEWER_PAL_ID":`TAVUS_GAME_CREATOR_${creator===1?"A":"B"}_PAL_ID`;
      const pal=process.env[env];
      if(!validId(pal))return json(res,503,{error:`${env} is missing or invalid`});
      const token=crypto.randomBytes(24).toString("hex");
-     const lock=await redis(["SET",`${PREFIX}:active`,token,"EX",315,"NX"]);
+     const lock=await redis(["SET",`${PREFIX}:active`,token,"EX",255,"NX"]);
      if(lock!=="OK"){
        const remaining=Math.max(0,Number(await redis(["TTL",`${PREFIX}:active`]))||0);
        const seconds=remaining>0?remaining:15;
