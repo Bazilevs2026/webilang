@@ -37,7 +37,7 @@ async function ask({instructions,input,maxOutput=500}){
       "Content-Type":"application/json"
     },
     body:JSON.stringify({
-      model:"gpt-5.6-luna",
+      model:process.env.WEBILANG_FEEDBACK_MODEL||"gpt-4.1-mini",
       instructions,
       input,
       reasoning:{effort:"none"},
