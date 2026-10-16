@@ -3840,6 +3840,20 @@ html{scroll-padding-top:90px}
 #wlTavusAssessment p{margin:7px 0;line-height:1.5}
 .wlTavusHired{color:#19643d}.wlTavusNotHired{color:#a52232}.wlTavusConsider{color:#275a97}
 </style>
+<style id="webilang-stock-visual-voice-2026">
+.aiStockTarget{background:#ffe58b;color:#593d00;border-radius:5px;padding:1px 5px;font-weight:900}
+.aiStockOption.wlCorrect,.grammarOption.correct{background:#e2f8e9!important;color:#126738!important;border:2px solid #24a36a!important}
+.aiStockOption.wlWrong,.grammarOption.wrong{background:#fff0ee!important;color:#ad2739!important;border:2px solid #e35a65!important}
+.aiStockInputRow .wlCorrect,.grammarInputRow .wlCorrect,.grammarProduction.wlCorrect{border:2px solid #23a86b!important;background:#f0fff5!important}
+.aiStockInputRow .wlWrong,.grammarInputRow .wlWrong,.grammarProduction.wlWrong{border:2px solid #df5363!important;background:#fff3f3!important}
+.aiStockSmallBtn,.grammarMiniBtn{background:#2868da!important;color:white!important;border:1px solid #2050a8!important;border-radius:10px!important;cursor:pointer}
+.aiStockHintBtn{background:#fff1bf!important;border:1px solid #dfab38!important;color:#80520b!important;border-radius:10px!important;padding:9px 13px!important;font-weight:750;cursor:pointer}
+.aiStockSpeakBtn{background:#eee6ff!important;border:1px solid #9874ce!important;color:#54348b!important;border-radius:10px!important;padding:9px 13px!important;font-weight:750;cursor:pointer}
+.aiStockFeedback.ok,.grammarFeedback.ok{color:#126d40!important;font-weight:800}
+.aiStockFeedback.bad,.grammarFeedback.bad{color:#b52b3b!important;font-weight:800}
+.aiStockInputRow{flex-wrap:wrap}
+.aiStockInputRow textarea,.aiStockInputRow input{flex:1 1 200px}
+</style>
 </head>
 <body>
 <a class="skipLink" href="#main-content">Skip to main content</a>
@@ -13151,6 +13165,43 @@ if(storyResetButton){
   const status=document.getElementById("myStockAiStatus");
   const clear=document.getElementById("myStockAiClear");
   if(!btn||!panel||!list||!status)return;
+  async function voiceInto(input,button,feedbackBox){
+    const original=button.textContent;
+    button.disabled=true;button.textContent="🎙 Listening…";
+    try{
+      let heard="";
+      if(window.WebilangMic && typeof window.WebilangMic.recognizeOnce==="function"){
+        heard=await window.WebilangMic.recognizeOnce({lang:"en-US"});
+      }else{
+        const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+        if(!SR)throw Error("Speech recognition is unavailable in this browser. Try Chrome or type your answer.");
+        heard=await new Promise((resolve,reject)=>{
+          const sr=new SR();sr.lang="en-US";sr.interimResults=false;sr.maxAlternatives=1;
+          sr.onresult=e=>resolve(e.results[0][0].transcript);
+          sr.onerror=e=>reject(Error(e.error||"Microphone error"));
+          sr.onnomatch=()=>reject(Error("No speech recognized"));
+          sr.start();
+        });
+      }
+      input.value=String(heard||"").trim();
+      input.dispatchEvent(new Event("input",{bubbles:true}));
+      feedbackBox.textContent=heard?"Heard: "+heard:"No words recognized. Please try again.";
+      feedbackBox.className="aiStockFeedback";
+    }catch(e){
+      feedbackBox.textContent=e.message||"Speech recognition failed.";
+      feedbackBox.className="aiStockFeedback bad";
+    }finally{button.disabled=false;button.textContent=original;}
+  }
+  function markTarget(node,target){
+    const str=node.textContent||"";
+    const t=String(target||"").trim();
+    if(!t)return;
+    const pos=str.toLowerCase().indexOf(t.toLowerCase());
+    if(pos<0)return;
+    node.replaceChildren(document.createTextNode(str.slice(0,pos)),
+      Object.assign(document.createElement("mark"),{className:"aiStockTarget",textContent:str.slice(pos,pos+t.length)}),
+      document.createTextNode(str.slice(pos+t.length)));
+  }
   const endpoint=()=>window.WEBILANG_WORDSTOCK_ENDPOINT||"/api/feedback";
   const norm=s=>String(s||"").trim().toLowerCase().replace(/[’‘]/g,"'").replace(/[.!?,;:]+$/,"").replace(/\s+/g," ");
   const el=(tag,cl,txt)=>{const n=document.createElement(tag);if(cl)n.className=cl;if(txt!==undefined)n.textContent=txt;return n;};
@@ -13173,23 +13224,27 @@ if(storyResetButton){
       status.textContent=`Live AI generated 3 short tasks for each of ${data.items.length} selected items.`;
       for(const [i,item] of data.items.entries()){
         const block=el("section","aiStockStage");
-        block.append(el("h5","",`${i+1}. ${item.word}`));
+        const targetTitle=el("h5","",`${i+1}. ${item.word}`);markTarget(targetTitle,item.word);block.append(targetTitle);
         const stages=[
-          ["1 · Recognize",item.recognize],
-          ["2 · Retrieve",item.retrieve],
-          ["3 · Practice + AI feedback",item.practice]
+          ["1 · Choose the answer",item.recognize],
+          ["2 · Complete the sentence",item.retrieve],
+          ["3 · Your sentence",item.practice]
         ];
         for(const [j,[heading,task]] of stages.entries()){
           const card=el("div","aiStockCard");
           card.style.marginBottom="12px";
           card.append(el("strong","",heading));
-          card.append(el("div","aiStockPrompt",j===2?task.prompt:task.sentence));
+          const prompt=el("div","aiStockPrompt",j===2?task.prompt:task.sentence);markTarget(prompt,item.word);card.append(prompt);
           const f=el("div","aiStockFeedback");
           if(j===0){
             const opts=el("div","aiStockOptions");
             task.options.forEach(opt=>{
               const b=el("button","aiStockOption",opt);b.type="button";
-              b.onclick=()=>feedback(f,norm(opt)===norm(task.answer)?"✓ Correct.":"Try again: read the entire sentence.",norm(opt)===norm(task.answer));
+              b.onclick=()=>{const ok=norm(opt)===norm(task.answer);
+                [...opts.children].forEach(x=>x.classList.remove("wlCorrect","wlWrong"));
+                b.classList.add(ok?"wlCorrect":"wlWrong");
+                feedback(f,ok?"✓ Correct.":"✗ Try another option.",ok);
+              };
               opts.append(b);
             });
             card.append(opts,f);
@@ -13200,11 +13255,17 @@ if(storyResetButton){
             else {input.rows=2;input.placeholder="Your own short sentence";}
             const check=el("button","aiStockSmallBtn",j===1?"Check":"Get AI feedback");
             check.type="button";
-            row.append(input,check);
+            const speak=el("button","aiStockSpeakBtn","🎙 Speak");speak.type="button";
+            speak.onclick=()=>voiceInto(input,speak,f);
+            row.append(input,speak,check);
+            input.addEventListener("input",()=>input.classList.remove("wlCorrect","wlWrong"));
             if(j===1){
-              check.onclick=()=>feedback(f,norm(input.value)===norm(task.answer)?"✓ Correct.":"Not quite. Check the meaning and form.",norm(input.value)===norm(task.answer));
+              check.onclick=()=>{const ok=norm(input.value)===norm(task.answer);
+                input.classList.remove("wlCorrect","wlWrong");input.classList.add(ok?"wlCorrect":"wlWrong");
+                feedback(f,ok?"✓ Correct.":"✗ Try again. Check the meaning and form.",ok);
+              };
               if(task.ruHint){
-                const hint=el("button","aiStockSmallBtn","RU hint");hint.type="button";
+                const hint=el("button","aiStockHintBtn","🇷🇺 RU hint");hint.type="button";
                 const hintText=el("div","aiStockRecognition");hintText.hidden=true;hintText.textContent=task.ruHint;
                 hint.onclick=()=>hintText.hidden=!hintText.hidden;row.append(hint);card.append(row,hintText,f);
               }else card.append(row,f);
@@ -13214,6 +13275,7 @@ if(storyResetButton){
                 check.disabled=true;feedback(f,"Checking with live AI…",true);
                 try{
                   const ans=await api({mode:"stock_assess",kind:"word",target:item.word,answer:input.value,context:task.prompt});
+                  input.classList.remove("wlCorrect","wlWrong");input.classList.add(ans.correct?"wlCorrect":"wlWrong");
                   feedback(f,(ans.correct?"✓ ":"Try again. ")+ans.feedback+(ans.better?" Example: "+ans.better:""),ans.correct);
                 }catch(e){feedback(f,"AI feedback unavailable: "+e.message,false);}
                 finally{check.disabled=false;}
@@ -13228,6 +13290,7 @@ if(storyResetButton){
     }catch(e){status.textContent="Live LLM unavailable: "+e.message+". No fabricated exercises were created.";}
     finally{btn.disabled=false;}
   }
+  window.WebilangStockVoice=voiceInto;
   window.WebilangBuildSelectedWordPractice=build;
   clear?.addEventListener("click",()=>{list.innerHTML="";panel.hidden=true;status.textContent="";});
 })();
@@ -13553,7 +13616,7 @@ if(storyResetButton){
       // Recognition
       const r1=document.createElement("div");
       r1.className="grammarPractice";
-      r1.innerHTML='<span class="grammarPracticeKicker">1 · Recognition</span><div class="grammarPracticePrompt"></div><div class="grammarOptionList"></div><div class="grammarFeedback"></div><button type="button" class="grammarSupportBtn" hidden>💡 Support</button><div class="grammarSupportText" hidden></div>';
+      r1.innerHTML='<span class="grammarPracticeKicker">1 · Choose the answer</span><div class="grammarPracticePrompt"></div><div class="grammarOptionList"></div><div class="grammarFeedback"></div><button type="button" class="grammarSupportBtn" hidden>💡 Support</button><div class="grammarSupportText" hidden></div>';
       r1.querySelector(".grammarPracticePrompt").textContent=rec.prompt||"Which sentence is correct?";
       const optBox=r1.querySelector(".grammarOptionList");
       const r1fb=r1.querySelector(".grammarFeedback");
@@ -13580,12 +13643,15 @@ if(storyResetButton){
       // Retrieve
       const r2=document.createElement("div");
       r2.className="grammarPractice";
-      r2.innerHTML='<span class="grammarPracticeKicker">2 · Retrieve</span><div class="grammarPracticePrompt"></div><div class="grammarPracticePrompt retrieveSentence"></div><div class="grammarInputRow"><input type="text" autocomplete="off" placeholder="Type the missing form"><button type="button" class="grammarMiniBtn retrieveCheck">Check</button></div><div class="grammarFeedback"></div><button type="button" class="grammarSupportBtn" hidden>💡 Support</button><div class="grammarSupportText" hidden></div>';
+      r2.innerHTML='<span class="grammarPracticeKicker">2 · Complete the sentence</span><div class="grammarPracticePrompt"></div><div class="grammarPracticePrompt retrieveSentence"></div><div class="grammarInputRow"><input type="text" autocomplete="off" placeholder="Type the missing form"><button type="button" class="grammarMiniBtn retrieveCheck">Check</button></div><div class="grammarFeedback"></div><button type="button" class="grammarSupportBtn" hidden>💡 Support</button><div class="grammarSupportText" hidden></div>';
       r2.querySelector(".grammarPracticePrompt").textContent=ret.prompt||"Complete the sentence.";
       r2.querySelector(".retrieveSentence").textContent=ret.sentence||"";
       const r2in=r2.querySelector("input");
       const r2fb=r2.querySelector(".grammarFeedback");
       const r2Check=r2.querySelector(".retrieveCheck");
+      const r2Voice=document.createElement("button");r2Voice.type="button";r2Voice.className="aiStockSpeakBtn";r2Voice.textContent="🎙 Speak";
+      r2Check.before(r2Voice);
+      r2Voice.onclick=()=>window.WebilangStockVoice?.(r2in,r2Voice,r2fb);
       const r2Support=r2.querySelector(".grammarSupportBtn");
       const r2SupportText=r2.querySelector(".grammarSupportText");
       r2Support.onclick=()=>{
@@ -13594,7 +13660,8 @@ if(storyResetButton){
       };
       r2Check.onclick=()=>{
         const ok=norm(r2in.value)===norm(ret.answer);
-        feedback(r2fb,ok?"✓ Retrieved correctly.":"Not yet. Use Support, then try again.",ok);
+        r2in.classList.remove("wlCorrect","wlWrong");r2in.classList.add(ok?"wlCorrect":"wlWrong");
+        feedback(r2fb,ok?"✓ Correct.":"Not yet. Use Support, then try again.",ok);
         r2Support.hidden=ok;
         if(ok) r2SupportText.hidden=true;
       };
@@ -13602,10 +13669,13 @@ if(storyResetButton){
       // Production
       const r3=document.createElement("div");
       r3.className="grammarPractice";
-      r3.innerHTML='<span class="grammarPracticeKicker">3 · Production</span><div class="grammarPracticePrompt"></div><textarea class="grammarProduction" placeholder="Write your own sentence..."></textarea><div class="grammarInputRow"><button type="button" class="grammarMiniBtn compare">Compare with model</button><button type="button" class="grammarSupportBtn productionSupport">💡 Support</button></div><div class="grammarSupportText" hidden></div><div class="grammarFeedback"></div><div class="grammarModel" hidden></div>';
+      r3.innerHTML='<span class="grammarPracticeKicker">3 · Your sentence</span><div class="grammarPracticePrompt"></div><textarea class="grammarProduction" placeholder="Write your own sentence..."></textarea><div class="grammarInputRow"><button type="button" class="grammarMiniBtn compare">Compare with model</button><button type="button" class="grammarSupportBtn productionSupport">💡 Support</button></div><div class="grammarSupportText" hidden></div><div class="grammarFeedback"></div><div class="grammarModel" hidden></div>';
       r3.querySelector(".grammarPracticePrompt").textContent=prod.prompt||"Write one new sentence using this rule.";
       const r3ta=r3.querySelector("textarea");
       const r3fb=r3.querySelector(".grammarFeedback");
+      const r3Voice=document.createElement("button");r3Voice.type="button";r3Voice.className="aiStockSpeakBtn";r3Voice.textContent="🎙 Speak";
+      r3.querySelector(".compare").before(r3Voice);
+      r3Voice.onclick=()=>window.WebilangStockVoice?.(r3ta,r3Voice,r3fb);
       const model=r3.querySelector(".grammarModel");
       const r3Support=r3.querySelector(".productionSupport");
       const r3SupportText=r3.querySelector(".grammarSupportText");
@@ -13628,6 +13698,7 @@ if(storyResetButton){
           });
           const result=await response.json().catch(()=>({}));
           if(!response.ok)throw Error(result.error||"AI unavailable");
+          r3ta.classList.remove("wlCorrect","wlWrong");r3ta.classList.add(result.correct?"wlCorrect":"wlWrong");
           feedback(r3fb,(result.correct?"✓ ":"Try again. ")+result.feedback+
             (result.better?" Example: "+result.better:""),result.correct);
         }catch(e){feedback(r3fb,"AI feedback unavailable: "+e.message,false);}
