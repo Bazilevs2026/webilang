@@ -13519,36 +13519,38 @@ if(storyResetButton){
 
   // Resilient offline practice: always generate 5 varied tasks per selected saved item,
   // even when the hosted AI practice endpoint is temporarily unavailable.
+  // Offline fallback is intentionally conservative. Never fabricate an exercise
+  // that simply mentions "the saved word" or asks students to guess blindly.
   function offlinePractice(words){
     const bank={
-      scared:{meaning:"afraid or frightened",context:"The player was _____ when the monster appeared.",natural:["I felt scared when I heard the strange sound.","I am scared in the sound yesterday."]},
-      saved:{meaning:"kept something safe or stored game progress",context:"I _____ my progress before closing the game.",natural:["I saved my progress before switching off the console.","I saved to my progress before switching off the console."]},
-      take:{meaning:"get, carry or perform an action",context:"We need to _____ a short break from the screen.",natural:["I take a break after an hour of gaming.","I take break after an hour of gaming."]},
-      xbox:{meaning:"a brand of video game console",context:"My friend plays games on an _____.",natural:["I played a game on my xbox yesterday.","I played a game in my xbox yesterday."]},
-      limit:{meaning:"the maximum allowed amount",context:"My parents set a screen-time _____ of one hour.",natural:["There is a limit on the time I can play.","There is a limit of the time I can play."]},
-      games:{meaning:"activities played for fun or competition",context:"My friends enjoy video _____ after school.",natural:["We play games together at the weekend.","We make games together at the weekend."]}
+      scared:{meaning:"afraid",gap:"When I heard footsteps in the dark, I felt _____.",choice:"She was _____ when the huge spider crawled onto her desk.",options:["scared","excited","relaxed"],natural:["I felt scared when I heard the strange sound.","I was scared from the strange sound."],ru:"испуганный"},
+      saved:{meaning:"stored safely",gap:"Before switching off the console, I _____ my game progress.",choice:"She _____ her homework before the laptop battery died.",options:["saved","borrowed","forgot"],natural:["I saved my progress before switching off the console.","I saved to my progress before switching off the console."],ru:"сохранил"},
+      take:{meaning:"to do or get something",gap:"After two hours at the screen, we decided to _____ a break.",choice:"You should _____ regular breaks to rest your eyes.",options:["take","build","play"],natural:["I take a break after an hour of gaming.","I take break after an hour of gaming."],ru:"брать; сделать (перерыв)"},
+      xbox:{meaning:"a gaming console",gap:"His favourite console is an _____, not a PlayStation.",choice:"To play this console game, he switched on his _____.",options:["Xbox","tablet","headphones"],natural:["I played a game on my Xbox yesterday.","I played a game in my Xbox yesterday."],ru:"игровая консоль Xbox"},
+      limit:{meaning:"the maximum allowed",gap:"My parents set a two-hour _____ on my gaming time.",choice:"The library has a three-book borrowing _____.",options:["limit","reward","level"],natural:["There is a limit on the time I can play.","There is a limit of the time I can play."],ru:"ограничение"},
+      games:{meaning:"activities you play",gap:"After homework, she sometimes plays board _____ with her family.",choice:"They played two video _____ together after school.",options:["games","screens","levels"],natural:["We play games together at the weekend.","We make games together at the weekend."],ru:"игры"},
+      homework:{meaning:"schoolwork done at home",gap:"He could not play until he finished his _____ for tomorrow's class.",choice:"The teacher asked us to hand in our _____ on Friday.",options:["homework","controller","break"],natural:["I finished my homework before dinner.","I made my homework before dinner."],ru:"домашняя работа"},
+      confident:{meaning:"sure of yourself",gap:"After practising his speech ten times, he felt more _____.",choice:"She spoke clearly in front of the class because she felt _____.",options:["confident","exhausted","confused"],natural:["She feels confident speaking English.","She feels confidence speaking English."],ru:"уверенный"},
+      community:{meaning:"a group sharing interests",gap:"The online gaming _____ helped new players learn the rules.",choice:"Fans created a friendly _____ to discuss their favourite game.",options:["community","controller","mission"],natural:["I joined an online gaming community.","I joined to an online gaming community."],ru:"сообщество"},
+      'video games':{meaning:"digital games",gap:"Instead of watching TV, they played _____ together on the console.",choice:"He enjoys _____ because he can explore imaginary worlds.",options:["video games","board exams","phone calls"],natural:["I play video games after school.","I do video games after school."],ru:"видеоигры"},
+      'community college':{meaning:"a local college",gap:"After leaving university, he studied at a nearby _____ instead.",choice:"She took affordable courses at a local _____ before transferring to university.",options:["community college","shopping centre","gaming console"],natural:["He studied at a community college.","He studied in a community college."],ru:"общественный колледж"},
+      'speech therapy':{meaning:"help with speaking difficulties",gap:"The child went to _____ to practise speaking more clearly.",choice:"A specialist helped her pronounce sounds during _____.",options:["speech therapy","driving lessons","basketball practice"],natural:["She received speech therapy as a child.","She received speaking therapy as a child."],ru:"логопедическая терапия"},
+      'stay connected':{meaning:"keep in touch",gap:"After moving abroad, they video-called every week to _____.",choice:"They use group chats to _____ even though they live far apart.",options:["stay connected","lose contact","turn off"],natural:["We use messages to stay connected.","We use messages to stay connecting."],ru:"оставаться на связи"},
+      'take over':{meaning:"gain control",gap:"Gaming began to _____ his evenings, leaving no time for homework.",choice:"Without clear rules, work can _____ your whole weekend.",options:["take over","look after","turn on"],natural:["Games began to take over his life.","Games began to take on his life."],ru:"захватить контроль; занять всё время"},
+      'in moderation':{meaning:"not too much",gap:"Playing games can be healthy when you do it _____.",choice:"You can enjoy sweets _____ without eating them all day.",options:["in moderation","every minute","without stopping"],natural:["I play video games in moderation.","I play video games with moderation."],ru:"в умеренных количествах"},
+      'be yourself':{meaning:"act naturally",gap:"You don't need to copy anyone online. Just _____.",choice:"Her advice was simple: relax and _____ during the interview.",options:["be yourself","be somebody else","give up"],natural:["Don't pretend. Just be yourself.","Don't pretend. Just do yourself."],ru:"будь собой"}
     };
-    const items=words.map((word,i)=>{
-      const target=String(word||"").trim();
-      const info=bank[target.toLowerCase()]||{};
-      const meaning=info.meaning||"a word or expression saved from your lesson";
-      const sentence=info.context||("During our gaming lesson, the missing saved expression is _____. Clue: "+meaning+".");
-      const candidates=words.filter(w=>String(w).toLowerCase()!==target.toLowerCase());
-      const distractors=candidates.slice(0,2);
-      while(distractors.length<2)distractors.push(["another word","different phrase"][distractors.length]);
-      const opts=[target,...distractors].sort((a,b)=>a.localeCompare(b));
-      const pair=info.natural||[
-        "I used "+target+" in my answer about video games.",
-        "I used "+target+" in my answer about video game."
-      ];
-      return {target,meaning,sentence,opts,pair,i};
-    });
+    const selected=words.map(w=>({word:String(w||'').trim(),info:bank[String(w||'').trim().toLowerCase()]}));
+    const supported=selected.filter(x=>x.info);
+    const missing=selected.filter(x=>!x.info).map(x=>x.word);
+    const items=supported.map(({word:target,info})=>({target,info}));
     return {
-      gaps:items.map(x=>({answer:x.target,sentence:x.sentence,support:"Recall the saved expression using the context.",ruHint:"Вспомните слово из вашего словаря."})),
-      choices:items.map(x=>({answer:x.target,sentence:x.sentence,options:x.opts,support:"Which of your saved expressions fits the sentence?",ruHint:"Выберите подходящее выражение."})),
-      natural:items.map(x=>({word:x.target,a:x.pair[0],b:x.pair[1],answer:"A",support:"Compare the preposition, article or collocation.",ruHint:"Сравните грамматику и сочетания слов."})),
-      personal:items.map(x=>({word:x.target,prompt:"Write about your own gaming experience using '"+x.target+"'.",support:"Write a full sentence with a subject and verb.",ruHint:"Составьте собственное предложение."})),
-      speaking:items.map(x=>({word:x.target,cue:"Recall the expression from your lesson. Meaning: "+x.meaning+".",prompt:"Say or write the expression.",support:"Try to remember its spelling and use.",ruHint:"Вспомните сохранённое слово."}))
+      gaps:items.map(({target,info})=>({answer:target,sentence:info.gap,support:info.meaning,ruHint:info.ru})),
+      choices:items.map(({target,info})=>({answer:target,sentence:info.choice,options:info.options,support:info.meaning,ruHint:info.ru})),
+      natural:items.map(({target,info})=>({word:target,a:info.natural[0],b:info.natural[1],answer:"A",support:"Look for a natural collocation.",ruHint:info.ru})),
+      personal:items.map(({target,info})=>({word:target,prompt:"Write a true sentence about yourself using '"+target+"'.",support:info.meaning,ruHint:info.ru})),
+      speaking:items.map(({target,info})=>({word:target,cue:info.meaning,prompt:"Say or write the expression.",support:info.meaning,ruHint:info.ru})),
+      unavailable:missing
     };
   }
 
@@ -13577,11 +13579,17 @@ if(storyResetButton){
       });
       const data=await r.json().catch(()=>({}));
       if(!r.ok) throw new Error(data?.error||`Server error (${r.status})`);
+      const badContext=(data.gaps||[]).some(ex=>/during our gaming lesson|missing saved expression|word or expression saved from your lesson/i.test(String(ex.sentence||'')));
+      if(badContext) throw new Error('AI returned generic context rather than a real sentence');
       render(data);
       try{panel.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}
     }catch(err){
-      render(offlinePractice(words));
-      status.textContent='✓ Practice ready (local backup): '+(words.length*5)+' exercises. AI generator unavailable: '+(err?.message||'Unknown error')+'. The activities remain usable; some backup examples are simplified.';
+      const backup=offlinePractice(words);
+      if(backup.gaps.length) render(backup);
+      else list.innerHTML='';
+      const missing=backup.unavailable.length?' No offline examples for: '+backup.unavailable.join(', ')+'.':'';
+      status.textContent=(backup.gaps.length?'Local practice: '+(backup.gaps.length*5)+' meaningful activities. ':'No suitable offline exercises for the selected words. ')+missing+' Connect the AI generator to create unique contexts for the remaining items.';
+
     }finally{
       btn.disabled=false;
       btn.textContent=normalText;
