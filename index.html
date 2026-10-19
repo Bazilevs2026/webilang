@@ -3854,7 +3854,24 @@ html{scroll-padding-top:90px}
 .aiStockInputRow{flex-wrap:wrap}
 .aiStockInputRow textarea,.aiStockInputRow input{flex:1 1 200px}
 </style>
-</head>
+<style id="wl-question-builder-css">
+.wlPrep{border:2px solid #b9d6ee;background:linear-gradient(135deg,#f0f8ff,#fff9ee);padding:16px;border-radius:17px;margin:14px 0}.wlPrep h3{margin:0 0 7px;font-size:19px;color:#264d79}.wlPrep p{font-size:13px;color:#3f5872}.wlPrepSteps{display:flex;gap:7px;flex-wrap:wrap;margin:11px 0}.wlPrepSteps span{background:#e0edff;padding:7px 10px;border-radius:9px;color:#315b88;font-weight:800;font-size:12px}.wlPrepSteps span:nth-child(2){background:#eee5ff;color:#694fa0}.wlPrepSteps span:nth-child(3){background:#ddf5e6;color:#2f7651}.wlPrepGrid{display:grid;gap:9px}.wlPrepGrid label{font-size:12px;font-weight:800;color:#405975}.wlPrepGrid input{display:block;width:100%;margin-top:4px;background:#fff;border:1px solid #b9cfe3;padding:10px;border-radius:9px;font-size:14px}.wlPrepHelp{margin:10px 0;font-size:12px;color:#5b6180}#wlPrepSave{border:0;background:#347eae;color:#fff;padding:9px 13px;border-radius:9px;font-weight:800}#wlPrepState{font-size:12px;color:#28744a;font-weight:700}.wlLivePrompt{display:grid;grid-template-columns:1fr 1.25fr;gap:10px;margin:12px 0}.wlLiveMission,.wlLiveQuestions{padding:12px;border-radius:13px;border:1px solid #d6e2ef;background:#eef7ff;color:#325472}.wlLiveMission strong{display:block;color:#245584;margin-bottom:5px}.wlLiveMission span{font-size:13px;line-height:1.5}.wlLiveQuestions{background:#fff8ee;border-color:#efd8aa}.wlLiveQTop{display:flex;justify-content:space-between;align-items:center}.wlLiveQTop button{border:1px solid #cfb387;background:#fff;border-radius:8px;padding:4px 9px;color:#7d591a}.wlLiveQuestions ol{margin:8px 0 8px;padding-left:22px}.wlLiveQuestions li{margin:5px 0;font-size:14px;font-weight:700;line-height:1.45}.wlLiveQuestions small{color:#836d4c}@media(max-width:650px){.wlLivePrompt{grid-template-columns:1fr}}
+</style><style id="wl-free-questions-style">
+.wlPrepTopics{background:#fff5d9;border:1px solid #ecd498;border-radius:12px;padding:12px;margin:12px 0;color:#725316;line-height:1.5}
+.wlPrepActions{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:12px}
+#wlPrepCheck{border:0;background:#6953ab;color:white;border-radius:11px;padding:11px 15px;font-weight:800}
+#wlPrepCheck:disabled{opacity:.55}
+#wlPrepSave{border:0;background:#287d69;color:white;border-radius:11px;padding:11px 15px;font-weight:800}
+.wlFreeQuestions{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.wlPrepFeedback{margin-top:12px;padding:12px;border:1px solid #cbbce7;border-radius:12px;background:#f9f6ff}
+.wlPrepFeedback[hidden]{display:none}
+.wlPrepFeedback .wlResult{padding:10px;background:white;border:1px solid #e0d9ea;border-radius:10px;margin:8px 0}
+.wlPrepFeedback .wlOriginal{font-size:13px;color:#6c6178}
+.wlPrepFeedback .wlSuggestion{font-size:14px;font-weight:700;color:#2d5c52;margin:5px 0}
+.wlPrepFeedback .wlGood{color:#277449;font-weight:800}
+.wlPrepFeedback .wlUse{background:#e7f4ed;border:1px solid #9bc9aa;border-radius:8px;padding:6px 10px;color:#236b42;font-weight:800}
+.wlPrepNote{font-size:12px}
+</style></head>
 <body>
 <a class="skipLink" href="#main-content">Skip to main content</a>
 
@@ -5516,7 +5533,23 @@ html{scroll-padding-top:90px}
         </div>
         <label class="rp2FieldLabel" for="rp2GameInput">Your favourite game</label>
         <input class="rp2TextField" id="rp2GameInput" type="text" maxlength="80" placeholder="e.g. Minecraft">
-        <button type="button" class="wlTavusButton" id="wlTavusCreatorStart">🎥 Live avatar interview · 4 min</button><button class="rp2StartBtn creator" id="rp2StartCreator" type="button">Start Interview →</button>
+        <section class="wlPrep" id="wlQuestionPrep" aria-label="Prepare interview questions">
+<h3>🎯 Get ready: Ask YOUR questions</h3>
+<p>You are the interviewer! Ask the game creator what <strong>you</strong> really want to know. Unexpected questions are welcome. Prepare up to five short questions and ask at least two during the interview.</p>
+<div class="wlPrepSteps"><span>1 · Think of your own ideas</span><span>2 · Check your English</span><span>3 · Ask and follow up</span></div>
+<div class="wlPrepTopics"><strong>💡 Ideas, not ready-made questions:</strong> game design · funny mistakes · favourite characters · difficult decisions · player feedback · future games · anything you're curious about</div>
+<div class="wlPrepHelp">Language toolbox: <strong>What / Why / How / When / Where / Who</strong> · <strong>Do you…?</strong> · <strong>Did you…?</strong> · <strong>Would you…?</strong></div>
+<div class="wlPrepGrid wlFreeQuestions">
+<label>My question 1 <input data-wl-q="0" placeholder="Write your own question…" aria-label="Your first question"></label>
+<label>My question 2 <input data-wl-q="1" placeholder="Write your own question…" aria-label="Your second question"></label>
+<label>My question 3 <input data-wl-q="2" placeholder="Write your own question…" aria-label="Your third question"></label>
+<label>Optional question 4 <input data-wl-q="3" placeholder="An unexpected question is welcome!" aria-label="Your fourth question"></label>
+<label>Optional question 5 <input data-wl-q="4" placeholder="Something else you're curious about…" aria-label="Your fifth question"></label>
+</div>
+<div class="wlPrepActions"><button type="button" id="wlPrepCheck">✨ Check my English with AI</button><button type="button" id="wlPrepSave">✓ Save my questions</button><span id="wlPrepState" role="status"></span></div>
+<div id="wlPrepFeedback" class="wlPrepFeedback" aria-live="polite" hidden></div>
+<p class="wlPrepNote">AI checks grammar and clarity, not how imaginative your question is. Your original questions stay unchanged until you choose to use a suggestion.</p>
+</section><button type="button" class="wlTavusButton" id="wlTavusCreatorStart">🎥 Live avatar interview · 4 min</button><button class="rp2StartBtn creator" id="rp2StartCreator" type="button">Start Interview →</button>
         <div class="rp2CardStatus" id="rp2CreatorStatus"></div>
       </div>
     </article>
@@ -5544,7 +5577,10 @@ html{scroll-padding-top:90px}
   <section id="wlTavusLive" hidden aria-labelledby="wlTavusTitle">
 <div class="wlTavusTop"><div><h2 id="wlTavusTitle">Live Avatar</h2><p>AI-generated video character · A2 English · Microphone only · No student camera</p></div>
 <div id="wlTavusClock" role="timer" aria-label="Time remaining">04:00</div></div>
-<div class="wlTavusVideoWrap">
+<div class="wlLivePrompt" id="wlLivePrompt">
+<div class="wlLiveMission"><strong>🎮 Your interview mission</strong><span>Ask at least two of YOUR prepared questions. Listen carefully and ask a natural follow-up. Your own unexpected questions are welcome.</span></div>
+<aside class="wlLiveQuestions"><div class="wlLiveQTop"><strong>📝 My questions</strong><button type="button" id="wlLiveEdit">Edit</button></div><ol id="wlLiveQuestionList"></ol><small>Your own questions stay here during the conversation. You can ask something different, too.</small></aside>
+</div><div class="wlTavusVideoWrap">
   <div id="wlTavusFrame" role="group" aria-label="Live video conversation"></div>
   <button class="wlTavusReturnOverlay" type="button" id="wlTavusReturnOverlay" aria-label="End video call and return to roleplay scenarios">← Return to Roleplay</button>
 </div>
@@ -13659,7 +13695,10 @@ if(storyResetButton){
         r2SupportText.hidden=false;
       };
       r2Check.onclick=()=>{
-        const ok=norm(r2in.value)===norm(ret.answer);
+        const typed=norm(r2in.value);
+        const expected=norm(ret.answer);
+        const completed=norm(String(ret.sentence||"").replace("_____",String(ret.answer||"")));
+        const ok=Boolean(typed&&(typed===expected||typed===completed));
         r2in.classList.remove("wlCorrect","wlWrong");r2in.classList.add(ok?"wlCorrect":"wlWrong");
         feedback(r2fb,ok?"✓ Correct.":"Not yet. Use Support, then try again.",ok);
         r2Support.hidden=ok;
@@ -13698,9 +13737,13 @@ if(storyResetButton){
           });
           const result=await response.json().catch(()=>({}));
           if(!response.ok)throw Error(result.error||"AI unavailable");
-          r3ta.classList.remove("wlCorrect","wlWrong");r3ta.classList.add(result.correct?"wlCorrect":"wlWrong");
-          feedback(r3fb,(result.correct?"✓ ":"Try again. ")+result.feedback+
-            (result.better?" Example: "+result.better:""),result.correct);
+          const status=result.status||(result.correct?"correct":"review");
+          r3ta.classList.remove("wlCorrect","wlWrong");
+          if(status==="correct")r3ta.classList.add("wlCorrect");
+          if(status==="incorrect")r3ta.classList.add("wlWrong");
+          feedback(r3fb,(status==="correct"?"✓ ":status==="incorrect"?"Check: ":"Needs review: ")+
+            String(result.feedback||"")+(status==="incorrect"&&result.better?" Suggested correction: "+result.better:""),status!=="incorrect");
+          if(status==="review"){r3fb.classList.remove("ok","bad");r3fb.style.color="#725b88";}
         }catch(e){feedback(r3fb,"AI feedback unavailable: "+e.message,false);}
         finally{button.disabled=false;}
       };
@@ -14208,5 +14251,78 @@ $("wlTavusOpenGrammar")?.addEventListener("click",()=>window.WebilangGrammarStoc
 })();
 </script>
 
-</body>
+<script id="wl-question-builder-js">
+(function(){
+"use strict";
+const fields=[...document.querySelectorAll('[data-wl-q]')];
+const list=document.getElementById('wlLiveQuestionList');
+const save=document.getElementById('wlPrepSave');
+const check=document.getElementById('wlPrepCheck');
+const state=document.getElementById('wlPrepState');
+const feedback=document.getElementById('wlPrepFeedback');
+if(!fields.length||!list)return;
+const storageKey='webilang_creator_prepared_questions_v2';
+let stored=[];
+try{stored=JSON.parse(localStorage.getItem(storageKey)||'[]')}catch(_){}
+if(!stored.length){
+ try{stored=JSON.parse(localStorage.getItem('webilang_creator_prepared_questions_v1')||'[]')}catch(_){}
+}
+fields.forEach((field,i)=>{if(stored[i])field.value=stored[i]});
+function questions(){return fields.map(f=>f.value.trim()).filter(Boolean)}
+function show(){
+ list.replaceChildren();
+ const qs=questions();
+ if(!qs.length){const li=document.createElement('li');li.textContent='Write your own questions before the interview.';list.appendChild(li);return;}
+ qs.forEach(q=>{const li=document.createElement('li');li.textContent=q;list.appendChild(li)});
+}
+function persist(){
+ try{localStorage.setItem(storageKey,JSON.stringify(fields.map(f=>f.value.trim())))}catch(_){}
+ show();if(state)state.textContent=questions().length+' question(s) saved';
+}
+function put(tag,txt,parent,cls){
+ const el=document.createElement(tag);el.textContent=txt;if(cls)el.className=cls;parent.appendChild(el);return el;
+}
+save?.addEventListener('click',persist);
+fields.forEach(f=>f.addEventListener('input',persist));
+check?.addEventListener('click',async()=>{
+ const entries=fields.map((f,i)=>({index:i,question:f.value.trim()})).filter(e=>e.question);
+ feedback.hidden=false;feedback.replaceChildren();
+ if(!entries.length){put('p','Write at least one question first.',feedback);return;}
+ persist();check.disabled=true;check.textContent='Checking…';
+ try{
+  const response=await fetch(window.WEBILANG_AI_ENDPOINT||'/api/feedback',{
+   method:'POST',headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({mode:'question_check',questions:entries.map(e=>e.question),level:'A2',module:'Video Games interview'})
+  });
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(result.error||'AI connection error');
+  const reviews=Array.isArray(result.reviews)?result.reviews:[];
+  if(reviews.length!==entries.length)throw new Error('Incomplete AI evaluation. Your questions were not changed.');
+  put('strong','Your questions — AI language check',feedback);
+  reviews.forEach((r,i)=>{
+   const entry=entries[i],box=document.createElement('div');box.className='wlResult';feedback.appendChild(box);
+   put('div',entry.question,box,'wlOriginal');
+   if(r.correct===true){
+    put('div','✓ Good English — your question is ready!',box,'wlGood');
+   }else if(typeof r.suggestion==='string'&&r.suggestion.trim()){
+    put('div',r.suggestion,box,'wlSuggestion');
+    if(r.explanation)put('small',r.explanation,box);
+    const apply=put('button','Use this correction',box,'wlUse');apply.type='button';
+    apply.addEventListener('click',()=>{
+     fields[entry.index].value=r.suggestion.trim();persist();apply.textContent='✓ Updated';apply.disabled=true;
+    });
+   }else{
+    put('div','Not sure — keep your question or ask your teacher.',box);
+   }
+  });
+ }catch(err){put('p','AI check unavailable: '+String(err.message||err)+'. You can still save and ask your questions.',feedback);}
+ finally{check.disabled=false;check.textContent='✨ Check my English with AI';}
+});
+document.getElementById('wlLiveEdit')?.addEventListener('click',()=>{
+ document.getElementById('wlQuestionPrep')?.scrollIntoView({behavior:'smooth',block:'center'});fields[0].focus();
+});
+['wlTavusCreatorStart','rp2StartCreator'].forEach(id=>document.getElementById(id)?.addEventListener('click',persist,{capture:true}));
+show();
+})();
+</script></body>
 </html>
