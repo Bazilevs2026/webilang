@@ -3871,7 +3871,23 @@ html{scroll-padding-top:90px}
 .wlPrepFeedback .wlGood{color:#277449;font-weight:800}
 .wlPrepFeedback .wlUse{background:#e7f4ed;border:1px solid #9bc9aa;border-radius:8px;padding:6px 10px;color:#236b42;font-weight:800}
 .wlPrepNote{font-size:12px}
-</style></head>
+</style><style>
+/* Small A2 help pop-up: the main interview prep stays compact. */
+.wlBabysitterPrep .babyIdeaLine{display:flex;align-items:center;gap:6px;justify-content:space-between;min-width:0}
+.wlBabysitterPrep .babyIdeaLine label{min-width:0;flex:1}
+.wlBabysitterPrep .babyExampleBtn{flex:0 0 auto;border:1px solid #c5b7ed;background:#f4efff;color:#5c408b;border-radius:9px;padding:6px 9px;font-size:11px;font-weight:800;cursor:pointer}
+.wlBabysitterPrep .babyExampleBtn:hover{background:#e9dffc}
+.babyHelpDialog{border:0;border-radius:18px;padding:0;width:min(92vw,480px);max-height:80vh;box-shadow:0 24px 70px #182c4855;color:#23384a}
+.babyHelpDialog::backdrop{background:rgba(22,36,56,.55)}
+.babyHelpInner{padding:22px;background:#fff;max-height:80vh;overflow:auto}
+.babyHelpInner h3{font-size:21px;margin:0 0 12px}
+.babyHelpInner p{font-size:15px;color:#3c5264;line-height:1.5;margin:8px 0}
+.babyHelpInner ul{padding-left:20px;margin:8px 0}
+.babyHelpInner li{margin:10px 0;line-height:1.45;font-size:14px}
+.babyHelpPhrase{background:#eef7f1;border-left:4px solid #53a774;padding:10px;border-radius:9px;font-size:14px}
+.babyHelpClose{background:#315e83;color:white;border:0;border-radius:9px;padding:9px 16px;font-weight:850;margin-top:14px;cursor:pointer}
+</style>
+</head>
 <body>
 <a class="skipLink" href="#main-content">Skip to main content</a>
 
@@ -5568,10 +5584,10 @@ html{scroll-padding-top:90px}
 <p><strong>You are the babysitter.</strong> A parent wants help with their 13-year-old gamer, Alex. The parent interviews you first. Explain how you would help Alex find a healthy balance — without making gaming the enemy.</p>
 <div class="wlPrepSteps"><span>1 · Choose ideas</span><span>2 · Practise English</span><span>3 · Convince the parent</span></div>
 <div class="wlBabyIdeas" aria-label="Ideas to consider">
-<label><input type="checkbox" data-baby-idea="Connect gaming to a real-life skill" /> 🎮 Link gaming to real-life skills</label>
-<label><input type="checkbox" data-baby-idea="Plan a real-life quest or treasure hunt" /> 🗺️ Plan a real-life quest</label>
-<label><input type="checkbox" data-baby-idea="Create game art, a map, or a simple game" /> 🎨 Design something from a game</label>
-<label><input type="checkbox" data-baby-idea="Make a friendly daily plan with Alex" /> 🤝 Agree on a daily plan together</label>
+<div class="babyIdeaLine"><label><input type="checkbox" data-baby-idea="Connect gaming to a real-life skill" /> 🎮 Games → real life</label><button type="button" class="babyExampleBtn" data-baby-example="skills">See examples</button></div>
+<div class="babyIdeaLine"><label><input type="checkbox" data-baby-idea="Plan a real-life quest or treasure hunt" /> 🗺️ Plan a real-life quest</label><button type="button" class="babyExampleBtn" data-baby-example="quest">See example</button></div>
+<div class="babyIdeaLine"><label><input type="checkbox" data-baby-idea="Create game art, a map, or a simple game" /> 🎨 Make something from a game</label><button type="button" class="babyExampleBtn" data-baby-example="art">See example</button></div>
+<div class="babyIdeaLine"><label><input type="checkbox" data-baby-idea="Make a friendly daily plan with Alex" /> 🤝 Make a plan with Alex</label><button type="button" class="babyExampleBtn" data-baby-example="plan">See example</button></div>
 </div>
 <div class="wlBabyDebate">💡 <strong>What about hiding the console?</strong> Might Alex get angry? A treasure hunt could be fun if Alex agrees. Think about trust.</div>
 <div class="wlBabyFrames">
@@ -14381,5 +14397,50 @@ $("wlTavusCreatorStart")?.addEventListener("click",()=>setLive(false),true);
 $("rp2StartEmployer")?.addEventListener("click",()=>{save();setLive(true)},true);
 $("rp2StartCreator")?.addEventListener("click",()=>setLive(false),true);
 })();
-</script></body>
+</script><dialog id="babyHelpDialog" class="babyHelpDialog" aria-labelledby="babyHelpHeading">
+<div class="babyHelpInner">
+<h3 id="babyHelpHeading"></h3>
+<div id="babyHelpContent"></div>
+<button type="button" class="babyHelpClose" id="babyHelpClose">Close ✕</button>
+</div>
+</dialog>
+<script>
+(function(){
+  const info = {
+    skills: {title:"🎮 Games → real life",body:`
+      <p>Start with a game Alex likes. Try a real activity together.</p>
+      <ul>
+      <li><b>Minecraft → LEGO.</b> Build a small house with LEGO bricks. Then build a better house in Minecraft.</li>
+      <li><b>Terraria → Make things.</b> Build a small model or a bird house. Use your new ideas in the game.</li>
+      <li><b>Counter-Strike → Team games.</b> Play a team sport. Practise clear, short instructions.</li>
+      <li><b>Game coins → Real money.</b> Plan how to spend $10. Save some money for later.</li>
+      <li><b>Game maps → Real maps.</b> Find a route to a park. Then plan a route in a game.</li>
+      </ul>
+      <p class="babyHelpPhrase"><b>In the interview:</b> “Alex likes Minecraft. I would build LEGO houses with him.”</p>`},
+    quest: {title:"🗺️ A real-life quest",body:`
+      <p>Make a fun mission outside the game.</p>
+      <ul><li>Draw a map of your garden or park.</li><li>Hide three clues <b>with Alex's agreement</b>.</li><li>Find the clues together. Finish the mission!</li></ul>
+      <p class="babyHelpPhrase"><b>In the interview:</b> “I would make a treasure hunt in the park.”</p>`},
+    art: {title:"🎨 Make something from a game",body:`
+      <p>Use Alex's favourite game for a creative project.</p>
+      <ul><li>Draw a Minecraft house or a game character.</li><li>Make the character from paper or LEGO.</li><li>Create a new map. Tell a short story about it.</li></ul>
+      <p class="babyHelpPhrase"><b>In the interview:</b> “We could draw game characters and make our own story.”</p>`},
+    plan: {title:"🤝 Make a plan together",body:`
+      <p>Do not just say “Stop playing!” Listen to Alex first.</p>
+      <ul><li>Ask: “When do you want to play?”</li><li>Choose time for games, homework, friends and sleep.</li><li>Let Alex help make the plan. Try it for one week.</li></ul>
+      <p class="babyHelpPhrase"><b>In the interview:</b> “First, I would talk to Alex. We would make a plan together.”</p>`}
+  };
+  const dlg=document.getElementById("babyHelpDialog");
+  const title=document.getElementById("babyHelpHeading");
+  const content=document.getElementById("babyHelpContent");
+  document.querySelectorAll("[data-baby-example]").forEach(btn=>btn.addEventListener("click",()=>{
+    const item=info[btn.dataset.babyExample];if(!item)return;
+    title.textContent=item.title;content.innerHTML=item.body;
+    if(typeof dlg.showModal==="function")dlg.showModal();else dlg.setAttribute("open","");
+  }));
+  document.getElementById("babyHelpClose").addEventListener("click",()=>dlg.close());
+  dlg.addEventListener("click",event=>{if(event.target===dlg)dlg.close()});
+})();
+</script>
+</body>
 </html>
