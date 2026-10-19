@@ -52,9 +52,9 @@ export default async function handler(req,res){
      const scenario=body.scenario;
      if(!["creator","job"].includes(scenario))return json(res,400,{error:"Unknown scenario"});
      const game=String(body.game||"").trim().slice(0,80);
-     const job=String(body.job||"tutor").toLowerCase();
+     const job=String(body.job||"babysitter").toLowerCase();
      if(scenario==="creator"&&!game)return json(res,400,{error:"Please enter a game"});
-     if(scenario==="job"&&!["tutor","nanny"].includes(job))return json(res,400,{error:"Invalid job"});
+     if(scenario==="job"&&!["tutor","nanny","babysitter"].includes(job))return json(res,400,{error:"Invalid job"});
      const creator=Number(body.creatorNumber)===2?2:1;
      const env=scenario==="job"?"TAVUS_JOB_INTERVIEWER_PAL_ID":`TAVUS_GAME_CREATOR_${creator===1?"A":"B"}_PAL_ID`;
      const pal=process.env[env];
@@ -79,7 +79,7 @@ export default async function handler(req,res){
        if(used>monthlyLimit){await redis(["INCRBY",budget,-MAX_SECONDS]);reserved=false;return json(res,429,{error:"Monthly live-avatar allowance reached. Use the text roleplay or ask the teacher."});}
        const context=scenario==="creator"
         ?`This is a fictional game developer interview in A2 English. The student's selected game is ${game}. Explain game facts without claiming you are an actual employee. Help student gather three facts, major challenge, income model, and propose a feature. Each reply <=15 words.`
-        :`A2 job interview for ${job} position. You are Morgan, a concerned parent whose child plays too much. Ask one short question per turn about homework, sleep, screen time, calm boundaries and practical solutions. Each reply <=15 words.`;
+        :`A2 job interview for a babysitter position. You are Morgan, a concerned parent of 13-year-old Alex who plays video games too much. The student is the babysitter applicant, regardless of gender. Start the interview yourself. Ask one short question per turn about empathic listening, trust, balanced screen time, sleep, homework, game-inspired real-life skills, and creative alternatives. Accept diverse reasonable ideas; encourage consent rather than secretly hiding the console. Keep each reply at most 15 words.`;
        const data=await tavus("", "POST", {
          pal_id:pal,conversation_name:"Webilang A2 live roleplay",
          conversational_context:context,max_participants:2,
