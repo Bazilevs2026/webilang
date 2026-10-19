@@ -5294,7 +5294,7 @@ html{scroll-padding-top:90px}
 
 <section class="wlPane" id="tab-mywordstock">
 <h1 class="srOnly" id="pageTitle-mywordstock">My Word Stock</h1>
-  <div class="wlPageResetRow"><button type="button" class="wlPageResetBtn" data-reset-tab="mywordstock">↺ Reset page</button></div>
+  <div class="wlPageResetRow"><button type="button" class="grammarStockBtn danger" id="myWordStockClear">Clear Word Stock</button></div>
 <div class="myStockPage">
     <div class="myStockIntro">
       <div>
@@ -8688,7 +8688,11 @@ window.WebilangWordStock={
   count(){
     return sharedStock.size;
   },
-  render:renderSharedStock
+  render:renderSharedStock,
+  clear(){
+    sharedStock.clear();
+    renderSharedStock();
+  }
 };
 
 // Drain items saved before this controller was ready.
@@ -10784,6 +10788,21 @@ function addFeedback(card){
     new MutationObserver(()=>bindBuildButton()).observe(buildHost,{childList:true,subtree:true});
   }
 
+
+  q('#myWordStockClear')?.addEventListener('click', () => {
+    if (!confirm('Clear all saved words and phrases from My Word Stock? This cannot be undone.')) return;
+    Object.values(store).forEach(map => map.clear());
+    selected.clear();
+    freshUse.clear();
+    saveStockState();
+    // Also clear the older in-memory stock representation, if present.
+    window.WebilangWordStock?.clear?.();
+    const exercises=q('#myStockExerciseList');
+    if (exercises) exercises.replaceChildren();
+    renderAll();
+    const status=q('#myStockStatus');
+    if (status) status.textContent='My Word Stock is empty.';
+  });
 
   renderAll();
 })();
