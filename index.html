@@ -3887,7 +3887,23 @@ html{scroll-padding-top:90px}
 .babyHelpPhrase{background:#eef7f1;border-left:4px solid #53a774;padding:10px;border-radius:9px;font-size:14px}
 .babyHelpClose{background:#315e83;color:white;border:0;border-radius:9px;padding:9px 16px;font-weight:850;margin-top:14px;cursor:pointer}
 </style>
-</head>
+<style id="wl-tavus-sticky-top-controls">
+#wlTavusLive .wlTavusTop{position:sticky;top:0;z-index:100;background:#f6faff;border:1px solid #c9dbea;border-radius:14px;padding:12px;box-shadow:0 6px 22px rgba(20,54,85,.15);display:block}
+#wlTavusLive .wlTavusTop>div:first-child{margin-bottom:9px}
+#wlTavusLive .wlTavusToolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+#wlTavusLive .wlTavusTimeGroup{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:800;color:#365970}
+#wlTavusLive .wlTavusLiveDot{height:9px;width:9px;background:#d25b50;border-radius:50%;flex-shrink:0}
+#wlTavusLive #wlTavusClock{font-size:23px;background:white;border:1px solid #cedfea;border-radius:9px;padding:5px 10px;color:#254b70}
+#wlTavusLive #wlTavusClock.warning{background:#fff2e5;color:#a53526;border-color:#e8a787}
+#wlTavusLive .wlTavusActionsTop{display:flex;gap:8px;flex-wrap:wrap}
+#wlTavusLive #wlTavusEnd{background:#b72b38;border-color:#b72b38;color:white;font-weight:900}
+#wlTavusLive #wlTavusClose{background:white;border:2px solid #93b1ce;color:#214c76}
+#wlTavusLive #wlTavusEnd:focus-visible,#wlTavusLive #wlTavusClose:focus-visible{outline:3px solid #ecae35;outline-offset:3px}
+@media(max-width:650px){#wlTavusLive .wlTavusActionsTop{width:100%;display:grid;grid-template-columns:1fr 1fr}
+#wlTavusLive .wlTavusActionsTop button{font-size:12px;padding:10px 5px}
+#wlTavusLive .wlTavusTop{top:0;padding:9px}
+}
+</style></head>
 <body>
 <a class="skipLink" href="#main-content">Skip to main content</a>
 
@@ -5565,7 +5581,7 @@ html{scroll-padding-top:90px}
 <div class="wlPrepActions"><button type="button" id="wlPrepCheck">✨ Check my English with AI</button><button type="button" id="wlPrepSave">✓ Save my questions</button><span id="wlPrepState" role="status"></span></div>
 <div id="wlPrepFeedback" class="wlPrepFeedback" aria-live="polite" hidden></div>
 <p class="wlPrepNote">AI checks grammar and clarity, not how imaginative your question is. Your original questions stay unchanged until you choose to use a suggestion.</p>
-</section><button type="button" class="wlTavusButton" id="wlTavusCreatorStart">🎥 Live avatar interview · 4 min</button><button class="rp2StartBtn creator" id="rp2StartCreator" type="button">Start Interview →</button>
+</section><button type="button" class="wlTavusButton" id="wlTavusCreatorStart">🎥 Live avatar interview · 5 min</button><button class="rp2StartBtn creator" id="rp2StartCreator" type="button">Start Interview →</button>
         <div class="rp2CardStatus" id="rp2CreatorStatus"></div>
       </div>
     </article>
@@ -5599,24 +5615,29 @@ html{scroll-padding-top:90px}
 <div class="wlPrepActions"><button type="button" id="wlBabySave">✓ Save my interview notes</button><button type="button" id="wlBabyCheck">✨ Check my English with AI</button><span id="wlBabyState" role="status"></span></div>
 <div id="wlBabyFeedback" class="wlBabyFeedback" hidden aria-live="polite"></div><p class="wlPrepNote">These are ideas, not answers to memorize. The employer may ask something unexpected.</p>
 </section>
-        <button type="button" class="wlTavusButton" id="wlTavusEmployerStart">🎥 Live avatar job challenge · 4 min</button><button class="rp2StartBtn employer" id="rp2StartEmployer" type="button">Start Challenge →</button>
+        <button type="button" class="wlTavusButton" id="wlTavusEmployerStart">🎥 Live avatar job challenge · 5 min</button><button class="rp2StartBtn employer" id="rp2StartEmployer" type="button">Start Challenge →</button>
       </div>
     </article>
   </div>
 
   <section id="wlTavusLive" hidden aria-labelledby="wlTavusTitle">
 <div class="wlTavusTop"><div><h2 id="wlTavusTitle">Live Avatar</h2><p>AI-generated video character · A2 English · Microphone only · No student camera</p></div>
-<div id="wlTavusClock" role="timer" aria-label="Time remaining">04:00</div></div>
+<div class="wlTavusToolbar">
+ <div class="wlTavusTimeGroup"><span class="wlTavusLiveDot" aria-hidden="true"></span><span id="wlTavusCallState">Ready to connect</span><div id="wlTavusClock" role="timer" aria-label="Time remaining">05:00</div></div>
+ <div class="wlTavusActionsTop">
+  <button class="wlTavusAction" id="wlTavusClose" type="button">← Return to Roleplay</button>
+  <button class="wlTavusAction" id="wlTavusEnd" type="button">☎ End call now</button>
+ </div>
+ </div></div>
 <div class="wlLivePrompt" id="wlLivePrompt">
 <div class="wlLiveMission"><strong id="wlLiveMissionTitle">🎮 Your interview mission</strong><span id="wlLiveMissionText">Ask at least two of YOUR prepared questions. Listen carefully and ask a natural follow-up. Your own unexpected questions are welcome.</span></div>
 <aside class="wlLiveQuestions"><div class="wlLiveQTop"><strong id="wlLiveNotesTitle">📝 My questions</strong><button type="button" id="wlLiveEdit">Edit</button></div><ol id="wlLiveQuestionList"></ol><div id="wlLiveBabyNotes" hidden></div><small id="wlLiveNotesHint">Your own questions stay here during the conversation. You can ask something different, too.</small></aside>
 </div><div class="wlTavusVideoWrap">
   <div id="wlTavusFrame" role="group" aria-label="Live video conversation"></div>
-  <button class="wlTavusReturnOverlay" type="button" id="wlTavusReturnOverlay" aria-label="End video call and return to roleplay scenarios">← Return to Roleplay</button>
+
 </div>
 <p id="wlTavusStatus" role="status" aria-live="polite">Ready.</p>
-<button class="wlTavusAction" id="wlTavusEnd" type="button">End call now</button>
-<button class="wlTavusAction" id="wlTavusClose" type="button">← Return to Roleplay</button>
+
 <section id="wlTavusAssessment" class="wlTavusAssessment" aria-labelledby="wlTavusAssessmentTitle" hidden>
   <h3 id="wlTavusAssessmentTitle">Your live interview feedback</h3>
   <p id="wlTavusAssessmentStatus" role="status" aria-live="polite">Your assessment will appear here after the call.</p>
@@ -14096,28 +14117,39 @@ if(storyResetButton){
 const $=id=>document.getElementById(id);
 const panel=$("wlTavusLive"),frame=$("wlTavusFrame"),status=$("wlTavusStatus"),clock=$("wlTavusClock");
 if(!panel||!frame)return;
-let call=null,clockInterval=null,busy=false,last=0;
+let call=null,clockInterval=null,busy=false,ending=false,last=0;
 try{last=Number(localStorage.getItem("wl_tavus_creator_last")||0)}catch{}
 const buttons=[$("wlTavusCreatorStart"),$("wlTavusEmployerStart")];
 function setBusy(v){buttons.forEach(b=>{if(b)b.disabled=v})}
 function say(s){status.textContent=s}
 function time(ms){const n=Math.max(0,Math.ceil(ms/1000));return `${String(Math.floor(n/60)).padStart(2,"0")}:${String(n%60).padStart(2,"0")}`}
 async function end(reason="Call ended."){
-clearInterval(clockInterval);clockInterval=null;
-const previous=call;call=null;frame.replaceChildren();clock.textContent="00:00";
-if(!previous){say(reason);setBusy(false);return}
-say("Ending Tavus session…");
-try{
-const r=await fetch("/api/tavus",{method:"POST",headers:{"Content-Type":"application/json"},
-body:JSON.stringify({action:"end",conversationId:previous.id,token:previous.token})});
-const d=await r.json().catch(()=>({}));
-say(r.ok?reason:"End request failed. Tavus provider-side five-minute limit remains active. "+(d.error||""));
-}catch{say("End request could not be confirmed. Tavus provider-side five-minute limit remains active.")}
-setBusy(false)
+ const previous=call;
+ if(!previous){say(reason);setBusy(false);return true}
+ if(ending)return false;
+ ending=true;
+ say("Ending Tavus session…");
+ document.getElementById("wlTavusCallState").textContent="Ending…";
+ try{
+  const r=await fetch("/api/tavus",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({action:"end",conversationId:previous.id,token:previous.token})});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw Error(d.error||"Provider did not confirm termination");
+  call=null;clearInterval(clockInterval);clockInterval=null;
+  frame.replaceChildren();clock.textContent="00:00";
+  say(reason+" Tavus session closed.");
+  document.getElementById("wlTavusCallState").textContent="Call ended";
+  setBusy(false);
+  return true;
+ }catch(e){
+  say("Call closure NOT confirmed. Try End call now again. The provider's five-minute limit is a backup. "+String(e.message||e));
+  document.getElementById("wlTavusCallState").textContent="End not confirmed";
+  return false;
+ }finally{ending=false}
 }
 async function start(scenario){
 if(busy||call)return;busy=true;setBusy(true);panel.hidden=false;panel.scrollIntoView({block:"start"});
-clock.textContent="04:00";clock.classList.remove("warning");
+clock.textContent="05:00";clock.classList.remove("warning");
 const game=($("rp2GameInput")?.value||"").trim();
 if(scenario==="creator"&&!game){say("Please enter a game name first.");busy=false;setBusy(false);$("rp2GameInput")?.focus();return}
 const creatorNumber=last===1?2:1;
@@ -14128,7 +14160,8 @@ const r=await fetch("/api/tavus",{method:"POST",headers:{"Content-Type":"applica
 const d=await r.json().catch(()=>({}));
 if(!r.ok)throw Error(d.error||"Could not start conversation");
 if(!/^https:\/\/[a-z0-9.-]*tavus\.daily\.co\//i.test(d.url))throw Error("Unexpected video URL");
-call={id:d.conversationId,token:d.token,endsAt:Date.now()+240000};
+call={id:d.conversationId,token:d.token,endsAt:Date.now()+Math.min(300,Number(d.maxSeconds)||300)*1000};
+document.getElementById("wlTavusCallState").textContent="Call in progress";
 $("wlTavusTitle").textContent=scenario==="creator"?`Game Creator ${creatorNumber===1?"A":"B"} · ${game}`:`Morgan · ${job} interview`;
 if(scenario==="creator"){last=creatorNumber;try{localStorage.setItem("wl_tavus_creator_last",String(last))}catch{}}
 const iframe=document.createElement("iframe");iframe.title="Tavus AI video conversation; microphone only";
@@ -14138,8 +14171,8 @@ say("Conversation is active. Allow microphone if prompted. Student camera access
 clockInterval=setInterval(()=>{
 if(!call)return;
 const ms=call.endsAt-Date.now();clock.textContent=time(ms);
-if(ms<=60000&&!clock.classList.contains("warning")){clock.classList.add("warning");say("One minute remaining.")}
-if(ms<=0)end("Five-minute limit reached.");
+if(ms<=30000&&!clock.classList.contains("warning")){clock.classList.add("warning");say("30 seconds left. Finish your answer.")}
+if(ms<=0&&!ending)end("Five-minute limit reached.");
 },1000);
 }catch(e){say("Unable to start: "+String(e.message||e));setBusy(false)}
 finally{busy=false}
@@ -14148,11 +14181,11 @@ $("wlTavusCreatorStart")?.addEventListener("click",()=>start("creator"));
 $("wlTavusEmployerStart")?.addEventListener("click",()=>start("job"));
 $("wlTavusEnd")?.addEventListener("click",()=>end("Call ended."));
 async function returnToRoleplay(){
-  const btn=$("wlTavusReturnOverlay");
+  const btn=$("wlTavusClose");
   if(btn)btn.disabled=true;
   try{
-    await end("Video call ended. You can choose another scenario.");
-  }finally{
+    const stopped=await end("Video call ended. You can choose another scenario.");
+    if(!stopped)return;
     panel.hidden=true;
     const chooser=$("rp2Chooser");
     if(chooser){
@@ -14161,6 +14194,7 @@ async function returnToRoleplay(){
       const focusTarget=chooser.querySelector("input,button,[tabindex='0']");
       if(focusTarget)focusTarget.focus({preventScroll:true});
     }
+  }finally{
     if(btn)btn.disabled=false;
   }
 }
