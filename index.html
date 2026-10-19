@@ -5596,8 +5596,8 @@ html{scroll-padding-top:90px}
 <label><span>First, I would…</span><input data-baby-frame="2" aria-label="Finish: First I would" placeholder="e.g. listen to Alex" /></label>
 <label><span>It's important to…</span><input data-baby-frame="3" aria-label="Finish: It's important to" placeholder="e.g. respect his feelings" /></label>
 </div>
-<div class="wlPrepActions"><button type="button" id="wlBabySave">✓ Save my interview notes</button><span id="wlBabyState" role="status"></span></div>
-<p class="wlPrepNote">These are ideas, not answers to memorize. The employer may ask something unexpected.</p>
+<div class="wlPrepActions"><button type="button" id="wlBabySave">✓ Save my interview notes</button><button type="button" id="wlBabyCheck">✨ Check my English with AI</button><span id="wlBabyState" role="status"></span></div>
+<div id="wlBabyFeedback" class="wlBabyFeedback" hidden aria-live="polite"></div><p class="wlPrepNote">These are ideas, not answers to memorize. The employer may ask something unexpected.</p>
 </section>
         <button type="button" class="wlTavusButton" id="wlTavusEmployerStart">🎥 Live avatar job challenge · 4 min</button><button class="rp2StartBtn employer" id="rp2StartEmployer" type="button">Start Challenge →</button>
       </div>
@@ -14442,5 +14442,56 @@ $("rp2StartCreator")?.addEventListener("click",()=>setLive(false),true);
   dlg.addEventListener("click",event=>{if(event.target===dlg)dlg.close()});
 })();
 </script>
-</body>
+<style id="wl-baby-check-style">
+#wlBabyCheck{background:#f2edfc;border:1px solid #c9b6eb;color:#5d478e;border-radius:9px;padding:8px 10px;font-weight:850}
+#wlBabyCheck:disabled{opacity:.6}
+.wlBabyFeedback{margin-top:9px;display:grid;gap:7px}.wlBabyFeedback[hidden]{display:none}
+.wlBabyReview{border:1px solid #dce5ef;border-radius:10px;background:#fff;padding:9px;font-size:12px;line-height:1.45}
+.wlBabyReview.good{border-color:#a6d6b5;background:#f1faf4;color:#27613d}
+.wlBabyReview .wlBabyOriginal{color:#476176;font-weight:750}
+.wlBabyReview .wlBabyCorrection{color:#604c87;margin-top:5px}
+.wlBabyReview button{margin-top:6px;background:#e8f5ee;border:1px solid #9fc9b0;color:#24613e;padding:6px 9px;border-radius:8px;font-size:11px;font-weight:800}
+</style>
+<script id="wl-baby-check-script">
+(()=>{
+"use strict";
+const $=id=>document.getElementById(id);
+const check=$("wlBabyCheck"),results=$("wlBabyFeedback");
+const starts=["I would try to","I think Alex needs","First, I would","It's important to"];
+const inputs=[...document.querySelectorAll("[data-baby-frame]")];
+function line(i){const v=inputs[i].value.trim();return v?starts[i]+" "+v.replace(/^[. ]+|[. ]+$/g,"")+".":""}
+const put=(parent,text,cls,tag="div")=>{const el=document.createElement(tag);if(cls)el.className=cls;el.textContent=text;parent.appendChild(el);return el};
+check?.addEventListener("click",async()=>{
+  const sentences=starts.map((_,i)=>line(i));
+  results.hidden=false;results.replaceChildren();
+  if(!sentences.some(Boolean)){put(results,"Write one or more short sentences first.");return}
+  check.disabled=true;check.textContent="Checking…";
+  try{
+    const r=await fetch(window.WEBILANG_AI_ENDPOINT||"/api/feedback",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"babysitter_notes_check",sentences,level:"A2"})});
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok)throw Error(data.error||"AI connection error");
+    if(!Array.isArray(data.reviews)||data.reviews.length!==4)throw Error("Incomplete feedback");
+    data.reviews.forEach((review,i)=>{
+      if(!sentences[i])return;
+      const panel=document.createElement("div");panel.className="wlBabyReview"+(review.correct?" good":"");results.appendChild(panel);
+      put(panel,sentences[i],"wlBabyOriginal");
+      if(review.correct){put(panel,"✓ Looks good!","wlBabyCorrection");return}
+      const suggestion=(review.suggestion||"").trim();
+      if(!suggestion){put(panel,"Please check with your teacher.","wlBabyCorrection");return}
+      put(panel,"Suggested: "+suggestion,"wlBabyCorrection");
+      if(review.explanation)put(panel,review.explanation,"");
+      const use=put(panel,"Use this correction","","button");use.type="button";
+      use.addEventListener("click",()=>{
+        const start=starts[i],value=suggestion.startsWith(start)?suggestion.slice(start.length).trim():null;
+        if(value===null){put(panel,"Please check the suggestion with your teacher.");return}
+        inputs[i].value=value.replace(/\\.$/,"");inputs[i].dispatchEvent(new Event("input",{bubbles:true}));
+        $("wlBabySave")?.click();
+        use.textContent="✓ Updated";use.disabled=true;
+      });
+    });
+  }catch(e){put(results,"AI check unavailable: "+String(e.message||e)+". You can still save your notes.");}
+  finally{check.disabled=false;check.textContent="✨ Check my English with AI"}
+});
+})();
+</script></body>
 </html>
