@@ -140,6 +140,7 @@ export default async function handler(req,res){
 
 
     if(body.mode==="question_check"){
+      res.setHeader("X-Webilang-Question-Checker","v2");
       const questions=(Array.isArray(body.questions)?body.questions:[])
         .slice(0,5).map(q=>safeText(q,240)).filter(Boolean);
       if(!questions.length)return res.status(400).json({error:"No questions supplied"});
