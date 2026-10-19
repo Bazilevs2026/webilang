@@ -14295,7 +14295,13 @@ check?.addEventListener('click',async()=>{
    body:JSON.stringify({mode:'question_check',questions:entries.map(e=>e.question),level:'A2',module:'Video Games interview'})
   });
   const result=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error(result.error||'AI connection error');
+  if(!response.ok){
+   const detail=String(result.error||'AI connection error');
+   if(/No transcript supplied|No source reference supplied/i.test(detail)){
+    throw new Error('The deployed /api/feedback is an older version. Replace api/feedback.js in GitHub and redeploy Vercel; written questions must use question_check mode.');
+   }
+   throw new Error(detail);
+  }
   const reviews=Array.isArray(result.reviews)?result.reviews:[];
   if(reviews.length!==entries.length)throw new Error('Incomplete AI evaluation. Your questions were not changed.');
   put('strong','Your questions — AI language check',feedback);
