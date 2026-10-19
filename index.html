@@ -3903,6 +3903,10 @@ html{scroll-padding-top:90px}
 #wlTavusLive .wlTavusActionsTop button{font-size:12px;padding:10px 5px}
 #wlTavusLive .wlTavusTop{top:0;padding:9px}
 }
+</style><style>
+.wlResetRoleplayBtn{border:1px solid #dc9c9c;background:#fff4f3;color:#9b3434;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;margin:8px 0}
+.wlResetRoleplayBtn:hover{background:#ffe8e5}
+#wlResetRoleplayLive{border:1px solid #dbb1b1;background:#fff4f3;color:#a13131}
 </style></head>
 <body>
 <a class="skipLink" href="#main-content">Skip to main content</a>
@@ -5546,7 +5550,8 @@ html{scroll-padding-top:90px}
       <h2>Choose your scenario</h2>
       <p>Short real conversations: up to 15 turns each. AI replies stay simple and under 15 words.</p>
     </div>
-    <div class="rp2HeroBadges">
+    <button type="button" id="wlResetRoleplay" class="wlResetRoleplayBtn">↺ Reset Roleplay</button>
+     <div class="rp2HeroBadges">
       <span>🎙 Speak or type</span>
       <span>15 turns max</span>
       <span>Grammar feedback → My Grammar Stock</span>
@@ -5627,6 +5632,7 @@ html{scroll-padding-top:90px}
  <div class="wlTavusActionsTop">
   <button class="wlTavusAction" id="wlTavusClose" type="button">← Return to Roleplay</button>
   <button class="wlTavusAction" id="wlTavusEnd" type="button">☎ End call now</button>
+   <button class="wlTavusAction" id="wlResetRoleplayLive" type="button">↺ Reset</button>
  </div>
  </div></div>
 <div class="wlLivePrompt" id="wlLivePrompt">
@@ -14200,6 +14206,28 @@ async function returnToRoleplay(){
 }
 $("wlTavusClose")?.addEventListener("click",returnToRoleplay);
 $("wlTavusReturnOverlay")?.addEventListener("click",returnToRoleplay);
+async function resetRoleplayAll(){
+  if(!window.confirm("Reset Roleplay? This ends the active call and deletes ALL prepared interview questions, babysitter ideas and notes. Word Stock and Grammar Stock will stay saved."))return;
+  const buttons=[$("wlResetRoleplay"),$("wlResetRoleplayLive")].filter(Boolean);
+  buttons.forEach(b=>b.disabled=true);
+  try{
+    if(call){
+      const ended=await end("Call ended for reset.");
+      if(!ended){alert("The Tavus call could not be confirmed closed. Please use End call now and retry Reset.");return;}
+    }
+    ["webilang_creator_prepared_questions_v1","webilang_creator_prepared_questions_v2","wl_babysitter_interview_notes_v1","wl_tavus_creator_last"].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});
+    document.querySelectorAll("[data-wl-q],[data-baby-frame]").forEach(el=>{el.value="";el.dispatchEvent(new Event("input",{bubbles:true}))});
+    document.querySelectorAll("[data-baby-idea]").forEach(el=>{el.checked=false;el.dispatchEvent(new Event("change",{bubbles:true}))});
+    ["wlPrepFeedback","wlBabyFeedback"].forEach(id=>{const el=$(id);if(el){el.replaceChildren();el.hidden=true}});
+    ["wlPrepState","wlBabyState"].forEach(id=>{const el=$(id);if(el)el.textContent=""});
+    const q=$("wlLiveQuestionList");if(q)q.replaceChildren();
+    const notes=$("wlLiveBabyNotes");if(notes)notes.replaceChildren();
+    const assess=$("wlTavusAssessmentResults");if(assess)assess.replaceChildren();
+    location.reload();
+  }finally{buttons.forEach(b=>b.disabled=false)}
+}
+$("wlResetRoleplay")?.addEventListener("click",resetRoleplayAll);
+$("wlResetRoleplayLive")?.addEventListener("click",resetRoleplayAll);
 window.addEventListener("pagehide",()=>{if(call)navigator.sendBeacon("/api/tavus",new Blob([JSON.stringify({action:"end",conversationId:call.id,token:call.token})],{type:"application/json"}))});
 })();
 </script>
