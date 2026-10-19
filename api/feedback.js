@@ -139,6 +139,27 @@ export default async function handler(req,res){
     const body=req.body||{};
 
 
+    if(body.mode==="babysitter_notes_check"){
+      const entries=(Array.isArray(body.sentences)?body.sentences:[]).slice(0,4).map(x=>safeText(x,300));
+      if(!entries.some(Boolean))return res.status(400).json({error:"Write a sentence first"});
+      const starts=["I would try to","I think Alex needs","First, I would","It's important to"];
+      const instructions=`You are a careful A2 ESL teacher checking four short interview notes for a babysitter role.
+Each sentence begins with one of these fixed starters: ${starts.join("; ")}.
+Check each complete sentence for actual grammatical mistakes only. The student may suggest creative or unusual solutions. Do not grade the strategy, change their ideas, or invent errors. A grammatically correct sentence MUST be marked correct, even if you could phrase it more naturally. Ignore minor punctuation. For a truly incorrect sentence, suggest the smallest necessary correction while preserving the student's meaning and original starter. Never claim an article or word is missing without checking the original.
+Return JSON only: {"reviews":[{"correct":true,"suggestion":"","explanation":""}]}.
+Return exactly four reviews in the original order, including {"correct":true,"suggestion":"","explanation":""} for blank entries. Explanations no more than 16 A2-level words.`;
+      const raw=await ask({instructions,input:JSON.stringify({sentences:entries}),maxOutput:700});
+      let parsed;
+      try{parsed=JSON.parse(stripFence(raw))}catch(e){throw new Error("AI returned invalid notes-check format")}
+      if(!Array.isArray(parsed.reviews)||parsed.reviews.length!==4)throw new Error("AI returned incomplete notes feedback");
+      const reviews=parsed.reviews.map((r,i)=>({
+        correct:!entries[i]||r?.correct===true,
+        suggestion:(!entries[i]||r?.correct===true)?"":safeText(r?.suggestion,300),
+        explanation:(!entries[i]||r?.correct===true)?"":safeText(r?.explanation,180)
+      }));
+      return res.status(200).json({reviews});
+    }
+
     if(body.mode==="question_check"){
       res.setHeader("X-Webilang-Question-Checker","v2");
       const questions=(Array.isArray(body.questions)?body.questions:[])
