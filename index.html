@@ -5559,16 +5559,30 @@ html{scroll-padding-top:90px}
       <div class="rp2ScenarioBody">
         <div class="rp2ScenarioTag">CHALLENGE</div>
         <h3>💼 Gamer Kid Job Challenge</h3>
-        <p>Apply to work with a child who plays too much. The AI employer starts the interview.</p>
+        <p>Apply as a babysitter for a teenager who games too much. The AI parent interviews you first.</p>
         <div class="rp2MiniRules">
           <span>✓ AI starts</span><span>✓ A2 English</span><span>✓ Get the job</span>
         </div>
-        <div class="rp2FieldLabel">I’m applying as:</div>
-        <div class="rp2JobChoices" id="rp2JobChoices">
-          
-          <button type="button" class="rp2Job active" data-job="tutor">Tutor</button>
-          <button type="button" class="rp2Job" data-job="nanny">Nanny</button>
-        </div>
+        <section class="wlPrep wlBabysitterPrep" id="wlBabysitterPrep" aria-label="Babysitter interview preparation">
+<h3>🧩 Get ready: Babysitter Challenge</h3>
+<p><strong>You are the babysitter.</strong> A parent wants help with their 13-year-old gamer, Alex. The parent interviews you first. Explain how you would help Alex find a healthy balance — without making gaming the enemy.</p>
+<div class="wlPrepSteps"><span>1 · Choose ideas</span><span>2 · Practise English</span><span>3 · Convince the parent</span></div>
+<div class="wlBabyIdeas" aria-label="Ideas to consider">
+<label><input type="checkbox" data-baby-idea="Connect gaming to a real-life skill" /> 🎮 Link gaming to real-life skills</label>
+<label><input type="checkbox" data-baby-idea="Plan a real-life quest or treasure hunt" /> 🗺️ Plan a real-life quest</label>
+<label><input type="checkbox" data-baby-idea="Create game art, a map, or a simple game" /> 🎨 Design something from a game</label>
+<label><input type="checkbox" data-baby-idea="Make a friendly daily plan with Alex" /> 🤝 Agree on a daily plan together</label>
+</div>
+<div class="wlBabyDebate">💡 <strong>What about hiding the console?</strong> Might Alex get angry? A treasure hunt could be fun if Alex agrees. Think about trust.</div>
+<div class="wlBabyFrames">
+<label><span>I would try to…</span><input data-baby-frame="0" aria-label="Finish: I would try to" placeholder="e.g. make a real-life game" /></label>
+<label><span>I think Alex needs…</span><input data-baby-frame="1" aria-label="Finish: I think Alex needs" placeholder="e.g. more time with friends" /></label>
+<label><span>First, I would…</span><input data-baby-frame="2" aria-label="Finish: First I would" placeholder="e.g. listen to Alex" /></label>
+<label><span>It's important to…</span><input data-baby-frame="3" aria-label="Finish: It's important to" placeholder="e.g. respect his feelings" /></label>
+</div>
+<div class="wlPrepActions"><button type="button" id="wlBabySave">✓ Save my interview notes</button><span id="wlBabyState" role="status"></span></div>
+<p class="wlPrepNote">These are ideas, not answers to memorize. The employer may ask something unexpected.</p>
+</section>
         <button type="button" class="wlTavusButton" id="wlTavusEmployerStart">🎥 Live avatar job challenge · 4 min</button><button class="rp2StartBtn employer" id="rp2StartEmployer" type="button">Start Challenge →</button>
       </div>
     </article>
@@ -5578,8 +5592,8 @@ html{scroll-padding-top:90px}
 <div class="wlTavusTop"><div><h2 id="wlTavusTitle">Live Avatar</h2><p>AI-generated video character · A2 English · Microphone only · No student camera</p></div>
 <div id="wlTavusClock" role="timer" aria-label="Time remaining">04:00</div></div>
 <div class="wlLivePrompt" id="wlLivePrompt">
-<div class="wlLiveMission"><strong>🎮 Your interview mission</strong><span>Ask at least two of YOUR prepared questions. Listen carefully and ask a natural follow-up. Your own unexpected questions are welcome.</span></div>
-<aside class="wlLiveQuestions"><div class="wlLiveQTop"><strong>📝 My questions</strong><button type="button" id="wlLiveEdit">Edit</button></div><ol id="wlLiveQuestionList"></ol><small>Your own questions stay here during the conversation. You can ask something different, too.</small></aside>
+<div class="wlLiveMission"><strong id="wlLiveMissionTitle">🎮 Your interview mission</strong><span id="wlLiveMissionText">Ask at least two of YOUR prepared questions. Listen carefully and ask a natural follow-up. Your own unexpected questions are welcome.</span></div>
+<aside class="wlLiveQuestions"><div class="wlLiveQTop"><strong id="wlLiveNotesTitle">📝 My questions</strong><button type="button" id="wlLiveEdit">Edit</button></div><ol id="wlLiveQuestionList"></ol><div id="wlLiveBabyNotes" hidden></div><small id="wlLiveNotesHint">Your own questions stay here during the conversation. You can ask something different, too.</small></aside>
 </div><div class="wlTavusVideoWrap">
   <div id="wlTavusFrame" role="group" aria-label="Live video conversation"></div>
   <button class="wlTavusReturnOverlay" type="button" id="wlTavusReturnOverlay" aria-label="End video call and return to roleplay scenarios">← Return to Roleplay</button>
@@ -13352,7 +13366,7 @@ if(storyResetButton){
 
   const creatorImg=agentImage.getAttribute("src");
   const employerImg=document.querySelector(".rp2ScenarioCard.employer img")?.getAttribute("src")||creatorImg;
-  let scenario=null, game="", job="teacher", history=[], studentTurns=0, agentTurns=0;
+  let scenario=null, game="", job="babysitter", history=[], studentTurns=0, agentTurns=0;
   let busy=false, recording=false, recorder=null, recordStream=null, chunks=[];
   let lastAgentText="", lastAgentUrl="", lastStudentUrl="";
   let creatorProgress={facts:0,biggestChallenge:false,companyIncome:false,featureIdea:false};
@@ -14091,7 +14105,7 @@ clock.textContent="04:00";clock.classList.remove("warning");
 const game=($("rp2GameInput")?.value||"").trim();
 if(scenario==="creator"&&!game){say("Please enter a game name first.");busy=false;setBusy(false);$("rp2GameInput")?.focus();return}
 const creatorNumber=last===1?2:1;
-const job=document.querySelector("#rp2JobChoices .rp2Job.active")?.dataset.job||"tutor";
+const job="babysitter";
 say("Connecting to Tavus…");
 try{
 const r=await fetch("/api/tavus",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"start",scenario,game,job,creatorNumber})});
@@ -14295,13 +14309,7 @@ check?.addEventListener('click',async()=>{
    body:JSON.stringify({mode:'question_check',questions:entries.map(e=>e.question),level:'A2',module:'Video Games interview'})
   });
   const result=await response.json().catch(()=>({}));
-  if(!response.ok){
-   const detail=String(result.error||'AI connection error');
-   if(/No transcript supplied|No source reference supplied/i.test(detail)){
-    throw new Error('The deployed /api/feedback is an older version. Replace api/feedback.js in GitHub and redeploy Vercel; written questions must use question_check mode.');
-   }
-   throw new Error(detail);
-  }
+  if(!response.ok)throw new Error(result.error||'AI connection error');
   const reviews=Array.isArray(result.reviews)?result.reviews:[];
   if(reviews.length!==entries.length)throw new Error('Incomplete AI evaluation. Your questions were not changed.');
   put('strong','Your questions — AI language check',feedback);
@@ -14329,6 +14337,49 @@ document.getElementById('wlLiveEdit')?.addEventListener('click',()=>{
 });
 ['wlTavusCreatorStart','rp2StartCreator'].forEach(id=>document.getElementById(id)?.addEventListener('click',persist,{capture:true}));
 show();
+})();
+</script><style id="wl-babysitter-style">
+.wlBabysitterPrep{margin-top:12px!important}.wlBabysitterPrep h3{font-size:18px;margin:0 0 6px}.wlBabysitterPrep>p{font-size:12px;line-height:1.45;margin:5px 0 9px}
+.wlBabyIdeas{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0}
+.wlBabyIdeas label{display:flex;align-items:flex-start;gap:5px;background:#f0f8ff;border:1px solid #cfe3f3;border-radius:9px;padding:8px;font-size:11px;font-weight:700;line-height:1.35;color:#285779}
+.wlBabyIdeas input{margin:1px 3px 0 0;accent-color:#3c8aba}
+.wlBabyDebate{background:#fff4db;border-left:4px solid #e9b354;border-radius:8px;padding:8px;font-size:11px;color:#795a25;line-height:1.4;margin-bottom:10px}
+.wlBabyFrames{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.wlBabyFrames label{font-size:11px;font-weight:850;color:#5b4c80;display:flex;flex-direction:column;gap:4px}
+.wlBabyFrames input{width:100%;min-width:0;border:1px solid #d6cbea;border-radius:9px;padding:8px;font-size:12px;background:#fff}
+#wlBabySave{background:#e6f5ec;color:#287046;border:1px solid #a6d0b4;border-radius:9px;padding:8px 10px;font-weight:850}
+#wlBabyState{font-size:11px;color:#287046}
+#wlLiveBabyNotes{font-size:12px;line-height:1.5;color:#4b5674}
+#wlLiveBabyNotes .babyNote{margin:5px 0;padding:5px 8px;background:#fff;border-radius:8px;border:1px solid #e3d8f0}
+#wlLiveBabyNotes .babyIdea{background:#f7fbff;border-color:#cfe2ed}
+@media(max-width:650px){.wlBabyIdeas,.wlBabyFrames{grid-template-columns:1fr}}
+</style><script id="wl-babysitter-script">
+(()=>{
+"use strict";
+const $=id=>document.getElementById(id), base=["I would try to","I think Alex needs","First, I would","It's important to"];
+const fields=[...document.querySelectorAll("[data-baby-frame]")], choices=[...document.querySelectorAll("[data-baby-idea]")];
+const storageKey="wl_babysitter_interview_notes_v1";
+function getNotes(){return {phrases:fields.map((f,i)=>f.value.trim()?base[i]+" "+f.value.trim().replace(/^[. ]+|[. ]+$/g,"")+".":"" ).filter(Boolean),ideas:choices.filter(c=>c.checked).map(c=>c.dataset.babyIdea)}}
+function save(){const notes=getNotes();try{localStorage.setItem(storageKey,JSON.stringify(notes));}catch(e){}
+$("wlBabyState").textContent=notes.phrases.length+" sentence(s) and "+notes.ideas.length+" idea(s) saved.";return notes}
+try{const saved=JSON.parse(localStorage.getItem(storageKey)||"null");if(saved){choices.forEach(c=>c.checked=(saved.ideas||[]).includes(c.dataset.babyIdea));(saved.phrases||[]).forEach(p=>{const i=base.findIndex(b=>p.startsWith(b+" "));if(i>=0)fields[i].value=p.slice(base[i].length).trim().replace(/\.$/,"")})}}catch(e){}
+$("wlBabySave")?.addEventListener("click",save);
+function setLive(isBaby){
+const title=$("wlLiveMissionTitle"),body=$("wlLiveMissionText"),notesTitle=$("wlLiveNotesTitle"),list=$("wlLiveQuestionList"),noteBox=$("wlLiveBabyNotes"),hint=$("wlLiveNotesHint");
+if(!title||!noteBox)return;
+title.textContent=isBaby?"💼 Babysitter interview mission":"🎮 Your interview mission";
+body.textContent=isBaby?"You are the babysitter. The AI parent asks first. Explain two creative ways to help Alex balance gaming with real life. Listen and respond in your own words.":"Ask at least two of YOUR prepared questions. Listen carefully and ask a natural follow-up. Your own unexpected questions are welcome.";
+notesTitle.textContent=isBaby?"📝 My babysitter notes":"📝 My questions";
+list.hidden=isBaby;noteBox.hidden=!isBaby;
+hint.textContent=isBaby?"Use these ideas for support. You do not have to read them word for word.":"Your own questions stay here during the conversation. You can ask something different, too.";
+if(isBaby){const n=save();noteBox.replaceChildren();
+[...n.ideas.map(x=>"💡 "+x),...n.phrases].forEach((t,i)=>{const d=document.createElement("div");d.className="babyNote"+(i<n.ideas.length?" babyIdea":"");d.textContent=t;noteBox.appendChild(d)});
+if(!n.ideas.length&&!n.phrases.length){noteBox.textContent="You can ask Alex about gaming, suggest a real-life quest, or connect games with skills."}}
+}
+$("wlTavusEmployerStart")?.addEventListener("click",()=>setLive(true),true);
+$("wlTavusCreatorStart")?.addEventListener("click",()=>setLive(false),true);
+$("rp2StartEmployer")?.addEventListener("click",()=>{save();setLive(true)},true);
+$("rp2StartCreator")?.addEventListener("click",()=>setLive(false),true);
 })();
 </script></body>
 </html>
