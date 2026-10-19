@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 
-const MAX_SECONDS = 240;
+const MAX_SECONDS = 300;
 const MONTH_SECONDS = 240*60; // Reserved quota, not actual billed usage.
 const PREFIX="webilang:tavus:v1";
 const TAVUS="https://tavusapi.com/v2/conversations";
@@ -60,7 +60,7 @@ export default async function handler(req,res){
      const pal=process.env[env];
      if(!validId(pal))return json(res,503,{error:`${env} is missing or invalid`});
      const token=crypto.randomBytes(24).toString("hex");
-     const lock=await redis(["SET",`${PREFIX}:active`,token,"EX",255,"NX"]);
+     const lock=await redis(["SET",`${PREFIX}:active`,token,"EX",315,"NX"]);
      if(lock!=="OK"){
        const remaining=Math.max(0,Number(await redis(["TTL",`${PREFIX}:active`]))||0);
        const seconds=remaining>0?remaining:15;
