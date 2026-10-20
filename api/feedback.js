@@ -1,3 +1,4 @@
+import genderFeedbackHandler from "../lib/gender-feedback.js";
 /**
  * Webilang shared AI feedback + Word Stock practice
  * Vercel Function: /api/feedback.js
@@ -127,6 +128,13 @@ function hideLeakingHint(text,target,fallback){
 }
 
 export default async function handler(req,res){
+  // Shared API: preserve Gender Roles assessment and vocabulary-practice behaviour.
+  // Video Games requests do not use these action/kind combinations.
+  const b=req.body||{};
+  if(b.kind==="speaking"||b.kind==="writing"||b.action==="build"||b.action==="check"){
+    return genderFeedbackHandler(req,res);
+  }
+
   if(req.method!=="POST"){
     res.setHeader("Allow","POST");
     return res.status(405).json({error:"Method not allowed"});
