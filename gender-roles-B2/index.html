@@ -733,7 +733,7 @@ if(!Array.isArray(store.words))store.words=[];
 if(!Array.isArray(store.grammar))store.grammar=[];
 const persist=()=>localStorage.setItem(KEY,JSON.stringify(store));
 const normalize=x=>clean(x).toLocaleLowerCase();
-const aiPath=window.GENDER_AI_ENDPOINT||'/api/gender-feedback';
+const aiPath=window.GENDER_AI_ENDPOINT||'/api/feedback';
 const txPath=window.GENDER_TRANSCRIBE_ENDPOINT||'/api/gender-transcribe';
 const sources={reading:$('#panel-reading .reading'),watch:$('#watchStudyText'),exact:$('#watchExactText')};
 let lastSelection='';
@@ -1118,7 +1118,7 @@ $('rp-evaluate').onclick=async()=>{
  const task='B2 Gender Roles roleplay. The learner is an 18-year-old INTERVIEWER assessing '+scenarioNames[scenario]+
  '. Evaluate quality of questions, objective evidence, fairness and professionalism; do not reward or penalize a particular hire/reject outcome. Student decision: '+decision+'. Student justification: '+reason+'. Correct genuine language errors ONLY in their original interview speech. Note: speaker text contains student lines only.';
  try{
- const r=await fetch('/api/gender-feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'speaking',task,response:spoken})});
+ const r=await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'speaking',task,response:spoken})});
  const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Feedback service error');
  const result=$('rp-feedback');result.replaceChildren();result.hidden=false;
  const h=document.createElement('h3');h.textContent='AI interview feedback · '+scenarioNames[scenario];result.append(h);
@@ -1276,7 +1276,7 @@ $("gtavus-assess").onclick=async()=>{
  b.disabled=true;st.textContent="Checking interview and analysing your English…";
  try{
   const task="Gender Roles B2 roleplay: learner is an 18-year-old interviewer hiring "+(scenario==="babysitter"?"Daniel, a male babysitter":"Emma, a female engineering apprentice")+". Evaluate professional interviewing questions, fairness, evidence-based judgement and diplomatic language. Correct only errors from STUDENT speech; do not invent errors from AI applicant. Do not evaluate pronunciation from text.";
-  const r=await fetch("/api/gender-feedback",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({kind:"speaking",task,response:spoken})});
+  const r=await fetch("/api/feedback",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({kind:"speaking",task,response:spoken})});
   const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||"Feedback unavailable");
   const root=$("gtavus-results");root.replaceChildren();root.hidden=false;
   const add=(tag,text)=>{const el=document.createElement(tag);el.textContent=text;root.append(el)};
@@ -1402,7 +1402,7 @@ render('reading');renderStory();syncHighlights();
 (function(){
 const build=document.getElementById('wordStockPractice'), panel=document.getElementById('wordPracticePanel'),root=document.getElementById('wordPracticeItems');
 if(!build||!panel||!root)return;
-const api='/api/gender-feedback';
+const api='/api/feedback';
 const getWords=()=>{
  let buttons=[...document.querySelectorAll('#wordReadingList input[type="checkbox"]:checked,#wordWatchingList input[type="checkbox"]:checked')];
  // Selectors on the existing stock implementation are not necessarily native checkboxes.
