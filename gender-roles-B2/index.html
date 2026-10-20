@@ -1402,7 +1402,7 @@ render('reading');renderStory();syncHighlights();
 (function(){
 const build=document.getElementById('wordStockPractice'), panel=document.getElementById('wordPracticePanel'),root=document.getElementById('wordPracticeItems');
 if(!build||!panel||!root)return;
-const api='/api/gender-word-practice';
+const api='/api/gender-feedback';
 const getWords=()=>{
  let buttons=[...document.querySelectorAll('#wordReadingList input[type="checkbox"]:checked,#wordWatchingList input[type="checkbox"]:checked')];
  // Selectors on the existing stock implementation are not necessarily native checkboxes.
