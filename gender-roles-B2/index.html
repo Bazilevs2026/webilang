@@ -734,7 +734,7 @@ if(!Array.isArray(store.grammar))store.grammar=[];
 const persist=()=>localStorage.setItem(KEY,JSON.stringify(store));
 const normalize=x=>clean(x).toLocaleLowerCase();
 const aiPath=window.GENDER_AI_ENDPOINT||'/api/feedback';
-const txPath=window.GENDER_TRANSCRIBE_ENDPOINT||'/api/gender-transcribe';
+const txPath=window.GENDER_TRANSCRIBE_ENDPOINT||'/api/transcribe';
 const sources={reading:$('#panel-reading .reading'),watch:$('#watchStudyText'),exact:$('#watchExactText')};
 let lastSelection='';
 document.addEventListener('selectionchange',()=>{
@@ -1098,7 +1098,7 @@ $('rp-record').onclick=async()=>{
   try{
    const bytes=new Uint8Array(await blob.arrayBuffer());let bin='';
    for(let i=0;i<bytes.length;i+=32768)bin+=String.fromCharCode(...bytes.subarray(i,i+32768));
-   const r=await fetch('/api/gender-transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:btoa(bin),mime:blob.type})});
+   const r=await fetch('/api/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:btoa(bin),mime:blob.type})});
    const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Transcription failed');
    $('rp-text').value=d.text||'';status('Transcript ready. Review it, then press Send to AI candidate.');
   }catch(e){status('Transcription failed: '+e.message+'. Type your question instead.')}
