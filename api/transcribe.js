@@ -1,6 +1,6 @@
 /**
  * Webilang cross-browser speech transcription
- * Vercel Function: /api/transcribe.js
+ * Shared Vercel Function: /api/transcribe
  *
  * Uses OPENAI_API_KEY.
  * Browser MediaRecorder audio is sent only after the learner records a turn.
@@ -21,7 +21,17 @@ function extensionFromMime(type=""){
   return "webm";
 }
 
+import genderTranscribeHandler from "../lib/gender-transcribe.js";
+
 export default async function handler(req,res){
+  // Gender Roles sends {audio, mime}; Video Games sends {audio, mimeType, language}.
+  // Keep each module's existing transcription model and response behavior.
+  const payload = req.body || {};
+  if (Object.prototype.hasOwnProperty.call(payload, "mime") &&
+      !Object.prototype.hasOwnProperty.call(payload, "mimeType")) {
+    return genderTranscribeHandler(req,res);
+  }
+
   if(req.method!=="POST"){
     res.setHeader("Allow","POST");
     return res.status(405).json({error:"Method not allowed"});
@@ -63,6 +73,9 @@ export default async function handler(req,res){
     return res.status(200).json({text:String(data?.text||"").trim()});
   }catch(err){
     console.error(err);
+    return res.status(500).json({error:err?.message||"Server error"});
+  }
+}
     return res.status(500).json({error:err?.message||"Server error"});
   }
 }
