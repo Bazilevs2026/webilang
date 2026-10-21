@@ -3907,7 +3907,47 @@ html{scroll-padding-top:90px}
 .wlResetRoleplayBtn{border:1px solid #dc9c9c;background:#fff4f3;color:#9b3434;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;margin:8px 0}
 .wlResetRoleplayBtn:hover{background:#ffe8e5}
 #wlResetRoleplayLive{border:1px solid #dbb1b1;background:#fff4f3;color:#a13131}
-</style></head>
+</style>
+<style id="wl-collapsible-prep-style">
+/* Collapsible preparation without destroying form elements or input state. */
+.wlPrepDisclosure{margin:16px 0;border:1px solid #c8c0fa;border-radius:17px;background:#f8f7ff;overflow:hidden;box-shadow:0 5px 16px rgba(71,59,156,.07)}
+.wlPrepDisclosureToggle{list-style:none;display:flex;align-items:center;gap:12px;padding:15px 17px;background:linear-gradient(110deg,#555df1,#7650cf);color:white;cursor:pointer;min-height:68px;user-select:none}
+.wlPrepDisclosureToggle::-webkit-details-marker{display:none}
+.wlPrepDisclosureToggle::marker{content:""}
+.wlPrepDisclosureToggle:hover{filter:brightness(1.055)}
+.wlPrepDisclosureToggle:focus-visible{outline:3px solid #efcb51;outline-offset:-4px}
+.wlPrepDisclosureIcon{flex:0 0 36px;height:36px;display:grid;place-items:center;background:rgba(255,255,255,.19);border-radius:11px;font-size:20px}
+.wlPrepDisclosureCopy{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+.wlPrepDisclosureCopy strong{font-size:17px;line-height:1.25;font-weight:850}
+.wlPrepDisclosureCopy small{font-size:12px;line-height:1.35;color:#f2edff}
+.wlPrepChevron{font-size:25px;line-height:1;transition:transform .18s ease;font-weight:800}
+.wlPrepDisclosure[open] .wlPrepChevron{transform:rotate(180deg)}
+.wlPrepDisclosure>.wlPrep{margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+@media(max-width:650px){.wlPrepDisclosureToggle{padding:12px;gap:9px}.wlPrepDisclosureCopy strong{font-size:15px}.wlPrepDisclosureCopy small{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.wlPrepChevron{transition:none}}
+</style>
+<style id="wl-interview-mode-colors">
+/* Separate interview modes visually without changing their click handlers. */
+#rp2StartCreator, #rp2StartEmployer {
+ background:#2563EB!important; border:2px solid #2563EB!important;
+ color:#fff!important; min-height:46px; font-size:14px;
+ box-shadow:0 3px 9px rgba(37,99,235,.16);
+}
+#wlTavusCreatorStart, #wlTavusEmployerStart {
+ background:#6D4BC3!important; border:2px solid #6D4BC3!important;
+ color:#fff!important; min-height:46px; font-size:14px;
+ box-shadow:0 3px 9px rgba(109,75,195,.16);
+}
+#rp2StartCreator:hover, #rp2StartEmployer:hover {background:#1d4ed8!important}
+#wlTavusCreatorStart:hover, #wlTavusEmployerStart:hover {background:#5839a3!important}
+#rp2StartCreator:focus-visible,#rp2StartEmployer:focus-visible,
+#wlTavusCreatorStart:focus-visible,#wlTavusEmployerStart:focus-visible{
+ outline:3px solid #f59e0b;outline-offset:3px;
+}
+.wlInterviewModeHint{font-size:12px;line-height:1.35;color:#58677e;
+ margin:4px 0 9px;text-align:center}
+</style>
+</head>
 <body>
 <a class="skipLink" href="#main-content">Skip to main content</a>
 
@@ -5570,7 +5610,7 @@ html{scroll-padding-top:90px}
         </div>
         <label class="rp2FieldLabel" for="rp2GameInput">Your favourite game</label>
         <input class="rp2TextField" id="rp2GameInput" type="text" maxlength="80" placeholder="e.g. Minecraft">
-        <section class="wlPrep" id="wlQuestionPrep" aria-label="Prepare interview questions">
+        <details class="wlPrepDisclosure" data-prep="wlQuestionPrep"><summary class="wlPrepDisclosureToggle"><span class="wlPrepDisclosureIcon">🧩</span><span class="wlPrepDisclosureCopy"><strong>🎮 Prepare my questions</strong><small>Write your own questions · Check with AI · Save for the interview</small></span><span class="wlPrepChevron" aria-hidden="true">⌄</span></summary><section class="wlPrep" id="wlQuestionPrep" aria-label="Prepare interview questions">
 <h3>🎯 Get ready: Ask YOUR questions</h3>
 <p>You are the interviewer! Ask the game creator what <strong>you</strong> really want to know. Unexpected questions are welcome. Prepare up to five short questions and ask at least two during the interview.</p>
 <div class="wlPrepSteps"><span>1 · Think of your own ideas</span><span>2 · Check your English</span><span>3 · Ask and follow up</span></div>
@@ -5586,7 +5626,7 @@ html{scroll-padding-top:90px}
 <div class="wlPrepActions"><button type="button" id="wlPrepCheck">✨ Check my English with AI</button><button type="button" id="wlPrepSave">✓ Save my questions</button><span id="wlPrepState" role="status"></span></div>
 <div id="wlPrepFeedback" class="wlPrepFeedback" aria-live="polite" hidden></div>
 <p class="wlPrepNote">AI checks grammar and clarity, not how imaginative your question is. Your original questions stay unchanged until you choose to use a suggestion.</p>
-</section><button type="button" class="wlTavusButton" id="wlTavusCreatorStart">🎥 Live avatar interview · 5 min</button><button class="rp2StartBtn creator" id="rp2StartCreator" type="button">Start Interview →</button>
+</section></details><button class="rp2StartBtn creator" id="rp2StartCreator" type="button">🎙️ Start Voice Interview →</button><p class="wlInterviewModeHint">Speak at your own pace. No video call.</p><button type="button" class="wlTavusButton" id="wlTavusCreatorStart">🎥 Start Live Video Interview →</button><p class="wlInterviewModeHint">Talk to an AI avatar in real time · up to 5 minutes.</p>
         <div class="rp2CardStatus" id="rp2CreatorStatus"></div>
       </div>
     </article>
@@ -5600,7 +5640,7 @@ html{scroll-padding-top:90px}
         <div class="rp2MiniRules">
           <span>✓ AI starts</span><span>✓ A2 English</span><span>✓ Get the job</span>
         </div>
-        <section class="wlPrep wlBabysitterPrep" id="wlBabysitterPrep" aria-label="Babysitter interview preparation">
+        <details class="wlPrepDisclosure" data-prep="wlBabysitterPrep"><summary class="wlPrepDisclosureToggle"><span class="wlPrepDisclosureIcon">🧩</span><span class="wlPrepDisclosureCopy"><strong>💼 Prepare for my job interview</strong><small>Choose ideas · Practise four sentences · Check with AI</small></span><span class="wlPrepChevron" aria-hidden="true">⌄</span></summary><section class="wlPrep wlBabysitterPrep" id="wlBabysitterPrep" aria-label="Babysitter interview preparation">
 <h3>🧩 Get ready: Babysitter Challenge</h3>
 <p><strong>You are the babysitter.</strong> A parent wants help with their 13-year-old gamer, Alex. The parent interviews you first. Explain how you would help Alex find a healthy balance — without making gaming the enemy.</p>
 <div class="wlPrepSteps"><span>1 · Choose ideas</span><span>2 · Practise English</span><span>3 · Convince the parent</span></div>
@@ -5619,8 +5659,8 @@ html{scroll-padding-top:90px}
 </div>
 <div class="wlPrepActions"><button type="button" id="wlBabySave">✓ Save my interview notes</button><button type="button" id="wlBabyCheck">✨ Check my English with AI</button><span id="wlBabyState" role="status"></span></div>
 <div id="wlBabyFeedback" class="wlBabyFeedback" hidden aria-live="polite"></div><p class="wlPrepNote">These are ideas, not answers to memorize. The employer may ask something unexpected.</p>
-</section>
-        <button type="button" class="wlTavusButton" id="wlTavusEmployerStart">🎥 Live avatar job challenge · 5 min</button><button class="rp2StartBtn employer" id="rp2StartEmployer" type="button">Start Challenge →</button>
+</section></details>
+        <button class="rp2StartBtn employer" id="rp2StartEmployer" type="button">🎙️ Start Voice Interview →</button><p class="wlInterviewModeHint">Speak at your own pace. No video call.</p><button type="button" class="wlTavusButton" id="wlTavusEmployerStart">🎥 Start Live Video Interview →</button><p class="wlInterviewModeHint">Talk to an AI avatar in real time · up to 5 minutes.</p>
       </div>
     </article>
   </div>
