@@ -883,7 +883,39 @@ const tasks=[
  'Legal equality does not automatically create equality at home. Discuss.'
 ];
 let mediaRecorder=null,chunks=[],started=0,clock=null,microphoneStream=null;
-const stopRecording=()=>{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop()};
+let speakingLive=null,speakingLiveFinal='',speakingLiveActive=false;
+const LiveSpeechAPI=window.SpeechRecognition||window.webkitSpeechRecognition;
+function beginSpeakingLive(){
+ speakingLiveFinal='';speakingLiveActive=false;
+ if(!LiveSpeechAPI)return false;
+ try{
+  const recognition=new LiveSpeechAPI();speakingLive=recognition;
+  recognition.lang='en-US';recognition.interimResults=true;recognition.continuous=true;
+  recognition.onresult=e=>{
+   if(!speakingLiveActive)return;
+   let interim='';
+   for(let i=e.resultIndex;i<e.results.length;i++){
+    const words=e.results[i][0]?.transcript||'';
+    if(e.results[i].isFinal){speakingLiveFinal=(speakingLiveFinal+' '+words).trim()}
+    else interim+=' '+words;
+   }
+   // Keep the running transcript editable; final server transcription arrives after Stop.
+   $('speakingTranscript').value=(speakingLiveFinal+' '+interim).trim();
+  };
+  recognition.onerror=e=>{
+   if(speakingLiveActive && e.error!=='no-speech' && e.error!=='aborted')
+    $('aiSpeakingStatus').textContent='Recording… live captions unavailable; final transcription will appear after Stop.';
+  };
+  recognition.onend=()=>{speakingLiveActive=false};
+  speakingLiveActive=true;recognition.start();return true;
+ }catch(e){speakingLiveActive=false;speakingLive=null;return false}
+}
+function endSpeakingLive(){
+ speakingLiveActive=false;
+ try{speakingLive?.stop()}catch(e){}
+ speakingLive=null;
+}
+const stopRecording=()=>{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();endSpeakingLive()};
 $('speakingStart').onclick=async()=>{
  const status=$('aiSpeakingStatus');status.textContent='';
  try{
@@ -893,23 +925,23 @@ $('speakingStart').onclick=async()=>{
   mediaRecorder=new MediaRecorder(microphoneStream,preferred?{mimeType:preferred}:undefined);chunks=[];
   mediaRecorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
   mediaRecorder.onstop=async()=>{
-   clearInterval(clock);$('speakingStart').disabled=false;$('speakingStop').disabled=true;
+   endSpeakingLive();clearInterval(clock);$('speakingStart').disabled=false;$('speakingStop').disabled=true;
    microphoneStream?.getTracks().forEach(t=>t.stop());microphoneStream=null;
    const blob=new Blob(chunks,{type:mediaRecorder.mimeType||'audio/webm'});
    if(blob.size>10_000_000){status.textContent='Audio is too large; record a shorter answer.';return}
-   status.textContent='Transcribing your speech…';
+   status.textContent='Checking final transcript with OpenAI…';
    try{
     const bytes=new Uint8Array(await blob.arrayBuffer());
     let binary='';for(let i=0;i<bytes.length;i+=32768)binary+=String.fromCharCode(...bytes.subarray(i,i+32768));
     const r=await fetch(txPath,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:btoa(binary),mime:blob.type||'audio/webm'})});
     const data=await r.json();if(!r.ok)throw Error(data.error||'Transcription service unavailable');
     $('speakingTranscript').value=clean(data.text);status.textContent='Transcript ready. Check it, correct recognition mistakes, then request AI feedback.';
-   }catch(e){status.textContent='Audio transcription unavailable: '+e.message+'. You can type your answer manually.'}
+   }catch(e){status.textContent=($('speakingTranscript').value?'Live transcript is available. Review it; final transcription unavailable: ':'Audio transcription unavailable: ')+e.message+'. You can edit your answer manually.'}
   };
-  mediaRecorder.start();started=Date.now();
+  mediaRecorder.start();const liveStarted=beginSpeakingLive();started=Date.now();
   $('speakingStart').disabled=true;$('speakingStop').disabled=false;
   clock=setInterval(()=>{let sec=Math.floor((Date.now()-started)/1000);$('speakingRecordTimer').textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');if(sec>=180)stopRecording()},500);
-  status.textContent='Recording… up to 3 minutes. Speak naturally.';
+  status.textContent=liveStarted?'🔴 Listening… live transcript appears as you speak. Up to 3 minutes.':'🔴 Recording… final transcript appears after Stop. Up to 3 minutes.';
  }catch(e){status.textContent=e.message}
 };
 $('speakingStop').onclick=stopRecording;
@@ -979,6 +1011,37 @@ renderWords();renderGrammar();
 const $=id=>document.getElementById(id);
 const scenarioNames={engineering:'Emma · Female Engineering Apprentice',babysitter:'Daniel · Male Babysitter'};
 let scenario=null,history=[],active=false,busy=false,startedAt=0,timer=null,recorder=null,chunks=[],stream=null,mute=false,lastReply='';
+let roleplayLive=null,roleplayLiveActive=false,roleplayLiveFinal='';
+const RoleplaySpeechAPI=window.SpeechRecognition||window.webkitSpeechRecognition;
+function beginRoleplayLive(){
+ roleplayLiveFinal='';roleplayLiveActive=false;
+ if(!RoleplaySpeechAPI)return false;
+ try{
+  const recognition=new RoleplaySpeechAPI();roleplayLive=recognition;
+  recognition.lang='en-US';recognition.interimResults=true;recognition.continuous=true;
+  recognition.onresult=e=>{
+   if(!roleplayLiveActive)return;
+   let interim='';
+   for(let i=e.resultIndex;i<e.results.length;i++){
+    const words=e.results[i][0]?.transcript||'';
+    if(e.results[i].isFinal)roleplayLiveFinal=(roleplayLiveFinal+' '+words).trim();
+    else interim+=' '+words;
+   }
+   $('rp-text').value=(roleplayLiveFinal+' '+interim).trim();
+  };
+  recognition.onerror=e=>{
+   if(roleplayLiveActive && e.error!=='no-speech' && e.error!=='aborted')
+    status('Recording… live captions unavailable; final transcription will appear after Stop.');
+  };
+  recognition.onend=()=>{roleplayLiveActive=false};
+  roleplayLiveActive=true;recognition.start();return true;
+ }catch(e){roleplayLiveActive=false;roleplayLive=null;return false}
+}
+function endRoleplayLive(){
+ roleplayLiveActive=false;
+ try{roleplayLive?.stop()}catch(e){}
+ roleplayLive=null;
+}
 const texts=()=>history.filter(x=>x.role==='student').map(x=>x.text).join('\n');
 const status=x=>{$('rp-status').textContent=x};
 const turnCount=()=>history.filter(x=>x.role==='student').length;
@@ -1037,7 +1100,7 @@ async function speak(t){
   status('Reply is visible, but natural voice playback failed: '+e.message+'. Click Replay to try again.');
  }finally{if(ticket===voiceSerial)voiceController=null}
 }
-function stopRecording(){if(recorder&&recorder.state==='recording')recorder.stop()}
+function stopRecording(){if(recorder&&recorder.state==='recording')recorder.stop();endRoleplayLive()}
 function end(reason='Interview finished. Make a fair decision, then request AI feedback.'){
  active=false;clearInterval(timer);timer=null;
  if(recorder)stopRecording();stopVoice();
@@ -1090,21 +1153,21 @@ $('rp-record').onclick=async()=>{
  recorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);chunks=[];
  recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
  recorder.onstop=async()=>{
-  const blob=new Blob(chunks,{type:recorder.mimeType||'audio/webm'});
+  endRoleplayLive();const blob=new Blob(chunks,{type:recorder.mimeType||'audio/webm'});
   stream?.getTracks().forEach(t=>t.stop());stream=null;recorder=null;buttons();
   if(!active)return;
   if(blob.size>10_000_000){status('Recording too large. Try a shorter question.');return}
-  busy=true;buttons();status('Transcribing your question…');
+  busy=true;buttons();status('Checking final transcript with OpenAI…');
   try{
    const bytes=new Uint8Array(await blob.arrayBuffer());let bin='';
    for(let i=0;i<bytes.length;i+=32768)bin+=String.fromCharCode(...bytes.subarray(i,i+32768));
    const r=await fetch('/api/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:btoa(bin),mime:blob.type})});
    const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Transcription failed');
    $('rp-text').value=d.text||'';status('Transcript ready. Review it, then press Send to AI candidate.');
-  }catch(e){status('Transcription failed: '+e.message+'. Type your question instead.')}
+  }catch(e){status(($('rp-text').value?'Live transcript available. Review it; final transcription unavailable: ':'Transcription failed: ')+e.message+'. You may edit or type your question.')}
   finally{busy=false;buttons()}
  };
- recorder.start();buttons();status('Recording question… press Stop recording when done.');
+ recorder.start();const liveStarted=beginRoleplayLive();buttons();status(liveStarted?'🔴 Listening… live transcript appears as you speak. Press Stop recording when done.':'🔴 Recording… final transcription appears after Stop.');
  }catch(e){status('Microphone unavailable: '+e.message)}
 };
 $('rp-stop-record').onclick=stopRecording;
