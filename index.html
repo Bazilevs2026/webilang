@@ -14678,5 +14678,85 @@ check?.addEventListener("click",async()=>{
   finally{check.disabled=false;check.textContent="✨ Check my English with AI"}
 });
 })();
-</script></body>
+</script>
+<style>
+#battlePanel[hidden]{display:none!important}#battlePanel{margin:18px 0;padding:18px;border:1px solid #b6c6bb;border-radius:18px;background:#fafbf8;color:#24352b}
+#battlePanel button,#battleOpen{cursor:pointer}#battlePanel button{border:1px solid #9daea4;border-radius:10px;padding:10px 14px;background:#fff;color:#24352b;font-weight:700}
+#battlePanel button:disabled{opacity:.45;cursor:not-allowed}#battlePanel .battlePrimary{background:#315b45;color:white}
+#battlePanel .battleRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}#battlePanel input,#battlePanel select{padding:10px;border:1px solid #aab9ae;border-radius:9px;min-width:120px;max-width:100%}
+#battlePanel .battleSlots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#battlePanel .battleSlot{padding:12px;border-radius:12px;background:#eef3ef}
+#battlePanel .battleBoard{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}#battlePanel .battleCard{min-width:0;min-height:65px;padding:6px 2px;font-size:clamp(10px,1.7vw,15px);overflow-wrap:anywhere;background:#fff}
+#battlePanel .battleCard.blue{background:#5278b2;color:white}#battlePanel .battleCard.red{background:#ba5e58;color:white}#battlePanel .battleCard.neutral{background:#d2cab4}#battlePanel .battleCard.assassin{background:#323335;color:white}
+#battlePanel .battleKey{border:3px solid #efb949}#battlePanel .battleStat{display:flex;justify-content:space-between;font-weight:bold;gap:15px}
+#battlePanel .battleNote{font-size:13px;color:#56665b}#battlePanel .battleError{color:#ab3535;min-height:20px}#battlePanel .battleControls{margin:14px 0}
+@media(max-width:600px){#battlePanel{padding:10px}#battlePanel .battleCard{min-height:55px;font-size:10px}#battlePanel .battleSlots{grid-template-columns:1fr}}
+</style>
+<script>
+/* TEAM BATTLE · separate interface, independent of the legacy two-player game */
+(()=>{
+const $=id=>document.getElementById(id), API=window.WEBILANG_CODENAMES_ENDPOINT||'/api/codenames';
+const start=$('codeStartScreen'), page=$('tab-game');if(!start||!page)return;
+const open=document.createElement('button');open.id='battleOpen';open.type='button';open.className='codeBtn primary';open.textContent='⚔️ Team Battle · 4 Players';start.appendChild(open);
+const panel=document.createElement('section');panel.id='battlePanel';panel.hidden=true;
+panel.innerHTML=`<div class="battleRow"><h2 style="margin:0">Team Battle · 4 Players</h2><button type="button" id="battleExit">← Back to Co-op</button></div>
+<div id="battleSetup"><p>Four players · two teams · one Game Code. The creator must claim a slot first to become host.</p>
+<div class="battleRow"><button class="battlePrimary" id="battleCreate">Create 4-player room</button><span>or join:</span><input id="battleCode" placeholder="GAME-XXXXXX" maxlength="11"><button id="battleUseCode">Use Game Code</button></div></div>
+<div id="battleLobby" hidden><p><b>Game Code:</b> <strong id="battleRoomCode"></strong> <button id="battleCopy">Copy</button></p>
+<div class="battleRow"><label>Your name <input id="battleName" maxlength="40" placeholder="Your name"></label>
+<label>Choose a free position <select id="battleSlot"></select></label><button class="battlePrimary" id="battleJoin">Claim position</button></div>
+<div class="battleSlots" id="battleSlots"></div><div class="battleRow"><button id="battleStart" class="battlePrimary" hidden>Start Game</button></div></div>
+<div id="battleGame" hidden><div class="battleStat"><span id="battleBlue"></span><span id="battleRed"></span></div>
+<p id="battleTurn"></p><div id="battleControls" class="battleControls"></div><div class="battleBoard" id="battleBoard"></div>
+<p class="battleNote">Spymasters see the colored key. Guessers see colors only after cards are revealed. Communicate with your teammates on Zoom or another call.</p></div>
+<p id="battleMessage" aria-live="polite"></p><p class="battleError" id="battleError" aria-live="assertive"></p>`;
+start.parentNode.insertBefore(panel,start);
+let code='',token='',slot='',hostToken='',data=null,poll=null,busy=false;
+const sessionKey='webilang_codenames_battle_v1';
+const slots=['blue_spymaster','blue_guesser','red_spymaster','red_guesser'];
+const label=s=>s.replace('_',' · ').replace(/^./,c=>c.toUpperCase());
+const norm=v=>{let s=String(v||'').trim().toUpperCase().replace(/^GAME-/,'').replace(/[^A-Z0-9]/g,'');return s.length===6?'GAME-'+s:''};
+const visible=()=>!panel.hidden;
+function message(s,error=false){$(error?'battleError':'battleMessage').textContent=s||'';if(!error)$('battleError').textContent=''}
+async function post(payload){const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const x=await r.json().catch(()=>({}));if(!r.ok)throw Error(x.error||'Request failed');return x}
+async function get(){const r=await fetch(`${API}?code=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}&role=student`,{cache:'no-store'});const x=await r.json().catch(()=>({}));if(!r.ok)throw Error(x.error||'Room not available');return x.state}
+function persist(){try{sessionStorage.setItem(sessionKey,JSON.stringify({code,token,slot,hostToken}))}catch{}}
+function stop(){if(poll){clearInterval(poll);poll=null}}
+function show(){start.hidden=true;$('codeTeacherLobby').hidden=true;$('codeStudentLobby').hidden=true;$('codePlayArea').hidden=true;panel.hidden=false;render()}
+function hide(){stop();panel.hidden=true;start.hidden=false}
+function loop(){stop();poll=setInterval(async()=>{if(!token||busy||!visible())return;try{data=await get();render()}catch(e){message(e.message,true)}},2000)}
+function render(){if(!visible())return;$('battleSetup').hidden=!!code;$('battleLobby').hidden=!code||data?.status==='finished';$('battleGame').hidden=!data||data.status==='lobby';$('battleRoomCode').textContent=code;
+if(!data)return;
+$('battleSlots').replaceChildren();for(const s of slots){const el=document.createElement('div');el.className='battleSlot';const p=data.players?.[s];el.textContent=label(s)+' — '+(p?.name||'Available');$('battleSlots').appendChild(el)}
+$('battleSlot').replaceChildren();for(const s of slots){if(data.players?.[s])continue;const o=document.createElement('option');o.value=s;o.textContent=label(s);$('battleSlot').appendChild(o)}
+$('battleJoin').hidden=!!token;$('battleName').disabled=!!token;$('battleSlot').disabled=!!token;
+const ready=slots.every(s=>data.players?.[s]);$('battleStart').hidden=!token||slot!==data.slot||hostToken===''||!ready||data.status!=='lobby';
+if(data.status==='lobby'){message(`${slots.filter(s=>data.players?.[s]).length}/4 joined. ${slot?'You are '+label(slot):'Choose a position.'}`);return}
+$('battleBlue').textContent='🔵 Blue: '+data.scores.blue+' left';$('battleRed').textContent='🔴 Red: '+data.scores.red+' left';
+$('battleTurn').textContent=data.gameOver?`Game over · ${data.winner?.toUpperCase()} wins!`:`${data.currentTeam.toUpperCase()} turn · ${data.phase==='clue'?'Spymaster gives a clue':'Guesser selects words'} · You: ${label(slot)}`;
+message(data.message||'');const control=$('battleControls');control.replaceChildren();
+const myTeam=slot.split('_')[0],myRole=slot.split('_')[1],active=data.status==='playing'&&data.currentTeam===myTeam;
+if(data.phase==='clue'&&active&&myRole==='spymaster'){
+ const input=document.createElement('input');input.placeholder='One-word clue';input.id='battleClueInput';const select=document.createElement('select');for(let i=1;i<=9;i++){const op=document.createElement('option');op.value=i;op.textContent=i;select.appendChild(op)}select.value='2';const btn=document.createElement('button');btn.className='battlePrimary';btn.textContent='Give clue';btn.onclick=()=>act('clue',{clue:input.value,number:Number(select.value)});control.append(input,select,btn)
+}else if(data.phase==='guess'){
+ const t=document.createElement('strong');t.textContent=`Clue: ${data.clueWord} · ${data.clueNumber} (${data.guessesLeft} guesses available)`;control.appendChild(t);
+ if(active&&myRole==='guesser'){const btn=document.createElement('button');btn.textContent='Pass turn';btn.onclick=()=>act('pass');control.append(' ',btn)}
+}else if(!data.gameOver){control.textContent='Waiting for the active Spymaster.'}
+const board=$('battleBoard');board.replaceChildren();for(const [i,c] of data.board.entries()){
+const b=document.createElement('button');b.type='button';b.className='battleCard';b.textContent=c.word;
+if(c.role)b.classList.add(c.role);if(c.role&&!c.revealed&&myRole==='spymaster')b.classList.add('battleKey');
+b.disabled=!(active&&myRole==='guesser'&&data.phase==='guess'&&!c.revealed);if(!b.disabled)b.onclick=()=>act('guess',{index:i});board.appendChild(b)
+}}
+async function act(action,extra={}){if(busy)return;busy=true;try{const r=await post({action,gameMode:'teamBattle',code,token,...extra});data=r.state;render()}catch(e){message(e.message,true)}finally{busy=false}}
+open.onclick=()=>{show();if(token)loop()};$('battleExit').onclick=hide;
+$('battleCreate').onclick=async()=>{try{const r=await post({action:'create',gameMode:'teamBattle'});code=r.code;hostToken=r.hostToken;token='';slot='';data=r.state;persist();show();message('Created. Enter your name and claim your position first.')}catch(e){message(e.message,true)}};
+$('battleUseCode').onclick=()=>{const c=norm($('battleCode').value);if(!c)return message('Enter a valid six-character Game Code.',true);code=c;hostToken='';token='';slot='';data={status:'lobby',players:{}};persist();show();message('Choose a position and join this room.')};
+$('battleJoin').onclick=async()=>{const name=$('battleName').value.trim(),s=$('battleSlot').value;if(!name||!s)return message('Enter a name and select a position.',true);
+try{const r=await post({action:'joinTeamBattle',gameMode:'teamBattle',code,hostToken,name,slot:s});token=r.token;slot=r.slot;data=r.state;persist();render();loop()}catch(e){message(e.message,true)}};
+$('battleStart').onclick=()=>act('startTeamBattle');
+$('battleCopy').onclick=async()=>{try{await navigator.clipboard.writeText(code);message('Game Code copied.')}catch{message('Copy the Game Code displayed above.')}};
+try{const saved=JSON.parse(sessionStorage.getItem(sessionKey)||'null');if(saved?.code&&saved?.token){code=saved.code;token=saved.token;slot=saved.slot;hostToken=saved.hostToken||'';get().then(s=>{data=s;show();loop()}).catch(()=>{})}}catch{}
+})();
+</script>
+
+</body>
 </html>
