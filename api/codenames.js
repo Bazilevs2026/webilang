@@ -89,6 +89,130 @@ function createState(code){
   };
 }
 
+// Four-player Team Battle is deliberately separate from the legacy Co-op engine.
+const TEAM_SLOTS=["blue_spymaster","blue_guesser","red_spymaster","red_guesser"];
+function isTeamSlot(slot){return TEAM_SLOTS.includes(slot);}
+function teamOf(slot){return slot.split("_")[0];}
+function roleOf(slot){return slot.split("_")[1];}
+function cleanName(input){return String(input||"").trim().slice(0,40).replace(/[<>]/g,"");}
+function createTeamBattleState(code){
+  const state=createState(code);
+  // Deterministic Co-op board shuffling is reused; the virtual opponent is not.
+  state.gameMode="teamBattle";
+  state.status="lobby";
+  state.players=Object.fromEntries(TEAM_SLOTS.map(slot=>[slot,null]));
+  state.hostToken=makeToken();
+  state.startingTeam="blue";
+  state.currentTeam="blue";
+  state.phase="clue";
+  state.scores={blue:9,red:8}; // Words remaining, not points earned.
+  state.winner=null;
+  state.board=state.board.map(c=>({...c,role:c.role==="our"?"blue":c.role==="opponent"?"red":c.role}));
+  state.message="Room created. Four players can join and choose their roles.";
+  state.messageType="";
+  delete state.teacherToken;delete state.studentToken;delete state.studentJoined;
+  delete state.opponentOrder;
+  return state;
+}
+function playerForToken(state,token){
+  if(!token||state.gameMode!=="teamBattle")return null;
+  const slot=TEAM_SLOTS.find(s=>state.players[s]?.token===token);
+  return slot||null;
+}
+function battlePublicState(state,slot){
+  const revealKey=slot&&roleOf(slot)==="spymaster";
+  return {
+    gameMode:"teamBattle",code:state.code,version:state.version,status:state.status,
+    slot:slot||null,players:Object.fromEntries(TEAM_SLOTS.map(s=>[s,state.players[s]?{name:state.players[s].name,joined:true}:null])),
+    board:state.board.map(c=>({word:c.word,revealed:Boolean(c.revealed),role:(revealKey||c.revealed)?c.role:null})),
+    scores:state.scores,currentTeam:state.currentTeam,startingTeam:state.startingTeam,phase:state.phase,
+    clueActive:Boolean(state.clueActive),clueWord:state.clueWord||"",clueNumber:state.clueNumber||0,
+    guessesLeft:state.guessesLeft||0,gameOver:Boolean(state.gameOver),winner:state.winner,
+    message:state.message||"",messageType:state.messageType||"",updatedAt:state.updatedAt
+  };
+}
+function battleSwitchTurn(state){
+  state.currentTeam=state.currentTeam==="blue"?"red":"blue";
+  state.phase="clue";state.clueActive=false;state.clueWord="";
+  state.clueNumber=0;state.guessesLeft=0;state.mustPass=false;
+}
+function battleFinish(state,winner,message){
+  state.status="finished";state.gameOver=true;state.winner=winner;
+  state.phase="finished";state.clueActive=false;state.guessesLeft=0;
+  state.message=message;state.messageType="win";
+}
+function battleRespond(res,state,slot,message){
+  return res.status(200).json({ok:true,code:state.code,message,state:battlePublicState(state,slot)});
+}
+async function battleAction(code,body,res){
+  return withLock(code,async()=>{
+    const state=await getState(code);
+    if(!state)return res.status(404).json({error:"Game Code not found or expired."});
+    if(state.gameMode!=="teamBattle")return res.status(409).json({error:"This is a two-player Co-op room."});
+    const action=String(body.action||"");
+    const token=String(body.token||"");
+    if(action==="joinTeamBattle"){
+      if(state.status!=="lobby")return res.status(409).json({error:"The game has already started."});
+      const slot=String(body.slot||"");
+      if(!isTeamSlot(slot))return res.status(400).json({error:"Choose a valid team and role."});
+      if(state.players[slot])return res.status(409).json({error:"That position is already taken."});
+      // An already-joined player must not claim multiple slots.
+      if(playerForToken(state,token))return res.status(409).json({error:"You already have a role in this room."});
+      const playerToken=makeToken();
+      state.players[slot]={name:cleanName(body.name)||"Player",token:playerToken,joinedAt:Date.now()};
+      if(body.hostToken&&body.hostToken===state.hostToken&&!state.hostSlot)state.hostSlot=slot;
+      state.message=`${state.players[slot].name} joined as ${slot.replace("_"," ")}.`;
+      await saveState(state);
+      return res.status(200).json({ok:true,code,token:playerToken,slot,state:battlePublicState(state,slot)});
+    }
+    const slot=playerForToken(state,token);
+    if(!slot)return res.status(403).json({error:"Unauthorized player session."});
+    if(action==="startTeamBattle"){
+      if(state.status!=="lobby")return res.status(409).json({error:"Game already started."});
+      if(!TEAM_SLOTS.every(s=>state.players[s]))return res.status(409).json({error:"Wait for all four players."});
+      if(slot!==state.hostSlot)return res.status(403).json({error:"Only the room host can start."});
+      state.status="playing";state.message="Team Battle started. Blue Spymaster gives the first clue.";
+      await saveState(state);return battleRespond(res,state,slot,"Game started.");
+    }
+    if(state.status!=="playing")return res.status(409).json({error:"The game is not active."});
+    const team=teamOf(slot),job=roleOf(slot);
+    if(team!==state.currentTeam)return res.status(403).json({error:"It is the other team's turn."});
+    if(action==="clue"){
+      if(job!=="spymaster"||state.phase!=="clue")return res.status(403).json({error:"Only the active Spymaster can give a clue."});
+      const checked=validClue(state,body.clue);
+      if(!checked.ok)return res.status(400).json({error:checked.msg});
+      const number=Number(body.number);
+      if(!Number.isInteger(number)||number<1||number>9)return res.status(400).json({error:"Choose a clue number from 1 to 9."});
+      state.clueWord=checked.word;state.clueNumber=number;
+      state.guessesLeft=number+1;state.clueActive=true;state.phase="guess";
+      state.message=`${team.toUpperCase()} clue: ${checked.word} · ${number}.`;
+    }else if(action==="guess"){
+      if(job!=="guesser"||state.phase!=="guess")return res.status(403).json({error:"Only the active Guesser may select a card."});
+      const index=Number(body.index);
+      if(!Number.isInteger(index)||index<0||index>=state.board.length)return res.status(400).json({error:"Invalid card."});
+      const card=state.board[index];if(card.revealed)return res.status(409).json({error:"Card already revealed."});
+      card.revealed=true;
+      if(card.role==="assassin")battleFinish(state,team==="blue"?"red":"blue",`${team.toUpperCase()} revealed the assassin!`);
+      else if(card.role==="neutral"){
+        battleSwitchTurn(state);state.message="Neutral card. Turn passed to the other team.";
+      }else{
+        state.scores[card.role]--;
+        if(state.scores[card.role]===0){battleFinish(state,card.role,`${card.role.toUpperCase()} team has found all its words!`);}
+        else if(card.role!==team){battleSwitchTurn(state);state.message="Opponent's word. Turn passed.";}
+        else{
+          state.guessesLeft--;
+          if(state.guessesLeft<=0){battleSwitchTurn(state);state.message="Guess limit reached. Turn passed.";}
+          else state.message="Correct! Guess again or pass.";
+        }
+      }
+    }else if(action==="pass"){
+      if(job!=="guesser"||state.phase!=="guess")return res.status(403).json({error:"Only the active Guesser can pass."});
+      battleSwitchTurn(state);state.message="Turn passed to the other team.";
+    }else return res.status(400).json({error:"Unknown Team Battle action."});
+    await saveState(state);return battleRespond(res,state,slot,"Game updated.");
+  });
+}
+
 async function getState(code){
   const raw=await redis(["GET",key(code)]);
   if(!raw)return null;
@@ -150,12 +274,15 @@ function claimOpponent(state){
   return null;
 }
 
-async function createRoom(){
+async function createRoom(mode="coop"){
+  if(!["coop","teamBattle"].includes(mode))throw new Error("Invalid game mode.");
   for(let tries=0;tries<8;tries++){
     const code=newCode();if(await getState(code))continue;
-    const state=createState(code);
+    const state=mode==="teamBattle"?createTeamBattleState(code):createState(code);
     await redis(["SET",key(code),JSON.stringify(state),"EX",TTL_SECONDS]);
-    return{code,token:state.teacherToken,state:publicState(state,"teacher")};
+    return mode==="teamBattle"
+      ?{code,hostToken:state.hostToken,state:battlePublicState(state,null)}
+      :{code,token:state.teacherToken,state:publicState(state,"teacher")};
   }
   throw new Error("Could not create a unique room. Try again.");
 }
@@ -168,6 +295,11 @@ export default async function handler(req,res){
       if(!code)return res.status(400).json({error:"Invalid Game Code."});
       const state=await getState(code);
       if(!state)return res.status(404).json({error:"This live room was not found or has expired."});
+      if(state.gameMode==="teamBattle"){
+        const slot=playerForToken(state,t);
+        if(!slot)return res.status(403).json({error:"This player session is not authorized."});
+        return res.status(200).json({state:battlePublicState(state,slot)});
+      }
       if(!auth(state,role,t))return res.status(403).json({error:"This room session is not authorized."});
       return res.status(200).json({state:publicState(state,role)});
     }
@@ -178,15 +310,22 @@ export default async function handler(req,res){
     }
 
     const body=req.body||{},action=String(body.action||"");
-    if(action==="create")return res.status(200).json(await createRoom());
+    if(action==="create"){
+      const mode=body.gameMode||"coop";
+      if(!["coop","teamBattle"].includes(mode))return res.status(400).json({error:"Invalid game mode."});
+      return res.status(200).json(await createRoom(mode));
+    }
 
     const code=normCode(body.code);
     if(!code)return res.status(400).json({error:"Invalid Game Code."});
+
+    if(["joinTeamBattle","startTeamBattle","clue","guess","pass"].includes(action) && body.gameMode==="teamBattle")return battleAction(code,body,res);
 
     if(action==="join"){
       return await withLock(code,async()=>{
         const state=await getState(code);
         if(!state)return res.status(404).json({error:"Game Code not found. Ask Teacher for the current code."});
+        if(state.gameMode==="teamBattle")return res.status(409).json({error:"Use the Team Battle lobby to join."});
         const reconnecting=Boolean(state.studentJoined&&state.studentToken);
         state.studentToken=makeToken();state.studentJoined=true;
         state.message=reconnecting
@@ -202,6 +341,7 @@ export default async function handler(req,res){
     return await withLock(code,async()=>{
       const state=await getState(code);
       if(!state)return res.status(404).json({error:"This live room was not found or has expired."});
+      if(state.gameMode==="teamBattle")return res.status(409).json({error:"Use Team Battle actions and credentials."});
       if(!auth(state,role,t))return res.status(403).json({error:"This room session is not authorized."});
       if(state.gameOver)return res.status(409).json({error:"The game is already over."});
 
