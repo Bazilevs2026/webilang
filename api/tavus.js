@@ -126,6 +126,77 @@ export default async function handler(req,res){
     if(!session)await releaseLock(token).catch(()=>{});
    }
   }
+
+
+  if(body.action==="transcript"){
+   const token=String(body.token||"");
+   const id=String(body.conversationId||"");
+   if(!/^[0-9a-f]{48}$/.test(token)||!validId(id))return json(res,403,{error:"Invalid session credentials"});
+   const raw=await redis(["GET",`${PREFIX}:session:${token}`]);
+   if(!raw)return json(res,403,{error:"Session expired. Automatic transcript is no longer available."});
+   const saved=JSON.parse(raw);
+   if(saved.id!==id||!["russian_michael","russian_anna"].includes(saved.scenario))return json(res,403,{error:"Session mismatch"});
+   const problem=checkRussianAccess(req,body);
+   if(problem)return json(res,403,{error:problem});
+   const data=await tavus(`/${encodeURIComponent(id)}?verbose=true`,"GET");
+   const events=Array.isArray(data.events)?data.events:[];
+   const result=events.find(e=>(e.event_type||e.type||e.event||e.name)==="application.transcription_ready");
+   const entries=result?.properties?.transcript;
+   if(!Array.isArray(entries))return json(res,202,{status:"pending",message:"Tavus is still preparing the end-of-call transcript. Try again shortly."});
+   const userLines=entries.filter(x=>x&&x.role==="user"&&typeof x.content==="string").map(x=>x.content.trim()).filter(Boolean);
+   const assistantLines=entries.filter(x=>x&&x.role==="assistant"&&typeof x.content==="string").map(x=>x.content.trim()).filter(Boolean);
+   const learner=userLines.join("\n").slice(0,8000);
+   return json(res,200,{status:"ready",transcript:learner,learnerTurns:userLines.length,avatarTurns:assistantLines.length,requiresReview:true});
+  }
+
+  if(body.action==="feedback"){
+   const token=String(body.token||"");
+   const id=String(body.conversationId||"");
+   if(!/^[0-9a-f]{48}$/.test(token)||!validId(id))return json(res,403,{error:"Invalid session credentials"});
+   const raw=await redis(["GET",`${PREFIX}:session:${token}`]);
+   if(!raw)return json(res,403,{error:"Session expired. Feedback is unavailable."});
+   const saved=JSON.parse(raw);
+   if(saved.id!==id||!["russian_michael","russian_anna"].includes(saved.scenario))return json(res,403,{error:"Session mismatch"});
+   const problem=checkRussianAccess(req,body);
+   if(problem)return json(res,403,{error:problem});
+   const transcript=String(body.transcript||"").trim();
+   if(transcript.length<20||transcript.length>8000)return json(res,400,{error:"Enter at least 20 and at most 8000 characters of your Russian lines."});
+   if(!process.env.OPENAI_API_KEY)return json(res,503,{error:"AI feedback is not configured."});
+   const key=`${PREFIX}:feedback:${token}`;
+   const lock=await redis(["SET",key,"working","EX",120,"NX"]);
+   if(lock!=="OK")return json(res,429,{error:"Feedback for this call was already requested. Only one AI evaluation per session is allowed."});
+   try{
+    const goal=saved.scenario==="russian_michael"?"The learner played Anna and questioned avatar Michael. True Michael studies Russian and political science, plays piano and chess, and keeps a yellow scarf in his backpack.":"The learner played Michael and questioned avatar Anna. True Anna is a first-year student, studies history and English, and plays guitar.";
+    const instructions=`You are a careful Russian A1 tutor. Analyze ONLY the learner-supplied Russian utterances; these are self-reported and may omit parts of the call. Do not invent quotes, mistakes, achievements or actions not supported by the text. Roleplay facts: ${goal}
+Return a JSON object with these exact keys:
+"mission": one of "supported", "partial", "insufficient"; only "supported" if the text itself shows identity was checked and a final conclusion stated; otherwise partial/insufficient.
+"missionExplanation": short clear English sentence;
+"errors": an array of at most 3 objects {"original": exact short quote from learner text,"correction": corrected natural Russian,"explanation": brief concrete English explanation}. Only include clear grammar errors; no invented errors; if transcript is correct return [].
+"vocabulary": an array of up to 8 DISTINCT actual Russian words or short phrases appearing in learner text that correspond to Unit 3 topics (university, courses, languages, hobbies, cafe, scarf, numbers). Quote exact wording. Don't claim other words were used.
+"encouragement": one short specific English sentence. Return strictly JSON, no markdown.`;
+    const resp=await fetch("https://api.openai.com/v1/chat/completions",{
+     method:"POST",
+     headers:{"Authorization":`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},
+     body:JSON.stringify({model:process.env.WEBILANG_FEEDBACK_MODEL||"gpt-4o-mini",temperature:0,response_format:{type:"json_object"},max_tokens:850,messages:[{role:"system",content:instructions},{role:"user",content:transcript}]})
+    });
+    const data=await resp.json().catch(()=>({}));
+    if(!resp.ok)throw Error("AI feedback is temporarily unavailable");
+    const report=JSON.parse(data.choices?.[0]?.message?.content||"{}");
+    const errors=(Array.isArray(report.errors)?report.errors:[]).slice(0,3).filter(x=>x&&typeof x.original==="string"&&typeof x.correction==="string"&&transcript.includes(x.original));
+    const vocabulary=(Array.isArray(report.vocabulary)?report.vocabulary:[]).slice(0,8).filter(x=>typeof x==="string"&&transcript.toLowerCase().includes(x.toLowerCase()));
+    await redis(["SET",key,"done","EX",7200]);
+    return json(res,200,{
+      mission:["supported","partial","insufficient"].includes(report.mission)?report.mission:"insufficient",
+      missionExplanation:String(report.missionExplanation||"").slice(0,500),
+      errors:errors.map(x=>({original:x.original.slice(0,240),correction:x.correction.slice(0,240),explanation:String(x.explanation||"").slice(0,400)})),
+      vocabulary,encouragement:String(report.encouragement||"").slice(0,400),
+      evidence:"learner-entered-text"
+    });
+   }catch(e){
+    await redis(["DEL",key]).catch(()=>{});
+    return json(res,502,{error:String(e.message||"Feedback unavailable").slice(0,180)});
+   }
+  }
   if(body.action==="end"){
    const token=String(body.token||"");
    const id=String(body.conversationId||"");
