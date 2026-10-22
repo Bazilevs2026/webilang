@@ -259,7 +259,14 @@ nav .tab{white-space:normal}
 .wl-feedback-stock{border-radius:18px!important;border:1px solid #c7e2d6!important;background:linear-gradient(120deg,#f2fcf6,#f8fbff)!important;padding:20px!important;margin:18px 0 22px!important}.wl-feedback-save{border-radius:12px!important;font-size:16px!important;padding:12px 18px!important;min-height:45px}
 @media(max-width:650px){.wg-comparison{grid-template-columns:1fr}.wg-rule{grid-column:auto}.wg-pattern-header{padding:16px}.wg-pattern-body{padding:15px}.wg-remove{margin-left:0}.wg-status-chip{display:none}.wg-title{font-size:20px}}
 </style>
-</head>
+<style id="wg-targeted-design">
+.wg-target-structure{background:linear-gradient(115deg,#ecf8f2,#f8fbff);border:1px solid #c9e5d7;border-left:5px solid #439675;border-radius:14px;padding:15px 18px;margin:14px 0 17px;color:#1b3747;font-size:1.02rem;line-height:1.55}
+.wg-target-structure strong{display:block;font-size:1.13rem;color:#17543f;margin-top:5px}
+.wg-target-structure .wg-mini-label{letter-spacing:.045em}
+.wg-model-sentence{background:#fff;border-radius:10px;padding:12px 14px;margin:12px 0 5px}
+.wg-model-ru{color:#466478;font-size:.98rem;margin:6px 4px}
+.wg-actions{flex-wrap:wrap}
+</style></head>
 <body>
 <a class="skip-ai" href="#module-main">Skip to main content</a>
 <header>
@@ -732,7 +739,7 @@ const gapWords=gaps.map(x=>x[1]);
 function renderGaps(){
  const bank=document.getElementById('listenWordBank');bank.innerHTML=shuffle(gapWords).map(w=>`<span class="word-chip">${w}</span>`).join('');
  const root=document.getElementById('gapFill');root.innerHTML='';
- gaps.forEach((g,i)=>{const r=document.createElement('div');r.className='gap-row';r.innerHTML=`<b>${i+1}</b><span>${g[0]}<br><button class="wl-ru-btn" type="button" aria-expanded="false" onclick="const h=this.nextElementSibling;h.hidden=!h.hidden;this.setAttribute('aria-expanded',String(!h.hidden))">🇷🇺 RU hint</button><span class="wl-ru-text" hidden>${gapRu[i]}</span></span><select data-answer="${g[1]}"><option value="">Choose…</option>${shuffle(gapWords).map(w=>`<option>${w}</option>`).join('')}</select>`;root.appendChild(r)})
+ gaps.forEach((g,i)=>{const r=document.createElement('div');r.className='gap-row';r.innerHTML=`<b>${i+1}</b><span>${g[0]}<br><button class="wl-ru-btn" type="button" aria-expanded="false" onclick="const h=this.nextElementSibling;h.hidden=!h.hidden;this.setAttribute('aria-expanded',String(!h.hidden))">🇷🇺 RU translation</button><span class="wl-ru-text" hidden>${gapRu[i]}</span></span><select data-answer="${g[1]}"><option value="">Choose…</option>${shuffle(gapWords).map(w=>`<option>${w}</option>`).join('')}</select>`;root.appendChild(r)})
 }
 function checkGaps(){const sels=[...document.querySelectorAll('#gapFill select')];let n=0;sels.forEach(s=>{const ok=s.value===s.dataset.answer;if(ok)n++;s.style.borderColor=ok?'#48a56b':'#d96460'});const f=document.getElementById('gapScore');f.textContent=` ${n} / ${sels.length} correct`;f.className='feedback '+(n===sels.length?'ok':'bad')}
 
@@ -945,6 +952,17 @@ function renderGrammar(){
     stageHeader.lastChild.append(grammarEl('h4','',label),grammarEl('span','',desc));
     const done=grammarEl('span','wg-status-chip',state.done[stage]?'✓ Completed':'Ready');
     stageHeader.append(done);stageCard.append(stageHeader);
+    if(stage==='produce'||stage==='retrieve'){
+     const targetBox=grammarEl('div','wg-target-structure');
+     targetBox.append(grammarEl('div','wg-mini-label','🎯 TARGET STRUCTURE'),grammarEl('strong','',state.exercise.targetStructure||g.pattern));
+     if(state.exercise.modelSentence){
+      const example=grammarEl('p','wg-model-sentence');
+      example.append(grammarEl('span','wg-mini-label','MODEL SENTENCE  '),document.createTextNode(state.exercise.modelSentence));
+      targetBox.append(example);
+      if(state.exercise.modelTranslationRu)targetBox.append(grammarEl('p','wg-model-ru','🇷🇺 '+state.exercise.modelTranslationRu));
+     }
+     stageCard.append(targetBox);
+    }
     stageCard.append(grammarEl('p','wg-task-prompt',task.prompt||'Practice this grammar pattern.'));
     let answerField;
     if(stage==='recognize'){
@@ -969,7 +987,7 @@ function renderGrammar(){
      if(!answer){msg.textContent='Choose or write an answer first.';return}
      check.disabled=true;msg.textContent='AI is checking your answer…';msg.className='wg-stage-feedback';
      try{
-      const res=await grammarAI('grammar_check',{item:g,stage,answer,exercise:task});
+      const res=await grammarAI('grammar_check',{item:g,stage,answer,exercise:task,targetStructure:state.exercise.targetStructure,modelSentence:state.exercise.modelSentence});
       msg.textContent=(res.status==='correct'?'✓ ':res.status==='review'?'◌ ':'↻ ')+(res.feedback||'')+(res.suggestion&&res.status!=='correct'?' Suggested answer: '+res.suggestion:'');
       msg.className='wg-stage-feedback wg-result-'+res.status;
       if(res.status==='correct'){state.done[stage]=true;gpSave();done.textContent='✓ Completed';stageCard.classList.add('wg-stage-done');refresh();}
@@ -977,7 +995,22 @@ function renderGrammar(){
      finally{check.disabled=false}
     });
     controls.append(check);
-    const ru=grammarButton('💡 RU hint','wg-hint',()=>{hint.hidden=!hint.hidden;ru.setAttribute('aria-expanded',String(!hint.hidden))});
+    if(stage==='produce'){
+     const accept=grammarButton('✓ I’m happy with my answer','wg-secondary',()=>{
+      const answer=answerField.value.trim();
+      if(!answer){msg.textContent='Write or speak your own sentence before saving it.';return}
+      state.answers[stage]=answer;
+      state.accepted=state.accepted||{};
+      state.accepted[stage]=true;
+      gpSave();
+      msg.textContent='✓ Your sentence is saved. Completed by learner — target grammar not automatically verified.';
+      msg.className='wg-stage-feedback wg-result-review';
+      done.textContent='✓ Saved by learner';
+     });
+     controls.append(accept);
+     if(state.accepted?.produce)done.textContent='✓ Saved by learner';
+    }
+    const ru=grammarButton('🇷🇺 RU translation','wg-hint',()=>{hint.hidden=!hint.hidden;ru.setAttribute('aria-expanded',String(!hint.hidden))});
     ru.setAttribute('aria-expanded','false');controls.append(ru);
     if(stage!=='recognize'){
      const speak=grammarButton('🎙 Speak','wg-speak',()=>{
@@ -995,18 +1028,18 @@ function renderGrammar(){
      });controls.append(speak);
     }
     stageCard.append(controls);
-    const hint=grammarEl('p','wg-ru-hint',task.ruHint||'Focus on: '+(g.rule||g.pattern));hint.hidden=true;
+    const hint=grammarEl('p','wg-ru-hint',[task.promptTranslationRu||'',task.ruHint||''].filter(Boolean).join(' — ')||'Перевод задания пока недоступен.');hint.hidden=true;
     stageCard.append(hint,msg);exercises.append(stageCard);
    }
   }
   const build=grammarButton(state.exercise?'↻ Generate new AI exercises':'✨ Build my 3 AI exercises','wg-build',async()=>{
    build.disabled=true;status.textContent='Creating three B2–C1 exercises with AI…';
-   try{const result=await grammarAI('grammar_build',{item:g});state.exercise=result.exercise;state.done={};state.answers={};gpSave();renderStages();refresh();status.textContent='✓ Your three new AI exercises are ready.'}
+   try{const result=await grammarAI('grammar_build',{item:g});state.exercise=result.exercise;state.done={};state.answers={};state.accepted={};gpSave();renderStages();refresh();status.textContent='✓ Your three new AI exercises are ready.'}
    catch(e){status.textContent='Could not generate exercises: '+e.message}
    finally{build.disabled=false}
   });
   const tools=grammarEl('div','wg-pattern-actions');
-  tools.append(build,grammarButton('Reset practice','wg-secondary',()=>{state.done={};state.answers={};gpSave();renderStages();refresh();status.textContent='Practice reset; saved grammar pattern kept.'}),grammarButton('Remove pattern','wg-remove',()=>{
+  tools.append(build,grammarButton('Reset practice','wg-secondary',()=>{state.done={};state.answers={};state.accepted={};gpSave();renderStages();refresh();status.textContent='Practice reset; saved grammar pattern kept.'}),grammarButton('Remove pattern','wg-remove',()=>{
    if(!window.confirm('Remove this grammar pattern from My Grammar Stock?'))return;
    store.grammar=store.grammar.filter(x=>x.id!==g.id);delete grammarProgress[key];gpSave();persist();renderGrammar();
   }));
@@ -1731,7 +1764,7 @@ function addTask(parent,word,stage,task,num){
   } else card.append(input,btn,feedback);
  }
  if(task.ruHint){
-  const hint=el('button','wl-stage-hint','🇷🇺 RU hint');hint.type='button';
+  const hint=el('button','wl-stage-hint','🇷🇺 RU translation');hint.type='button';
   const ru=el('div','wl-stage-feedback',task.ruHint);ru.hidden=true;hint.onclick=()=>{ru.hidden=!ru.hidden};
   card.append(hint,ru);
  }
