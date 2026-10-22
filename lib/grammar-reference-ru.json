@@ -1,0 +1,847 @@
+{
+  "schema_version": "1.0",
+  "language": "ru",
+  "status": "draft_for_teacher_review",
+  "quality_policy": {
+    "never_use_as_only_truth_source": true,
+    "do_not_auto_reject_valid_alternatives": true,
+    "examples_not_exhaustive": true,
+    "context_required_for_error_judgments": true
+  },
+  "sources": [
+    {
+      "id": "gramota-prepositions",
+      "title": "Грамота.ру — Предлог",
+      "url": "https://gramota.ru/biblioteka/spravochniki/russkij-yazyk-kratkij-teoreticheskij-kurs-dlya-shkolnikov/predlog"
+    },
+    {
+      "id": "russiantextbook-reference",
+      "title": "RussianTextbook — Справочник",
+      "url": "https://www.russiantextbook.ru/site/directory"
+    }
+  ],
+  "rules": [
+    {
+      "id": "ru-nominative-subject",
+      "language": "ru",
+      "cefr": "A1",
+      "title": "Именительный падеж: подлежащее",
+      "canonical_pattern": "кто? что? — начальная форма существительного в роли подлежащего",
+      "model": {
+        "target": "Студент читает книгу.",
+        "translation": "The student is reading a book."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Студент читает книгу."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Студента читает книгу. [intended: the student reads]",
+            "context_required": true
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Подлежащее обычно выражается именительным падежом.",
+        "ru": "The subject is commonly in the nominative case."
+      },
+      "caveats": [
+        "Not all clauses have an overt nominative subject"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-accusative-object",
+      "language": "ru",
+      "cefr": "A1",
+      "title": "Винительный падеж: прямое дополнение",
+      "canonical_pattern": "вижу/читаю + кого? что? (винительный падеж)",
+      "model": {
+        "target": "Я читаю книгу.",
+        "translation": "I am reading a book."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Я читаю книгу."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Я читаю книга.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "После многих переходных глаголов прямое дополнение стоит в винительном падеже.",
+        "ru": "Many transitive verbs take a direct object in the accusative."
+      },
+      "caveats": [
+        "Genitive may occur with negation or partitive meanings",
+        "Accusative forms depend on gender, animacy, number"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-prepositional-o",
+      "language": "ru",
+      "cefr": "A1",
+      "title": "Предложный падеж с «о/об»",
+      "canonical_pattern": "говорить о ком? о чём? + предложный падеж",
+      "model": {
+        "target": "Мы говорим о семье.",
+        "translation": "We are talking about family."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Мы говорим о семье."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Мы говорим о семья.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Предлог «о» в значении темы разговора требует предложного падежа.",
+        "ru": "The preposition о meaning 'about' selects the prepositional case."
+      },
+      "caveats": [
+        "об before some vowels",
+        "Endings differ by noun paradigm; not always -е"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-prepositional-location",
+      "language": "ru",
+      "cefr": "A1",
+      "title": "Местонахождение: в/на + предложный",
+      "canonical_pattern": "где? в/на + предложный падеж",
+      "model": {
+        "target": "Она работает в университете.",
+        "translation": "She works at a university."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Она работает в университете."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Она работает в университет.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "При обозначении местонахождения после в/на обычно употребляется предложный падеж.",
+        "ru": "Location with в/на generally takes the prepositional case."
+      },
+      "caveats": [
+        "Some place names use special locative forms",
+        "Direction uses accusative"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-accusative-direction",
+      "language": "ru",
+      "cefr": "A1",
+      "title": "Направление: в/на + винительный",
+      "canonical_pattern": "куда? в/на + винительный падеж",
+      "model": {
+        "target": "Она идёт в школу.",
+        "translation": "She is going to school."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Она идёт в школу."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Она идёт в школе. [intended: to school]",
+            "context_required": true
+          }
+        ]
+      },
+      "explanation": {
+        "en": "После в/на со значением направления используется винительный падеж.",
+        "ru": "Destination with в/на takes the accusative."
+      },
+      "caveats": [
+        "Motion verbs can take other complements"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-genitive-negation",
+      "language": "ru",
+      "cefr": "A1",
+      "title": "Родительный падеж после «нет»",
+      "canonical_pattern": "нет + родительный падеж",
+      "model": {
+        "target": "У меня нет времени.",
+        "translation": "I do not have time."
+      },
+      "test_cases": {
+        "grammatical": [
+          "У меня нет времени."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "У меня нет время.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "После нет при обозначении отсутствия употребляется родительный падеж.",
+        "ru": "Existential нет selects the genitive."
+      },
+      "caveats": [
+        "Other types of negation permit different case patterns"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-genitive-possession",
+      "language": "ru",
+      "cefr": "A1",
+      "title": "Конструкция «у меня есть»",
+      "canonical_pattern": "у + родительный; есть + именительный",
+      "model": {
+        "target": "У неё есть сестра.",
+        "translation": "She has a sister."
+      },
+      "test_cases": {
+        "grammatical": [
+          "У неё есть сестра."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "У она есть сестра.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "После у личное местоимение ставится в родительном падеже.",
+        "ru": "The possessor after у is genitive."
+      },
+      "caveats": [
+        "Есть may be omitted in some possession sentences"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-dative-recipient",
+      "language": "ru",
+      "cefr": "A2",
+      "title": "Дательный падеж: адресат",
+      "canonical_pattern": "дать/помочь + кому? (дательный падеж)",
+      "model": {
+        "target": "Я помог студентке.",
+        "translation": "I helped the female student."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Я помог студентке."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Я помог студентку.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Глагол помогать/помочь требует дополнения в дательном падеже.",
+        "ru": "Помогать/помочь selects dative."
+      },
+      "caveats": [
+        "Not every verb of assistance follows the same pattern"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-instrumental-with",
+      "language": "ru",
+      "cefr": "A2",
+      "title": "Творительный падеж с «с»",
+      "canonical_pattern": "с + кем? чем? (творительный падеж)",
+      "model": {
+        "target": "Она разговаривает с коллегой.",
+        "translation": "She is talking with a colleague."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Она разговаривает с коллегой."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Она разговаривает с коллега.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Предлог с в значении совместности требует творительного падежа.",
+        "ru": "С meaning 'with' selects instrumental."
+      },
+      "caveats": [
+        "С can select genitive to mean 'from/off'"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-instrumental-profession",
+      "language": "ru",
+      "cefr": "A2",
+      "title": "Творительный падеж профессии",
+      "canonical_pattern": "работать + кем? (творительный падеж)",
+      "model": {
+        "target": "Она работает инженером.",
+        "translation": "She works as an engineer."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Она работает инженером."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Она работает инженер.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "После работать при обозначении профессии обычно используется творительный падеж.",
+        "ru": "Profession with работать generally takes instrumental."
+      },
+      "caveats": [
+        "Она инженер is grammatical with a nominative predicate"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-adjective-agreement",
+      "language": "ru",
+      "cefr": "A1",
+      "title": "Согласование прилагательного",
+      "canonical_pattern": "прилагательное согласуется с существительным в роде, числе, падеже",
+      "model": {
+        "target": "Это интересная книга.",
+        "translation": "This is an interesting book."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Это интересная книга."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Это интересный книга.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Форма прилагательного зависит от рода, числа и падежа существительного.",
+        "ru": "Adjective ending agrees with noun gender, number and case."
+      },
+      "caveats": [
+        "Plural has no grammatical gender contrast"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-past-gender",
+      "language": "ru",
+      "cefr": "A1",
+      "title": "Прошедшее время: род и число",
+      "canonical_pattern": "прошедшее время: -л/-ла/-ло/-ли (для многих глаголов)",
+      "model": {
+        "target": "Она работала вчера.",
+        "translation": "She worked yesterday."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Она работала вчера."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Она работал вчера.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "В прошедшем времени форма глагола согласуется по роду в ед. числе и по числу.",
+        "ru": "Past tense agrees in gender in singular and number in plural."
+      },
+      "caveats": [
+        "Some past-tense stems lack -л"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-present-conjugation",
+      "language": "ru",
+      "cefr": "A2",
+      "title": "Настоящее время: спряжение",
+      "canonical_pattern": "личная форма глагола согласуется с лицом и числом",
+      "model": {
+        "target": "Они читают статьи.",
+        "translation": "They read articles."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Они читают статьи."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Они читает статьи.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "В настоящем времени окончание глагола зависит от лица, числа и спряжения.",
+        "ru": "Present-tense inflection depends on person, number and conjugation."
+      },
+      "caveats": [
+        "Conjugation classes and irregular verbs vary"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-aspect-process",
+      "language": "ru",
+      "cefr": "A2",
+      "title": "Вид глагола: процесс и результат",
+      "canonical_pattern": "несовершенный вид для процесса/повтора; совершенный часто для завершённого целого",
+      "model": {
+        "target": "Вчера я весь вечер читал книгу.",
+        "translation": "Yesterday I was reading a book all evening."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Вчера я весь вечер читал книгу."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Вчера я весь вечер прочитал книгу. [intended: ongoing process throughout the evening]",
+            "context_required": true
+          }
+        ]
+      },
+      "explanation": {
+        "en": "НСВ подходит для длительного процесса без акцента на завершённости.",
+        "ru": "Imperfective commonly describes an ongoing process."
+      },
+      "caveats": [
+        "Perfective may be possible in other contexts; aspect is not a simple tense equivalent"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-aspect-completion",
+      "language": "ru",
+      "cefr": "A2",
+      "title": "Вид глагола: завершённое действие",
+      "canonical_pattern": "совершенный вид для завершённого целостного события",
+      "model": {
+        "target": "Я прочитал книгу за два дня.",
+        "translation": "I finished reading the book in two days."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Я прочитал книгу за два дня."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Я читал книгу за два дня. [intended: completed within two days]",
+            "context_required": true
+          }
+        ]
+      },
+      "explanation": {
+        "en": "СВ часто передаёт достижение результата за ограниченное время.",
+        "ru": "Perfective often presents a completed bounded event."
+      },
+      "caveats": [
+        "Imperfective may occur with за in some constructions"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-motion-iti-hodit",
+      "language": "ru",
+      "cefr": "A2",
+      "title": "Глаголы движения: идти / ходить",
+      "canonical_pattern": "идти — одно направленное движение; ходить — повторяемое или ненаправленное",
+      "model": {
+        "target": "Сейчас я иду в школу.",
+        "translation": "I am walking to school now."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Сейчас я иду в школу."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Сейчас я хожу в школу. [intended: on my way right now]",
+            "context_required": true
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Идти обычно описывает движение в одном направлении сейчас.",
+        "ru": "Идти often refers to directed movement now."
+      },
+      "caveats": [
+        "Ходить в школу is correct for regularly attending school"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-motion-ehat-ezdit",
+      "language": "ru",
+      "cefr": "A2",
+      "title": "Глаголы движения: ехать / ездить",
+      "canonical_pattern": "ехать — направленное движение на транспорте; ездить — многократное/разнонаправленное",
+      "model": {
+        "target": "Каждый день я езжу на работу.",
+        "translation": "I travel to work every day."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Каждый день я езжу на работу."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Каждый день я еду на работу. [intended: habitual]",
+            "context_required": true
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Для привычного повторяющегося движения часто употребляется ездить.",
+        "ru": "Ездить is commonly used for repeated travel."
+      },
+      "caveats": [
+        "Еду is correct for a specific journey"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-imperative",
+      "language": "ru",
+      "cefr": "A2",
+      "title": "Повелительное наклонение",
+      "canonical_pattern": "повелительные формы: читай(те), скажи(те) и др.",
+      "model": {
+        "target": "Пожалуйста, прочитайте текст.",
+        "translation": "Please read the text."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Пожалуйста, прочитайте текст."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Пожалуйста, прочитать текст. [intended: direct request]",
+            "context_required": true
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Для прямой просьбы обычно используется повелительная форма.",
+        "ru": "Direct requests commonly use the imperative."
+      },
+      "caveats": [
+        "Infinitive can be used as a command in certain styles"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-conditional-by",
+      "language": "ru",
+      "cefr": "B1",
+      "title": "Условное наклонение с «бы»",
+      "canonical_pattern": "прошедшая форма + бы (вариативное положение частицы)",
+      "model": {
+        "target": "Я бы изучала русский каждый день.",
+        "translation": "I would study Russian every day."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Я бы изучала русский каждый день."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Я бы изучаю русский каждый день.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "В условном наклонении используется форма на основе прошедшего времени и частица бы.",
+        "ru": "Russian conditional commonly uses past-form verb plus бы."
+      },
+      "caveats": [
+        "Past-form gender depends on speaker",
+        "Particle бы placement is flexible"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-numerals-234",
+      "language": "ru",
+      "cefr": "A2",
+      "title": "Числительные 2–4 с существительными",
+      "canonical_pattern": "два/три/четыре + родительный ед. (в типичной им. конструкции)",
+      "model": {
+        "target": "У нас три новых студента.",
+        "translation": "We have three new students."
+      },
+      "test_cases": {
+        "grammatical": [
+          "У нас три новых студента."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "У нас три новые студенты.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "В типичной счётной конструкции после 2–4 существительное имеет форму родительного ед. числа.",
+        "ru": "After 2–4 nouns commonly take genitive singular in nominative counting phrases."
+      },
+      "caveats": [
+        "Oblique-case constructions differ",
+        "Compound numerals and agreement can be complex"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-numerals-5plus",
+      "language": "ru",
+      "cefr": "A2",
+      "title": "Числительные 5+ с существительными",
+      "canonical_pattern": "пять и более + родительный мн. (в типичной им. конструкции)",
+      "model": {
+        "target": "В группе пять студентов.",
+        "translation": "There are five students in the group."
+      },
+      "test_cases": {
+        "grammatical": [
+          "В группе пять студентов."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "В группе пять студенты.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "После пяти в типичной счётной конструкции используется родительный множественного числа.",
+        "ru": "Five or more typically select genitive plural in nominative counting phrases."
+      },
+      "caveats": [
+        "Oblique cases differ",
+        "Large compound numerals require separate rules"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-reflexive-verbs",
+      "language": "ru",
+      "cefr": "B1",
+      "title": "Возвратные глаголы -ся/-сь",
+      "canonical_pattern": "лексически обусловленные возвратные формы",
+      "model": {
+        "target": "Она интересуется историей.",
+        "translation": "She is interested in history."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Она интересуется историей."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Она интересует историей.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Глагол интересоваться употребляется с -ся и творительным падежом.",
+        "ru": "Интересоваться is reflexive and selects instrumental."
+      },
+      "caveats": [
+        "Not all -ся verbs have reflexive meaning"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-participial-adjective",
+      "language": "ru",
+      "cefr": "B2",
+      "title": "Причастный оборот: согласование",
+      "canonical_pattern": "причастие согласуется с определяемым существительным",
+      "model": {
+        "target": "Студенты, изучающие русский, много читают.",
+        "translation": "Students studying Russian read a lot."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Студенты, изучающие русский, много читают."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Студенты, изучающий русский, много читают.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Причастие согласуется с существительным в роде, числе и падеже.",
+        "ru": "Participles agree with the modified noun."
+      },
+      "caveats": [
+        "Punctuation depends on participial phrase position and function"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    },
+    {
+      "id": "ru-verb-government",
+      "language": "ru",
+      "cefr": "B1",
+      "title": "Глагольное управление: зависеть от",
+      "canonical_pattern": "зависеть от + родительный падеж",
+      "model": {
+        "target": "Результат зависит от подготовки.",
+        "translation": "The result depends on preparation."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Результат зависит от подготовки."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Результат зависит от подготовка.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Глагол зависеть требует конструкции от + родительный падеж.",
+        "ru": "Зависеть selects от + genitive."
+      },
+      "caveats": [
+        "Other verbs require other governed cases"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "gramota-prepositions",
+        "russiantextbook-reference"
+      ]
+    }
+  ]
+}

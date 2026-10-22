@@ -1,0 +1,781 @@
+{
+  "schema_version": "1.0",
+  "language": "en",
+  "status": "draft_for_teacher_review",
+  "quality_policy": {
+    "never_use_as_only_truth_source": true,
+    "do_not_auto_reject_valid_alternatives": true,
+    "examples_not_exhaustive": true,
+    "context_required_for_error_judgments": true
+  },
+  "sources": [
+    {
+      "id": "cambridge-grammar",
+      "title": "Cambridge Dictionary — English Grammar Today",
+      "url": "https://dictionary.cambridge.org/grammar/british-grammar/English"
+    },
+    {
+      "id": "british-council-grammar",
+      "title": "British Council LearnEnglish — English Grammar Reference",
+      "url": "https://learnenglish.britishcouncil.org/free-resources/grammar/english-grammar-reference"
+    }
+  ],
+  "rules": [
+    {
+      "id": "en-present-simple-3sg",
+      "language": "en",
+      "cefr": "A1",
+      "title": "Present Simple: third-person singular",
+      "canonical_pattern": "he/she/it + verb-s/-es",
+      "model": {
+        "target": "She studies engineering.",
+        "translation": "Она изучает инженерное дело."
+      },
+      "test_cases": {
+        "grammatical": [
+          "He studies engineering."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "He study engineering.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "With a third-person singular subject, the present simple normally ends in -s/-es.",
+        "ru": "С he/she/it в Present Simple обычно добавляется -s/-es."
+      },
+      "caveats": [
+        "be and have have irregular forms",
+        "Modal verbs do not take third-person -s"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-present-simple-negative",
+      "language": "en",
+      "cefr": "A1",
+      "title": "Present Simple: negatives",
+      "canonical_pattern": "I/you/we/they + don't + base verb; he/she/it + doesn't + base verb",
+      "model": {
+        "target": "Gender doesn't determine talent.",
+        "translation": "Пол не определяет талант."
+      },
+      "test_cases": {
+        "grammatical": [
+          "She doesn't work here."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "She doesn't works here.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "The lexical verb remains in base form after do/does not.",
+        "ru": "После don't/doesn't смысловой глагол стоит в начальной форме."
+      },
+      "caveats": [
+        "Be and modals form negatives differently"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-present-continuous",
+      "language": "en",
+      "cefr": "A1",
+      "title": "Present Continuous",
+      "canonical_pattern": "am/is/are + verb-ing",
+      "model": {
+        "target": "More women are studying computer science.",
+        "translation": "Всё больше женщин изучают информатику."
+      },
+      "test_cases": {
+        "grammatical": [
+          "They are studying now."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "They are study now.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Use a form of be plus -ing to describe an action in progress.",
+        "ru": "Используйте am/is/are и глагол с -ing."
+      },
+      "caveats": [
+        "Many stative verbs are not normally continuous"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-past-simple",
+      "language": "en",
+      "cefr": "A2",
+      "title": "Past Simple: affirmative and negative",
+      "canonical_pattern": "affirmative: past form; negative: didn't + base verb",
+      "model": {
+        "target": "She joined the team last year.",
+        "translation": "Она присоединилась к команде в прошлом году."
+      },
+      "test_cases": {
+        "grammatical": [
+          "She didn't join the team."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "She didn't joined the team.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "After didn't use the base verb, not the past form.",
+        "ru": "После didn't используется начальная форма глагола."
+      },
+      "caveats": [
+        "The verb be forms negatives with wasn't/weren't"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-past-continuous",
+      "language": "en",
+      "cefr": "A2",
+      "title": "Past Continuous",
+      "canonical_pattern": "subject + was/were + verb-ing",
+      "model": {
+        "target": "Women were entering new professions.",
+        "translation": "Женщины осваивали новые профессии."
+      },
+      "test_cases": {
+        "grammatical": [
+          "They were entering new professions."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "They were enter new professions.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "The continuous past needs was/were and the -ing form.",
+        "ru": "Past Continuous: was/were + глагол с -ing."
+      },
+      "caveats": [
+        "Use was with I/he/she/it and were with you/we/they",
+        "Not all verbs are normally used in continuous forms"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-present-perfect",
+      "language": "en",
+      "cefr": "B1",
+      "title": "Present Perfect Simple",
+      "canonical_pattern": "have/has + past participle",
+      "model": {
+        "target": "Opportunities have expanded over time.",
+        "translation": "Возможности со временем расширились."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Opportunities have expanded."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Opportunities has expanded.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Use have with plural subjects, has with singular third person.",
+        "ru": "С множественным подлежащим — have, с he/she/it — has."
+      },
+      "caveats": [
+        "Past Simple usually accompanies finished past-time markers such as yesterday"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-past-perfect",
+      "language": "en",
+      "cefr": "B1",
+      "title": "Past Perfect",
+      "canonical_pattern": "had + past participle",
+      "model": {
+        "target": "She had completed the course before she applied.",
+        "translation": "Она окончила курс до того, как подала заявление."
+      },
+      "test_cases": {
+        "grammatical": [
+          "She had completed the course."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "She had complete the course.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Past Perfect uses had plus the past participle.",
+        "ru": "Past Perfect образуется с had и третьей формой глагола."
+      },
+      "caveats": [
+        "Past Perfect is not compulsory every time two past events are mentioned"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-future-will",
+      "language": "en",
+      "cefr": "A2",
+      "title": "Future with will",
+      "canonical_pattern": "will + base verb",
+      "model": {
+        "target": "More people will consider these careers.",
+        "translation": "Больше людей будут рассматривать эти профессии."
+      },
+      "test_cases": {
+        "grammatical": [
+          "People will consider these careers."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "People will considers these careers.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "After will use the base form.",
+        "ru": "После will используется начальная форма глагола."
+      },
+      "caveats": [
+        "Will is not the only way to refer to future time"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-modals",
+      "language": "en",
+      "cefr": "A2",
+      "title": "Modal verbs + base verb",
+      "canonical_pattern": "modal + base verb (without to)",
+      "model": {
+        "target": "Employers should offer equal opportunities.",
+        "translation": "Работодателям следует предоставлять равные возможности."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Employers should offer equal opportunities."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Employers should to offer equal opportunities.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Core modals such as can, must and should are followed by a bare infinitive.",
+        "ru": "После can, must, should используется инфинитив без to."
+      },
+      "caveats": [
+        "Ought to and have to use to; they are not core bare-infinitive modals"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-passive",
+      "language": "en",
+      "cefr": "B1",
+      "title": "Passive Voice",
+      "canonical_pattern": "be (in appropriate tense) + past participle",
+      "model": {
+        "target": "The policy was introduced in 2020.",
+        "translation": "Эту политику ввели в 2020 году."
+      },
+      "test_cases": {
+        "grammatical": [
+          "The policy was introduced in 2020."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "The policy was introduce in 2020.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Passive constructions use a form of be with a past participle.",
+        "ru": "Страдательный залог: форма be + причастие прошедшего времени."
+      },
+      "caveats": [
+        "Get-passives exist",
+        "Not every verb can be passivized"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-first-conditional",
+      "language": "en",
+      "cefr": "B1",
+      "title": "First Conditional",
+      "canonical_pattern": "if + present simple, will + base verb (typical pattern)",
+      "model": {
+        "target": "If schools encourage girls, more will choose engineering.",
+        "translation": "Если школы будут поддерживать девочек, больше из них выберут инженерное дело."
+      },
+      "test_cases": {
+        "grammatical": [
+          "If schools encourage girls, more will choose engineering."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "If schools will encourage girls, more will choose engineering.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "The typical predictive conditional uses present tense in the if-clause.",
+        "ru": "В типичном условном предложении первого типа после if используется Present Simple."
+      },
+      "caveats": [
+        "Will may occur in if-clauses with special volitional meanings",
+        "Other modal verbs may replace will"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-second-conditional",
+      "language": "en",
+      "cefr": "B1",
+      "title": "Second Conditional",
+      "canonical_pattern": "if + past simple, would + base verb (typical pattern)",
+      "model": {
+        "target": "If salaries were equal, fewer people would leave.",
+        "translation": "Если бы зарплаты были равными, меньше людей уходило бы."
+      },
+      "test_cases": {
+        "grammatical": [
+          "If salaries were equal, fewer people would leave."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "If salaries would be equal, fewer people would leave.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Use a past-form condition and would + base verb for hypothetical situations.",
+        "ru": "Для нереального условия часто используются Past Simple и would + начальная форма."
+      },
+      "caveats": [
+        "Could/might may replace would",
+        "Were can be used across persons in formal hypothetical clauses"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-third-conditional",
+      "language": "en",
+      "cefr": "B2",
+      "title": "Third Conditional",
+      "canonical_pattern": "if + had + past participle, would have + past participle",
+      "model": {
+        "target": "If they had applied, they would have been considered.",
+        "translation": "Если бы они подали заявления, их бы рассмотрели."
+      },
+      "test_cases": {
+        "grammatical": [
+          "If they had applied, they would have been considered."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "If they had applied, they would considered.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "A typical unreal past conditional uses past perfect and would have + participle.",
+        "ru": "Нереальное условие в прошлом: had + V3, would have + V3."
+      },
+      "caveats": [
+        "Mixed conditionals are also possible"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-relative-defining",
+      "language": "en",
+      "cefr": "B1",
+      "title": "Defining Relative Clauses",
+      "canonical_pattern": "noun + who/which/that + defining clause",
+      "model": {
+        "target": "People who work in science need support.",
+        "translation": "Людям, которые работают в науке, нужна поддержка."
+      },
+      "test_cases": {
+        "grammatical": [
+          "People who work in science need support."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "People who they work in science need support.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Do not repeat the subject pronoun when who is the subject.",
+        "ru": "Не дублируйте подлежащее после who."
+      },
+      "caveats": [
+        "Object relative pronouns may sometimes be omitted",
+        "That is not used in non-defining relative clauses"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-relative-nondefining",
+      "language": "en",
+      "cefr": "B2",
+      "title": "Non-defining Relative Clauses",
+      "canonical_pattern": "noun, who/which + supplementary clause,",
+      "model": {
+        "target": "Ada, who teaches coding, mentors girls.",
+        "translation": "Ада, которая преподаёт программирование, помогает девочкам как наставник."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Ada, who teaches coding, mentors girls."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Ada, that teaches coding, mentors girls.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Non-defining relatives are comma-separated; use who/which rather than that.",
+        "ru": "Уточняющие придаточные выделяются запятыми; that здесь не используется."
+      },
+      "caveats": [
+        "Punctuation and meaning distinguish defining and non-defining"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-articles-a-an",
+      "language": "en",
+      "cefr": "A2",
+      "title": "Indefinite Articles",
+      "canonical_pattern": "a/an + singular count noun (when appropriate)",
+      "model": {
+        "target": "She is an engineer.",
+        "translation": "Она инженер."
+      },
+      "test_cases": {
+        "grammatical": [
+          "She is an engineer."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "She is engineer.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "An indefinite singular count noun usually requires a determiner.",
+        "ru": "Исчисляемому существительному в единственном числе обычно нужен определитель."
+      },
+      "caveats": [
+        "Article choice depends on pronunciation, not spelling",
+        "Some contexts use a different determiner"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-articles-the-zero",
+      "language": "en",
+      "cefr": "B1",
+      "title": "Definite and Zero Articles",
+      "canonical_pattern": "the for identifiable referents; zero article in many general plural/mass uses",
+      "model": {
+        "target": "Women have entered the profession.",
+        "translation": "Женщины начали работать в этой профессии."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Women are equal to men."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "The women are equal to men. [intended: women in general]",
+            "context_required": true
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Generic plural reference normally takes no article.",
+        "ru": "При обобщённом значении множественного числа артикль часто не нужен."
+      },
+      "caveats": [
+        "The women is correct for a specific identified group"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-gerund-infinitive",
+      "language": "en",
+      "cefr": "B1",
+      "title": "Verb + gerund / infinitive",
+      "canonical_pattern": "verb-specific complement: enjoy + verb-ing; decide + to-infinitive",
+      "model": {
+        "target": "She enjoys mentoring students.",
+        "translation": "Ей нравится наставлять студентов."
+      },
+      "test_cases": {
+        "grammatical": [
+          "She enjoys mentoring students."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "She enjoys to mentor students.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "The choice of -ing or to-infinitive depends on the governing verb.",
+        "ru": "Форма -ing или инфинитив с to зависит от конкретного глагола."
+      },
+      "caveats": [
+        "Some verbs accept both forms with meaning differences"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-comparatives",
+      "language": "en",
+      "cefr": "A2",
+      "title": "Comparatives",
+      "canonical_pattern": "short adjective + -er / more + adjective + than",
+      "model": {
+        "target": "This policy is fairer than the old one.",
+        "translation": "Эта политика справедливее предыдущей."
+      },
+      "test_cases": {
+        "grammatical": [
+          "This policy is fairer than the old one."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "This policy is more fairer than the old one.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Avoid combining more with a regular -er comparative.",
+        "ru": "Не используйте одновременно more и сравнительную форму на -er."
+      },
+      "caveats": [
+        "Some adjectives have irregular comparatives",
+        "Fairer and more fair can both be acceptable depending on context"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-subject-verb-agreement",
+      "language": "en",
+      "cefr": "A2",
+      "title": "Subject–verb agreement",
+      "canonical_pattern": "singular subject → singular finite verb; plural subject → plural finite verb",
+      "model": {
+        "target": "The students are motivated.",
+        "translation": "Студенты мотивированы."
+      },
+      "test_cases": {
+        "grammatical": [
+          "The students are motivated."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "The students is motivated.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Finite verb forms normally agree with the subject where relevant.",
+        "ru": "Форма сказуемого согласуется с подлежащим."
+      },
+      "caveats": [
+        "Collective nouns vary by dialect and intended meaning"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-reported-speech",
+      "language": "en",
+      "cefr": "B2",
+      "title": "Reported Speech: backshift",
+      "canonical_pattern": "reporting verb in past + tense backshift when context requires",
+      "model": {
+        "target": "She said that she was ready.",
+        "translation": "Она сказала, что была готова."
+      },
+      "test_cases": {
+        "grammatical": [
+          "She said that she was ready."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "She said that she is ready. [without context]",
+            "context_required": true
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Backshift commonly occurs after a past reporting verb.",
+        "ru": "После глагола сообщения в прошедшем времени часто сдвигается время."
+      },
+      "caveats": [
+        "No backshift can be correct if the fact remains true"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    },
+    {
+      "id": "en-inversion-negative",
+      "language": "en",
+      "cefr": "C1",
+      "title": "Negative adverbial inversion",
+      "canonical_pattern": "negative/restrictive adverbial + auxiliary + subject + main verb",
+      "model": {
+        "target": "Rarely have women been represented equally.",
+        "translation": "Женщины редко были представлены на равных."
+      },
+      "test_cases": {
+        "grammatical": [
+          "Rarely have women been represented equally."
+        ],
+        "incorrect_for_target": [
+          {
+            "text": "Rarely women have been represented equally.",
+            "context_required": false
+          }
+        ]
+      },
+      "explanation": {
+        "en": "Fronted negative adverbials typically require subject-auxiliary inversion.",
+        "ru": "После вынесенных в начало ограничительных наречий часто нужна инверсия."
+      },
+      "caveats": [
+        "Not all fronted adverbs trigger inversion"
+      ],
+      "verification_status": "editorial_review_required",
+      "source_ids": [
+        "cambridge-grammar",
+        "british-council-grammar"
+      ]
+    }
+  ]
+}
