@@ -127,6 +127,32 @@ main{max-width:1280px;margin:auto;padding:22px 18px 100px}
 @media(max-width:900px){#panel-roleplays .rp-grid{grid-template-columns:1fr}}
 @media(max-width:620px){#panel-roleplays .rp-header{flex-direction:column}#panel-roleplays .rp-header img{width:100%;height:190px}#panel-roleplays .rp-areas{grid-template-columns:1fr}}
 
+
+/* Webilang: accessible and differentiated AI feedback */
+.feedback-panel .wl-feedback-title{font-size:24px;color:#202f46;margin:0 0 16px}
+.feedback-panel .wl-feedback-rubric{border:1px solid #d9e3ed;border-left:5px solid #71839c;border-radius:12px;padding:15px 18px;margin:12px 0;background:#f8fafc}
+.feedback-panel .wl-feedback-rubric h4{font-size:18px;color:#202f46;margin:0 0 7px}
+.feedback-panel .wl-feedback-rubric p{font-size:17px;line-height:1.55;color:#26374e;margin:0}
+.feedback-panel .wl-rubric-task{background:#edf5ff;border-left-color:#2d67b1}
+.feedback-panel .wl-rubric-content{background:#ecf9f4;border-left-color:#278764}
+.feedback-panel .wl-rubric-organization{background:#fff7e7;border-left-color:#b8791a}
+.feedback-panel .wl-rubric-vocabulary{background:#f2efff;border-left-color:#7453bb}
+.feedback-panel .wl-rubric-grammar{background:#fff0f0;border-left-color:#ba5260}
+.feedback-panel .wl-rubric-success{background:#eef9f2;border-left-color:#368458}
+.feedback-panel .wl-rubric-next{background:#eaf5f7;border-left-color:#277c8a}
+.feedback-panel .wl-feedback-section-heading{font-size:19px;color:#273a53;margin:22px 0 10px}
+.feedback-panel .wl-feedback-correction{background:#fff;border:1px solid #dbe4ee;border-left:5px solid #d09445;border-radius:10px;padding:12px 16px;margin:10px 0}
+.feedback-panel .wl-feedback-correction p{font-size:16px;color:#26374e;line-height:1.5;margin:5px 0}
+.feedback-panel .wl-feedback-stock{margin:20px 0;padding:17px;border:1px solid #c8bbed;background:#f5f2fd;border-radius:14px}
+.feedback-panel .wl-feedback-stock h4{font-size:19px;color:#432c79;margin:0 0 7px}
+.feedback-panel .wl-feedback-stock p{font-size:16px;line-height:1.5;color:#3d4055}
+.feedback-panel .wl-feedback-check{display:flex;align-items:flex-start;gap:12px;background:white;border:1px solid #ded9ed;border-radius:9px;padding:11px;margin:9px 0;cursor:pointer}
+.feedback-panel .wl-feedback-check input{width:20px;height:20px;flex-shrink:0;accent-color:#6847b5;margin:3px 0 0}
+.feedback-panel .wl-feedback-check span{display:grid;gap:4px;font-size:16px;color:#26374e}
+.feedback-panel .wl-feedback-save{background:#6847b5;border:0;border-radius:10px;color:white;padding:12px 18px;font-size:16px;font-weight:700;cursor:pointer;margin-top:10px}
+.feedback-panel .wl-feedback-save:focus-visible{outline:3px solid #285fa9;outline-offset:3px}
+.feedback-panel .wl-feedback-save-status{font-weight:650}
+
 </style>
 
 <style id="wl-gender-ai-styles">
@@ -949,24 +975,74 @@ $('speakingClear').onclick=()=>{stopRecording();$('speakingTranscript').value=''
 function addParagraph(parent,text,strong=false){
  const p=document.createElement('p');p.textContent=text;if(strong)p.style.fontWeight='700';parent.append(p)
 }
-function showFeedback(root,data,source){
+function showFeedback(root,data,source,studentResponse){
  root.replaceChildren();root.hidden=false;
- const summary=document.createElement('h4');summary.textContent='AI feedback · '+(data.level||'B2–C1');root.append(summary);
- addParagraph(root,data.taskAchievement||'');
- for(const key of ['contentFeedback','organizationFeedback','vocabularyFeedback','grammarFeedback']){
-  if(data[key])addParagraph(root,key.replace(/Feedback$/,'')+': '+data[key])
- }
+ const rubric=(label,body,tone)=>{
+  if(!clean(body))return;
+  const section=document.createElement('section');section.className='wl-feedback-rubric wl-rubric-'+tone;
+  const head=document.createElement('h4');head.textContent=label;
+  const content=document.createElement('p');content.textContent=String(body);
+  section.append(head,content);root.append(section);
+ };
+ const title=document.createElement('h3');title.className='wl-feedback-title';
+ title.textContent='✨ AI feedback · '+(data.level||'B2–C1');root.append(title);
+ rubric('🎯 Task relevance & achievement',data.taskAchievement,'task');
+ rubric('💬 Content & argumentation',data.contentFeedback,'content');
+ rubric('🧭 Organization & coherence',data.organizationFeedback,'organization');
+ rubric('📚 Vocabulary & range',data.vocabularyFeedback,'vocabulary');
+ rubric('🧩 Grammar & accuracy',data.grammarFeedback,'grammar');
  const changes=Array.isArray(data.corrections)?data.corrections:[];
- if(changes.length){const h=document.createElement('h4');h.textContent='Specific corrections';root.append(h);
- changes.forEach(x=>{
-  const box=document.createElement('div');box.className='issue';
-  addParagraph(box,'Original: '+(x.original||''));addParagraph(box,'Better: '+(x.corrected||''));addParagraph(box,'Why: '+(x.explanation||''));
-  root.append(box)
- })}
- if(data.nextTask){const h=document.createElement('h4');h.textContent='Try again independently';root.append(h);addParagraph(root,data.nextTask)}
- const saved=addGrammar(data.grammarPatterns,source);
- if(saved)addParagraph(root,'✓ '+saved+' grammar pattern(s) saved to My Grammar Stock.');
- if(!changes.length)addParagraph(root,'No specific errors were confidently detected.');
+ if(changes.length){
+  const h=document.createElement('h4');h.className='wl-feedback-section-heading';
+  h.textContent='✏️ Specific corrections';root.append(h);
+  changes.forEach(x=>{
+   const box=document.createElement('div');box.className='wl-feedback-correction';
+   const a=document.createElement('p');a.textContent='You said/wrote: '+clean(x.original);
+   const b=document.createElement('p');b.textContent='Suggested improvement: '+clean(x.corrected);
+   const c=document.createElement('p');c.textContent='Why: '+clean(x.explanation);
+   box.append(a,b,c);root.append(box);
+  });
+ }else rubric('✓ Specific corrections','No specific errors were confidently detected.','success');
+ // Only explicitly selected, evidenced grammar mistakes may be stored.
+ // Repetition, task relevance and vocabulary suggestions are not grammatical errors.
+ const patterns=Array.isArray(data.grammarPatterns)?data.grammarPatterns:[];
+ const candidates=patterns.filter(g=>{
+  const original=clean(g?.original),corrected=clean(g?.corrected),pattern=clean(g?.pattern);
+  return pattern&&original&&corrected&&normalize(original)!==normalize(corrected)
+   &&normalize(studentResponse).includes(normalize(original))
+   &&!store.grammar.some(item=>normalize(item.original)===normalize(original)&&normalize(item.pattern)===normalize(pattern));
+ });
+ const section=document.createElement('section');section.className='wl-feedback-stock';
+ const heading=document.createElement('h4');heading.textContent='🧩 Save grammar errors to My Grammar Stock';section.append(heading);
+ const intro=document.createElement('p');intro.textContent='Select only genuine grammar errors you recognize in your confirmed transcript. Do not save speech-recognition mistakes, vocabulary style or repeated words as grammar errors.';section.append(intro);
+ if(candidates.length){
+  const checks=candidates.slice(0,8).map(item=>{
+   const label=document.createElement('label');label.className='wl-feedback-check';
+   const input=document.createElement('input');input.type='checkbox';
+   const content=document.createElement('span');
+   const strong=document.createElement('strong');strong.textContent=clean(item.pattern);
+   const detail=document.createElement('span');detail.textContent=clean(item.original)+' → '+clean(item.corrected);
+   content.append(strong,detail);label.append(input,content);section.append(label);
+   return {input,item};
+  });
+  const button=document.createElement('button');button.type='button';button.className='wl-feedback-save';
+  button.textContent='＋ Save selected grammar errors';
+  const msg=document.createElement('p');msg.className='wl-feedback-save-status';msg.setAttribute('role','status');
+  button.onclick=()=>{
+   const selected=checks.filter(x=>x.input.checked).map(x=>x.item);
+   if(!selected.length){msg.textContent='Select a confirmed grammar error first.';return}
+   const n=addGrammar(selected,source);
+   msg.textContent=n?'✓ '+n+' grammar error(s) added to My Grammar Stock.':'These errors are already in My Grammar Stock.';
+   checks.forEach(x=>{if(x.input.checked){x.input.disabled=true;x.input.checked=false}});
+  };
+  section.append(button,msg);
+ }else{
+  const note=document.createElement('p');note.className='wl-feedback-save-status';
+  note.textContent='No new, text-verified grammar errors to save. Stylistic suggestions stay in feedback only.';
+  section.append(note);
+ }
+ root.append(section);
+ rubric('🔁 Try again independently',data.nextTask,'next');
 }
 async function askAI(kind,task,response,button,statusId,resultId){
  const status=$(statusId),root=$(resultId);
@@ -979,7 +1055,7 @@ async function askAI(kind,task,response,button,statusId,resultId){
   const result=await fetch(aiPath,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,task,response,level:'B2–C1',module:'Gender Roles: Then & Now'})});
   const data=await result.json().catch(()=>({}));
   if(!result.ok)throw Error(data.error||'Server error '+result.status);
-  showFeedback(root,data,kind==='speaking'?'Gender Roles · Speaking':'Gender Roles · Writing');
+  showFeedback(root,data,kind==='speaking'?'Gender Roles · Speaking':'Gender Roles · Writing',response);
   status.textContent='✓ Analysis complete.';
  }catch(e){status.textContent='Could not get AI feedback: '+e.message}
  finally{button.disabled=false}
