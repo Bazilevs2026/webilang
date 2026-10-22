@@ -979,6 +979,7 @@ function renderGrammar(){
      answerField.value=state.answers[stage]||'';
      answerField.oninput=()=>{state.answers[stage]=answerField.value;gpSave()};
     }
+    if(stage==='produce'){stageCard.append(grammarEl('p','wg-stage-note','The model sentence shows the grammar pattern, not a required subject or exact wording. Your own correct example is welcome.'));}
     stageCard.append(answerField);
     const controls=grammarEl('div','wg-actions');
     const msg=grammarEl('p','wg-stage-feedback');msg.setAttribute('role','status');
