@@ -941,6 +941,24 @@ function renderGrammar(){
    marker.textContent=count+'/3 completed '+(state.open?'⌃':'⌄');
    progress.querySelectorAll('.wg-step').forEach((el,index)=>{const id=stageNames[index][0];el.classList.toggle('wg-step-complete',!!state.done[id]);el.textContent=(state.done[id]?'✓':stageNames[index][1])+' '+stageNames[index][2]});
   };
+  // Recover previously saved AI exercises whose target formula says
+  // "were + base verb" despite a Past Continuous model ("were working").
+  if(state.exercise){
+   const e=state.exercise, model=String(e.modelSentence||'');
+   const form=String(e.targetStructure||'');
+   const past=/\b(?:was|were)\s+\w+ing\b/i.test(model)&&
+     (/\b(?:was|were)\s*\+\s*(?:base|infinitive|bare)\s*(?:verb|form)\b/i.test(form)
+      ||/past\s+continuous|past\s+progressive/i.test(form));
+   if(past){
+    e.targetStructure='Past Continuous: subject + was/were + verb-ing';
+    if(e.produce){
+     e.produce.prompt='Write your own sentence about gender roles, education or work using Past Continuous (was/were + verb-ing). Choose any suitable subject.';
+     e.produce.promptTranslationRu='Напишите собственное предложение о гендерных ролях, образовании или работе, используя Past Continuous (was/were + глагол с окончанием -ing). Выберите любое подходящее подлежащее.';
+     e.produce.ruHint=e.produce.promptTranslationRu;
+    }
+    gpSave();
+   }
+  }
   function renderStages(){
    exercises.replaceChildren();
    if(!state.exercise)return;
