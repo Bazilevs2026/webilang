@@ -131,7 +131,7 @@ export default async function handler(req,res){
   // Shared API: preserve Gender Roles assessment and vocabulary-practice behaviour.
   // Video Games requests do not use these action/kind combinations.
   const b=req.body||{};
-  if(b.kind==="speaking"||b.kind==="writing"||b.action==="build"||b.action==="check"){
+  if(b.kind==="speaking"||b.kind==="writing"||b.action==="build"||b.action==="check"||b.action==="grammar_build"||b.action==="grammar_check"){
     return genderFeedbackHandler(req,res);
   }
 
