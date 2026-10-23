@@ -959,7 +959,23 @@ grammarButton.addEventListener("click",()=>{
  if(!store.grammar.length){root.textContent="Сначала сохраните подтверждённую ошибку.";return}
  const source=store.grammar.slice(-5);
  const heading=aiCard(root,null,"p","small muted","Тренировка на основе ваших сохранённых исправлений. Без видеозвонка и транскрипции.");
- function normalize(x){return String(x||"").toLocaleLowerCase("ru").replace(/ё/g,"е").replace(/[.,!?«»"“”‘’]/g,"").replace(/\s+/g," ").trim()}
+ function normalize(x){return String(x||"").toLocaleLowerCase("ru").replace(/ё/g,"е").replace(/[.,!?«»"“”‘’]/g," ").replace(/\\s+/g," ").trim()}
+ function showGrammarText(x){return String(x||"").replace(/[«"“](Майкл[а-яё]*|Анн[а-яё]*)[»"”]/gi,"$1")}
+ function words(x){return normalize(x).split(" ").filter(Boolean)}
+ // Find the first changed grammatical form in the saved correction.
+ // This is a focused practice check, not a claim of full sentence correctness.
+ function targetForm(g){
+   const before=words(showGrammarText(g.original)),after=words(showGrammarText(g.corrected));
+   for(let i=0;i<after.length;i++){
+     if(after[i]!==before[i] && !/^(?:я|ты|он|она|мы|вы|они)$/.test(after[i]))return after[i];
+   }
+   return after[0]||""
+ }
+ function checkTarget(input,g){
+   const target=targetForm(g),tokens=words(input);
+   if(!target)return null;
+   return tokens.includes(target);
+ }
  function makeVoice(btn,field){
    btn.addEventListener("click",()=>{
      const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -986,8 +1002,8 @@ grammarButton.addEventListener("click",()=>{
      if(!g || !g.corrected || !g.original)return;
      const card=aiCard(block,null,"div","taskcard");
      if(stage==="recognize"){
-       aiCard(card,null,"p","",`Выберите правильное предложение (${i+1}):`);
-       const opts=normalize(g.original)===normalize(g.corrected)?[g.corrected]:[g.corrected,g.original];
+       aiCard(card,null,"p","",`Выберите правильный вариант (${i+1}):`);
+       const opts=normalize(g.original)===normalize(g.corrected)?[showGrammarText(g.corrected)]:[showGrammarText(g.corrected),showGrammarText(g.original)];
        const choices=aiCard(card,null,"div","answers");
        opts.forEach((option,j)=>{
          const label=aiCard(choices,null,"label","","");
@@ -999,29 +1015,32 @@ grammarButton.addEventListener("click",()=>{
        btn.onclick=()=>{
          const selected=card.querySelector('input[type=radio]:checked');
          if(!selected){status.textContent="Сначала выберите ответ.";return}
-         const ok=normalize(selected.value)===normalize(g.corrected);
+         const ok=normalize(selected.value)===normalize(showGrammarText(g.corrected));
          status.className="status "+(ok?"good":"bad");
          status.textContent=ok?"✓ Верно!":"Попробуйте ещё раз.";
        };
      }else if(stage==="retrieve"){
-       aiCard(card,null,"p","",`Исправьте предложение: «${g.original}»`);
+       aiCard(card,null,"p","",`Исправьте грамматическую форму: ${showGrammarText(g.original)}`);
        const field=textEntry(card,"Напишите или произнесите правильный вариант");
        const feedback=aiCard(card,null,"div","status");
        const check=aiCard(card,null,"button","btn sm","Check");
        check.onclick=()=>{
          if(!field.value.trim()){feedback.textContent="Введите ответ.";return}
-         const ok=normalize(field.value)===normalize(g.corrected);
+         const ok=checkTarget(field.value,g);
          feedback.className="status "+(ok?"good":"");
-         feedback.textContent=ok?"✓ Совпадает с сохранённым исправлением.":"Ваш вариант отличается от сохранённого. Возможны другие правильные варианты — сравните с образцом ниже.";
-         if(!ok){aiCard(card,null,"p","small muted","Образец: "+g.corrected)}
+         feedback.textContent=ok?"✓ Целевая форма использована правильно: «"+targetForm(g)+"».":"Проверьте целевую форму: «"+targetForm(g)+"». Остальные слова не оцениваются.";
+         if(!ok){aiCard(card,null,"p","small muted","Пример: "+showGrammarText(g.corrected))}
        };
      }else{
-       aiCard(card,null,"p","",`Составьте своё новое предложение, используя конструкцию из: «${g.corrected}».`);
+       aiCard(card,null,"p","",`Составьте новое предложение с формой «${targetForm(g)}».`);
        const field=textEntry(card,"Ваше новое предложение");
        const feedback=aiCard(card,null,"div","status");
-       const btn=aiCard(card,null,"button","btn sm secondary","Показать образец");
+       const btn=aiCard(card,null,"button","btn sm","Check");
        btn.onclick=()=>{
-         feedback.textContent="Образец из вашего словаря: "+g.corrected+". Проверьте, правильно ли вы использовали конструкцию. Новое предложение автоматически не оценивается.";
+         if(!field.value.trim()){feedback.textContent="Напишите или произнесите предложение.";return}
+         const ok=checkTarget(field.value,g);
+         feedback.className="status "+(ok?"good":"bad");
+         feedback.textContent=ok?"✓ Форма «"+targetForm(g)+"» найдена в вашем предложении. Это проверка целевой формы, а не всей грамматики.":"Попробуйте использовать форму «"+targetForm(g)+"».";
        };
      }
      if(g.rule)aiCard(card,null,"p","small muted","💡 "+g.rule);
