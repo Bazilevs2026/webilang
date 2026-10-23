@@ -41,6 +41,21 @@ async function releaseLock(token){
  const current=await redis(["GET",`${PREFIX}:active`]);
  if(current===token)await redis(["DEL",`${PREFIX}:active`]);
 }
+// Reclaim an orphaned Redis reservation only after Tavus confirms the conversation ended.
+// Compare-and-delete is atomic, so we never clear a newer session's lock.
+async function reclaimEndedReservation(){
+ const token=await redis(["GET",`${PREFIX}:active`]);
+ if(!token)return false;
+ const raw=await redis(["GET",`${PREFIX}:session:${token}`]);
+ if(!raw)return false; // creation may still be in flight
+ let session;
+ try{session=JSON.parse(raw)}catch{return false}
+ if(!validId(session.id))return false;
+ const info=await tavus(`/${encodeURIComponent(session.id)}`,"GET").catch(()=>null);
+ if(!info||!["ended","completed","failed","deleted"].includes(String(info.status||"").toLowerCase()))return false;
+ await redis(["EVAL",'if redis.call("GET", KEYS[1]) == ARGV[1] then return redis.call("DEL", KEYS[1]) else return 0 end',1,`${PREFIX}:active`,token]);
+ return true;
+}
 function safeMatch(a,b){
  if(typeof a!=="string"||typeof b!=="string")return false;
  const ab=Buffer.from(a),bb=Buffer.from(b);
@@ -82,7 +97,13 @@ export default async function handler(req,res){
    const pal=process.env[env];
    if(!validId(pal))return json(res,503,{error:`${env} is missing or invalid`});
    const token=crypto.randomBytes(24).toString("hex");
-   const lock=await redis(["SET",`${PREFIX}:active`,token,"EX",315,"NX"]);
+   let lock=await redis(["SET",`${PREFIX}:active`,token,"EX",315,"NX"]);
+   if(lock!=="OK"){
+    // A closed browser or lost end request may leave the lock behind.
+    // Do not steal a live reservation: only reclaim after Tavus says it is ended.
+    if(await reclaimEndedReservation().catch(()=>false))
+      lock=await redis(["SET",`${PREFIX}:active`,token,"EX",315,"NX"]);
+   }
    if(lock!=="OK"){
     const remaining=Math.max(0,Number(await redis(["TTL",`${PREFIX}:active`]))||0);
     const seconds=remaining>0?remaining:15;
@@ -205,7 +226,12 @@ Return a JSON object with these exact keys:
    if(!raw)return json(res,200,{ended:true,alreadyClosed:true});
    const saved=JSON.parse(raw);
    if(saved.id!==id)return json(res,403,{error:"Session mismatch"});
-   await tavus(`/${encodeURIComponent(id)}/end`);
+   try {
+    await tavus(`/${encodeURIComponent(id)}/end`);
+   } catch(error) {
+    const state=await tavus(`/${encodeURIComponent(id)}`,"GET").catch(()=>null);
+    if(!state||!["ended","completed","failed","deleted"].includes(String(state.status||"").toLowerCase()))throw error;
+   }
    await redis(["SET",`${PREFIX}:ended:${token}`,"1","EX",7200]);
    await releaseLock(token);
    return json(res,200,{ended:true});
