@@ -511,6 +511,21 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
 #tab-grammar .wl-gram-eng-hint-text{background:#f0f6ff;border-left:3px solid #6096d5;border-radius:8px;padding:9px 12px;margin:0 0 12px;font-size:14px;color:#315277}
 #tab-grammar .wl-gram-eng-hint-text[hidden]{display:none!important}
 </style>
+<style id="wl-v81-story-reading-layout">
+/* v81: compact story comprehension, two columns below comic */
+#tab-story #readingQuestions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch;margin-top:12px}
+#tab-story #readingQuestions .ques{min-width:0;margin:0;padding:12px;border:1px solid #dce6f0;border-radius:12px;background:#fbfdff;display:flex;flex-direction:column;gap:8px}
+#tab-story #readingQuestions .ques>b{display:block;font-size:14px;line-height:1.35}
+#tab-story #readingQuestions .answers{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+#tab-story #readingQuestions .answers button{margin:0;padding:6px 9px;font-size:12px;line-height:1.3;min-height:33px}
+#tab-story #readingQuestions .ques>.result{margin-top:auto;min-height:0;font-size:12px}
+#tab-story #readingQuestions .ques>.btn{align-self:flex-start;margin:0}
+@media(max-width:700px){#tab-story #readingQuestions{grid-template-columns:1fr}}
+#tab-reading .reading-focused-prompt{font-size:20px;margin:8px 0 10px;color:#244c65}
+#tab-reading .reading-speaking-help{display:block;max-width:620px;margin:8px 0;padding:9px 12px;background:#f9fcff;border:1px solid #d8e6ec;border-radius:10px}
+#tab-reading .reading-speaking-help summary{font-weight:750;cursor:pointer;color:#32608a}
+#tab-reading .reading-speaking-help p{font-size:13px;margin:8px 0 0;line-height:1.5}
+</style>
 </head><body>
 <header class="header"><div class="header-inner"><div class="brand">◆ WEBILANG <span class="tag">Russian · Unit 3 · A1–A1+</span></div><h1>Знакомства</h1></div><nav class="tabs" aria-label="Разделы урока">
 <button type="button" class="tab active" data-tab="story">📖 История</button><button type="button" class="tab" data-tab="reading">📚 Чтение</button><button type="button" class="tab" data-tab="vocab">🗂 Лексика</button><button type="button" class="tab" data-tab="watching">▶ Видео</button><button type="button" class="tab" data-tab="grammar">🧩 Грамматика</button><button type="button" class="tab" data-tab="speaking">🎭 Диалог с ИИ</button><button type="button" class="tab" data-tab="words">🔖 Мои слова <span id="navWordCount">0</span></button><button type="button" class="tab" data-tab="mygrammar">📗 Моя грамматика</button><button type="button" class="tab" data-tab="roulette">🎙 Говорение</button><button type="button" class="tab" data-tab="writing">✍ Письмо</button><button type="button" class="tab" data-tab="game">🎲 Игра</button>
@@ -528,7 +543,7 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
 </div>
 <div hidden aria-hidden="true" style="display:none!important"><button id="readAll" type="button"></button><button id="stopAudio" type="button"></button><span id="voiceQuality"></span></div><div id="comicGrid" class="comic-grid"></div><div hidden><textarea id="predict"></textarea><button id="revealEnding"></button><div id="endingStatus"></div><button id="checkReading"></button></div>
 
-<div class="card padded"><h3 style="margin-top:0">Проверка понимания · Reading comprehension</h3><p class="small muted">Choose the correct answer after reading.</p><div id="readingQuestions"></div><span id="readingResult" class="status" role="status"></span></div>
+<div class="card padded"><h3 style="margin-top:0">Проверка понимания · Reading comprehension</h3><p class="small muted">Выберите ответ и нажмите Check.</p><div id="readingQuestions"></div><span id="readingResult" class="status" role="status"></span></div>
 <div class="card softmint padded"><h3>🎤 После чтения — говорим! / Speaking</h3><div class="grid2">
 <div class="card"><h3 style="margin-top:0">1. Пересказ · Retelling</h3><p>Посмотрите на картинки и опишите, что вы видите. Кого ищет Анна? Кого она встречает в кафе? Почему она сначала путает Майклов? Как она наконец узнаёт настоящего Майкла? Рассказывайте историю в настоящем времени.</p><div class="hint">Eng Hint: Look at the pictures and describe what you see. Who is Anna looking for? Who does she meet at the café? Why does she confuse the Michaels at first? How does she finally recognize the real Michael? Tell the story in the present tense.</div><p class="hint"><strong>Target Structure: Настоящее время · Present Tense</strong><br>Например: «Анна приходит в кафе. Она ищет Майкла…»</p><div class="row padded"><button class="btn sm" data-mic="0">🎤 Начать говорить</button><button class="btn sm secondary" data-stopmic="0">■ Стоп</button><span id="micStatus0" class="pill">Микрофон не запущен</span></div><textarea id="speak0" rows="7" placeholder="Анна приходит в кафе. Она ищет Майкла, но встречает другого парня..."></textarea><button class="btn sm green" data-save-speak="0">Сохранить ответ</button><p id="savedSpeak0" class="status"></p><div class="row"><button type="button" class="btn sm green" data-ai-speak="0">✨ AI Feedback</button><span class="pill" id="aiStatus0">Requires Webilang server</span></div><div id="aiResult0" class="ai-output" aria-live="polite"></div></div>
 <div class="card"><h3 style="margin-top:0">2. Моя история · My story</h3><p>Вспомните смешной случай, когда вас приняли за другого человека или вы сами кого-то перепутали. Можно придумать свою историю! Расскажите её в настоящем времени, как будто всё происходит прямо сейчас — так, как вы обычно рассказываете смешную историю или анекдот.</p><div class="hint">Eng Hint: Think of a funny situation when someone mistakes you for another person, or you mistake someone for somebody else. You can also make up a story! Tell it in the present tense, as if everything is happening right now — the way you would normally tell a funny story or a joke.</div><p class="hint"><strong>Target Structure: Настоящее время · Present Tense</strong><br>Например: «Однажды я иду по улице и вижу знакомого человека…»</p><div class="row padded"><button class="btn sm" data-mic="1">🎤 Начать говорить</button><button class="btn sm secondary" data-stopmic="1">■ Стоп</button><span id="micStatus1" class="pill">Микрофон не запущен</span></div><textarea id="speak1" rows="7" placeholder="Однажды я иду по улице и вижу знакомого человека..."></textarea><button class="btn sm green" data-save-speak="1">Сохранить ответ</button><p id="savedSpeak1" class="status"></p><div class="row"><button type="button" class="btn sm green" data-ai-speak="1">✨ AI Feedback</button><span class="pill" id="aiStatus1">Requires Webilang server</span></div><div id="aiResult1" class="ai-output" aria-live="polite"></div></div></div>
@@ -543,11 +558,13 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
 <div class="read-help">Tap a highlighted word for its English meaning. Double-click (or long-press) a word to add it to <b>«Мои слова»</b>. Saved words go to the same My Word Stock as words from the comic.</div>
 <div id="readingChat" class="reading-chat"></div>
 <div class="card padded"><h3>Проверка понимания · Reading Comprehension</h3><p class="small muted">Choose one answer and press Check for each question.</p><div id="readingChatQuiz" class="reading-six-grid"></div></div>
-<div class="card softmint padded"><h3>🎤 Говорение после чтения · Speaking</h3><p><b>Расскажите о себе как участник студенческого чата.</b> Где вы учитесь? Что изучаете? Какие языки знаете? Во что играете или на каком инструменте играете? Что обычно делаете по выходным? Задайте собеседнику один вопрос. <b>Что общего у Анны и Майкла?</b> Ответьте также на этот вопрос. <b>Используйте настоящее время.</b></p>
-<div class="hint">Eng Hint: Introduce yourself as a student in the chat. Where do you study? What subjects do you study? What languages do you speak? What games, sports or instruments do you play? What do you usually do on weekends? Ask the other student one question. What do Anna and Michael have in common? Answer this question too. Use the present tense.</div>
-<div class="notice">Target Structure: Я учусь в… / Я изучаю… / Я играю в… / Я играю на… / Я люблю… / А ты?</div>
-<div class="row padded"><button class="btn green" id="readingMic">🎙️ Начать Live Transcript</button><button class="btn secondary sm" id="readingMicStop">■ Стоп</button><span id="readingMicStatus" class="status">Редактируйте текст перед AI Feedback.</span></div>
-<textarea id="readingSpeech" rows="6" placeholder="Я учусь в университете. Я изучаю..."></textarea>
+<div class="card softmint padded"><h3>🎤 Запиши ответ · После чтения</h3>
+<p class="reading-focused-prompt"><b>Что общего у Анны и Майкла?</b></p>
+<p class="small muted">Расскажи по-русски, что у них общего: учёба, языки и увлечения. Ответь в 2–4 предложениях. Используй настоящее время.</p>
+<details class="reading-speaking-help"><summary>🇬🇧 ENG · English question</summary><p>What do Anna and Michael have in common? Give 2–4 sentences about their studies, languages and hobbies.</p></details>
+<details class="reading-speaking-help"><summary>💡 Support · Начало ответа</summary><p>Анна и Майкл — студенты. Они оба… Анна любит…, и Майкл тоже…</p></details>
+<div class="row padded"><button class="btn green" id="readingMic">🎙️ Записать ответ</button><button class="btn secondary sm" id="readingMicStop">■ Стоп</button><span id="readingMicStatus" class="status">Редактируйте текст перед AI Feedback.</span></div>
+<textarea id="readingSpeech" rows="6" placeholder="Анна и Майкл оба… Они изучают…"></textarea>
 <div class="row padded"><button class="btn" id="readingAi">✨ AI Feedback</button><button class="btn ghost" id="readingDone">I'm happy with my answer</button></div>
 <div id="readingAiStatus" class="status"></div><div id="readingAiResult" class="ai-output"></div>
 </div></section>
