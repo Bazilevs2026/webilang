@@ -278,6 +278,20 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
 #avatarPostFeedback{scroll-margin-top:30px}
 @media(max-width:650px){#avatarEndAndFeedback.avatar-end-feedback{width:100%}}
 </style>
+<style id="avatar-feedback-v34">#avatarPostFeedback{display:block!important;margin-top:24px;border:2px solid #a8d5bd;background:#f7fffa}#avatarPostFeedback .avatar-feedback-intro{background:#e8f7ef;border-radius:14px;padding:12px 16px;color:#174b39}#avatarPostFeedback h3{color:#165e43}#avatarPostFeedback .avatar-feedback-tools{margin-top:14px}#avatarFeedbackStatus{display:inline-block;margin:7px 0;color:#225372;font-weight:600}</style>
+<style id="avatar-feedback-v35">
+#avatarPostFeedback{scroll-margin-top:18px;display:block!important;border:2px solid #b4cdef;background:linear-gradient(180deg,#f7fbff 0%,#fff 100%);border-radius:22px;padding:25px}
+#avatarPostFeedback h3{font-size:25px;color:#173d67}
+#avatarPostFeedback .avatar-feedback-intro{background:#edf4ff;border:1px solid #c5daff;color:#204773;line-height:1.6}
+#avatarPostFeedback textarea{width:100%;margin-top:10px;padding:14px;border-radius:16px;border:1px solid #aec7e3;font-size:18px;min-height:145px}
+#avatarPostFeedback .avatar-feedback-tools{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+#avatarPostFeedback .avatar-feedback-tools button{border-radius:15px;padding:13px 19px;font-weight:800;font-size:16px;min-height:50px}
+#avatarEvaluate{background:linear-gradient(125deg,#3269ea,#7854eb)!important;color:#fff!important;border:0!important;box-shadow:0 7px 15px rgba(70,80,196,.2)}
+#avatarFetchTranscript{background:#ebf4ff;border:1px solid #9bc2ef;color:#224d7d}
+#avatarFeedbackReport{margin-top:18px}
+#avatarFeedbackReport .feedback-piece{padding:15px 18px;border:1px solid #d8e5f5;border-radius:17px;background:#fff;margin-top:12px}
+.avatar-feedback-empty{background:#f5f8fc;padding:15px;border-radius:14px;color:#55708e}
+</style>
 </head><body>
 <header class="header"><div class="header-inner"><div class="brand">◆ WEBILANG <span class="tag">Russian · Unit 3 · A1–A1+</span></div><h1>Знакомства</h1></div><nav class="tabs" aria-label="Разделы урока">
 <button type="button" class="tab active" data-tab="story">📖 История</button><button type="button" class="tab" data-tab="reading">📚 Чтение</button><button type="button" class="tab" data-tab="vocab">🗂 Лексика</button><button type="button" class="tab" data-tab="watching">▶ Видео</button><button type="button" class="tab" data-tab="grammar">🧩 Грамматика</button><button type="button" class="tab" data-tab="words">🔖 Мои слова <span id="navWordCount">0</span></button><button type="button" class="tab" data-tab="speaking">🎭 Ролевая игра с ИИ-аватаром</button><button type="button" class="tab" data-tab="mygrammar">📗 Моя грамматика</button><button type="button" class="tab" data-tab="writing">✍ Письмо</button><button type="button" class="tab" data-tab="game">🎲 Игра</button>
@@ -355,7 +369,7 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
   <div class="avatar-decision"><b>After your conversation:</b><p>Is this the real Anna?</p><div class="avatar-choices" data-avatar-choice="anna"><button type="button" data-answer="yes">Да</button><button type="button" data-answer="no">Нет</button><button type="button" data-answer="unsure">Не знаю</button></div><p class="avatar-result" id="avatarResultAnna" aria-live="polite"></p></div>
  </article>
 </div>
-<div class="avatar-connection-note">🔒 Для каждого разговора создаётся отдельная защищённая сессия Tavus. Микрофон и камера запрашиваются только при входе в видеозвонок. <span class="small muted">Требуется опубликованный сайт Webilang с настроенным серверным API.</span></div>
+
 <div id="avatarCallControlsTop" class="avatar-call-controls-top" hidden>
  <div><strong>🎥 Разговор идёт</strong><span> После беседы нажмите кнопку ниже, чтобы получить автоматическую транскрипцию и AI Feedback.</span></div>
  <button type="button" id="avatarEndAndFeedback" class="avatar-end-feedback">✓ Завершить разговор → Получить Feedback</button>
@@ -365,13 +379,13 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
  <iframe id="avatarVideoFrame" title="Tavus AI video conversation" allow="camera; microphone; autoplay; fullscreen; display-capture" referrerpolicy="strict-origin-when-cross-origin"></iframe>
  <div class="avatar-video-footer"><span id="avatarCallStatus" aria-live="polite">Подключаемся…</span><a id="avatarOpenExternal" href="#" target="_blank" rel="noopener noreferrer">↗ Открыть разговор отдельно</a></div>
 </div>
-<div id="avatarPostFeedback" class="card avatar-feedback" hidden>
-<h3>📝 After the call · Speaking Feedback</h3>
+<div id="avatarPostFeedback" class="card avatar-feedback">
+<h3>📝 Speaking Feedback · После разговора</h3><p class="avatar-feedback-intro"><b>Step 1.</b> Finish your avatar call using «Завершить разговор → Получить Feedback». <b>Step 2.</b> Review your Russian transcript. <b>Step 3.</b> Press «✨ Get AI Feedback» to see Grammar, Vocabulary and Mission results.</p>
 <p class="small muted">Webilang автоматически запрашивает транскрипцию у Tavus после разговора и показывает <b>только ваши реплики</b>. Проверьте текст и исправьте возможные ошибки распознавания перед AI-анализом. Если Tavus не вернул текст, можно ввести реплики самостоятельно.</p>
 <label for="avatarLearnerTranscript"><b>Your Russian sentences / Ваши реплики</b></label>
 <textarea id="avatarLearnerTranscript" rows="6" maxlength="8000" placeholder="Привет! Ты Майкл? Что ты изучаешь? ..."></textarea>
-<div class="avatar-feedback-tools"><button type="button" id="avatarFetchTranscript" class="btn">🔄 Получить транскрипцию</button> <button type="button" id="avatarEvaluate" class="btn green">✨ Check my speaking</button> <span id="avatarFeedbackStatus" aria-live="polite"></span></div>
-<div id="avatarFeedbackReport" aria-live="polite"></div>
+<div class="avatar-feedback-tools"><button type="button" id="avatarFetchTranscript" class="btn">🔄 Получить транскрипцию</button> <button type="button" id="avatarEvaluate" class="btn green">✨ Get AI Feedback</button> <span id="avatarFeedbackStatus" aria-live="polite">Сначала начните и завершите разговор с аватаром.</span></div>
+<div id="avatarFeedbackReport" aria-live="polite"><div class="avatar-feedback-empty">🎯 Mission · ✍ Grammar · 📚 Vocabulary — results appear here after AI analysis.</div></div>
 <p class="small muted">Миссию вы также отмечаете кнопками Да / Нет / Не знаю в карточке игры. ИИ не может оценить отсутствующие в тексте реплики.</p>
 </div>
 <p class="small muted" style="margin-top:14px">Упражнения с Live Transcript и AI Feedback по истории остаются в конце вкладки «История».</p>
@@ -1353,7 +1367,7 @@ async function fetchTranscript(){
   if(r.status!=="ready")throw new Error("Неизвестный статус транскрипции.");
   if(!r.transcript){status.textContent="Tavus не обнаружил реплик ученика. Вы можете вписать их вручную.";return}
   $("avatarLearnerTranscript").value=r.transcript;
-  status.textContent="✓ Получено "+r.learnerTurns+" реплик ученика. Проверьте распознавание и нажмите «Check my speaking».";
+  status.textContent="✓ Получено "+r.learnerTurns+" реплик ученика. Проверьте распознавание и нажмите «Get AI Feedback».";
  }catch(e){if(serial===transcriptRequestSerial)status.textContent="Автоматическая транскрипция недоступна: "+e.message+". Можно ввести реплики вручную."}
  finally{if(serial===transcriptRequestSerial)b.disabled=false}
 }
