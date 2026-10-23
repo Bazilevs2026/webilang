@@ -863,13 +863,20 @@ $("saveGrammar").onclick=()=>{
  if(!original||!corrected||!rule){$("myGrammarStatus").textContent="Заполните все три поля после подтверждения ошибки.";return}
  if(norm(original)===norm(corrected)){$("myGrammarStatus").textContent="Исходный и исправленный варианты совпадают.";return}
  if(store.grammar.some(x=>norm(x.original)===norm(original))){$("myGrammarStatus").textContent="Такая ошибка уже сохранена.";return}
- store.grammar.push({original,corrected,rule,module:"russian-03",verifiedByStudent:true});save();renderGrammarStock();
+ store.grammar.push({original:cleanGrammarOriginal(original),corrected:cleanGrammarModel(corrected),rule,module:"russian-03",verifiedByStudent:true});save();renderGrammarStock();
  ["grammarOriginal","grammarCorrection","grammarRule"].forEach(id=>$(id).value="");
  $("myGrammarStatus").textContent="✓ Подтверждённая ошибка сохранена.";
 };
+function cleanGrammarModel(x){
+ let t=String(x||"").replace(/[«"“](Майкл[а-яё]*|Анн[а-яё]*)[»"”]/gi,"$1");
+ // Known Unit 3 example: искать кого? — Майкла (animate accusative).
+ t=t.replace(/\\b(ищу|ищешь|ищет|ищем|ищете|ищут)\\s+Майкл\\b/giu,"$1 Майкла");
+ return t;
+}
+function cleanGrammarOriginal(x){return String(x||"").replace(/[«"“](Майкл[а-яё]*|Анн[а-яё]*)[»"”]/gi,"$1")}
 function renderGrammarStock(){
  const root=$("grammarStockList");root.replaceChildren();if(!store.grammar.length){root.innerHTML='<p class="muted">Сохранённых ошибок пока нет. Они появятся только после вашего подтверждения.</p>';return}
- store.grammar.forEach((g,i)=>{const line=document.createElement("div");line.className="exercise";line.innerHTML=`<b>Было:</b> ${esc(g.original)}<br><b>Исправление:</b> ${esc(g.corrected)}<br><span class="small muted">${esc(g.rule)}</span><br>`;const listen=document.createElement("button");listen.className="btn sm secondary";listen.textContent="🔊 Правильный вариант";listen.onclick=()=>say(g.corrected);const rm=document.createElement("button");rm.className="btn sm ghost";rm.style.marginLeft="5px";rm.textContent="Удалить";rm.onclick=()=>{store.grammar.splice(i,1);save();renderGrammarStock()};line.append(listen,rm);root.append(line)})
+ store.grammar.forEach((g,i)=>{const line=document.createElement("div");line.className="exercise";line.innerHTML=`<b>Было:</b> ${esc(cleanGrammarOriginal(g.original))}<br><b>Исправление:</b> ${esc(cleanGrammarModel(g.corrected))}<br><span class="small muted">${esc(g.rule)}</span><br>`;const listen=document.createElement("button");listen.className="btn sm secondary";listen.textContent="🔊 Правильный вариант";listen.onclick=()=>say(cleanGrammarModel(g.corrected));const rm=document.createElement("button");rm.className="btn sm ghost";rm.style.marginLeft="5px";rm.textContent="Удалить";rm.onclick=()=>{store.grammar.splice(i,1);save();renderGrammarStock()};line.append(listen,rm);root.append(line)})
 }
 const sampleFor=(ru)=>REQUIRED.find(x=>x.ru===ru)?.sample||"Я часто использую слово «"+ru+"».";
 function renderPractice(){
@@ -943,7 +950,7 @@ document.querySelectorAll("[data-ai-speak]").forEach(btn=>btn.addEventListener("
    saveBtn.onclick=()=>{
       if(!e.original||!e.corrected)return;
       if(!store.grammar.some(g=>g.original===e.original&&g.corrected===e.corrected))
-        store.grammar.push({original:e.original,corrected:e.corrected,rule:e.explanation||"",module:"russian-03"});
+        store.grammar.push({original:cleanGrammarOriginal(e.original),corrected:cleanGrammarModel(e.corrected),rule:e.explanation||"",module:"russian-03"});
       save();renderGrammarStock();saveBtn.textContent="✓ Saved";saveBtn.disabled=true;
    };
  }
@@ -960,7 +967,7 @@ grammarButton.addEventListener("click",()=>{
  const source=store.grammar.slice(-5);
  const heading=aiCard(root,null,"p","small muted","Тренировка на основе ваших сохранённых исправлений. Без видеозвонка и транскрипции.");
  function normalize(x){return String(x||"").toLocaleLowerCase("ru").replace(/ё/g,"е").replace(/[.,!?«»"“”‘’]/g," ").replace(/\\s+/g," ").trim()}
- function showGrammarText(x){return String(x||"").replace(/[«"“](Майкл[а-яё]*|Анн[а-яё]*)[»"”]/gi,"$1")}
+ function showGrammarText(x){return cleanGrammarModel(x)}
  function words(x){return normalize(x).split(" ").filter(Boolean)}
  // Find the first changed grammatical form in the saved correction.
  // This is a focused practice check, not a claim of full sentence correctness.
@@ -1026,9 +1033,13 @@ grammarButton.addEventListener("click",()=>{
        const check=aiCard(card,null,"button","btn sm","Check");
        check.onclick=()=>{
          if(!field.value.trim()){feedback.textContent="Введите ответ.";return}
-         const ok=checkTarget(field.value,g);
+         const corrected=showGrammarText(g.corrected);
+         const requiresMichael=/\\bищу\\s+Майкла\\b/i.test(corrected);
+         const mentionsMichael=/\\bМайкл[а-яё]*\\b/i.test(field.value);
+         const caseOK=!requiresMichael || !mentionsMichael || /\\bМайкла\\b/i.test(field.value);
+         const ok=checkTarget(field.value,g)&&caseOK;
          feedback.className="status "+(ok?"good":"");
-         feedback.textContent=ok?"✓ Целевая форма использована правильно: «"+targetForm(g)+"».":"Проверьте целевую форму: «"+targetForm(g)+"». Остальные слова не оцениваются.";
+         feedback.textContent=ok?"✓ Целевая форма использована. Образец: "+corrected:"Проверьте форму глагола и падеж имени. Правильно: "+corrected;
          if(!ok){aiCard(card,null,"p","small muted","Пример: "+showGrammarText(g.corrected))}
        };
      }else{
