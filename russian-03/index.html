@@ -692,7 +692,7 @@ async function speakOne(text,role,session){
    if(!objectURL){
     const request=new AbortController();activeRequest=request;
     const response=await fetch("/api/speak",{method:"POST",headers:{"Content-Type":"application/json"},
-     body:JSON.stringify({text:input,targetLanguage:"ru",speaker:role||"narrator"}),signal:request.signal});
+     body:JSON.stringify({text:input,targetLanguage:"ru",speaker:role||"narrator",module:"russian-03"}),signal:request.signal});
     if(!response.ok)throw new Error("Neural voice unavailable: "+response.status);
     const blob=await response.blob();
     if(!blob.type.startsWith("audio/"))throw new Error("Invalid audio format");
@@ -1367,7 +1367,7 @@ async function readingStart(indices){
   let url=audioCache.get(role+"|"+text);
   if(!url&&isDeployed()){
    const response=await fetch("/api/speak",{method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({text,targetLanguage:"ru",speaker:role})});
+    body:JSON.stringify({text,targetLanguage:"ru",speaker:role,module:"russian-03"})});
    if(!response.ok)throw Error("Speech API "+response.status);
    const blob=await response.blob();
    if(!blob.type.startsWith("audio/"))throw Error("Not an audio response");
