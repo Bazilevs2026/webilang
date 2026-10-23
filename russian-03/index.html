@@ -868,15 +868,37 @@ $("saveGrammar").onclick=()=>{
  $("myGrammarStatus").textContent="✓ Подтверждённая ошибка сохранена.";
 };
 function cleanGrammarModel(x){
+ // Check Russian-letter boundaries, not JS \\b (which doesn't recognise Cyrillic).
  let t=String(x||"").replace(/[«"“](Майкл[а-яё]*|Анн[а-яё]*)[»"”]/gi,"$1");
- // Known Unit 3 example: искать кого? — Майкла (animate accusative).
- t=t.replace(/\\b(ищу|ищешь|ищет|ищем|ищете|ищут)\\s+Майкл\\b/giu,"$1 Майкла");
+ // Historical saved Unit 3 correction: Я ищу Майкл -> Я ищу Майкла.
+ t=t.replace(/(?<![А-Яа-яЁё])(ищу|ищешь|ищет|ищем|ищете|ищут)\\s+Майкл(?![А-Яа-яЁё])/giu,"$1 Майкла");
  return t;
 }
-function cleanGrammarOriginal(x){return String(x||"").replace(/[«"“](Майкл[а-яё]*|Анн[а-яё]*)[»"”]/gi,"$1")}
+function cleanGrammarOriginal(x){
+ return String(x||"").replace(/[«"“](Майкл[а-яё]*|Анн[а-яё]*)[»"”]/gi,"$1");
+}
+function grammarExplanation(g){
+ const base=String(g.rule||"");
+ if(/(?<![А-Яа-яЁё])ищу\\s+Майкла(?![А-Яа-яЁё])/iu.test(cleanGrammarModel(g.corrected))
+    && /(?<![А-Яа-яЁё])Майкл(?![А-Яа-яЁё])/iu.test(cleanGrammarOriginal(g.original))
+    && !/винительн|accusative|кого\\?/iu.test(base)){
+    return base+" Также: «искать кого?» — Майкла (винительный падеж одушевлённого имени).";
+ }
+ return base;
+}
+// Repair previously saved model sentences while keeping the original learner error.
+let repairedGrammar=false;
+for(const item of store.grammar){
+ if(!item||typeof item!=="object")continue;
+ const fixed=cleanGrammarModel(item.corrected);
+ if(item.corrected!==fixed){item.corrected=fixed;repairedGrammar=true;}
+ const original=cleanGrammarOriginal(item.original);
+ if(item.original!==original){item.original=original;repairedGrammar=true;}
+}
+if(repairedGrammar)save();
 function renderGrammarStock(){
  const root=$("grammarStockList");root.replaceChildren();if(!store.grammar.length){root.innerHTML='<p class="muted">Сохранённых ошибок пока нет. Они появятся только после вашего подтверждения.</p>';return}
- store.grammar.forEach((g,i)=>{const line=document.createElement("div");line.className="exercise";line.innerHTML=`<b>Было:</b> ${esc(cleanGrammarOriginal(g.original))}<br><b>Исправление:</b> ${esc(cleanGrammarModel(g.corrected))}<br><span class="small muted">${esc(g.rule)}</span><br>`;const listen=document.createElement("button");listen.className="btn sm secondary";listen.textContent="🔊 Правильный вариант";listen.onclick=()=>say(cleanGrammarModel(g.corrected));const rm=document.createElement("button");rm.className="btn sm ghost";rm.style.marginLeft="5px";rm.textContent="Удалить";rm.onclick=()=>{store.grammar.splice(i,1);save();renderGrammarStock()};line.append(listen,rm);root.append(line)})
+ store.grammar.forEach((g,i)=>{const line=document.createElement("div");line.className="exercise";line.innerHTML=`<b>Было:</b> ${esc(cleanGrammarOriginal(g.original))}<br><b>Исправление:</b> ${esc(cleanGrammarModel(g.corrected))}<br><span class="small muted">${esc(grammarExplanation(g))}</span><br>`;const listen=document.createElement("button");listen.className="btn sm secondary";listen.textContent="🔊 Правильный вариант";listen.onclick=()=>say(cleanGrammarModel(g.corrected));const rm=document.createElement("button");rm.className="btn sm ghost";rm.style.marginLeft="5px";rm.textContent="Удалить";rm.onclick=()=>{store.grammar.splice(i,1);save();renderGrammarStock()};line.append(listen,rm);root.append(line)})
 }
 const sampleFor=(ru)=>REQUIRED.find(x=>x.ru===ru)?.sample||"Я часто использую слово «"+ru+"».";
 function renderPractice(){
@@ -1034,9 +1056,9 @@ grammarButton.addEventListener("click",()=>{
        check.onclick=()=>{
          if(!field.value.trim()){feedback.textContent="Введите ответ.";return}
          const corrected=showGrammarText(g.corrected);
-         const requiresMichael=/\\bищу\\s+Майкла\\b/i.test(corrected);
-         const mentionsMichael=/\\bМайкл[а-яё]*\\b/i.test(field.value);
-         const caseOK=!requiresMichael || !mentionsMichael || /\\bМайкла\\b/i.test(field.value);
+         const requiresMichael=/(?<![А-Яа-яЁё])ищу\\s+Майкла(?![А-Яа-яЁё])/iu.test(corrected);
+         const mentionsMichael=/(?<![А-Яа-яЁё])Майкл[а-яё]*(?![А-Яа-яЁё])/iu.test(field.value);
+         const caseOK=!requiresMichael || !mentionsMichael || /(?<![А-Яа-яЁё])Майкла(?![А-Яа-яЁё])/iu.test(field.value);
          const ok=checkTarget(field.value,g)&&caseOK;
          feedback.className="status "+(ok?"good":"");
          feedback.textContent=ok?"✓ Целевая форма использована. Образец: "+corrected:"Проверьте форму глагола и падеж имени. Правильно: "+corrected;
@@ -1054,7 +1076,7 @@ grammarButton.addEventListener("click",()=>{
          feedback.textContent=ok?"✓ Форма «"+targetForm(g)+"» найдена в вашем предложении. Это проверка целевой формы, а не всей грамматики.":"Попробуйте использовать форму «"+targetForm(g)+"».";
        };
      }
-     if(g.rule)aiCard(card,null,"p","small muted","💡 "+g.rule);
+     if(g.rule)aiCard(card,null,"p","small muted","💡 "+grammarExplanation(g));
    });
  });
 });
