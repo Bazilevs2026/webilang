@@ -213,6 +213,8 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
 #tab-reading .reading-two-speaking>.card{min-width:0;margin:0}
 #tab-reading .reading-two-speaking textarea{width:100%;box-sizing:border-box}
 @media(max-width:800px){#tab-reading .reading-two-speaking{grid-template-columns:1fr}}
+.wl-grammar-save-button,.ai-error button,.wl-ai-error button,.feedback-error button{display:inline-flex!important;align-items:center;justify-content:center;margin-top:10px;min-height:38px;padding:8px 13px;border-radius:10px;background:#237956;color:#fff;border:1px solid #1c6948;font-weight:800;cursor:pointer}
+.wl-grammar-save-button:disabled,.ai-error button:disabled,.wl-ai-error button:disabled,.feedback-error button:disabled{opacity:.7;cursor:default}
 </style>
 <style>
 .read-intro{display:grid;grid-template-columns:240px 1fr;gap:18px;background:white;border:1px solid var(--line);padding:14px;border-radius:17px;align-items:center;margin-bottom:14px}
@@ -1214,20 +1216,33 @@ window.webilangGrammarCorrections = function(payload) {
  }
  return items.filter((item,i)=>items.findIndex(x=>String(x.original||x.incorrect||x.before)===String(item.original||item.incorrect||item.before)&&String(x.corrected||x.correction||x.after)===String(item.corrected||item.correction||item.after))===i);
 };
+// v85: A correction is offered to the learner first, never saved automatically.
 window.webilangCaptureFeedback = function(payload) {
- const raw=window.webilangGrammarCorrections(payload);
- let added=0;
- for(const item of raw){
-  const original=cleanGrammarOriginal(String(item.original||item.incorrect||item.before||"").trim());
-  const corrected=cleanGrammarModel(String(item.corrected||item.correction||item.after||"").trim());
-  const rule=String(item.explanation||item.rule||"").trim();
-  if(!original||!corrected||norm(original)===norm(corrected))continue;
-  if(store.grammar.some(x=>norm(x.original)===norm(original)&&norm(x.corrected)===norm(corrected)))continue;
-  store.grammar.push({original,corrected,rule,module:"russian-03",source:"AI Feedback",verifiedByStudent:false});
-  added++;
+ return window.webilangGrammarCorrections(payload).length;
+};
+window.webilangSaveGrammarMistake = function(item) {
+ if(!item || !window.webilangIsGrammarError(item,"grammarItems"))return {ok:false};
+ const original=cleanGrammarOriginal(String(item.original||item.incorrect||item.before||"").trim());
+ const corrected=cleanGrammarModel(String(item.corrected||item.correction||item.after||"").trim());
+ const rule=String(item.explanation||item.rule||item.reason||"").trim();
+ if(!original||!corrected||norm(original)===norm(corrected))return {ok:false};
+ const exists=store.grammar.some(x=>norm(x.original)===norm(original)&&norm(x.corrected)===norm(corrected));
+ if(!exists){
+  store.grammar.push({original,corrected,rule,module:"russian-03",source:"AI Feedback",verifiedByStudent:true});
+  save();renderGrammarStock();
  }
- if(added){save();renderGrammarStock();}
- return added;
+ return {ok:true,alreadySaved:exists};
+};
+window.webilangGrammarSaveButton=function(item){
+ const button=document.createElement("button");
+ button.type="button";button.className="btn sm green wl-grammar-save-button";
+ button.textContent="💾 Save my mistake → My Grammar";
+ button.addEventListener("click",()=>{
+  const result=window.webilangSaveGrammarMistake(item);
+  if(result.ok){button.textContent=result.alreadySaved?"✓ Already in My Grammar":"✓ Saved to My Grammar";button.disabled=true;}
+  else{button.textContent="Could not save — check the correction";}
+ });
+ return button;
 };
 
 document.addEventListener("webilang:writing-grammar-error",event=>{
@@ -1366,7 +1381,7 @@ document.querySelectorAll("[data-ai-speak]").forEach(btn=>btn.addEventListener("
    aiCard(box,null,"p","",`Your wording: ${e.original||""}`);
    aiCard(box,null,"p","",`Corrected: ${e.corrected||""}`);
    aiCard(box,null,"p","",`Explanation: ${e.explanation||""}`);
-   const saveBtn=aiCard(box,null,"button","btn sm green","Save to My Grammar Stock");
+   const saveBtn=aiCard(box,null,"button","btn sm green","💾 Save my mistake → My Grammar");
    saveBtn.onclick=()=>{
       if(!e.original||!e.corrected)return;
       if(!store.grammar.some(g=>g.original===e.original&&g.corrected===e.corrected))
@@ -1672,7 +1687,7 @@ document.getElementById("readingAi").onclick=async()=>{
  aiCard(block,null,"p","",`Your wording: ${e.original||""}`);
  aiCard(block,null,"p","",`Corrected: ${e.corrected||""}`);
  aiCard(block,null,"p","",`Explanation: ${e.explanation||""}`);
- const saveBtn=aiCard(block,null,"button","btn sm green","Save to My Grammar Stock");
+ const saveBtn=aiCard(block,null,"button","btn sm green","💾 Save my mistake → My Grammar");
  saveBtn.onclick=()=>{if(!e.original||!e.corrected)return;
  if(!store.grammar.some(g=>g.original===e.original&&g.corrected===e.corrected))store.grammar.push({original:e.original,corrected:e.corrected,rule:e.explanation||"",module:"russian-03"});
  save();renderGrammarStock();saveBtn.textContent="✓ Saved";saveBtn.disabled=true};
@@ -1719,7 +1734,7 @@ document.getElementById("readingCommonAi").onclick=async()=>{
  aiCard(block,null,"p","",`Your wording: ${e.original||""}`);
  aiCard(block,null,"p","",`Corrected: ${e.corrected||""}`);
  aiCard(block,null,"p","",`Explanation: ${e.explanation||""}`);
- const saveBtn=aiCard(block,null,"button","btn sm green","Save to My Grammar Stock");
+ const saveBtn=aiCard(block,null,"button","btn sm green","💾 Save my mistake → My Grammar");
  saveBtn.onclick=()=>{if(!e.original||!e.corrected)return;
  if(!store.grammar.some(g=>g.original===e.original&&g.corrected===e.corrected))store.grammar.push({original:e.original,corrected:e.corrected,rule:e.explanation||"",module:"russian-03"});
  save();renderGrammarStock();saveBtn.textContent="✓ Saved";saveBtn.disabled=true};
@@ -1801,7 +1816,7 @@ TASKS.forEach((task,i)=>{
    (window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).forEach(err=>{
      const box=document.createElement("div");box.className="exercise";
      const lines=document.createElement("p");lines.textContent=(err.original||"")+" → "+(err.corrected||"")+" · "+(err.explanation||"");box.append(lines);
-     const saveBtn=document.createElement("button");saveBtn.className="btn sm green";saveBtn.textContent="Save to Моя грамматика";
+     const saveBtn=document.createElement("button");saveBtn.className="btn sm green";saveBtn.textContent="💾 Save my mistake → My Grammar";
      saveBtn.onclick=()=>{
       if(!err.original||!err.corrected||err.original===err.corrected)return;
       if(!store.grammar.some(x=>x.original===err.original&&x.corrected===err.corrected)){store.grammar.push({original:err.original,corrected:err.corrected,rule:err.explanation||"",module:"russian-03",verifiedByStudent:true});save();renderGrammarStock()}
@@ -2126,13 +2141,12 @@ $("avatarEvaluate").addEventListener("click",async()=>{
    (r.errors||[]).forEach((e,i)=>{
      const box=feedbackNode("div",null,"feedback-error");
      box.append(feedbackNode("p","❌ "+e.original),feedbackNode("p","✅ "+e.correction),feedbackNode("p","Why: "+e.explanation));
-     const save=feedbackNode("button","Save to My Grammar Stock","save-feedback-error");
+     const save=feedbackNode("button","💾 Save my mistake → My Grammar","save-feedback-error");
      save.type="button";
      save.addEventListener("click",()=>{
-       $("grammarOriginal").value=e.original;$("grammarCorrection").value=e.correction;$("grammarRule").value=e.explanation;
-       document.querySelector('[data-tab="mygrammar"]')?.click();
-       document.querySelector("#grammarOriginal")?.scrollIntoView({behavior:"smooth",block:"center"});
-       save.textContent="Ready to confirm in My Grammar Stock";
+       const result=window.webilangSaveGrammarMistake({original:e.original,corrected:e.correction,explanation:e.explanation,category:"grammar"});
+       save.textContent=result.ok?(result.alreadySaved?"✓ Already in My Grammar":"✓ Saved to My Grammar"):"Could not save — check correction";
+       save.disabled=!!result.ok;
      });
      box.append(save);grammar.append(box);
    });
@@ -2646,7 +2660,7 @@ async function checkAI(type){
    const box=put(out,"div","","wl-ai-error");
    put(box,"p",(err.original||"")+" → "+(err.corrected||"")+" · "+(err.explanation||""));
    if(err.original&&err.corrected&&err.original!==err.corrected){
-    const save=put(box,"button","📗 Save to Моя грамматика","wl-eng-toggle");save.type="button";
+    const save=put(box,"button","📗 💾 Save my mistake → My Grammar","wl-eng-toggle");save.type="button";
     save.onclick=()=>{
      const detail={original:err.original,corrected:err.corrected,rule:err.explanation||"",saved:false};
      document.dispatchEvent(new CustomEvent("webilang:writing-grammar-error",{detail}));
@@ -2827,7 +2841,11 @@ feedback.onclick=async()=>{
   const data=await r.json();if(!r.ok)throw Error(data.error||"AI unavailable");
   const add=(tag,t)=>{const el=document.createElement(tag);el.textContent=t;output.append(el)};
   add("h4","AI Feedback");const sc=data.scores||{};if(Object.keys(sc).length)add("p","Grammar: "+(sc.grammar??"—")+" · Task: "+(sc.relevance??"—"));add("p",data.feedback||data.message||"Проверка завершена.");
-  (window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).slice(0,3).forEach(x=>add("p",(x.original||"")+" → "+(x.corrected||"")+(x.explanation?" · "+x.explanation:"")));
+  (window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).slice(0,3).forEach(x=>{
+   const box=document.createElement("div");box.className="wl-ai-error";
+   const line=document.createElement("p");line.textContent=(x.original||x.incorrect||"")+" → "+(x.corrected||x.correction||"")+(x.explanation?" · "+x.explanation:"");
+   box.append(line,window.webilangGrammarSaveButton(x));output.append(box);
+  });
   st.textContent="✓ Feedback готов.";
  }catch(e){st.textContent="AI Feedback недоступен: "+e.message+". Текст и запись сохранены на странице.";}
  finally{feedback.disabled=false;}
