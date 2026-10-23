@@ -1206,15 +1206,43 @@ window.webilangIsGrammarError = function(item, source="") {
 };
 window.webilangGrammarCorrections = function(payload) {
  const items=[];
+ const originalKey=x=>String(x.original||x.incorrect||x.before||"").toLowerCase().trim();
+ const correctedKey=x=>String(x.corrected||x.correction||x.after||"").toLowerCase().trim();
  for(const [source,arr] of [
    ["grammarItems",payload?.grammarItems],["grammar.items",payload?.grammar?.items],
    ["grammar_errors",payload?.grammar_errors],["errors",payload?.errors],
    ["corrections",payload?.corrections]
  ]) {
   if(!Array.isArray(arr))continue;
-  for(const item of arr)if(window.webilangIsGrammarError(item,source))items.push(item);
+  for(const item of arr)if(window.webilangIsGrammarError(item,source))items.push({
+   ...item,original:item.original||item.incorrect||item.before,
+   corrected:item.corrected||item.correction||item.after,
+   explanation:item.explanation||item.rule||item.reason||""
+  });
  }
- return items.filter((item,i)=>items.findIndex(x=>String(x.original||x.incorrect||x.before)===String(item.original||item.incorrect||item.before)&&String(x.corrected||x.correction||x.after)===String(item.corrected||item.correction||item.after))===i);
+ // Many deployed /api/feedback replies return corrections ONLY in the feedback text.
+ // Parse explicit BEFORE -> AFTER pairs under "USEFUL CORRECTIONS"/grammar headings.
+ // Never convert general vocabulary/communication/pronunciation advice to saved errors.
+ const feedback=[payload?.feedback,payload?.message,payload?.text].filter(x=>typeof x==="string").join("\n");
+ const lines=feedback.split(/\n|(?=\b\d+\)\s*[^:\n]{1,65}\s*(?:->|→|⇒))/);
+ let correctionSection=false;
+ for(let raw of lines){
+  raw=raw.replace(/^[\s•*-]+/,"").trim();
+  if(/(?:USEFUL\s+CORRECTIONS|GRAMMAR\s+CORRECTIONS|ГРАММАТИЧЕСКИЕ\s+ОШИБКИ)/i.test(raw)){correctionSection=true;continue;}
+  if(/^(?:NEXT\s+STEP|VOCABULARY|PRONUNCIATION|FLUENCY|COMMUNICATION|OVERALL|RECOMMENDATION)/i.test(raw)){correctionSection=false;continue;}
+  const m=raw.match(/^(?:\d+[.)]\s*)?["«']?(.{1,85}?)["»']?\s*(?:->|→|⇒)\s*["«']?(.{1,85}?)(?:["»']?\s*\(([^)\n]{1,120})\))?\s*[.!]?\s*$/);
+  if(!m)continue;
+  const before=m[1].trim().replace(/["«»']$/,""),after=m[2].trim().replace(/["«»']$/,"");
+  const explanation=(m[3]||"").trim();
+  if(!before||!after||before.toLowerCase()===after.toLowerCase())continue;
+  const grammarReason=/case|accusative|genitive|dative|prepositional|instrumental|verb|conjugat|tense|gender|agreement|ending|plural|singular|падеж|глагол|спряж|окончани|род|согласован|форма|grammar/i.test(explanation);
+  // In an explicitly numbered USEFUL CORRECTIONS section, a lexical substitution is
+  // insufficient evidence: require grammar evidence or recognizable inflection.
+  const sameStem=before.length>=3&&after.length>=3&&before.slice(0,Math.min(3,before.length)).toLowerCase()===after.slice(0,Math.min(3,after.length)).toLowerCase();
+  if(!grammarReason&&!(correctionSection&&sameStem))continue;
+  items.push({original:before,corrected:after,explanation:explanation||"Correct the grammar form.",category:"grammar",source:"feedback-text"});
+ }
+ return items.filter((x,i)=>originalKey(x)&&correctedKey(x)&&originalKey(x)!==correctedKey(x)&&items.findIndex(y=>originalKey(y)===originalKey(x)&&correctedKey(y)===correctedKey(x))===i);
 };
 // v85: A correction is offered to the learner first, never saved automatically.
 window.webilangCaptureFeedback = function(payload) {
@@ -1389,7 +1417,7 @@ document.querySelectorAll("[data-ai-speak]").forEach(btn=>btn.addEventListener("
       save();renderGrammarStock();saveBtn.textContent="✓ Saved";saveBtn.disabled=true;
    };
  }
- if(!(window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).length)aiCard(out,null,"p","result good","No confirmed grammar errors to save.");
+ if(!(window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).length)aiCard(out,null,"p","result good","No specific grammar corrections detected in this feedback.");
  status.textContent="Feedback received. Save only genuine errors.";
  }catch(err){status.textContent="AI unavailable: "+err.message+". Your transcript is kept."}
  finally{btn.disabled=false}
@@ -1692,7 +1720,7 @@ document.getElementById("readingAi").onclick=async()=>{
  if(!store.grammar.some(g=>g.original===e.original&&g.corrected===e.corrected))store.grammar.push({original:e.original,corrected:e.corrected,rule:e.explanation||"",module:"russian-03"});
  save();renderGrammarStock();saveBtn.textContent="✓ Saved";saveBtn.disabled=true};
  }
- if(!(window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).length)aiCard(out,null,"p","result good","No confirmed grammar errors to save.");
+ if(!(window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).length)aiCard(out,null,"p","result good","No specific grammar corrections detected in this feedback.");
  status.textContent="Feedback received. Review errors before saving.";
  }catch(e){status.textContent="AI unavailable: "+e.message+". Your transcript is preserved."}finally{btn.disabled=false}
 };
@@ -1739,7 +1767,7 @@ document.getElementById("readingCommonAi").onclick=async()=>{
  if(!store.grammar.some(g=>g.original===e.original&&g.corrected===e.corrected))store.grammar.push({original:e.original,corrected:e.corrected,rule:e.explanation||"",module:"russian-03"});
  save();renderGrammarStock();saveBtn.textContent="✓ Saved";saveBtn.disabled=true};
  }
- if(!(window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).length)aiCard(out,null,"p","result good","No confirmed grammar errors to save.");
+ if(!(window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).length)aiCard(out,null,"p","result good","No specific grammar corrections detected in this feedback.");
  status.textContent="Feedback received. Review errors before saving.";
  }catch(e){status.textContent="AI unavailable: "+e.message+". Your transcript is preserved."}finally{btn.disabled=false}
 };
@@ -1824,7 +1852,7 @@ TASKS.forEach((task,i)=>{
      };
      box.append(saveBtn);out.append(box);
    });
-   if(!(window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).length){const p=document.createElement("p");p.textContent="No confirmed grammar errors to save.";out.append(p)}
+   if(!(window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).length){const p=document.createElement("p");p.textContent="No specific grammar corrections detected in this feedback.";out.append(p)}
    status.textContent="Feedback ready. Save only confirmed errors.";
   }catch(e){status.textContent="AI requires the Webilang server: "+e.message}finally{feedback.disabled=false}
  };
