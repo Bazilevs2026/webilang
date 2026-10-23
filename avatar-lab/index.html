@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Webilang · Avatar Lab</title><style>
 :root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#22334d;background:#f4f6f1}*{box-sizing:border-box}body{margin:0}.wrap{max-width:1080px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}h1{margin:14px 0 5px;font-size:clamp(25px,4vw,38px)}p{line-height:1.5}.pill{background:#e3eadb;color:#43573a;padding:8px 12px;border-radius:30px;font-size:13px;font-weight:700}.layout{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(280px,1fr);gap:18px;margin-top:20px}.stage{background:linear-gradient(#dde8e4,#f9f6ee);height:520px;border-radius:19px;position:relative;overflow:hidden;border:1px solid #d4dfd1}canvas{display:block;width:100%;height:100%}.stageTag{position:absolute;top:15px;left:15px;background:#fffD;padding:8px 12px;border-radius:10px;pointer-events:none}.panel{background:#fff;padding:23px;border-radius:19px;border:1px solid #e0e7df}label{display:block;font-weight:750;margin:16px 0 6px}select,textarea,input[type=file]{width:100%;padding:11px;border:1px solid #bac8c0;border-radius:10px;font:inherit}textarea{min-height:120px;resize:vertical}button,.home{border:0;border-radius:11px;background:#556944;color:white;padding:12px 15px;font:inherit;font-weight:750;cursor:pointer;text-decoration:none;display:inline-block}button.secondary{background:#e8ede4;color:#334937}button:disabled{opacity:.5;cursor:wait}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.muted{color:#5e7068;font-size:13px}.status{padding:12px;border-radius:10px;background:#f1f4ec;margin-top:15px;min-height:45px}footer{margin-top:18px;color:#647268;font-size:13px}@media(max-width:740px){.layout{grid-template-columns:1fr}.stage{height:390px}.wrap{padding:14px}}
-</style></head><body><div class="wrap"><header><a class="home" href="/">← Webilang</a><span class="pill">AVATAR LAB · STAGE 3</span></header><h1>Meet Emma · 3D Avatar</h1><p>Meet our new VRM speaking partner. The original prototype remains available. Existing Tavus lessons are untouched.</p><div class="layout"><section class="stage" aria-label="Animated 3D avatar"><div class="stageTag">Webilang · avatar preview</div><div id="scene"></div></section><section class="panel"><h2>Voice &amp; animation test</h2><p class="muted">Try English and Russian. The prototype has simple mouth movement. VRM characters use mouth and blink expressions when available; this is not phoneme-accurate lip sync.</p><label for="modelMode">Character</label><select id="modelMode"><option value="vrm">Emma · 3D character</option><option value="prototype">Original prototype</option></select><div id="vrmOptions" hidden><label for="vrmFile">Optional: replace Emma with your .vrm file</label><input id="vrmFile" type="file" accept=".vrm,model/gltf-binary,application/octet-stream"><p class="muted">The bundled Emma loads automatically. Files selected here stay on your device.</p></div><label for="language">Language</label><select id="language"><option value="en">English</option><option value="ru">Русский</option></select><label for="script">What should Emma say?</label><textarea id="script">Hi! I'm Emma, your new speaking partner at Webilang. It's lovely to meet you!</textarea><div class="actions"><button id="speak">▶ Speak</button><button id="stop" class="secondary">■ Stop</button><button id="blink" class="secondary">☺ Blink</button></div><div class="status" id="status" role="status">Loading 3D scene…</div><p class="muted">The Speak button uses Webilang's existing /api/speak endpoint. If server speech is unavailable, it falls back to your browser's voice.</p></section></div><footer>Architecture: one voice engine with two replaceable renderers (prototype / VRM). A future realistic video renderer can use the same conversational logic.</footer></div>
+</style></head><body><div class="wrap"><header><a class="home" href="/">← Webilang</a><span class="pill">AVATAR LAB · STAGE 4</span></header><h1>Meet Emma · 3D Avatar</h1><p>Meet Emma with a closer portrait, soft idle motion, and expressive speech. Existing Tavus lessons are untouched.</p><div class="layout"><section class="stage" aria-label="Animated 3D avatar"><div class="stageTag">Webilang · avatar preview</div><div id="scene"></div></section><section class="panel"><h2>Voice &amp; animation test</h2><p class="muted">Try English and Russian. Emma now has a closer portrait, natural blinking, subtle breathing and speaking gestures. Mouth movement is approximate, not phoneme-accurate.</p><label for="modelMode">Character</label><select id="modelMode"><option value="vrm">Emma · 3D character</option><option value="prototype">Original prototype</option></select><div id="vrmOptions" hidden><label for="vrmFile">Optional: replace Emma with your .vrm file</label><input id="vrmFile" type="file" accept=".vrm,model/gltf-binary,application/octet-stream"><p class="muted">The bundled Emma loads automatically. Files selected here stay on your device.</p></div><label for="language">Language</label><select id="language"><option value="en">English</option><option value="ru">Русский</option></select><label for="script">What should Emma say?</label><textarea id="script">Hi! I'm Emma, your new speaking partner at Webilang. It's lovely to meet you!</textarea><div class="actions"><button id="speak">▶ Speak</button><button id="stop" class="secondary">■ Stop</button><button id="blink" class="secondary">☺ Blink</button></div><div class="status" id="status" role="status">Loading 3D scene…</div><p class="muted">The Speak button uses Webilang's existing /api/speak endpoint. If server speech is unavailable, it falls back to your browser's voice.</p></section></div><footer>Architecture: one voice engine with two replaceable renderers (prototype / VRM). A future realistic video renderer can use the same conversational logic.</footer></div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/","@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"}}</script>
 <script type="module">
 import * as THREE from 'three';
@@ -8,7 +8,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
 const host=document.querySelector('#scene'),status=document.querySelector('#status');let active=false, audio=null, utterance=null, mouthTarget=0,blinking=0,stopAt=0; let currentVrm=null, modelLoading=false; const defaultCamera={position:new THREE.Vector3(0,1.22,5.7),target:new THREE.Vector3(0,.95,0)};
 const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(34,1,.1,100);camera.position.set(0,1.22,5.7);camera.lookAt(0,.95,0);
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;host.appendChild(renderer.domElement);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.03;host.appendChild(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xffffff,0xc6cfb6,2.5));const sun=new THREE.DirectionalLight(0xffffff,2.4);sun.position.set(-3,5,5);scene.add(sun);
 const skin=new THREE.MeshStandardMaterial({color:0xf3be9e,roughness:.85}),hair=new THREE.MeshStandardMaterial({color:0x604337,roughness:.9}),shirt=new THREE.MeshStandardMaterial({color:0x668268,roughness:.84}),white=new THREE.MeshStandardMaterial({color:0xffffff}),iris=new THREE.MeshStandardMaterial({color:0x395e55}),lips=new THREE.MeshStandardMaterial({color:0x9d5351});
 const character=new THREE.Group();scene.add(character);
@@ -21,28 +21,32 @@ for(let s of [-1,1]){ell(character,white,s*.235,.79,.557,.142,.105,.045);ell(cha
 // VRM files are parsed locally; the original character remains available as fallback.
 const loader=new GLTFLoader();loader.register(parser=>new VRMLoaderPlugin(parser));
 // Generic loader: accepts the bundled Webilang asset or a locally selected VRM file.
+// Portrait camera measures the actual head position, not the feet or full-body bounding box.
+// Camera distance is based on visible height so the model remains well framed on mobile.
 function framePortrait(vrm){
   vrm.scene.updateWorldMatrix(true,true);
   const head=vrm.humanoid?.getNormalizedBoneNode('head');
-  let target=new THREE.Vector3(0,1.45,0);
-  if(head){head.getWorldPosition(target);target.y-=.15;}
-  else {const bb=new THREE.Box3().setFromObject(vrm.scene);target.set((bb.min.x+bb.max.x)/2,bb.min.y+(bb.max.y-bb.min.y)*.81,(bb.min.z+bb.max.z)/2)}
-  const bb=new THREE.Box3().setFromObject(vrm.scene),height=Math.max(.7,bb.max.y-bb.min.y);
-  const distance=Math.max(1.05,Math.min(2.4,height*.82));
-  camera.position.set(target.x,target.y+.04,target.z+distance);
+  const bbox=new THREE.Box3().setFromObject(vrm.scene);
+  const height=Math.max(.8,bbox.max.y-bbox.min.y);
+  const headPoint=new THREE.Vector3((bbox.min.x+bbox.max.x)/2,bbox.min.y+height*.91,(bbox.min.z+bbox.max.z)/2);
+  if(head)head.getWorldPosition(headPoint);
+  // We want shoulders and upper torso visible, while bringing the face closer.
+  const target=headPoint.clone();target.y-=height*.19;
+  // At 34-degree vertical field of view, this shows roughly 65% of the character height.
+  const visibleHeight=height*.65;
+  const distance=(visibleHeight*.5)/Math.tan(THREE.MathUtils.degToRad(camera.fov*.5));
+  const forward=new THREE.Vector3(0,0,1);
+  camera.position.copy(target).addScaledVector(forward,Math.max(.9,distance));
   camera.lookAt(target);camera.updateProjectionMatrix();
 }
 function poseVrm(vrm){
-  // Rotation of normalized humanoid upper-arm bones makes an A-pose from a T-pose.
-  // Adjusted on each new model; the original prototype is not affected.
-  const hum=vrm.humanoid;
-  if(!hum)return;
-  for(const [bone,angle] of [['leftUpperArm',1.10],['rightUpperArm',-1.10]]){
+  const hum=vrm.humanoid;if(!hum)return;
+  // A relaxed A-pose: arms hang at a comfortable angle with slightly bent elbows.
+  const rest={leftUpperArm:1.19,rightUpperArm:-1.19,leftLowerArm:.12,rightLowerArm:-.12,
+              leftHand:-.04,rightHand:.04};
+  for(const [bone,angle] of Object.entries(rest)){
     const node=hum.getNormalizedBoneNode(bone);
-    if(node){node.rotation.z=angle;node.userData.webilangArmAngle=angle;}
-  }
-  for(const [bone,angle] of [['leftLowerArm',.08],['rightLowerArm',-.08]]){
-    const node=hum.getNormalizedBoneNode(bone);if(node)node.rotation.z=angle;
+    if(node){node.rotation.z=angle;node.userData.webilangRestZ=angle;}
   }
 }
 async function loadVrm(url,label){
@@ -68,26 +72,53 @@ vrmFile.addEventListener('change',async()=>{
 });
 useMode();
 loadVrm('./models/emma.vrm','Emma');
-const clock=new THREE.Clock();function resize(){const w=host.clientWidth,h=host.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}new ResizeObserver(resize).observe(host);resize();
+const clock=new THREE.Clock();
+function resize(){
+ const w=host.clientWidth,h=host.clientHeight;
+ renderer.setSize(w,h,false);camera.aspect=w/h;
+ camera.updateProjectionMatrix();
+ if(currentVrm&&modelMode.value==='vrm')framePortrait(currentVrm);
+}
+new ResizeObserver(resize).observe(host);resize();
+let nextBlink=2.5,blinkStart=-1;
 function frame(){
  requestAnimationFrame(frame);
  const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;
+ if(t>=nextBlink){blinkStart=t;nextBlink=t+2.5+Math.random()*3.6;}
+ const blinkProgress=blinkStart>=0?(t-blinkStart)/.19:2;
+ const blink=blinkProgress>=0&&blinkProgress<=1?Math.sin(Math.PI*blinkProgress):0;
  if(currentVrm){
-   // Gentle breathing and a subtle, occasional head movement (without resetting arm pose).
-   const head=currentVrm.humanoid?.getNormalizedBoneNode('head');
-   if(head){head.rotation.y=.035*Math.sin(t*.65);head.rotation.x=.012*Math.sin(t*.82)}
-   const chest=currentVrm.humanoid?.getNormalizedBoneNode('chest');
-   if(chest)chest.rotation.x=.007*Math.sin(t*1.7);
+   const hum=currentVrm.humanoid;
+   const head=hum?.getNormalizedBoneNode('head');
+   const neck=hum?.getNormalizedBoneNode('neck');
+   const chest=hum?.getNormalizedBoneNode('chest');
+   // Micro-motions: breathing, listening nods, and a restrained speaking gesture.
+   if(head){head.rotation.y=.028*Math.sin(t*.48)+ (active?.017*Math.sin(t*1.55):0);
+     head.rotation.x=.009*Math.sin(t*.82)+(active?.016*Math.sin(t*2.05):0);
+     head.rotation.z=.011*Math.sin(t*.39);}
+   if(neck)neck.rotation.y=.008*Math.sin(t*.65);
+   if(chest){chest.rotation.x=.006*Math.sin(t*1.6);chest.rotation.z=.004*Math.sin(t*.53);}
+   for(const [bone,side] of [['leftUpperArm',1],['rightUpperArm',-1]]){
+     const arm=hum?.getNormalizedBoneNode(bone);
+     if(arm&&Number.isFinite(arm.userData.webilangRestZ)){
+       const gesture=active?(.025*Math.sin(t*2.1+side)+.01*Math.sin(t*3.2)):0;
+       arm.rotation.z=arm.userData.webilangRestZ+side*(.007*Math.sin(t*.95)+gesture);
+     }
+   }
+   const em=currentVrm.expressionManager;
+   if(em){
+     const talk=active?(.14+.57*Math.abs(Math.sin(t*10.5)*Math.cos(t*3.7))):0;
+     em.setValue('aa',talk);em.setValue('blink',blink);
+     // Keep the optional smile subtle and avoid overriding models without this expression.
+     if(em.getExpression?.('happy'))em.setValue('happy',active?.055:.025);
+   }
    currentVrm.update(dt);
  }
  character.rotation.y=.055*Math.sin(t*.7);character.position.y=.018*Math.sin(t*1.5);
- if(!blinking&&Math.random()<.0025)blinking=performance.now()+170;
- const blink=blinking&&performance.now()<blinking?1:0;if(blinking&&!blink)blinking=0;
- if(currentVrm?.expressionManager){const em=currentVrm.expressionManager;em.setValue('aa',active?(0.18+Math.abs(Math.sin(t*11)*Math.cos(t*4))*.6):0);em.setValue('blink',blink)}
  lidL.scale.y=lidR.scale.y=blink?.105:.008;
  mouthTarget=active?(0.06+Math.abs(Math.sin(t*14)*Math.cos(t*5))*.16):0.028;
  mouth.scale.y+=(mouthTarget-mouth.scale.y)*.28;
- renderer.render(scene,camera)
+ renderer.render(scene,camera);
 }frame();
 const script=document.querySelector('#script'),lang=document.querySelector('#language');lang.onchange=()=>{script.value=lang.value==='ru'?'Привет! Меня зовут Эмма. Давай поговорим по-русски. Как у тебя дела?':"Hi! I'm Emma, your new speaking partner at Webilang. It's lovely to meet you!"};
 function stop(){active=false;if(audio){audio.pause();audio.src='';audio=null}if(utterance&&'speechSynthesis'in window)speechSynthesis.cancel();utterance=null;status.textContent='Stopped.';document.querySelector('#speak').disabled=false}
