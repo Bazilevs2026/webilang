@@ -2071,6 +2071,24 @@ const videoBox=$("avatarVideoBox"),frame=$("avatarVideoFrame"),endButton=$("avat
 let activeId=null,activeToken=null,creating=false,startedAt=null,activeRole=null,accessForFeedback="";
 let lastFeedbackSession=null;
 let transcriptRequestSerial=0;
+const RECOVERY_KEY="webilang:russian03:pending-avatar-end";
+function rememberCall(){
+ if(activeId&&activeToken)try{sessionStorage.setItem(RECOVERY_KEY,JSON.stringify({conversationId:activeId,token:activeToken}))}catch(_){}
+}
+function forgetCall(){try{sessionStorage.removeItem(RECOVERY_KEY)}catch(_){}}
+async function recoverPreviousCall(){
+ let previous=null;
+ try{previous=JSON.parse(sessionStorage.getItem(RECOVERY_KEY)||"null")}catch(_){}
+ if(!previous?.conversationId||!previous?.token)return;
+ callStatus.textContent="Завершаем прошлый разговор перед новой сессией…";
+ try{
+  await api({action:"end",conversationId:previous.conversationId,token:previous.token});
+  forgetCall();
+  callStatus.textContent="✓ Предыдущая сессия освобождена.";
+ }catch(e){
+  callStatus.textContent="Прошлый разговор ещё не закрыт: "+e.message+". Обновите страницу для повторной попытки.";
+ }
+}
 async function fetchTranscript(){
  const serial=++transcriptRequestSerial;
  const status=$("avatarFeedbackStatus"),b=$("avatarFetchTranscript");
@@ -2097,28 +2115,40 @@ async function api(body){
  return d;
 }
 async function endCall(){
+ if(!activeId||!activeToken)return true;
  const old=activeId,oldToken=activeToken,oldRole=activeRole;
- if(old&&oldRole){
-   lastFeedbackSession={conversationId:old,token:oldToken,role:oldRole,accessCode:accessForFeedback};
-   $("avatarPostFeedback").hidden=false;
-   $("avatarFeedbackStatus").textContent="Разговор завершён. Запрашиваем транскрипцию Tavus…";
- }
- activeId=null;activeToken=null;activeRole=null;startedAt=null;
- frame.src="about:blank";videoBox.hidden=true;topControls.hidden=true;
- document.querySelectorAll("[data-avatar-launch]").forEach(x=>x.disabled=false);
- if(old){try{await api({action:"end",conversationId:old,token:oldToken})}catch(e){console.warn("Tavus call cleanup:",e.message)}
-   if(oldRole){
-     $("avatarPostFeedback").scrollIntoView({behavior:"smooth",block:"start"});
-     await fetchTranscript();
-   }
- }
+ endButton.disabled=true;topEndButton.disabled=true;
+ callStatus.textContent="Завершаем разговор с Tavus…";
+ try{
+  await api({action:"end",conversationId:old,token:oldToken});
+  if(oldRole){
+    lastFeedbackSession={conversationId:old,token:oldToken,role:oldRole,accessCode:accessForFeedback};
+    $("avatarPostFeedback").hidden=false;
+    $("avatarFeedbackStatus").textContent="Разговор завершён. Запрашиваем транскрипцию Tavus…";
+  }
+  activeId=null;activeToken=null;activeRole=null;startedAt=null;
+  forgetCall();
+  frame.src="about:blank";videoBox.hidden=true;topControls.hidden=true;
+  document.querySelectorAll("[data-avatar-launch]").forEach(x=>x.disabled=false);
+  callStatus.textContent="✓ Разговор завершён, сессия освобождена.";
+  if(oldRole){
+    $("avatarPostFeedback").scrollIntoView({behavior:"smooth",block:"start"});
+    await fetchTranscript();
+  }
+  return true;
+ }catch(e){
+  // Keep session credentials, iframe and End buttons so learner can retry safely.
+  callStatus.textContent="Не удалось освободить сессию: "+e.message+". Нажмите «Завершить разговор» повторно.";
+  return false;
+ }finally{endButton.disabled=false;topEndButton.disabled=false}
 }
 endButton.addEventListener("click",endCall);
 topEndButton.addEventListener("click",endCall);
 document.querySelectorAll("[data-avatar-launch]").forEach(btn=>btn.addEventListener("click",async function(){
  if(creating)return;
+ await previousCallRecovery;
  const role=btn.dataset.avatarLaunch;
- if(activeId)await endCall();
+ if(activeId&&!(await endCall()))return;
  creating=true;btn.disabled=true;
  message(role,"Создаём индивидуальный видеозвонок Tavus…");
  try{
@@ -2127,7 +2157,7 @@ document.querySelectorAll("[data-avatar-launch]").forEach(btn=>btn.addEventListe
   accessForFeedback=accessCode;
   const d=await api({action:"start",scenario:role==="michael"?"russian_michael":"russian_anna",accessCode});
   if(!urlSafe(d.url)||!/^[a-zA-Z0-9_-]{5,100}$/.test(d.conversationId||"")||!/^[0-9a-f]{48}$/.test(d.token||""))throw Error("Сервер прислал неверные данные разговора.");
-  activeId=d.conversationId;activeToken=d.token;activeRole=role;startedAt=Date.now();
+  activeId=d.conversationId;activeToken=d.token;activeRole=role;startedAt=Date.now();rememberCall();
   $("avatarVideoTitle").textContent=role==="michael"?"🎭 Разговор с Майклом · Вы — Анна":"🎭 Разговор с Анной · Вы — Майкл";
   $("avatarOpenExternal").href=d.url;
   frame.src=d.url;
@@ -2232,6 +2262,7 @@ $("avatarEvaluate").addEventListener("click",async()=>{
    status.textContent="✓ Анализ готов. Основан только на проверенных учеником репликах.";
  }catch(e){status.textContent="Не удалось получить анализ: "+e.message; $("avatarEvaluate").disabled=false;}
 });
+const previousCallRecovery=recoverPreviousCall();
 window.addEventListener("pagehide",()=>{if(activeId&&activeToken&&navigator.sendBeacon){const payload=new Blob([JSON.stringify({action:"end",conversationId:activeId,token:activeToken})],{type:"application/json"});navigator.sendBeacon("/api/tavus",payload)}});
 })();
 </script>
