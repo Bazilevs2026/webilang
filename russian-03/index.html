@@ -172,6 +172,43 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
 #tab-writing .wl-write-ai{margin-top:12px;line-height:1.6}
 #tab-writing .wl-write-ai .wl-ai-error{padding:10px;border:1px solid #d9e3f1;border-radius:10px;margin:7px 0}
 @media(max-width:850px){#tab-writing .wl-writing-grid{grid-template-columns:1fr}}
+
+/* v75: compact, readable Retrieve tasks */
+#tab-grammar .wl-gram-retrieve-instruction{font-size:14px;color:#526a83;margin:4px 0 12px;line-height:1.35}
+#tab-grammar .wl-gram-controls input{min-width:0;width:min(100%,260px);max-width:260px;flex:0 1 260px;font-size:16px;box-sizing:border-box}
+#tab-grammar .wl-gram-controls input::placeholder{font-size:15px;color:#748397;opacity:1}
+#tab-grammar .wl-gram-eng-hint-btn{margin:9px 0 5px;padding:6px 10px}
+#tab-grammar .wl-gram-eng-hint-text[hidden]{display:none!important}
+@media(max-width:550px){#tab-grammar .wl-gram-controls input{width:100%;max-width:none;flex:1 1 100%}}
+
+/* Unit 3 · Speaking Roulette */
+.tabs{max-width:none;width:100%;padding:10px 11px 0;gap:3px;flex-wrap:nowrap;overflow-x:auto}
+.tabs .tab{padding:10px 9px;font-size:clamp(10px,.94vw,13px);flex:1 0 auto;text-align:center}
+@media(max-width:1150px){.tabs .tab{flex:0 0 auto;font-size:12px}}
+.wl-roulette-layout{display:grid;grid-template-columns:minmax(290px,.9fr) minmax(0,1.1fr);gap:18px;align-items:start}
+.wl-wheel-card{text-align:center}
+.wl-wheel-frame{position:relative;width:min(100%,460px);aspect-ratio:1;margin:8px auto 18px;display:grid;place-items:center}
+.wl-wheel-disk{position:absolute;inset:12px;border-radius:50%;border:9px solid #fff;box-shadow:0 9px 26px #23446a33;background:conic-gradient(#3288c4 0deg 45deg,#e07872 45deg 90deg,#f1b44d 90deg 135deg,#61a88d 135deg 180deg,#846bc7 180deg 225deg,#ef9170 225deg 270deg,#42a4b1 270deg 315deg,#75a65a 315deg 360deg);transition:transform 4.3s cubic-bezier(.12,.72,.13,1)}
+.wl-wedge-num{position:absolute;top:50%;left:50%;font-weight:950;color:white;font-size:clamp(10px,1.1vw,14px);white-space:nowrap;letter-spacing:-.03em;text-shadow:0 1px 3px #17304988;transform:translate(-50%,-50%) rotate(calc(var(--i)*45deg + 22.5deg)) translateY(-133px) rotate(calc(var(--i)*-45deg - 22.5deg))}
+.wl-wheel-arrow{position:absolute;top:-4px;left:50%;transform:translateX(-50%);color:#193f77;font-size:32px;z-index:3}
+.wl-wheel-spin{position:relative;z-index:4;width:94px;height:94px;border:5px solid #fff;border-radius:50%;background:#183c6b;color:#fff;font-weight:1000;font-size:19px;box-shadow:0 4px 16px #132f5d55}
+.wl-wheel-spin:disabled{opacity:.62;cursor:wait}
+.wl-wheel-note{font-size:14px;color:#526b85}
+.wl-wheel-history{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.wl-wheel-history span{font-size:12px;background:#edf5ff;border-radius:18px;padding:5px 9px}
+.wl-roulette-kicker{color:#527293;font-size:12px;font-weight:900;letter-spacing:.05em}
+.wl-roulette-task h3{font-size:25px;margin:12px 0}
+#wlRoulettePrompt{line-height:1.6}
+.wl-roulette-tools,.wl-roulette-actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin:14px 0}
+.wl-roulette-reveal{padding:12px 14px;background:#f2f7ff;border:1px solid #d7e4f5;border-radius:12px;margin:9px 0;line-height:1.6}
+.wl-roulette-reveal[hidden]{display:none!important}
+.wl-roulette-timer{display:flex;align-items:center;justify-content:space-between;gap:12px;border-radius:14px;background:#edf3fa;padding:14px 17px;margin:16px 0}
+.wl-roulette-timer strong{font-size:31px;font-variant-numeric:tabular-nums}
+.wl-roulette-timer span{font-size:12px;color:#61788e}
+.wl-roulette-label{font-weight:850;display:block;margin:14px 0 7px}
+#wlRouletteTranscript{width:100%;box-sizing:border-box;border:1px solid #d2dfed;border-radius:12px;padding:12px;resize:vertical;font:inherit}
+#wlRoulettePlayback{width:100%;margin:8px 0}
+@media(max-width:900px){.wl-roulette-layout{grid-template-columns:1fr}.wl-wheel-frame{max-width:365px}.wl-wedge-num{transform:translate(-50%,-50%) rotate(calc(var(--i)*45deg + 22.5deg)) translateY(-105px) rotate(calc(var(--i)*-45deg - 22.5deg))}}
 </style>
 <style>
 .read-intro{display:grid;grid-template-columns:240px 1fr;gap:18px;background:white;border:1px solid var(--line);padding:14px;border-radius:17px;align-items:center;margin-bottom:14px}
@@ -449,9 +486,34 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
 #readingChat .reading-line-controls .reading-line-resume{background:#e3f4e9;color:#1e7248;border-color:#b2dec4}
 #readingChat .reading-line-controls button:disabled{opacity:.4;cursor:not-allowed}
 @media(max-width:620px){#readingChat .speaker{flex-wrap:wrap;gap:8px}#readingChat .reading-line-controls{justify-content:flex-start}}
-</style></head><body>
+</style>
+<style id="wl-grammar-v72-css">
+.wl-grammar-list{display:grid;gap:13px;max-width:1100px;margin:auto}
+.wl-gram-card{border:1px solid #dbe6ee;background:white;border-radius:19px;overflow:hidden;box-shadow:0 6px 23px #1b385710}
+.wl-gram-head{border:0;background:linear-gradient(100deg,#f6faff,#fff);width:100%;display:flex;gap:15px;align-items:center;text-align:left;padding:17px 20px;color:#18364f;cursor:pointer}
+.wl-gram-head>span:nth-child(2){flex:1;min-width:0}.wl-gram-head strong{display:block;font-size:19px}.wl-gram-head small{display:block;color:#63778b;font-size:12px;margin-top:4px}
+.wl-gram-icon{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:#eaf1ff;font-size:24px}.wl-gram-progress{white-space:nowrap;border-radius:99px;background:#ecf6f0;color:#187349;padding:7px 10px;font-weight:800;font-size:12px}.wl-gram-chevron{font-size:23px;color:#52718b}
+.wl-gram-body{padding:5px 20px 20px}.wl-gram-body[hidden],.wl-gram-rule[hidden]{display:none!important}
+.wl-gram-intro{background:#f4f8fc;border-radius:12px;padding:12px 14px;margin-bottom:12px;line-height:1.7;font-weight:700}
+.wl-rule-button{border:1px solid #c4d9ee;border-radius:11px;background:#eef6ff;color:#175b96;padding:9px 12px;font-weight:800;cursor:pointer}
+.wl-gram-rule{border-left:4px solid #72a7de;background:#f5faff;border-radius:10px;padding:11px 16px;margin:10px 0 14px;line-height:1.65}.wl-gram-rule p{margin:0}.wl-gram-rule ul{margin:7px 0 0;padding-left:20px}
+.wl-gram-stage{margin:15px 0 0}.wl-gram-stage h4{margin:0 0 10px;font-size:16px}
+.wl-gram-question{border:1px solid #e0e7ee;border-radius:13px;padding:12px 14px;margin:9px 0;background:#fff}
+.wl-gram-question p{margin:0 0 9px;font-weight:750}.wl-gram-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.wl-gram-controls input{min-width:190px;max-width:310px;flex:1;border:1px solid #cbd6e2;border-radius:10px;padding:9px}
+.wl-gram-choice,.wl-gram-check,.wl-gram-speak{border-radius:10px;padding:8px 12px;font-weight:800;cursor:pointer;border:1px solid #afc6dd;background:#f1f7ff;color:#215b8c}
+.wl-gram-choice.chosen{background:#d8ebff;border-color:#488ddd}.wl-gram-check{background:#19784e;color:white;border-color:#19784e}.wl-gram-speak{background:#f0e9ff;color:#663fa4;border-color:#d0b6f1}
+.wl-gram-feedback{font-size:13px;font-weight:800;margin-top:8px;min-height:15px}.wl-gram-feedback.ok{color:#178046}.wl-gram-feedback.bad{color:#c0403a}
+.wl-gram-status-note{color:#64748b;font-size:12px;margin-top:8px}
+@media(max-width:650px){.wl-gram-head{padding:13px;gap:9px}.wl-gram-head strong{font-size:15px}.wl-gram-body{padding:4px 12px 14px}.wl-gram-icon{width:38px;height:38px;font-size:20px}.wl-gram-controls input{min-width:125px}}
+
+#tab-grammar .wl-gram-eng-hint-btn{border:1px solid #b7cdef;background:#edf5ff;color:#175a9b;padding:7px 11px;border-radius:11px;font-weight:800;font-size:13px;margin:0 0 10px;cursor:pointer}
+#tab-grammar .wl-gram-eng-hint-text{background:#f0f6ff;border-left:3px solid #6096d5;border-radius:8px;padding:9px 12px;margin:0 0 12px;font-size:14px;color:#315277}
+#tab-grammar .wl-gram-eng-hint-text[hidden]{display:none!important}
+</style>
+</head><body>
 <header class="header"><div class="header-inner"><div class="brand">◆ WEBILANG <span class="tag">Russian · Unit 3 · A1–A1+</span></div><h1>Знакомства</h1></div><nav class="tabs" aria-label="Разделы урока">
-<button type="button" class="tab active" data-tab="story">📖 История</button><button type="button" class="tab" data-tab="reading">📚 Чтение</button><button type="button" class="tab" data-tab="vocab">🗂 Лексика</button><button type="button" class="tab" data-tab="watching">▶ Видео</button><button type="button" class="tab" data-tab="grammar">🧩 Грамматика</button><button type="button" class="tab" data-tab="speaking">🎭 Ролевая игра с ИИ-аватаром</button><button type="button" class="tab" data-tab="words">🔖 Мои слова <span id="navWordCount">0</span></button><button type="button" class="tab" data-tab="mygrammar">📗 Моя грамматика</button><button type="button" class="tab" data-tab="writing">✍ Письмо</button><button type="button" class="tab" data-tab="game">🎲 Игра</button>
+<button type="button" class="tab active" data-tab="story">📖 История</button><button type="button" class="tab" data-tab="reading">📚 Чтение</button><button type="button" class="tab" data-tab="vocab">🗂 Лексика</button><button type="button" class="tab" data-tab="watching">▶ Видео</button><button type="button" class="tab" data-tab="grammar">🧩 Грамматика</button><button type="button" class="tab" data-tab="speaking">🎭 Диалог с ИИ</button><button type="button" class="tab" data-tab="words">🔖 Мои слова <span id="navWordCount">0</span></button><button type="button" class="tab" data-tab="mygrammar">📗 Моя грамматика</button><button type="button" class="tab" data-tab="roulette">🎙 Говорение</button><button type="button" class="tab" data-tab="writing">✍ Письмо</button><button type="button" class="tab" data-tab="game">🎲 Игра</button>
 </nav></header>
 <div id="wl-microphone-controls" hidden>
 <button type="button" class="wl-tool-btn" id="wlEnableMic" title="Разрешить микрофон для сайта">🎙️ Enable microphone</button>
@@ -498,10 +560,63 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
  <div class="card padded"><h3>Говорение после видео · Speaking</h3><p class="small muted">Speak in Russian in the present tense. Live Transcript is editable before AI Feedback. Recognition mistakes are not automatically saved as grammar errors.</p><div id="watchSpeaking"></div></div>
  </section>
 
-<section id="tab-grammar" class="panel"><div class="pane-head"><h2>Грамматика · Grammar</h2><p>Target Structures → модель → небольшая практика.</p></div><div class="grid2"><div class="card softblue"><div class="kicker">Target Structure 1</div><h3>Играть НА + инструмент</h3><p><b>Я играю на фортепиано.</b> — I play the piano.</p><p><b>Он играет на гитаре.</b> — He plays the guitar.</p><div class="hint">Use играть <b>на</b> with musical instruments.</div><button class="mini-audio" data-say="Я играю на фортепиано. Он играет на гитаре.">🔊</button></div><div class="card softmint"><div class="kicker">Target Structure 2</div><h3>Играть В + игру или вид спорта</h3><p><b>Я играю в шахматы.</b> — I play chess.</p><p><b>Он играет в теннис.</b> — He plays tennis.</p><div class="hint">Use играть <b>в</b> with games and sports.</div><button class="mini-audio" data-say="Я играю в шахматы. Он играет в теннис.">🔊</button></div></div><div class="card padded"><h3 style="margin:0">Мини-практика</h3><div id="grammarQuiz"></div><button id="checkGrammar" class="btn">Проверить</button><div id="grammarResult" class="status"></div><div class="notice">Эти задания проверяют фиксированные формы. Свободные грамматически правильные варианты AI должен принимать после серверного подключения.</div></div></section>
+<section id="tab-grammar" class="panel"><div class="pane-head"><h2>Грамматика · Grammar</h2><p>Четыре темы · Recognize → Retrieve → Produce. Выберите тему, чтобы открыть задания.</p></div><div class="wl-grammar-list"><article class="wl-gram-card" data-topic="0">
+ <button class="wl-gram-head" type="button" aria-expanded="true" aria-controls="wl-gram-body-0"><span class="wl-gram-icon">👤</span><span><strong>01. Знакомимся</strong><small>Introducing Yourself</small></span><span class="wl-gram-progress" data-progress="0">0/8</span><span class="wl-gram-chevron">⌄</span></button>
+ <div class="wl-gram-body" id="wl-gram-body-0"  >
+ <div class="wl-gram-intro">Меня зовут Анна. Мне 20 лет. Я студентка.</div>
+ <button class="wl-rule-button" type="button" data-rule="0">🇬🇧 English Rule ▾</button>
+ <div class="wl-gram-rule" data-rule-panel="0" hidden><p>Use fixed patterns to introduce yourself: Меня зовут + name (My name is...), Мне + age + лет (I am ... years old), Я студент / Я студентка (I am a student). Only студент / студентка changes for male/female speakers. No adjective endings are needed here.</p><ul><li>Меня зовут Анна. — My name is Anna.</li><li>Мне 20 лет. — I am 20 years old.</li><li>Я студент. / Я студентка. — I am a student (male/female).</li></ul></div>
+ <div class="wl-gram-exercises" data-exercises="0"></div>
+ </div></article><article class="wl-gram-card" data-topic="1">
+ <button class="wl-gram-head" type="button" aria-expanded="false" aria-controls="wl-gram-body-1"><span class="wl-gram-icon">💬</span><span><strong>02. Что ты делаешь?</strong><small>Present Tense</small></span><span class="wl-gram-progress" data-progress="1">0/8</span><span class="wl-gram-chevron">⌄</span></button>
+ <div class="wl-gram-body" id="wl-gram-body-1" hidden>
+ <div class="wl-gram-intro">Я изучаю русский. Ты изучаешь историю. Он играет в шахматы.</div>
+ <button class="wl-rule-button" type="button" data-rule="1">🇬🇧 English Rule ▾</button>
+ <div class="wl-gram-rule" data-rule-panel="1" hidden><p>In the present tense Russian changes the verb ending to match the subject: я изучаю, ты изучаешь, он/она изучает. For учиться: я учусь, ты учишься, он/она учится.</p><ul><li>Я изучаю русский. — I study Russian.</li><li>Ты изучаешь историю. — You study history.</li><li>Она учится в университете. — She studies at university.</li></ul></div>
+ <div class="wl-gram-exercises" data-exercises="1"></div>
+ </div></article><article class="wl-gram-card" data-topic="2">
+ <button class="wl-gram-head" type="button" aria-expanded="false" aria-controls="wl-gram-body-2"><span class="wl-gram-icon">📍</span><span><strong>03. Откуда ты? Где ты живёшь?</strong><small>Places & Prepositions</small></span><span class="wl-gram-progress" data-progress="2">0/8</span><span class="wl-gram-chevron">⌄</span></button>
+ <div class="wl-gram-body" id="wl-gram-body-2" hidden>
+ <div class="wl-gram-intro">Я из России. Я живу в Москве. Я учусь в университете.</div>
+ <button class="wl-rule-button" type="button" data-rule="2">🇬🇧 English Rule ▾</button>
+ <div class="wl-gram-rule" data-rule-panel="2" hidden><p>Use из + genitive to say where you come from: из России. Use в + prepositional case for your location: в Москве, в университете. Place names can change their ending.</p><ul><li>Я из России. — I am from Russia.</li><li>Я живу в Москве. — I live in Moscow.</li><li>Я учусь в университете. — I study at university.</li></ul></div>
+ <div class="wl-gram-exercises" data-exercises="2"></div>
+ </div></article><article class="wl-gram-card" data-topic="3">
+ <button class="wl-gram-head" type="button" aria-expanded="false" aria-controls="wl-gram-body-3"><span class="wl-gram-icon">🎸</span><span><strong>04. Что ты любишь?</strong><small>Hobbies & Verb Patterns</small></span><span class="wl-gram-progress" data-progress="3">0/8</span><span class="wl-gram-chevron">⌄</span></button>
+ <div class="wl-gram-body" id="wl-gram-body-3" hidden>
+ <div class="wl-gram-intro">Я играю на гитаре. Я играю в шахматы и теннис. Я люблю музыку.</div>
+ <button class="wl-rule-button" type="button" data-rule="3">🇬🇧 English Rule ▾</button>
+ <div class="wl-gram-rule" data-rule-panel="3" hidden><p>Use играть на + instrument (на гитаре, на пианино), but играть в + game or sport (в шахматы, в теннис). After люблю use a noun (люблю музыку) or a verb in the infinitive (люблю читать).</p><ul><li>Я играю на гитаре. — I play the guitar.</li><li>Я играю в шахматы и теннис. — I play chess and tennis.</li><li>Я люблю слушать музыку. — I like listening to music.</li></ul></div>
+ <div class="wl-gram-exercises" data-exercises="3"></div>
+ </div></article></div><div hidden style="display:none!important" aria-hidden="true"><div id="grammarQuiz"></div><button id="checkGrammar" type="button"></button><div id="grammarResult"></div></div></section>
 
 <section id="tab-words" class="panel"><div class="pane-head"><h2>Мои слова · My Word Stock</h2><p>Сохранённые выражения из истории и словаря. Выберите до 6 для личной практики.</p></div><div class="grid2"><div class="card"><div class="row spread"><h3 style="margin:0">Мой словарь</h3><span id="savedWordCount" class="pill">0 слов</span></div><div id="wordStockRows"></div><div class="row padded"><button class="btn sm secondary" id="selectSix">Выбрать до 6</button><button class="btn sm ghost" id="unselectWords">Снять выбор</button></div></div><div class="card softblue"><h3 style="margin-top:0">Практика · Recognize → Retrieve → Produce</h3><p>Выбранные слова сначала узнаём, затем вспоминаем без подсказки, затем используем в собственной речи.</p><div id="selectedCount" class="pill">Выбрано: 0</div><div class="padded"><button id="createPractice" class="btn green">Создать упражнения</button></div><div class="notice">В этом автономном HTML задания создаются локально из сохранённых карточек. AI-генерацию подключим позднее, не добавляя API-функции.</div></div></div><div id="practiceRoot" class="padded"></div></section>
 
+<section id="tab-roulette" class="panel">
+<div class="pane-head"><h2>🎙 Говорение · Speaking Roulette</h2><p>Подготовьтесь в своём темпе, затем говорите по-русски 45 секунд.</p></div>
+<div class="wl-roulette-layout">
+ <div class="card wl-wheel-card">
+  <div class="wl-wheel-frame"><div id="wlWheelDisk" class="wl-wheel-disk"><span class="wl-wedge-num" style="--i:0">О себе</span><span class="wl-wedge-num" style="--i:1">Учёба</span><span class="wl-wedge-num" style="--i:2">Языки</span><span class="wl-wedge-num" style="--i:3">Хобби</span><span class="wl-wedge-num" style="--i:4">В кафе</span><span class="wl-wedge-num" style="--i:5">Мой друг</span><span class="wl-wedge-num" style="--i:6">Спорт/музыка</span><span class="wl-wedge-num" style="--i:7">Мой герой</span></div><span class="wl-wheel-arrow">▼</span><button class="wl-wheel-spin" id="wlSpin" type="button">SPIN</button></div>
+  <p class="wl-wheel-note" id="wlSpinStatus" aria-live="polite">Нажмите SPIN, чтобы выбрать тему.</p>
+  <div class="wl-wheel-history" id="wlWheelHistory"></div>
+ </div>
+ <div class="card wl-roulette-task">
+  <div class="wl-roulette-kicker">SPEAKING CHALLENGE <span id="wlRouletteLevel"></span></div>
+  <h3 id="wlRouletteTitle">🎯 Тема появится здесь</h3>
+  <p id="wlRoulettePrompt">Вращайте рулетку, затем подготовьтесь к ответу. Таймер запускается только по вашему решению.</p>
+  <div class="wl-roulette-tools"><button type="button" class="btn sm secondary" id="wlRouletteEng" disabled>🇬🇧 ENG</button><button type="button" class="btn sm secondary" id="wlRouletteSupport" disabled>💡 Support</button></div>
+  <div class="wl-roulette-reveal" id="wlRouletteEnglish" hidden></div><div class="wl-roulette-reveal" id="wlRouletteHelp" hidden></div>
+  <div class="wl-roulette-timer"><strong id="wlRouletteClock">00:45</strong><span id="wlRouletteTimeNote">PREPARE · без таймера</span></div>
+  <div class="wl-roulette-actions"><button type="button" class="btn green" id="wlRouletteRecord" disabled>🎤 Start speaking</button><button type="button" class="btn secondary" id="wlRouletteStop" disabled>■ Stop</button></div>
+  <div id="wlRouletteMicStatus" class="small muted" aria-live="polite">Можно подготовить ответ до начала записи.</div>
+  <audio id="wlRoulettePlayback" controls hidden></audio>
+  <label class="wl-roulette-label" for="wlRouletteTranscript">Ваш ответ · transcript (можно исправить)</label>
+  <textarea id="wlRouletteTranscript" rows="5" placeholder="Здесь появится распознанная речь. Можно также написать ответ вручную."></textarea>
+  <div class="wl-roulette-actions"><button type="button" class="btn blue" id="wlRouletteFeedback" disabled>✨ Get AI Feedback</button><span id="wlRouletteFeedbackStatus" class="small muted"></span></div>
+  <div id="wlRouletteFeedbackResult" class="ai-output" aria-live="polite"></div>
+ </div>
+</div>
+</section>
 <section id="tab-speaking" class="panel">
 <div class="pane-head"><h2>🎭 Ролевая игра с ИИ-аватаром</h2><p>Две мини-миссии по 5 минут. Выберите роль, прочитайте подсказки и поговорите с Майклом или Анной на русском языке.</p></div>
 <div class="avatar-grid">
@@ -2438,6 +2553,167 @@ root.addEventListener("webilang:reset-writing",()=>{
  ["writingStatus","wlIndependentStatus"].forEach(id=>by(id).textContent="");
 });
 load();
+})();
+</script>
+
+<script id="wl-grammar-v72-js">
+(()=>{
+"use strict";
+const DATA=[{"name": "Знакомимся", "en": "Introducing Yourself", "icon": "👋", "intro": "Меня зовут Анна. Мне 20 лет. Я студентка.", "rule": "Use fixed patterns to introduce yourself: Меня зовут + name (My name is...), Мне + age + лет (I am ... years old), Я студент / Я студентка (I am a student). Only студент / студентка changes for male/female speakers. No adjective endings are needed here.", "examples": ["Меня зовут Анна. — My name is Anna.", "Мне 20 лет. — I am 20 years old.", "Я студент. / Я студентка. — I am a student (male/female)."], "rec": [["Меня ... Анна.", "зовут", "зову"], ["... 20 лет.", "Мне", "Меня"], ["Я ... . (жен.)", "студентка", "студент"]], "ret": [["Меня ... Анна.", "зовут", "My name is Anna."], ["... 20 лет.", "Мне", "I am 20 years old."], ["Я ... . (муж.)", "студент", "I am a male student."]], "prod": [["Представься: как тебя зовут?", ["меня зовут"]], ["Скажи, сколько тебе лет.", ["мне", "лет"]]]}, {"name": "Что ты делаешь?", "en": "Present Tense", "icon": "💬", "intro": "Я изучаю русский. Ты изучаешь историю. Он играет в шахматы.", "rule": "In the present tense Russian changes the verb ending to match the subject: я изучаю, ты изучаешь, он/она изучает. For учиться: я учусь, ты учишься, он/она учится.", "examples": ["Я изучаю русский. — I study Russian.", "Ты изучаешь историю. — You study history.", "Она учится в университете. — She studies at university."], "rec": [["Я ... русский.", "изучаю", "изучаешь"], ["Ты ... историю.", "изучаешь", "изучает"], ["Она ... в университете.", "учится", "учусь"]], "ret": [["Я ... в университете.", "учусь", "I study at university."], ["Ты ... по-русски.", "говоришь", "You speak Russian."], ["Он ... музыку.", "любит", "He likes music."]], "prod": [["Расскажи, что ты изучаешь.", ["я изучаю", "я учу"]], ["Спроси друга, что он изучает (на «ты»).", ["ты изучаешь", "что ты изучаешь", "что изучаешь"]]]}, {"name": "Откуда ты? Где ты живёшь?", "en": "Places & Prepositions", "icon": "📍", "intro": "Я из России. Я живу в Москве. Я учусь в университете.", "rule": "Use из + genitive to say where you come from: из России. Use в + prepositional case for your location: в Москве, в университете. Place names can change their ending.", "examples": ["Я из России. — I am from Russia.", "Я живу в Москве. — I live in Moscow.", "Я учусь в университете. — I study at university."], "rec": [["Я ... России.", "из", "в"], ["Я живу ... Москве.", "в", "из"], ["Я учусь ... университете.", "в", "из"]], "ret": [["Я ... России.", "из", "I am from Russia."], ["Я живу в ... . (Москва)", "Москве", "I live in Moscow."], ["Я учусь в ... . (университет)", "университете", "I study at university."]], "prod": [["Скажи, откуда ты.", ["я из"]], ["Скажи, где ты живёшь.", ["я живу"]]]}, {"name": "Что ты любишь?", "en": "Hobbies & Verb Patterns", "icon": "🎸", "intro": "Я играю на гитаре. Я играю в шахматы и теннис. Я люблю музыку.", "rule": "Use играть на + instrument (на гитаре, на пианино), but играть в + game or sport (в шахматы, в теннис). After люблю use a noun (люблю музыку) or a verb in the infinitive (люблю читать).", "examples": ["Я играю на гитаре. — I play the guitar.", "Я играю в шахматы и теннис. — I play chess and tennis.", "Я люблю слушать музыку. — I like listening to music."], "rec": [["Я играю ... гитаре.", "на", "в"], ["Я играю ... шахматы.", "в", "на"], ["Я люблю ... музыку.", "слушать", "слушаю"]], "ret": [["Я играю ... теннис.", "в", "I play tennis."], ["Я играю ... гитаре.", "на", "I play the guitar."], ["Я люблю ... музыку.", "слушать", "I like listening to music."]], "prod": [["Скажи, на каком инструменте ты играешь.", ["я играю на"]], ["Скажи, в какую игру или спорт ты играешь.", ["я играю в"]]]}];
+const RET_ENG_HINTS=[["My name is Anna.", "I am 20 years old.", "I am a male student."], ["I study at university.", "You speak Russian.", "He likes music."], ["I am from Russia.", "I live in Moscow.", "I study at university."], ["I play tennis.", "I play the guitar.", "I like listening to music."]];
+const root=document.querySelector("#tab-grammar");
+if(!root)return;
+const state=DATA.map(()=>({done:new Set(),answers:{}}));
+const norm=v=>String(v||"").toLocaleLowerCase("ru").replace(/[.!?«»"']/g,"").replace(/\s+/g," ").trim();
+const make=(tag,cls,txt)=>{const el=document.createElement(tag);if(cls)el.className=cls;if(txt!==undefined)el.textContent=txt;return el;};
+function progress(i){root.querySelector(`[data-progress="${i}"]`).textContent=state[i].done.size+"/8";}
+function feedback(target,ok,text){target.textContent=text;target.className="wl-gram-feedback "+(ok?"ok":"bad");}
+function build(i){
+ const holder=root.querySelector(`[data-exercises="${i}"]`);holder.replaceChildren();state[i].done.clear();state[i].answers={};progress(i);
+ const t=DATA[i];
+ const stages=[["1 · Recognize — выбери форму",t.rec,"rec"],["2 · Retrieve — впиши форму",t.ret,"ret"],["3 · Produce — скажи или напиши",t.prod,"prod"]];
+ stages.forEach(([heading,items,mode])=>{
+  const block=make("div","wl-gram-stage");
+  block.append(make("h4","",heading));
+  if(mode==="ret")block.append(make("p","wl-gram-retrieve-instruction","Одно слово в пропуск · ENG — перевод."));
+  items.forEach((item,j)=>{
+    const k=mode+j;const card=make("div","wl-gram-question"),q=make("p","",`${j+1}. ${item[0]}`),ctrl=make("div","wl-gram-controls"),fb=make("div","wl-gram-feedback");
+    card.append(q,ctrl);
+    if(mode==="ret"){
+      const hintToggle=make("button","wl-gram-eng-hint-btn","🇬🇧 ENG");
+      hintToggle.type="button";hintToggle.setAttribute("aria-expanded","false");
+      const hint=make("p","wl-gram-eng-hint-text",RET_ENG_HINTS[i][j]);
+      hint.hidden=true;hintToggle.onclick=()=>{hint.hidden=!hint.hidden;hintToggle.setAttribute("aria-expanded",String(!hint.hidden));};
+      card.append(hintToggle,hint);
+    }
+    if(mode==="rec"){
+      const choices=[item[1],item[2]];
+      let selected="";
+      choices.forEach(word=>{
+        const btn=make("button","wl-gram-choice",word);btn.type="button";
+        btn.onclick=()=>{selected=word;ctrl.querySelectorAll(".wl-gram-choice").forEach(b=>b.classList.toggle("chosen",b===btn));fb.textContent="";};
+        ctrl.append(btn);
+      });
+      const check=make("button","wl-gram-check","Check");check.type="button";
+      check.onclick=()=>{if(!selected){feedback(fb,false,"Сначала выберите ответ.");return;}const ok=norm(selected)===norm(item[1]);feedback(fb,ok,ok?"✓ Верно!":"Попробуйте снова.");if(ok){state[i].done.add(k);progress(i);}};
+      ctrl.append(check);
+    }else{
+      const input=make("input");input.type="text";input.autocomplete="off";input.placeholder=mode==="prod"?"Ваше предложение…":"Одно слово";input.setAttribute("aria-label",item[0]);
+      ctrl.append(input);
+      const speak=make("button","wl-gram-speak","🎤 Speak");speak.type="button";speak.title="Произнесите ответ; можно также напечатать.";
+      speak.onclick=()=>{
+       const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+       if(!SR){feedback(fb,false,"Распознавание речи недоступно. Напишите ответ.");return;}
+       try{const rec=new SR();rec.lang="ru-RU";rec.interimResults=false;rec.onresult=e=>{input.value=e.results[0][0].transcript;feedback(fb,true,"Речь распознана. Нажмите Check.");};rec.onerror=()=>feedback(fb,false,"Не удалось распознать речь. Можно написать ответ.");rec.start();}catch(e){feedback(fb,false,"Микрофон недоступен. Напишите ответ.");}
+      };
+      ctrl.append(speak);
+      const check=make("button","wl-gram-check","Check");check.type="button";
+      check.onclick=()=>{
+       const answer=norm(input.value);
+       if(!answer){feedback(fb,false,"Сначала напишите или произнесите ответ.");return;}
+       const fullSentence=mode==="ret"?norm(item[0].replace(/\s*\.\.\.\s*/g," "+item[1]+" ").replace(/\([^)]*\)/g,"").replace(/\s+\./g,".")):"";
+       const checkProduce=(topic,question,value)=>{
+         const a=norm(value);
+         if(topic===0&&question===0)return /^(?:меня зовут|моё имя|мое имя)\\s+[а-яёa-z][а-яёa-z\\s-]*$/iu.test(a)||/^(?:я|это я)\\s+[а-яёa-z][а-яёa-z\\s-]*$/iu.test(a);
+         if(topic===0&&question===1)return /^мне\\s+(?:\\d{1,3}|[а-яё\\s-]+)\\s+(?:год|года|лет)$/u.test(a)||/^мне\\s+\\d{1,3}$/u.test(a);
+         if(topic===1&&question===0)return /\\bя\\s+(?:изучаю|учу)\\s+[^\\s].+/u.test(a);
+         if(topic===1&&question===1)return /^(?:а\\s+)?(?:что\\s+)?ты\\s+(?:изучаешь|учишь)\\s*.*\\??$/u.test(a)||/^что\\s+(?:ты\\s+)?(?:изучаешь|учишь)\\s*.*\\??$/u.test(a);
+         if(topic===2&&question===0)return /^я\\s+из\\s+.+/u.test(a);
+         if(topic===2&&question===1)return /^я\\s+живу\\s+.+/u.test(a);
+         if(topic===3&&question===0)return /^я\\s+играю\\s+на\\s+.+/u.test(a);
+         if(topic===3&&question===1)return /^я\\s+играю\\s+в\\s+.+/u.test(a);
+         return false;
+       };
+       const ok=mode==="ret"?(answer===norm(item[1])||answer===fullSentence):checkProduce(i,j,input.value);
+       if(ok){state[i].done.add(k);progress(i);}
+       let msg=ok?"✓ Верно!":(mode==="prod"?"Попробуйте ответить на вопрос целой фразой. Имя и личные данные могут быть любыми.":"Не то слово. Нажмите ENG, чтобы узнать смысл.");
+       if(!ok&&mode==="ret"&&answer.includes(" ")){
+         msg="Нужно одно слово в пропуск. Введите только слово для пропуска.";
+       }
+       if(!ok&&mode==="ret"&&i===1&&j===2&&/уч(ит|ится|у|ишь|ат)/u.test(answer)){
+         msg="Здесь смысл «likes music», а не «studies music». Откройте ENG.";
+       }
+       feedback(fb,ok,msg);
+      };
+      ctrl.append(check);
+      if(mode==="prod")card.append(make("div","wl-gram-status-note","Используйте свои данные. Проверяется конструкция, а не конкретное имя или город."));
+    }
+    card.append(fb);block.append(card);
+  });holder.append(block);
+ });
+}
+DATA.forEach((_,i)=>build(i));
+root.querySelectorAll(".wl-gram-head").forEach(btn=>btn.addEventListener("click",()=>{
+ const open=btn.getAttribute("aria-expanded")==="true";
+ root.querySelectorAll(".wl-gram-head").forEach(other=>{other.setAttribute("aria-expanded","false");root.querySelector("#"+other.getAttribute("aria-controls")).hidden=true;});
+ if(!open){btn.setAttribute("aria-expanded","true");root.querySelector("#"+btn.getAttribute("aria-controls")).hidden=false;}
+}));
+root.querySelectorAll("[data-rule]").forEach(btn=>btn.addEventListener("click",()=>{const el=root.querySelector(`[data-rule-panel="${btn.dataset.rule}"]`);el.hidden=!el.hidden;}));
+root.addEventListener("webilang:reset-grammar",()=>{DATA.forEach((_,i)=>{build(i);root.querySelector(`[data-rule-panel="${i}"]`).hidden=true;});});
+root.addEventListener("click",e=>{if(!e.target.closest(".wl-reset-action"))return;setTimeout(()=>root.dispatchEvent(new Event("webilang:reset-grammar")),0);},true);
+})();
+</script>
+
+<script id="wl-speaking-roulette-v78">
+(()=>{
+"use strict";
+const $=id=>document.getElementById(id), root=$("tab-roulette");
+if(!root)return;
+const topics=[
+{title:"👋 Кто ты?",q:"Представься. Как тебя зовут? Сколько тебе лет? Откуда ты? Где ты живёшь?",en:"Introduce yourself. What is your name? How old are you? Where are you from? Where do you live?",help:["Меня зовут…","Мне … лет.","Я из… Я живу в…"]},
+{title:"🎓 Мой университет",q:"Где ты учишься? На каком ты курсе? Что ты изучаешь?",en:"Where do you study? What year are you in? What do you study?",help:["Я учусь в…","Я на первом / втором курсе.","Я изучаю…"]},
+{title:"🌍 Мои языки",q:"На каких языках ты говоришь? Какой язык ты изучаешь? Почему?",en:"Which languages do you speak? Which language are you studying? Why?",help:["Я говорю по…","Я немного говорю по…","Я изучаю… потому что это интересно."]},
+{title:"🎨 Мои увлечения",q:"Что ты любишь делать в свободное время? Что ещё тебе нравится?",en:"What do you like doing in your free time? What else do you enjoy?",help:["Я люблю…","В свободное время я…","Мне нравится…"]},
+{title:"☕ Встреча в кафе",q:"Ты в кафе. Познакомься с новым студентом. Что ты любишь пить? Задай два вопроса.",en:"You are at a café. Meet a new student. What do you like to drink? Ask two questions.",help:["Привет! Меня зовут…","Я люблю чай / кофе.","А как тебя зовут? Что ты изучаешь?"]},
+{title:"👫 Мой друг",q:"Расскажи о друге. Как его или её зовут? Где он или она живёт? Что любит делать?",en:"Tell us about your friend. What is their name? Where do they live? What do they like doing?",help:["Это мой друг / моя подруга…","Он / она живёт в…","Он / она любит…"]},
+{title:"🎸 Спорт или музыка навсегда?",q:"Представь: всю жизнь ты можешь только играть на музыкальном инструменте или заниматься спортом. Что ты выбираешь? Почему?",en:"Imagine you can only play a musical instrument or do sports for the rest of your life. Which do you choose, and why?",help:["Я выбираю…","Я люблю… потому что…","Я играю на… / Я играю в…","Это интересно / весело."],level:"A1+"},
+{title:"⭐ Мой герой",q:"Кто твой герой? Почему он или она тебе нравится? Что он или она умеет делать?",en:"Who is your hero? Why do you admire them? What can they do?",help:["Мой герой — …","Он / она мне нравится, потому что…","Он / она умеет играть / петь / говорить…"],level:"A1+"}
+];
+const wheel=$("wlWheelDisk"),spin=$("wlSpin"),title=$("wlRouletteTitle"),prompt=$("wlRoulettePrompt"),clock=$("wlRouletteClock"),help=$("wlRouletteHelp"),english=$("wlRouletteEnglish"),record=$("wlRouletteRecord"),stop=$("wlRouletteStop"),status=$("wlRouletteMicStatus"),text=$("wlRouletteTranscript"),player=$("wlRoulettePlayback"),feedback=$("wlRouletteFeedback"),output=$("wlRouletteFeedbackResult");
+let current=-1,angle=0,round=0,recorder=null,chunks=[],stream=null,recognition=null,tick=null,secs=45,running=false,history=[],objectURL="";
+function timer(){clock.textContent="00:"+String(Math.max(0,secs)).padStart(2,"0");}
+function stopClock(){if(tick)clearInterval(tick);tick=null;running=false;}
+function teardown(){stopClock();if(recorder&&recorder.state!=="inactive"){try{recorder.stop()}catch(e){}}if(recognition){try{recognition.stop()}catch(e){}recognition=null;}if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}record.disabled=current<0;stop.disabled=true;}
+function resetRound(){teardown();secs=45;timer();text.value="";output.replaceChildren();$("wlRouletteFeedbackStatus").textContent="";feedback.disabled=true;player.hidden=true;player.pause();if(objectURL)URL.revokeObjectURL(objectURL);objectURL="";help.hidden=true;english.hidden=true;status.textContent="Подготовка без таймера. ENG и Support доступны по нажатию.";$("wlRouletteTimeNote").textContent="PREPARE · без таймера";}
+function setTopic(i){current=i;const t=topics[i];resetRound();title.textContent=t.title;prompt.textContent=t.q;$("wlRouletteLevel").textContent=t.level||"A1";$("wlRouletteEng").disabled=false;$("wlRouletteSupport").disabled=false;record.disabled=false;history.push(i);$("wlWheelHistory").replaceChildren(...history.slice(-8).map(n=>{const b=document.createElement("span");b.textContent=(n+1)+" · "+topics[n].title.replace(/^[^\s]+\s/,"");return b;}));}
+spin.addEventListener("click",()=>{
+ if(running){status.textContent="Сначала завершите запись.";return;}
+ spin.disabled=true;let i=Math.floor(Math.random()*8);if(history.length&&i===history[history.length-1])i=(i+1+Math.floor(Math.random()*7))%8;
+ const currentRotation=((angle%360)+360)%360;
+ const desired=(360-(i*45+22.5))%360;const delta=((desired-currentRotation+360)%360)+360*5;
+ angle+=delta;wheel.style.transform=`rotate(${angle}deg)`;$("wlSpinStatus").textContent="Рулетка вращается…";
+ setTimeout(()=>{setTopic(i);spin.disabled=false;$("wlSpinStatus").textContent="Выбрана тема "+(i+1)+". Подготовьтесь и нажмите Start speaking.";},4400);
+});
+$("wlRouletteEng").onclick=()=>{english.hidden=!english.hidden;english.textContent=topics[current].en;};
+$("wlRouletteSupport").onclick=()=>{help.hidden=!help.hidden;help.replaceChildren();if(!help.hidden){const h=document.createElement("b");h.textContent="Useful phrases · речевые опоры";help.append(h);const ul=document.createElement("ul");topics[current].help.forEach(x=>{const li=document.createElement("li");li.textContent=x;ul.append(li)});help.append(ul)}};
+async function begin(){
+ if(current<0||running)return;
+ record.disabled=true;status.textContent="Подключаем микрофон…";
+ try{
+  stream=await navigator.mediaDevices.getUserMedia({audio:true});
+  if(typeof MediaRecorder!=="undefined"){chunks=[];recorder=new MediaRecorder(stream);recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};recorder.onstop=()=>{if(chunks.length){if(objectURL)URL.revokeObjectURL(objectURL);objectURL=URL.createObjectURL(new Blob(chunks,{type:recorder.mimeType||"audio/webm"}));player.src=objectURL;player.hidden=false;}};recorder.start();}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(SR){recognition=new SR();recognition.lang="ru-RU";recognition.continuous=true;recognition.interimResults=true;let final="";recognition.onresult=e=>{let interim="";for(let j=e.resultIndex;j<e.results.length;j++){if(e.results[j].isFinal)final+=e.results[j][0].transcript+" ";else interim+=e.results[j][0].transcript}text.value=(final+" "+interim).trim();};recognition.onerror=e=>{status.textContent="Распознавание: "+e.error+". Запись можно прослушать, текст — вписать вручную.";};try{recognition.start()}catch(e){}}
+  running=true;secs=45;timer();stop.disabled=false;$("wlRouletteTimeNote").textContent="SPEAK · 45 секунд";status.textContent="🎙 Запись идёт. Можно завершить ответ после 45 секунд.";tick=setInterval(()=>{if(secs>0){secs--;timer()}else{stopClock();$("wlRouletteTimeNote").textContent="45 секунд прошло · завершите мысль";}},1000);
+ }catch(e){status.textContent="Не удалось включить микрофон: "+(e.message||e)+". Можно написать ответ вручную.";record.disabled=false;}
+}
+record.onclick=begin;
+stop.onclick=()=>{teardown();status.textContent="Запись завершена. Прослушайте её и исправьте текст, если нужно.";feedback.disabled=!text.value.trim();$("wlRouletteTimeNote").textContent="FEEDBACK · ответ завершён";};
+text.addEventListener("input",()=>{feedback.disabled=!text.value.trim()||running||current<0;});
+feedback.onclick=async()=>{
+ const v=text.value.trim();if(!v||current<0)return;
+ feedback.disabled=true;const st=$("wlRouletteFeedbackStatus");st.textContent="AI проверяет ответ…";output.replaceChildren();
+ try{
+  const r=await fetch("/api/feedback",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mode:"russian_speaking_feedback",targetLanguage:"ru",supportLanguage:"en",module:"russian-03",level:topics[current].level||"A1",task:"45-second spoken Russian on topic: "+topics[current].title+". Prompt: "+topics[current].q+". Use PRESENT TENSE. Focus on task completion, grammatical accuracy, simple A1 vocabulary and clarity; accept natural alternatives; give at most 3 specific confirmed corrections; do not penalize natural pauses or scaffolding.",transcript:v})});
+  const data=await r.json();if(!r.ok)throw Error(data.error||"AI unavailable");
+  const add=(tag,t)=>{const el=document.createElement(tag);el.textContent=t;output.append(el)};
+  add("h4","AI Feedback");const sc=data.scores||{};if(Object.keys(sc).length)add("p","Grammar: "+(sc.grammar??"—")+" · Task: "+(sc.relevance??"—"));add("p",data.feedback||data.message||"Проверка завершена.");
+  (data.grammarItems||[]).slice(0,3).forEach(x=>add("p",(x.original||"")+" → "+(x.corrected||"")+(x.explanation?" · "+x.explanation:"")));
+  st.textContent="✓ Feedback готов.";
+ }catch(e){st.textContent="AI Feedback недоступен: "+e.message+". Текст и запись сохранены на странице.";}
+ finally{feedback.disabled=false;}
+};
+root.addEventListener("click",e=>{if(e.target.closest(".wl-reset-action"))setTimeout(()=>{resetRound();current=-1;history=[];angle=0;wheel.style.transition="none";wheel.style.transform="rotate(0deg)";wheel.offsetHeight;wheel.style.transition="";title.textContent="🎯 Тема появится здесь";prompt.textContent="Вращайте рулетку, затем подготовьтесь к ответу. Таймер запускается только по вашему решению.";$("wlRouletteEng").disabled=true;$("wlRouletteSupport").disabled=true;$("wlWheelHistory").replaceChildren();$("wlSpinStatus").textContent="Нажмите SPIN, чтобы выбрать тему.";},10);},true);
 })();
 </script>
 </body></html>
