@@ -1188,6 +1188,48 @@ $("writingDraft").value=store.writing||"";
 $("writingDraft").addEventListener("input",()=>{$("writingWords").textContent=$("writingDraft").value.trim()?$("writingDraft").value.trim().split(/\s+/).length+" слов":"0 слов"});
 $("saveWriting").onclick=()=>{store.writing=$("writingDraft").value;save();$("writingStatus").textContent="Текст сохранён локально."};
 
+
+// Central AI Feedback → My Grammar Stock bridge (v83).
+// Only structured, non-identical corrections are saved; no parsing of free-form feedback.
+window.webilangIsGrammarError = function(item, source="") {
+ if(!item || typeof item!=="object") return false;
+ const category=String(item.category||item.type||item.skill||item.dimension||"").toLowerCase();
+ if(/pronunciation|fluency|communication|relevance|vocabulary|lexical|style|spelling|content|task|coherence/.test(category)) return false;
+ if(/grammar|grammatical|morphology|syntax|agreement|case|tense/.test(category)) return true;
+ // Dedicated grammar arrays from the server are already grammar-classified.
+ if(["grammarItems","grammar.items","grammar_errors","errors"].includes(source)) return true;
+ // Generic corrections may mix fluency, vocabulary and grammar; require evidence.
+ const why=String(item.explanation||item.rule||item.reason||"").toLowerCase();
+ return /граммат|падеж|окончани|спряжени|склонени|род[ауе ]|числ[оае]|согласован|форм[ауеы] глагол|предлог|порядок слов|grammar|case ending|verb form|conjugat|declens|agreement|word order|tense|gender/.test(why);
+};
+window.webilangGrammarCorrections = function(payload) {
+ const items=[];
+ for(const [source,arr] of [
+   ["grammarItems",payload?.grammarItems],["grammar.items",payload?.grammar?.items],
+   ["grammar_errors",payload?.grammar_errors],["errors",payload?.errors],
+   ["corrections",payload?.corrections]
+ ]) {
+  if(!Array.isArray(arr))continue;
+  for(const item of arr)if(window.webilangIsGrammarError(item,source))items.push(item);
+ }
+ return items.filter((item,i)=>items.findIndex(x=>String(x.original||x.incorrect||x.before)===String(item.original||item.incorrect||item.before)&&String(x.corrected||x.correction||x.after)===String(item.corrected||item.correction||item.after))===i);
+};
+window.webilangCaptureFeedback = function(payload) {
+ const raw=window.webilangGrammarCorrections(payload);
+ let added=0;
+ for(const item of raw){
+  const original=cleanGrammarOriginal(String(item.original||item.incorrect||item.before||"").trim());
+  const corrected=cleanGrammarModel(String(item.corrected||item.correction||item.after||"").trim());
+  const rule=String(item.explanation||item.rule||"").trim();
+  if(!original||!corrected||norm(original)===norm(corrected))continue;
+  if(store.grammar.some(x=>norm(x.original)===norm(original)&&norm(x.corrected)===norm(corrected)))continue;
+  store.grammar.push({original,corrected,rule,module:"russian-03",source:"AI Feedback",verifiedByStudent:false});
+  added++;
+ }
+ if(added){save();renderGrammarStock();}
+ return added;
+};
+
 document.addEventListener("webilang:writing-grammar-error",event=>{
  const e=event.detail||{};
  if(!e.original||!e.corrected||e.original===e.corrected)return;
@@ -1319,7 +1361,7 @@ document.querySelectorAll("[data-ai-speak]").forEach(btn=>btn.addEventListener("
  const assessments=data.scores||{};
  aiCard(out,null,"p","",`Grammar accuracy: ${assessments.grammar??"—"} · Target structure: ${assessments.target??"—"} · Task relevance: ${assessments.relevance??"—"}`);
  aiCard(out,null,"p","",data.feedback||"");
- for(const e of (data.grammarItems||[])){
+ for(const e of (window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[])){
    const box=aiCard(out,null,"div","ai-error");
    aiCard(box,null,"p","",`Your wording: ${e.original||""}`);
    aiCard(box,null,"p","",`Corrected: ${e.corrected||""}`);
@@ -1332,7 +1374,7 @@ document.querySelectorAll("[data-ai-speak]").forEach(btn=>btn.addEventListener("
       save();renderGrammarStock();saveBtn.textContent="✓ Saved";saveBtn.disabled=true;
    };
  }
- if(!(data.grammarItems||[]).length)aiCard(out,null,"p","result good","No confirmed grammar errors to save.");
+ if(!(window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).length)aiCard(out,null,"p","result good","No confirmed grammar errors to save.");
  status.textContent="Feedback received. Save only genuine errors.";
  }catch(err){status.textContent="AI unavailable: "+err.message+". Your transcript is kept."}
  finally{btn.disabled=false}
@@ -1625,7 +1667,7 @@ document.getElementById("readingAi").onclick=async()=>{
  aiCard(out,null,"h4","","AI Feedback");
  const scores=data.scores||{};aiCard(out,null,"p","",`Grammar accuracy: ${scores.grammar??"—"} · Target structure: ${scores.target??"—"} · Task relevance: ${scores.relevance??"—"}`);
  aiCard(out,null,"p","",data.feedback||"");
- for(const e of (data.grammarItems||[])){
+ for(const e of (window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[])){
  const block=aiCard(out,null,"div","ai-error");
  aiCard(block,null,"p","",`Your wording: ${e.original||""}`);
  aiCard(block,null,"p","",`Corrected: ${e.corrected||""}`);
@@ -1635,7 +1677,7 @@ document.getElementById("readingAi").onclick=async()=>{
  if(!store.grammar.some(g=>g.original===e.original&&g.corrected===e.corrected))store.grammar.push({original:e.original,corrected:e.corrected,rule:e.explanation||"",module:"russian-03"});
  save();renderGrammarStock();saveBtn.textContent="✓ Saved";saveBtn.disabled=true};
  }
- if(!(data.grammarItems||[]).length)aiCard(out,null,"p","result good","No confirmed grammar errors to save.");
+ if(!(window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).length)aiCard(out,null,"p","result good","No confirmed grammar errors to save.");
  status.textContent="Feedback received. Review errors before saving.";
  }catch(e){status.textContent="AI unavailable: "+e.message+". Your transcript is preserved."}finally{btn.disabled=false}
 };
@@ -1672,7 +1714,7 @@ document.getElementById("readingCommonAi").onclick=async()=>{
  aiCard(out,null,"h4","","AI Feedback");
  const scores=data.scores||{};aiCard(out,null,"p","",`Grammar accuracy: ${scores.grammar??"—"} · Target structure: ${scores.target??"—"} · Task relevance: ${scores.relevance??"—"}`);
  aiCard(out,null,"p","",data.feedback||"");
- for(const e of (data.grammarItems||[])){
+ for(const e of (window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[])){
  const block=aiCard(out,null,"div","ai-error");
  aiCard(block,null,"p","",`Your wording: ${e.original||""}`);
  aiCard(block,null,"p","",`Corrected: ${e.corrected||""}`);
@@ -1682,7 +1724,7 @@ document.getElementById("readingCommonAi").onclick=async()=>{
  if(!store.grammar.some(g=>g.original===e.original&&g.corrected===e.corrected))store.grammar.push({original:e.original,corrected:e.corrected,rule:e.explanation||"",module:"russian-03"});
  save();renderGrammarStock();saveBtn.textContent="✓ Saved";saveBtn.disabled=true};
  }
- if(!(data.grammarItems||[]).length)aiCard(out,null,"p","result good","No confirmed grammar errors to save.");
+ if(!(window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).length)aiCard(out,null,"p","result good","No confirmed grammar errors to save.");
  status.textContent="Feedback received. Review errors before saving.";
  }catch(e){status.textContent="AI unavailable: "+e.message+". Your transcript is preserved."}finally{btn.disabled=false}
 };
@@ -1756,7 +1798,7 @@ TASKS.forEach((task,i)=>{
    const data=await response.json();if(!response.ok)throw Error(data.error||"AI unavailable");
    const scores=document.createElement("p");scores.textContent="Grammar: "+(data.scores?.grammar??"—")+" · Present Tense: "+(data.scores?.target??"—")+" · Relevance: "+(data.scores?.relevance??"—");out.append(scores);
    const msg=document.createElement("p");msg.textContent=data.feedback||"";out.append(msg);
-   (data.grammarItems||[]).forEach(err=>{
+   (window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).forEach(err=>{
      const box=document.createElement("div");box.className="exercise";
      const lines=document.createElement("p");lines.textContent=(err.original||"")+" → "+(err.corrected||"")+" · "+(err.explanation||"");box.append(lines);
      const saveBtn=document.createElement("button");saveBtn.className="btn sm green";saveBtn.textContent="Save to Моя грамматика";
@@ -1767,7 +1809,7 @@ TASKS.forEach((task,i)=>{
      };
      box.append(saveBtn);out.append(box);
    });
-   if(!(data.grammarItems||[]).length){const p=document.createElement("p");p.textContent="No confirmed grammar errors to save.";out.append(p)}
+   if(!(window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).length){const p=document.createElement("p");p.textContent="No confirmed grammar errors to save.";out.append(p)}
    status.textContent="Feedback ready. Save only confirmed errors.";
   }catch(e){status.textContent="AI requires the Webilang server: "+e.message}finally{feedback.disabled=false}
  };
@@ -2600,7 +2642,7 @@ async function checkAI(type){
   const d=await r.json();if(!r.ok)throw Error(d.error||"AI unavailable");
   put(out,"h4","AI Feedback");put(out,"p","Grammar: "+(d.scores?.grammar??"—")+" · Communication: "+(d.scores?.relevance??"—"));
   put(out,"p",d.feedback||"");
-  (d.grammarItems||[]).forEach(err=>{
+  (window.webilangCaptureFeedback?.(d), window.webilangGrammarCorrections?.(d)||[]).forEach(err=>{
    const box=put(out,"div","","wl-ai-error");
    put(box,"p",(err.original||"")+" → "+(err.corrected||"")+" · "+(err.explanation||""));
    if(err.original&&err.corrected&&err.original!==err.corrected){
@@ -2785,12 +2827,91 @@ feedback.onclick=async()=>{
   const data=await r.json();if(!r.ok)throw Error(data.error||"AI unavailable");
   const add=(tag,t)=>{const el=document.createElement(tag);el.textContent=t;output.append(el)};
   add("h4","AI Feedback");const sc=data.scores||{};if(Object.keys(sc).length)add("p","Grammar: "+(sc.grammar??"—")+" · Task: "+(sc.relevance??"—"));add("p",data.feedback||data.message||"Проверка завершена.");
-  (data.grammarItems||[]).slice(0,3).forEach(x=>add("p",(x.original||"")+" → "+(x.corrected||"")+(x.explanation?" · "+x.explanation:"")));
+  (window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).slice(0,3).forEach(x=>add("p",(x.original||"")+" → "+(x.corrected||"")+(x.explanation?" · "+x.explanation:"")));
   st.textContent="✓ Feedback готов.";
  }catch(e){st.textContent="AI Feedback недоступен: "+e.message+". Текст и запись сохранены на странице.";}
  finally{feedback.disabled=false;}
 };
 root.addEventListener("click",e=>{if(e.target.closest(".wl-reset-action"))setTimeout(()=>{resetRound();current=-1;history=[];angle=0;wheel.style.transition="none";wheel.style.transform="rotate(0deg)";wheel.offsetHeight;wheel.style.transition="";title.textContent="🎯 Тема появится здесь";prompt.textContent="Вращайте рулетку, затем подготовьтесь к ответу. Таймер запускается только по вашему решению.";$("wlRouletteEng").disabled=true;$("wlRouletteSupport").disabled=true;$("wlWheelHistory").replaceChildren();$("wlSpinStatus").textContent="Нажмите SPIN, чтобы выбрать тему.";},10);},true);
+})();
+</script>
+
+<style id="wl-feedback-color-v84">
+.wl-ai-score-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(138px,1fr));gap:9px;margin:12px 0!important}
+.wl-ai-score{border:1px solid #cbd9e6;border-left:5px solid var(--score-color,#6b91b6);border-radius:12px;padding:10px 12px;background:var(--score-bg,#f3f8ff);min-width:0}
+.wl-ai-score-name{display:block;font-size:12px;letter-spacing:.01em;font-weight:850;color:#384b63}
+.wl-ai-score-value{display:block;margin-top:5px;font-size:20px;font-weight:900;color:var(--score-color,#366a99)}
+.wl-ai-score.grammar{--score-color:#315db0;--score-bg:#edf3ff}
+.wl-ai-score.communication,.wl-ai-score.relevance{--score-color:#208361;--score-bg:#e8f8ef}
+.wl-ai-score.pronunciation{--score-color:#9460a7;--score-bg:#f6effb}
+.wl-ai-score.fluency{--score-color:#b9791e;--score-bg:#fff7e8}
+.wl-ai-score.vocabulary{--score-color:#be5773;--score-bg:#fff0f4}
+.wl-ai-score.target{--score-color:#168a98;--score-bg:#e8f8fa}
+.wl-ai-feedback-points{padding:0!important;margin:10px 0!important;display:grid;gap:7px;list-style:none!important}
+.wl-ai-feedback-points li{background:#f7fafc;border:1px solid #dce6ee;border-radius:9px;padding:9px 11px;font-size:13px;line-height:1.5}
+.wl-ai-feedback-points li::before{content:"• ";color:#427cad;font-weight:900}
+.wl-ai-feedback-sentence{background:#f7fafc;border:1px solid #dce6ee;border-radius:9px;padding:10px 12px;line-height:1.55;margin:8px 0}
+.ai-error,.wl-ai-error,.feedback-error{border:1px solid #d9deed!important;border-left:4px solid #315db0!important;background:#f6f8ff!important;padding:10px 12px!important;border-radius:11px!important;margin:9px 0!important}
+.ai-error p,.wl-ai-error p,.feedback-error p{margin:5px 0!important;line-height:1.48}
+@media(max-width:600px){.wl-ai-score-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.wl-ai-score-value{font-size:17px}}
+</style>
+<script id="wl-feedback-color-v84-js">
+(()=>{"use strict";
+const selectors=[
+ '[id^="aiResult"]','#readingAiResult','#readingCommonAiResult',
+ '#wlRouletteFeedbackResult','#avatarFeedbackReport','#wlGuidedOutput',
+ '#wlIndependentOutput','.wl-write-ai','.ai-output'
+].join(',');
+const categoryNames={grammar:'Grammar · Грамматика',target:'Target structures · Конструкции',relevance:'Communication · Общение',communication:'Communication · Общение',pronunciation:'Pronunciation · Произношение',fluency:'Fluency · Беглость',vocabulary:'Vocabulary · Лексика'};
+function adapt(root){
+ if(!root||!root.isConnected)return;
+ const paragraphs=Array.from(root.querySelectorAll('p'));
+ for(const p of paragraphs){
+  if(p.dataset.wlFeedbackFormatted||p.closest('.wl-ai-score-grid, .ai-error, .wl-ai-error, .feedback-error, .feedback-piece'))continue;
+  const raw=p.textContent.trim();
+  if(!raw)continue;
+  // Existing score paragraphs are written as "Grammar: 4 · Communication: 5".
+  if(/(?:grammar|communication|relevance|target structure|present tense|task relevance)\s*:/i.test(raw)&&raw.includes('·')){
+   const parts=raw.split(/\s*·\s*/);
+   const entries=parts.map(x=>x.match(/^([A-Za-z ]+):\s*(.+)$/)).filter(Boolean);
+   if(entries.length>1 && entries.length===parts.length){
+    const grid=document.createElement('div');grid.className='wl-ai-score-grid';
+    for(const e of entries){
+     const label=e[1].trim();
+     let category=label.toLowerCase();
+     if(category.includes('grammar'))category='grammar';
+     else if(category.includes('communication')||category.includes('relevance')||category==='task')category='communication';
+     else if(category.includes('target')||category.includes('present tense'))category='target';
+     const card=document.createElement('div');card.className='wl-ai-score '+category;
+     const name=document.createElement('span');name.className='wl-ai-score-name';name.textContent=categoryNames[category]||label;
+     const val=document.createElement('span');val.className='wl-ai-score-value';val.textContent=e[2].trim();
+     card.append(name,val);grid.append(card);
+    }
+    p.replaceWith(grid);continue;
+   }
+  }
+  // Turn long feedback paragraphs into short readable points without changing the text.
+  if(raw.length>145 && !p.querySelector('button, input, a, textarea')){
+    let sections=raw.split(/\n+|(?<=[.!?])\s+(?=[А-ЯA-ZЁ])/).map(x=>x.trim()).filter(Boolean);
+    if(sections.length<2)continue;
+    const list=document.createElement('ul');list.className='wl-ai-feedback-points';
+    for(const part of sections){
+     const li=document.createElement('li');li.textContent=part;list.append(li);
+    }
+    p.replaceWith(list);
+   }
+ }
+}
+let queued=false;
+const observer=new MutationObserver(()=>{
+ if(queued)return;queued=true;
+ requestAnimationFrame(()=>{queued=false;document.querySelectorAll(selectors).forEach(adapt)});
+});
+const start=()=>{
+ document.querySelectorAll(selectors).forEach(adapt);
+ observer.observe(document.body,{childList:true,subtree:true,characterData:false});
+};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
 </script>
 </body></html>
