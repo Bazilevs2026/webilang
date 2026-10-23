@@ -1261,6 +1261,11 @@ window.webilangSaveGrammarMistake = function(item) {
  }
  return {ok:true,alreadySaved:exists};
 };
+// Allows the avatar feedback UI to verify that the entry reached the real stock.
+window.webilangGrammarHasMistake=function(original,corrected){
+ return store.grammar.some(x=>norm(x.original)===norm(cleanGrammarOriginal(original))
+   && norm(x.corrected)===norm(cleanGrammarModel(corrected)));
+};
 window.webilangGrammarSaveButton=function(item){
  const button=document.createElement("button");
  button.type="button";button.className="btn sm green wl-grammar-save-button";
@@ -2172,9 +2177,49 @@ $("avatarEvaluate").addEventListener("click",async()=>{
      const save=feedbackNode("button","💾 Save my mistake → My Grammar","save-feedback-error");
      save.type="button";
      save.addEventListener("click",()=>{
-       const result=window.webilangSaveGrammarMistake({original:e.original,corrected:e.correction,explanation:e.explanation,category:"grammar"});
-       save.textContent=result.ok?(result.alreadySaved?"✓ Already in My Grammar":"✓ Saved to My Grammar"):"Could not save — check correction";
-       save.disabled=!!result.ok;
+       // Avatar feedback can use either "correction" or "corrected".
+       // Route through the *same* grammar stock as the other lesson tabs.
+       const item={
+         original:String(e.original||e.incorrect||e.before||"").trim(),
+         corrected:String(e.correction||e.corrected||e.after||"").trim(),
+         explanation:String(e.explanation||e.rule||e.reason||"").trim(),
+         category:"grammar"
+       };
+       if(!item.original||!item.corrected||item.original===item.corrected){
+         save.textContent="Could not save — correction is incomplete";
+         return;
+       }
+       let result={ok:false};
+       try {
+         if(typeof window.webilangSaveGrammarMistake==="function")
+           result=window.webilangSaveGrammarMistake(item);
+         // Fallback to the original grammar-stock event used by Writing.
+         if(!result?.ok){
+           const detail={original:item.original,corrected:item.corrected,rule:item.explanation,saved:false};
+           document.dispatchEvent(new CustomEvent("webilang:writing-grammar-error",{detail}));
+           result={ok:!!detail.saved};
+         }
+         // Check the actual grammar store, not only a success message.
+         const stored=typeof window.webilangGrammarHasMistake==="function"
+           ? window.webilangGrammarHasMistake(item.original,item.corrected)
+           : !!result.ok;
+         if(stored){
+           save.textContent=result.alreadySaved?"✓ Already in My Grammar":"✓ Saved to My Grammar";
+           save.disabled=true;
+           const jump=feedbackNode("button","📗 Open My Grammar","btn sm");
+           jump.type="button";
+           jump.addEventListener("click",()=>{
+             const target=document.querySelector('[data-tab="mygrammar"],[data-target="mygrammar"],[aria-controls="tab-mygrammar"]');
+             if(target){target.click();return}
+             const pane=document.getElementById("tab-mygrammar");
+             if(pane){document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));pane.classList.add("active");pane.hidden=false;pane.scrollIntoView({behavior:"smooth"})}
+           });
+           box.append(jump);
+         } else save.textContent="Could not confirm save — try again";
+       }catch(error){
+         console.error("Avatar grammar save error",error);
+         save.textContent="Save failed — please retry";
+       }
      });
      box.append(save);grammar.append(box);
    });
