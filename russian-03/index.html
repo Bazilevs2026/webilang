@@ -209,6 +209,10 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
 #wlRouletteTranscript{width:100%;box-sizing:border-box;border:1px solid #d2dfed;border-radius:12px;padding:12px;resize:vertical;font:inherit}
 #wlRoulettePlayback{width:100%;margin:8px 0}
 @media(max-width:900px){.wl-roulette-layout{grid-template-columns:1fr}.wl-wheel-frame{max-width:365px}.wl-wedge-num{transform:translate(-50%,-50%) rotate(calc(var(--i)*45deg + 22.5deg)) translateY(-105px) rotate(calc(var(--i)*-45deg - 22.5deg))}}
+#tab-reading .reading-two-speaking{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}
+#tab-reading .reading-two-speaking>.card{min-width:0;margin:0}
+#tab-reading .reading-two-speaking textarea{width:100%;box-sizing:border-box}
+@media(max-width:800px){#tab-reading .reading-two-speaking{grid-template-columns:1fr}}
 </style>
 <style>
 .read-intro{display:grid;grid-template-columns:240px 1fr;gap:18px;background:white;border:1px solid var(--line);padding:14px;border-radius:17px;align-items:center;margin-bottom:14px}
@@ -558,16 +562,25 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
 <div class="read-help">Tap a highlighted word for its English meaning. Double-click (or long-press) a word to add it to <b>«Мои слова»</b>. Saved words go to the same My Word Stock as words from the comic.</div>
 <div id="readingChat" class="reading-chat"></div>
 <div class="card padded"><h3>Проверка понимания · Reading Comprehension</h3><p class="small muted">Choose one answer and press Check for each question.</p><div id="readingChatQuiz" class="reading-six-grid"></div></div>
-<div class="card softmint padded"><h3>🎤 Запиши ответ · После чтения</h3>
+<div class="reading-two-speaking"><div class="card softmint padded"><h3>🎤 1. Расскажи о себе · Introduce yourself</h3>
+<p class="reading-focused-prompt"><b>Расскажи о себе</b></p>
+<p class="small muted">Представься новому студенту: как тебя зовут, откуда ты, где учишься, какие языки знаешь и что любишь делать? В конце задай ему вопрос. Говори в настоящем времени.</p>
+<details class="reading-speaking-help"><summary>🇬🇧 ENG · English question</summary><p>Introduce yourself to a new student: your name, where you are from, studies, languages and hobbies. Finish with a question.</p></details>
+<details class="reading-speaking-help"><summary>💡 Support · Начало ответа</summary><p>Меня зовут… Я из… Я учусь в… Я говорю по-… Я люблю… А ты?</p></details>
+<div class="row padded"><button class="btn green" id="readingMic">🎙️ Записать ответ</button><button class="btn secondary sm" id="readingMicStop">■ Стоп</button><span id="readingMicStatus" class="status">Редактируйте текст перед AI Feedback.</span></div>
+<textarea id="readingSpeech" rows="6" placeholder="Меня зовут… Я учусь… Я люблю… А ты?"></textarea>
+<div class="row padded"><button class="btn" id="readingAi">✨ AI Feedback</button><button class="btn ghost" id="readingDone">I'm happy with my answer</button></div>
+<div id="readingAiStatus" class="status"></div><div id="readingAiResult" class="ai-output"></div>
+</div><div class="card softmint padded"><h3>🎤 2. Что общего у Анны и Майкла?</h3>
 <p class="reading-focused-prompt"><b>Что общего у Анны и Майкла?</b></p>
 <p class="small muted">Расскажи по-русски, что у них общего: учёба, языки и увлечения. Ответь в 2–4 предложениях. Используй настоящее время.</p>
 <details class="reading-speaking-help"><summary>🇬🇧 ENG · English question</summary><p>What do Anna and Michael have in common? Give 2–4 sentences about their studies, languages and hobbies.</p></details>
 <details class="reading-speaking-help"><summary>💡 Support · Начало ответа</summary><p>Анна и Майкл — студенты. Они оба… Анна любит…, и Майкл тоже…</p></details>
-<div class="row padded"><button class="btn green" id="readingMic">🎙️ Записать ответ</button><button class="btn secondary sm" id="readingMicStop">■ Стоп</button><span id="readingMicStatus" class="status">Редактируйте текст перед AI Feedback.</span></div>
-<textarea id="readingSpeech" rows="6" placeholder="Анна и Майкл оба… Они изучают…"></textarea>
-<div class="row padded"><button class="btn" id="readingAi">✨ AI Feedback</button><button class="btn ghost" id="readingDone">I'm happy with my answer</button></div>
-<div id="readingAiStatus" class="status"></div><div id="readingAiResult" class="ai-output"></div>
-</div></section>
+<div class="row padded"><button class="btn green" id="readingCommonMic">🎙️ Записать ответ</button><button class="btn secondary sm" id="readingCommonMicStop">■ Стоп</button><span id="readingCommonMicStatus" class="status">Редактируйте текст перед AI Feedback.</span></div>
+<textarea id="readingCommonSpeech" rows="6" placeholder="Анна и Майкл оба… Они изучают…"></textarea>
+<div class="row padded"><button class="btn" id="readingCommonAi">✨ AI Feedback</button><button class="btn ghost" id="readingCommonDone">I'm happy with my answer</button></div>
+<div id="readingCommonAiStatus" class="status"></div><div id="readingCommonAiResult" class="ai-output"></div>
+</div></div></section>
 <section id="tab-vocab" class="panel"><div class="pane-head"><h2>Лексика · Vocabulary</h2></div><div id="thematicVocabulary" class="lex-themes"></div></section>
 
 <section id="tab-watching" class="panel">
@@ -1607,6 +1620,53 @@ document.getElementById("readingAi").onclick=async()=>{
  const resp=await fetch("/api/feedback",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
  mode:"russian_speaking_feedback",targetLanguage:"ru",supportLanguage:"en",level:"A1",module:"russian-03",
  task:"Introduce yourself as a student in Russian. Use the PRESENT TENSE and vocabulary from the chat and comic: study, live, languages, hobbies, playing sport/chess or an instrument, weekends. End by asking another student a question. Evaluate grammar accuracy, target structure use, and task relevance separately. Accept alternative correct wordings. Ignore ASR artifacts and nonmandatory stylistic suggestions.",transcript:value
+ })});
+ const data=await resp.json();if(!resp.ok)throw Error(data.error||"AI unavailable");
+ aiCard(out,null,"h4","","AI Feedback");
+ const scores=data.scores||{};aiCard(out,null,"p","",`Grammar accuracy: ${scores.grammar??"—"} · Target structure: ${scores.target??"—"} · Task relevance: ${scores.relevance??"—"}`);
+ aiCard(out,null,"p","",data.feedback||"");
+ for(const e of (data.grammarItems||[])){
+ const block=aiCard(out,null,"div","ai-error");
+ aiCard(block,null,"p","",`Your wording: ${e.original||""}`);
+ aiCard(block,null,"p","",`Corrected: ${e.corrected||""}`);
+ aiCard(block,null,"p","",`Explanation: ${e.explanation||""}`);
+ const saveBtn=aiCard(block,null,"button","btn sm green","Save to My Grammar Stock");
+ saveBtn.onclick=()=>{if(!e.original||!e.corrected)return;
+ if(!store.grammar.some(g=>g.original===e.original&&g.corrected===e.corrected))store.grammar.push({original:e.original,corrected:e.corrected,rule:e.explanation||"",module:"russian-03"});
+ save();renderGrammarStock();saveBtn.textContent="✓ Saved";saveBtn.disabled=true};
+ }
+ if(!(data.grammarItems||[]).length)aiCard(out,null,"p","result good","No confirmed grammar errors to save.");
+ status.textContent="Feedback received. Review errors before saving.";
+ }catch(e){status.textContent="AI unavailable: "+e.message+". Your transcript is preserved."}finally{btn.disabled=false}
+};
+// Independent second after-reading speaking task
+let readingCommonRecognition=null,readingCommonFinalBase="";
+const readingCommonArea=document.getElementById("readingCommonSpeech");
+document.getElementById("readingCommonMic").onclick=()=>{
+ const status=document.getElementById("readingCommonMicStatus");
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){status.textContent="Live transcription unavailable here. Type your response instead.";return}
+ if(readingCommonRecognition){readingCommonRecognition.stop();readingCommonRecognition=null}
+ const rec=new SR();readingCommonRecognition=rec;readingCommonFinalBase=readingCommonArea.value.trim();
+ rec.lang="ru-RU";rec.interimResults=true;rec.continuous=true;
+ let finalized="";
+ rec.onresult=e=>{let interim="";for(let j=e.resultIndex;j<e.results.length;j++){const r=e.results[j];if(r.isFinal)finalized+=r[0].transcript+" ";else interim+=r[0].transcript}
+ readingCommonArea.value=[readingCommonFinalBase,finalized.trim(),interim.trim()].filter(Boolean).join(" ").trim();status.textContent="Live transcript — you can edit it before feedback."};
+ rec.onerror=e=>{status.textContent="Microphone: "+e.error+". You can type instead."};
+ rec.onend=()=>{readingCommonRecognition=null;status.textContent="Recording stopped. Edit transcript before feedback."};
+ try{rec.start();status.textContent="Listening…"}catch(e){status.textContent=e.message}
+};
+document.getElementById("readingCommonMicStop").onclick=()=>{if(readingCommonRecognition){readingCommonRecognition.stop();readingCommonRecognition=null}};
+document.getElementById("readingCommonDone").onclick=()=>document.getElementById("readingCommonAiStatus").textContent="Completed by student choice. No claim of grammar mastery.";
+document.getElementById("readingCommonAi").onclick=async()=>{
+ const value=readingCommonArea.value.trim(),status=document.getElementById("readingCommonAiStatus"),out=document.getElementById("readingCommonAiResult"),btn=document.getElementById("readingCommonAi");
+ out.replaceChildren();
+ if(value.length<8){status.textContent="Please speak or type your answer.";return}
+ btn.disabled=true;status.textContent="Checking…";
+ try{
+ const resp=await fetch("/api/feedback",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+ mode:"russian_speaking_feedback",targetLanguage:"ru",supportLanguage:"en",level:"A1",module:"russian-03",
+ task:"Explain what Anna and Michael have in common according to the reading chat, focusing on studies, languages and hobbies. Use 2–4 simple Russian sentences in the PRESENT TENSE. Do not require information absent from the reading. Evaluate grammar accuracy, target structure use, and task relevance separately. Accept alternative correct wordings. Ignore ASR artifacts and nonmandatory stylistic suggestions.",transcript:value
  })});
  const data=await resp.json();if(!resp.ok)throw Error(data.error||"AI unavailable");
  aiCard(out,null,"h4","","AI Feedback");
