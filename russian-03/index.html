@@ -258,7 +258,27 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
 #avatarVideoFrame{width:100%;height:min(68vh,620px);min-height:380px;display:block;border:0;background:#0a1021}
 .avatar-video-footer{font-size:13px;background:#152440}.avatar-video-footer a{color:#a9ddff}
 .avatar-launch:disabled{opacity:.65;cursor:wait}
-</style></head><body>
+</style><style id="avatar-feedback-v31">
+.avatar-feedback{margin-top:18px;border:2px solid #c6d9f2!important;border-radius:20px!important}
+.avatar-feedback textarea{display:block;width:100%;box-sizing:border-box;min-height:140px;margin:10px 0 13px;padding:15px;border-radius:15px;border:1.5px solid #a8c5e9;font:inherit;line-height:1.5}
+.avatar-feedback-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.avatar-feedback-tools button,.avatar-feedback button.save-feedback-error{border:0;border-radius:14px;padding:12px 17px;background:#1c845e;color:white;font-weight:800;cursor:pointer}
+.avatar-feedback .feedback-piece{background:#f5f9ff;border:1px solid #d5e3f6;border-radius:15px;padding:15px;margin-top:12px}
+.avatar-feedback .feedback-error{padding:12px;margin:10px 0;background:white;border-radius:12px;border:1px solid #e0d7d7}
+.avatar-feedback .feedback-error p{margin:7px 0}
+.avatar-feedback button.save-feedback-error{background:#275e9a;font-size:14px;padding:9px 13px}
+</style>
+<style id="avatar-controls-v33">
+#avatarCallControlsTop[hidden]{display:none!important}
+#avatarCallControlsTop.avatar-call-controls-top{margin:16px 0;padding:16px 20px;border:2px solid #8dc6a9;border-radius:18px;background:#e7f8ef;color:#19446a;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 4px 15px rgba(9,70,43,.06)}
+#avatarCallControlsTop.avatar-call-controls-top strong{display:block;font-size:19px}
+#avatarCallControlsTop.avatar-call-controls-top span{font-size:15px}
+#avatarEndAndFeedback.avatar-end-feedback{cursor:pointer;border:0;border-radius:14px;padding:14px 20px;min-height:54px;font-weight:800;font-size:16px;background:#137953;color:white;box-shadow:0 5px 14px rgba(13,111,79,.16)}
+#avatarEndAndFeedback.avatar-end-feedback:hover{background:#096240}
+#avatarPostFeedback{scroll-margin-top:30px}
+@media(max-width:650px){#avatarEndAndFeedback.avatar-end-feedback{width:100%}}
+</style>
+</head><body>
 <header class="header"><div class="header-inner"><div class="brand">◆ WEBILANG <span class="tag">Russian · Unit 3 · A1–A1+</span></div><h1>Знакомства</h1></div><nav class="tabs" aria-label="Разделы урока">
 <button type="button" class="tab active" data-tab="story">📖 История</button><button type="button" class="tab" data-tab="reading">📚 Чтение</button><button type="button" class="tab" data-tab="vocab">🗂 Лексика</button><button type="button" class="tab" data-tab="watching">▶ Видео</button><button type="button" class="tab" data-tab="grammar">🧩 Грамматика</button><button type="button" class="tab" data-tab="words">🔖 Мои слова <span id="navWordCount">0</span></button><button type="button" class="tab" data-tab="speaking">🎭 Ролевая игра с ИИ-аватаром</button><button type="button" class="tab" data-tab="mygrammar">📗 Моя грамматика</button><button type="button" class="tab" data-tab="writing">✍ Письмо</button><button type="button" class="tab" data-tab="game">🎲 Игра</button>
 </nav></header>
@@ -336,10 +356,23 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
  </article>
 </div>
 <div class="avatar-connection-note">🔒 Для каждого разговора создаётся отдельная защищённая сессия Tavus. Микрофон и камера запрашиваются только при входе в видеозвонок. <span class="small muted">Требуется опубликованный сайт Webilang с настроенным серверным API.</span></div>
+<div id="avatarCallControlsTop" class="avatar-call-controls-top" hidden>
+ <div><strong>🎥 Разговор идёт</strong><span> После беседы нажмите кнопку ниже, чтобы получить автоматическую транскрипцию и AI Feedback.</span></div>
+ <button type="button" id="avatarEndAndFeedback" class="avatar-end-feedback">✓ Завершить разговор → Получить Feedback</button>
+</div>
 <div id="avatarVideoBox" class="avatar-video-box" hidden>
  <div class="avatar-video-head"><b id="avatarVideoTitle">Разговор с аватаром</b><button type="button" class="avatar-end" id="avatarEndCall">✕ Завершить разговор</button></div>
  <iframe id="avatarVideoFrame" title="Tavus AI video conversation" allow="camera; microphone; autoplay; fullscreen; display-capture" referrerpolicy="strict-origin-when-cross-origin"></iframe>
  <div class="avatar-video-footer"><span id="avatarCallStatus" aria-live="polite">Подключаемся…</span><a id="avatarOpenExternal" href="#" target="_blank" rel="noopener noreferrer">↗ Открыть разговор отдельно</a></div>
+</div>
+<div id="avatarPostFeedback" class="card avatar-feedback" hidden>
+<h3>📝 After the call · Speaking Feedback</h3>
+<p class="small muted">Webilang автоматически запрашивает транскрипцию у Tavus после разговора и показывает <b>только ваши реплики</b>. Проверьте текст и исправьте возможные ошибки распознавания перед AI-анализом. Если Tavus не вернул текст, можно ввести реплики самостоятельно.</p>
+<label for="avatarLearnerTranscript"><b>Your Russian sentences / Ваши реплики</b></label>
+<textarea id="avatarLearnerTranscript" rows="6" maxlength="8000" placeholder="Привет! Ты Майкл? Что ты изучаешь? ..."></textarea>
+<div class="avatar-feedback-tools"><button type="button" id="avatarFetchTranscript" class="btn">🔄 Получить транскрипцию</button> <button type="button" id="avatarEvaluate" class="btn green">✨ Check my speaking</button> <span id="avatarFeedbackStatus" aria-live="polite"></span></div>
+<div id="avatarFeedbackReport" aria-live="polite"></div>
+<p class="small muted">Миссию вы также отмечаете кнопками Да / Нет / Не знаю в карточке игры. ИИ не может оценить отсутствующие в тексте реплики.</p>
 </div>
 <p class="small muted" style="margin-top:14px">Упражнения с Live Transcript и AI Feedback по истории остаются в конце вкладки «История».</p>
 </section>
@@ -1304,8 +1337,27 @@ draw();
 (function(){
 "use strict";
 const $=id=>document.getElementById(id);
-const videoBox=$("avatarVideoBox"),frame=$("avatarVideoFrame"),endButton=$("avatarEndCall"),callStatus=$("avatarCallStatus");
-let activeId=null,activeToken=null,creating=false,startedAt=null,activeRole=null;
+const videoBox=$("avatarVideoBox"),frame=$("avatarVideoFrame"),endButton=$("avatarEndCall"),topControls=$("avatarCallControlsTop"),topEndButton=$("avatarEndAndFeedback"),callStatus=$("avatarCallStatus");
+let activeId=null,activeToken=null,creating=false,startedAt=null,activeRole=null,accessForFeedback="";
+let lastFeedbackSession=null;
+let transcriptRequestSerial=0;
+async function fetchTranscript(){
+ const serial=++transcriptRequestSerial;
+ const status=$("avatarFeedbackStatus"),b=$("avatarFetchTranscript");
+ if(!lastFeedbackSession){status.textContent="Сначала завершите разговор.";return}
+ b.disabled=true;status.textContent="Получаем транскрипцию Tavus…";
+ try{
+  const r=await api({action:"transcript",...lastFeedbackSession});
+  if(serial!==transcriptRequestSerial)return;
+  if(r.status==="pending"){status.textContent="Tavus ещё обрабатывает разговор. Нажмите «Получить транскрипцию» ещё раз через несколько секунд.";return}
+  if(r.status!=="ready")throw new Error("Неизвестный статус транскрипции.");
+  if(!r.transcript){status.textContent="Tavus не обнаружил реплик ученика. Вы можете вписать их вручную.";return}
+  $("avatarLearnerTranscript").value=r.transcript;
+  status.textContent="✓ Получено "+r.learnerTurns+" реплик ученика. Проверьте распознавание и нажмите «Check my speaking».";
+ }catch(e){if(serial===transcriptRequestSerial)status.textContent="Автоматическая транскрипция недоступна: "+e.message+". Можно ввести реплики вручную."}
+ finally{if(serial===transcriptRequestSerial)b.disabled=false}
+}
+$("avatarFetchTranscript").addEventListener("click",fetchTranscript);
 function message(role,text){$(role==="michael"?"avatarMsgMichael":"avatarMsgAnna").textContent=text;}
 function urlSafe(s){try{const u=new URL(s);return u.protocol==="https:"&&(u.hostname==="tavus.daily.co"||u.hostname.endsWith(".daily.co"));}catch(_){return false;}}
 async function api(body){
@@ -1315,13 +1367,24 @@ async function api(body){
  return d;
 }
 async function endCall(){
- const old=activeId,oldToken=activeToken;
+ const old=activeId,oldToken=activeToken,oldRole=activeRole;
+ if(old&&oldRole){
+   lastFeedbackSession={conversationId:old,token:oldToken,role:oldRole,accessCode:accessForFeedback};
+   $("avatarPostFeedback").hidden=false;
+   $("avatarFeedbackStatus").textContent="Разговор завершён. Запрашиваем транскрипцию Tavus…";
+ }
  activeId=null;activeToken=null;activeRole=null;startedAt=null;
- frame.src="about:blank";videoBox.hidden=true;
+ frame.src="about:blank";videoBox.hidden=true;topControls.hidden=true;
  document.querySelectorAll("[data-avatar-launch]").forEach(x=>x.disabled=false);
- if(old){try{await api({action:"end",conversationId:old,token:oldToken})}catch(e){console.warn("Tavus call cleanup:",e.message)}}
+ if(old){try{await api({action:"end",conversationId:old,token:oldToken})}catch(e){console.warn("Tavus call cleanup:",e.message)}
+   if(oldRole){
+     $("avatarPostFeedback").scrollIntoView({behavior:"smooth",block:"start"});
+     await fetchTranscript();
+   }
+ }
 }
 endButton.addEventListener("click",endCall);
+topEndButton.addEventListener("click",endCall);
 document.querySelectorAll("[data-avatar-launch]").forEach(btn=>btn.addEventListener("click",async function(){
  if(creating)return;
  const role=btn.dataset.avatarLaunch;
@@ -1331,13 +1394,14 @@ document.querySelectorAll("[data-avatar-launch]").forEach(btn=>btn.addEventListe
  try{
   const accessCode=window.prompt("Код доступа к русским ролевым играм (получите у преподавателя):");
   if(!accessCode){message(role,"Запуск отменён. Нужен код доступа преподавателя.");return;}
+  accessForFeedback=accessCode;
   const d=await api({action:"start",scenario:role==="michael"?"russian_michael":"russian_anna",accessCode});
   if(!urlSafe(d.url)||!/^[a-zA-Z0-9_-]{5,100}$/.test(d.conversationId||"")||!/^[0-9a-f]{48}$/.test(d.token||""))throw Error("Сервер прислал неверные данные разговора.");
   activeId=d.conversationId;activeToken=d.token;activeRole=role;startedAt=Date.now();
   $("avatarVideoTitle").textContent=role==="michael"?"🎭 Разговор с Майклом · Вы — Анна":"🎭 Разговор с Анной · Вы — Майкл";
   $("avatarOpenExternal").href=d.url;
   frame.src=d.url;
-  videoBox.hidden=false;
+  videoBox.hidden=false;topControls.hidden=false;
   callStatus.textContent="Разрешите микрофон и камеру, когда браузер попросит.";
   videoBox.scrollIntoView({behavior:"smooth",block:"start"});
   message(role,"✓ Разговор готов. Видеозвонок открыт ниже. После разговора нажмите «Завершить разговор».");
@@ -1350,6 +1414,49 @@ document.querySelectorAll("[data-avatar-choice]").forEach(group=>group.addEventL
  const role=group.dataset.avatarChoice,result=$(role==="michael"?"avatarResultMichael":"avatarResultAnna");
  result.textContent=btn.dataset.answer==="yes"?"✓ Верно! Это тот самый персонаж из чата. Mission completed!":btn.dataset.answer==="no"?"Это настоящий персонаж из чата. Попробуйте уточнить сведения об учёбе и увлечениях.":"Можно поговорить ещё и задать уточняющий вопрос.";
 }));
+
+function feedbackNode(tag,text,cls){
+ const e=document.createElement(tag);
+ if(text!==undefined)e.textContent=text;
+ if(cls)e.className=cls;
+ return e;
+}
+$("avatarEvaluate").addEventListener("click",async()=>{
+ const status=$("avatarFeedbackStatus"),report=$("avatarFeedbackReport");
+ if(!lastFeedbackSession){status.textContent="Сначала завершите разговор.";return}
+ const transcript=$("avatarLearnerTranscript").value.trim();
+ if(transcript.length<20){status.textContent="Добавьте несколько своих русских реплик (не менее 20 символов).";return}
+ $("avatarEvaluate").disabled=true;status.textContent="Анализируем ваши реплики…";report.replaceChildren();
+ try{
+   const r=await api({action:"feedback",...lastFeedbackSession,transcript});
+   const mission=feedbackNode("div",null,"feedback-piece");
+   mission.append(feedbackNode("h4","🎯 Mission · "+({supported:"Evidence found",partial:"Partly shown",insufficient:"Not enough evidence"}[r.mission]||"Not enough evidence")));
+   mission.append(feedbackNode("p",r.missionExplanation||"No conclusion available."));
+   report.append(mission);
+   const grammar=feedbackNode("div",null,"feedback-piece");grammar.append(feedbackNode("h4","✍ Grammar Feedback"));
+   if(!r.errors?.length)grammar.append(feedbackNode("p","No clear grammatical mistakes found in the supplied lines. This is not proof that the whole call was error-free."));
+   (r.errors||[]).forEach((e,i)=>{
+     const box=feedbackNode("div",null,"feedback-error");
+     box.append(feedbackNode("p","❌ "+e.original),feedbackNode("p","✅ "+e.correction),feedbackNode("p","Why: "+e.explanation));
+     const save=feedbackNode("button","Save to My Grammar Stock","save-feedback-error");
+     save.type="button";
+     save.addEventListener("click",()=>{
+       $("grammarOriginal").value=e.original;$("grammarCorrection").value=e.correction;$("grammarRule").value=e.explanation;
+       document.querySelector('[data-tab="mygrammar"]')?.click();
+       document.querySelector("#grammarOriginal")?.scrollIntoView({behavior:"smooth",block:"center"});
+       save.textContent="Ready to confirm in My Grammar Stock";
+     });
+     box.append(save);grammar.append(box);
+   });
+   report.append(grammar);
+   const vocab=feedbackNode("div",null,"feedback-piece");
+   vocab.append(feedbackNode("h4","📚 Vocabulary Feedback"));
+   vocab.append(feedbackNode("p",r.vocabulary?.length?r.vocabulary.join(" · "):"No Unit 3 expressions could be verified from the supplied lines."));
+   report.append(vocab);
+   if(r.encouragement)report.append(feedbackNode("p",r.encouragement));
+   status.textContent="✓ Анализ готов. Основан только на проверенных учеником репликах.";
+ }catch(e){status.textContent="Не удалось получить анализ: "+e.message; $("avatarEvaluate").disabled=false;}
+});
 window.addEventListener("pagehide",()=>{if(activeId&&activeToken&&navigator.sendBeacon){const payload=new Blob([JSON.stringify({action:"end",conversationId:activeId,token:activeToken})],{type:"application/json"});navigator.sendBeacon("/api/tavus",payload)}});
 })();
 </script></body></html>
