@@ -292,7 +292,16 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
 #avatarFeedbackReport .feedback-piece{padding:15px 18px;border:1px solid #d8e5f5;border-radius:17px;background:#fff;margin-top:12px}
 .avatar-feedback-empty{background:#f5f8fc;padding:15px;border-radius:14px;color:#55708e}
 </style>
-</head><body>
+<style id="avatar-feedback-v36-compact">
+#avatarPostFeedback.avatar-feedback{max-width:100%;padding:24px!important;background:#f7fbff!important;border:1.5px solid #bfd9f7!important}
+#avatarPostFeedback .avatar-feedback-tools{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:16px 0 8px!important}
+#avatarEvaluate{border-radius:17px!important;padding:17px 26px!important;font-size:19px!important;min-height:56px}
+#avatarFeedbackStatus{font-size:14px;font-weight:500}
+.avatar-transcript-details{margin-top:13px;background:#f2f7fc;border:1px solid #d6e5f3;border-radius:16px;padding:12px 16px}
+.avatar-transcript-details summary{font-weight:700;color:#28527e;cursor:pointer}
+.avatar-transcript-details textarea{display:block;width:100%;min-height:120px;margin:10px 0;border-radius:14px}
+#avatarFeedbackReport:empty{display:none}
+</style></head><body>
 <header class="header"><div class="header-inner"><div class="brand">◆ WEBILANG <span class="tag">Russian · Unit 3 · A1–A1+</span></div><h1>Знакомства</h1></div><nav class="tabs" aria-label="Разделы урока">
 <button type="button" class="tab active" data-tab="story">📖 История</button><button type="button" class="tab" data-tab="reading">📚 Чтение</button><button type="button" class="tab" data-tab="vocab">🗂 Лексика</button><button type="button" class="tab" data-tab="watching">▶ Видео</button><button type="button" class="tab" data-tab="grammar">🧩 Грамматика</button><button type="button" class="tab" data-tab="words">🔖 Мои слова <span id="navWordCount">0</span></button><button type="button" class="tab" data-tab="speaking">🎭 Ролевая игра с ИИ-аватаром</button><button type="button" class="tab" data-tab="mygrammar">📗 Моя грамматика</button><button type="button" class="tab" data-tab="writing">✍ Письмо</button><button type="button" class="tab" data-tab="game">🎲 Игра</button>
 </nav></header>
@@ -380,18 +389,25 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
  <div class="avatar-video-footer"><span id="avatarCallStatus" aria-live="polite">Подключаемся…</span><a id="avatarOpenExternal" href="#" target="_blank" rel="noopener noreferrer">↗ Открыть разговор отдельно</a></div>
 </div>
 <div id="avatarPostFeedback" class="card avatar-feedback">
-<h3>📝 Speaking Feedback · После разговора</h3><p class="avatar-feedback-intro"><b>Step 1.</b> Finish your avatar call using «Завершить разговор → Получить Feedback». <b>Step 2.</b> Review your Russian transcript. <b>Step 3.</b> Press «✨ Get AI Feedback» to see Grammar, Vocabulary and Mission results.</p>
-<p class="small muted">Webilang автоматически запрашивает транскрипцию у Tavus после разговора и показывает <b>только ваши реплики</b>. Проверьте текст и исправьте возможные ошибки распознавания перед AI-анализом. Если Tavus не вернул текст, можно ввести реплики самостоятельно.</p>
+<h3>📝 Speaking Feedback · После разговора</h3>
+<p class="small muted">After the call, press Get AI Feedback.</p>
+<div class="avatar-feedback-tools">
+<button type="button" id="avatarEvaluate" class="btn green">✨ Get AI Feedback</button>
+<span id="avatarFeedbackStatus" aria-live="polite">После звонка нажмите Get AI Feedback.</span>
+</div>
+<details id="avatarTranscriptDetails" class="avatar-transcript-details">
+<summary>📝 Посмотреть / исправить транскрипцию (optional)</summary>
+<p class="small muted">Исправьте распознанный текст при необходимости.</p>
 <label for="avatarLearnerTranscript"><b>Your Russian sentences / Ваши реплики</b></label>
-<textarea id="avatarLearnerTranscript" rows="6" maxlength="8000" placeholder="Привет! Ты Майкл? Что ты изучаешь? ..."></textarea>
-<div class="avatar-feedback-tools"><button type="button" id="avatarFetchTranscript" class="btn">🔄 Получить транскрипцию</button> <button type="button" id="avatarEvaluate" class="btn green">✨ Get AI Feedback</button> <span id="avatarFeedbackStatus" aria-live="polite">Сначала начните и завершите разговор с аватаром.</span></div>
-<div id="avatarFeedbackReport" aria-live="polite"><div class="avatar-feedback-empty">🎯 Mission · ✍ Grammar · 📚 Vocabulary — results appear here after AI analysis.</div></div>
-<p class="small muted">Миссию вы также отмечаете кнопками Да / Нет / Не знаю в карточке игры. ИИ не может оценить отсутствующие в тексте реплики.</p>
+<textarea id="avatarLearnerTranscript" rows="4" maxlength="8000" placeholder="Ваши русские реплики после разговора…"></textarea>
+<button type="button" id="avatarFetchTranscript" class="btn">🔄 Получить транскрипцию повторно</button>
+</details>
+<div id="avatarFeedbackReport" aria-live="polite"></div>
 </div>
 <p class="small muted" style="margin-top:14px">Упражнения с Live Transcript и AI Feedback по истории остаются в конце вкладки «История».</p>
 </section>
 
-<section id="tab-mygrammar" class="panel"><div class="pane-head"><h2>Моя грамматика · My Grammar Stock</h2><p>Сохраняйте только подтверждённые ошибки и тренируйте их без блокирующего Quality Gate.</p></div><div class="grid2"><div class="card"><h3 style="margin-top:0">Проверьте свою фразу</h3><p class="small muted">После проверки с преподавателем или русским AI Feedback можно вручную сохранить реальную ошибку. Ни одна ошибка распознавания речи не сохраняется автоматически.</p><label class="small" for="grammarOriginal">Мой вариант</label><input type="text" id="grammarOriginal" placeholder="Я играю в пианино."><label class="small" for="grammarCorrection">Исправленный вариант</label><input type="text" id="grammarCorrection" placeholder="Я играю на пианино."><label class="small" for="grammarRule">Объяснение (на английском или русском)</label><input type="text" id="grammarRule" placeholder="Use играть на with instruments."><div style="margin-top:12px"><button class="btn green" id="saveGrammar">Сохранить подтверждённую ошибку</button></div><div class="status" id="myGrammarStatus"></div></div><div class="card"><h3 style="margin-top:0">Сохранённые структуры</h3><div id="grammarStockList"></div><div class="row padded"><button class="btn green" id="ruGrammarBuild">✨ AI: Recognize → Retrieve → Produce</button></div><div id="ruGrammarPractice" class="ai-output"></div></div></div></section>
+<section id="tab-mygrammar" class="panel"><div class="pane-head"><h2>Моя грамматика · My Grammar Stock</h2><p>Сохраняйте исправления и тренируйте их в трёх этапах.</p></div><div class="grid2"><div class="card"><h3 style="margin-top:0">Проверьте свою фразу</h3><p class="small muted">Сохраняйте только реальные ошибки после проверки.</p><label class="small" for="grammarOriginal">Мой вариант</label><input type="text" id="grammarOriginal" placeholder="Я играю в пианино."><label class="small" for="grammarCorrection">Исправленный вариант</label><input type="text" id="grammarCorrection" placeholder="Я играю на пианино."><label class="small" for="grammarRule">Объяснение (на английском или русском)</label><input type="text" id="grammarRule" placeholder="Use играть на with instruments."><div style="margin-top:12px"><button class="btn green" id="saveGrammar">Сохранить подтверждённую ошибку</button></div><div class="status" id="myGrammarStatus"></div></div><div class="card"><h3 style="margin-top:0">Сохранённые структуры</h3><div id="grammarStockList"></div><div class="row padded"><button class="btn green" id="ruGrammarBuild">✨ AI: Recognize → Retrieve → Produce</button></div><div id="ruGrammarPractice" class="ai-output"></div></div></div></section>
 
 <section id="tab-writing" class="panel"><div class="pane-head"><h2>Письмо · Writing</h2><p>Короткий текст после комикса: знакомство или комическая ошибка.</p></div><div class="card"><h3 style="margin-top:0">Сообщение другу</h3><p>Напишите 5–7 простых предложений от лица Анны: что произошло в кафе?</p><div class="hint">Eng Hint: Write 5–7 short sentences as Anna. Tell a friend what happened in the café. Use at least three words from Unit 3.</div><textarea id="writingDraft" rows="8" placeholder="Привет! Сегодня я была в кафе..."></textarea><div class="row"><button class="btn green" id="saveWriting">Сохранить текст</button><button class="btn secondary" id="copyWriting">Копировать</button><span id="writingWords" class="pill">0 слов</span></div><div class="notice">Writing AI Feedback будет подключён только после многоязычной адаптации общего API. Пока текст остаётся в браузере.</div><div id="writingStatus" class="status"></div></div></section>
 
@@ -937,38 +953,81 @@ document.querySelectorAll("[data-ai-speak]").forEach(btn=>btn.addEventListener("
  finally{btn.disabled=false}
 }));
 const grammarButton=$("ruGrammarBuild");
-grammarButton?.addEventListener("click",async()=>{
+grammarButton.textContent="🧩 Практика: Recognize → Retrieve → Produce";
+grammarButton.addEventListener("click",()=>{
  const root=$("ruGrammarPractice");root.replaceChildren();
- if(!store.grammar.length){root.textContent="Save at least one confirmed grammar error first.";return}
- grammarButton.disabled=true;root.textContent="Generating individual practice…";
- try{
- const res=await fetch("/api/feedback",{method:"POST",headers:{"Content-Type":"application/json"},
- body:JSON.stringify({mode:"russian_grammar_build",module:"russian-03",targetLanguage:"ru",supportLanguage:"en",level:"A1",items:store.grammar.slice(-5)})});
- const data=await res.json();if(!res.ok)throw new Error(data.error||"Server unavailable");
- root.replaceChildren();
- for(const stage of ["recognize","retrieve","produce"]){
-   const block=aiCard(root,null,"div","exercise");aiCard(block,null,"h4","",stage.toUpperCase());
-   for(const q of (data[stage]||[])){
-     const question=aiCard(block,null,"div","taskcard");aiCard(question,null,"p","",q.prompt);
-     const field=aiCard(question,null,"input");field.type="text";field.placeholder="Ваш ответ по-русски";
-     const feedback=aiCard(question,null,"div","status");
-     const check=aiCard(question,null,"button","btn sm secondary","Check with AI");
-     check.onclick=async()=>{
-       if(!field.value.trim())return;
-       check.disabled=true;feedback.textContent="Checking…";
-       try{
-       const r=await fetch("/api/feedback",{method:"POST",headers:{"Content-Type":"application/json"},
-         body:JSON.stringify({mode:"russian_grammar_check",targetLanguage:"ru",supportLanguage:"en",level:"A1",prompt:q.prompt,focus:q.focus||"",response:field.value})});
-       const result=await r.json();if(!r.ok)throw new Error(result.error||"Unavailable");
-       feedback.textContent=(result.correct?"✓ ":"△ ")+(result.explanation||"")+(result.suggestion?" Example: "+result.suggestion:"");
-       }catch(e){feedback.textContent=e.message}finally{check.disabled=false}
-     };
-   }
+ if(!store.grammar.length){root.textContent="Сначала сохраните подтверждённую ошибку.";return}
+ const source=store.grammar.slice(-5);
+ const heading=aiCard(root,null,"p","small muted","Тренировка на основе ваших сохранённых исправлений. Без видеозвонка и транскрипции.");
+ function normalize(x){return String(x||"").toLocaleLowerCase("ru").replace(/ё/g,"е").replace(/[.,!?«»"“”‘’]/g,"").replace(/\s+/g," ").trim()}
+ function makeVoice(btn,field){
+   btn.addEventListener("click",()=>{
+     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+     if(!SR){alert("Распознавание речи недоступно в этом браузере. Впишите ответ.");return}
+     const rec=new SR();rec.lang="ru-RU";rec.interimResults=false;rec.maxAlternatives=1;
+     btn.disabled=true;btn.textContent="🎙️ Слушаю…";
+     rec.onresult=e=>{field.value=e.results[0][0].transcript;field.dispatchEvent(new Event("input",{bubbles:true}))};
+     rec.onerror=()=>{btn.textContent="🎤 Произнести"};
+     rec.onend=()=>{btn.disabled=false;btn.textContent="🎤 Произнести"};
+     try{rec.start()}catch(e){btn.disabled=false;btn.textContent="🎤 Произнести"}
+   })
  }
- }catch(e){root.textContent="AI practice unavailable: "+e.message}
- finally{grammarButton.disabled=false}
+ function textEntry(card,placeholder){
+   const wrap=aiCard(card,null,"div","row padded");
+   const field=aiCard(wrap,null,"input");field.type="text";field.placeholder=placeholder;field.setAttribute("aria-label",placeholder);
+   const speak=aiCard(wrap,null,"button","btn sm secondary","🎤 Произнести");speak.type="button";makeVoice(speak,field);
+   return field
+ }
+ const stages=["recognize","retrieve","produce"];
+ stages.forEach(stage=>{
+   const block=aiCard(root,null,"div","exercise");
+   aiCard(block,null,"h4","",({recognize:"1 · Recognize — Узнайте",retrieve:"2 · Retrieve — Вспомните",produce:"3 · Produce — Используйте"}[stage]));
+   source.forEach((g,i)=>{
+     if(!g || !g.corrected || !g.original)return;
+     const card=aiCard(block,null,"div","taskcard");
+     if(stage==="recognize"){
+       aiCard(card,null,"p","",`Выберите правильное предложение (${i+1}):`);
+       const opts=normalize(g.original)===normalize(g.corrected)?[g.corrected]:[g.corrected,g.original];
+       const choices=aiCard(card,null,"div","answers");
+       opts.forEach((option,j)=>{
+         const label=aiCard(choices,null,"label","","");
+         const radio=document.createElement("input");radio.type="radio";radio.name="grammar-rec-"+i;radio.value=option;
+         label.append(radio,document.createTextNode(" "+option));
+       });
+       const status=aiCard(card,null,"div","status");
+       const btn=aiCard(card,null,"button","btn sm","Check");
+       btn.onclick=()=>{
+         const selected=card.querySelector('input[type=radio]:checked');
+         if(!selected){status.textContent="Сначала выберите ответ.";return}
+         const ok=normalize(selected.value)===normalize(g.corrected);
+         status.className="status "+(ok?"good":"bad");
+         status.textContent=ok?"✓ Верно!":"Попробуйте ещё раз.";
+       };
+     }else if(stage==="retrieve"){
+       aiCard(card,null,"p","",`Исправьте предложение: «${g.original}»`);
+       const field=textEntry(card,"Напишите или произнесите правильный вариант");
+       const feedback=aiCard(card,null,"div","status");
+       const check=aiCard(card,null,"button","btn sm","Check");
+       check.onclick=()=>{
+         if(!field.value.trim()){feedback.textContent="Введите ответ.";return}
+         const ok=normalize(field.value)===normalize(g.corrected);
+         feedback.className="status "+(ok?"good":"");
+         feedback.textContent=ok?"✓ Совпадает с сохранённым исправлением.":"Ваш вариант отличается от сохранённого. Возможны другие правильные варианты — сравните с образцом ниже.";
+         if(!ok){aiCard(card,null,"p","small muted","Образец: "+g.corrected)}
+       };
+     }else{
+       aiCard(card,null,"p","",`Составьте своё новое предложение, используя конструкцию из: «${g.corrected}».`);
+       const field=textEntry(card,"Ваше новое предложение");
+       const feedback=aiCard(card,null,"div","status");
+       const btn=aiCard(card,null,"button","btn sm secondary","Показать образец");
+       btn.onclick=()=>{
+         feedback.textContent="Образец из вашего словаря: "+g.corrected+". Проверьте, правильно ли вы использовали конструкцию. Новое предложение автоматически не оценивается.";
+       };
+     }
+     if(g.rule)aiCard(card,null,"p","small muted","💡 "+g.rule);
+   });
+ });
 });
-
 
 // Reading: the same learning stock and AI backend as the comic.
 const READING_CHAT=[["Анна", "Привет всем! Меня зовут Анна. Я из Казахстана, но сейчас живу в Арлингтоне. Я учусь по обмену в университете. Я на первом курсе. Изучаю историю и английский язык."], ["Анна", "По-русски я говорю хорошо, по-английски тоже, а по-испански — только немного. Пока у меня здесь мало друзей, поэтому я хочу познакомиться с другими студентами."], ["Анна", "Я люблю читать, смотреть фильмы и слушать музыку. Ещё я играю на гитаре. Я люблю футбол и баскетбол, но играю в футбол не очень хорошо!"], ["Анна", "По выходным я обычно гуляю или встречаюсь с друзьями. Кстати, кто-нибудь здесь играет в футбол? А вы где учитесь? На каком курсе? Что изучаете?"], ["Майкл", "Привет, Анна! Меня зовут Майкл. Я тоже живу в Арлингтоне и учусь в университете. Я на втором курсе, изучаю русский язык и политологию. По-русски говорю немного, но хочу говорить лучше."], ["Майкл", "Я люблю футбол и шахматы. Ещё я играю на фортепиано, но не играю на гитаре. А ты давно играешь на гитаре?"], ["Анна", "Только год!"], ["Майкл", "Давай встретимся завтра в кафе в 12. В кафе я буду в жёлтом шарфе."], ["Анна", "Отлично, увидимся в кафе. Надеюсь, я тебя узнаю! 😊"]];
@@ -1438,8 +1497,14 @@ function feedbackNode(tag,text,cls){
 $("avatarEvaluate").addEventListener("click",async()=>{
  const status=$("avatarFeedbackStatus"),report=$("avatarFeedbackReport");
  if(!lastFeedbackSession){status.textContent="Сначала завершите разговор.";return}
+ if(!$("avatarLearnerTranscript").value.trim()){
+   await fetchTranscript();
+ }
  const transcript=$("avatarLearnerTranscript").value.trim();
- if(transcript.length<20){status.textContent="Добавьте несколько своих русских реплик (не менее 20 символов).";return}
+ if(transcript.length<20){
+   status.textContent="Транскрипт пока не готов или недостаточно реплик. Повторите «Get AI Feedback» чуть позже либо откройте «Посмотреть / исправить транскрипцию».";
+   return;
+ }
  $("avatarEvaluate").disabled=true;status.textContent="Анализируем ваши реплики…";report.replaceChildren();
  try{
    const r=await api({action:"feedback",...lastFeedbackSession,transcript});
