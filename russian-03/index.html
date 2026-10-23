@@ -871,7 +871,7 @@ function cleanGrammarModel(x){
  // Check Russian-letter boundaries, not JS \\b (which doesn't recognise Cyrillic).
  let t=String(x||"").replace(/[«"“](Майкл[а-яё]*|Анн[а-яё]*)[»"”]/gi,"$1");
  // Historical saved Unit 3 correction: Я ищу Майкл -> Я ищу Майкла.
- t=t.replace(/(?<![А-Яа-яЁё])(ищу|ищешь|ищет|ищем|ищете|ищут)\\s+Майкл(?![А-Яа-яЁё])/giu,"$1 Майкла");
+ t=t.replace(/(?<![А-Яа-яЁё])(ищу|ищешь|ищет|ищем|ищете|ищут)\s+Майкл(?![А-Яа-яЁё])/giu,"$1 Майкла");
  return t;
 }
 function cleanGrammarOriginal(x){
@@ -879,9 +879,9 @@ function cleanGrammarOriginal(x){
 }
 function grammarExplanation(g){
  const base=String(g.rule||"");
- if(/(?<![А-Яа-яЁё])ищу\\s+Майкла(?![А-Яа-яЁё])/iu.test(cleanGrammarModel(g.corrected))
+ if(/(?<![А-Яа-яЁё])ищу\s+Майкла(?![А-Яа-яЁё])/iu.test(cleanGrammarModel(g.corrected))
     && /(?<![А-Яа-яЁё])Майкл(?![А-Яа-яЁё])/iu.test(cleanGrammarOriginal(g.original))
-    && !/винительн|accusative|кого\\?/iu.test(base)){
+    && !/винительн|accusative|кого\?/iu.test(base)){
     return base+" Также: «искать кого?» — Майкла (винительный падеж одушевлённого имени).";
  }
  return base;
