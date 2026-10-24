@@ -16,8 +16,12 @@ export default async function handler(req,res){
     if(!text)return res.status(400).json({error:"No text supplied"});
     const unit3=req.body?.module==="russian-03" && req.body?.targetLanguage==="ru";
     const speaker=String(req.body?.speaker||"").toLowerCase();
-    const voice=unit3 && speaker==="anna" ? "nova" : "cedar";
-    const instructions=unit3
+    const isAvatar=req.body?.module==="avatar-lab" || (req.body?.module==="russian-03" && req.body?.avatarVoice);
+    const avatarVoice=req.body?.avatarVoice==="male" ? "male" : "female";
+    const voice=isAvatar ? (avatarVoice==="female" ? "nova" : "cedar") : (unit3 && speaker==="anna" ? "nova" : "cedar");
+    const instructions=isAvatar
+      ? `Speak naturally in ${req.body?.targetLanguage==="ru" ? "Russian" : "American English"} with a ${avatarVoice === "female" ? "friendly feminine" : "friendly masculine"} voice. Speak clearly for a language learner. Avoid theatrical delivery.`
+      : unit3
       ? (speaker==="anna"
           ? "Speak in natural, clear Russian with a friendly young woman's voice, at a measured A1 learner-friendly pace. Do not sound theatrical."
           : "Speak in natural, clear Russian with a friendly young man's voice, at a measured A1 learner-friendly pace. Do not sound theatrical.")
