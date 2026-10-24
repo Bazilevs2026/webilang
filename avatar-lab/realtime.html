@@ -120,6 +120,10 @@ function framePortrait(vrm){
   const distance=Math.max(0.35,verticalDistance,horizontalDistance);
   camera.position.set(target.x,target.y,target.z+distance);
   camera.lookAt(target);
+  // Stage 13.5: explicit optical zoom. Previous changes to visible height had
+  // little visible effect in wide interview frames. Keep phone framing safer.
+  const embeddedInterview=document.body.classList.contains('interview-pilot');
+  camera.zoom=embeddedInterview?(camera.aspect>=1.35?1.27:1.08):1;
   camera.updateProjectionMatrix();
 }
 cameraMode.addEventListener('change',()=>{if(currentVrm)framePortrait(currentVrm)});
