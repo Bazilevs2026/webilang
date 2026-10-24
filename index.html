@@ -4014,7 +4014,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus
 <div class="wlApp">
   <header class="wlHeader">
     <div class="wlHeaderInner">
-      <a href="/avatar-lab/" title="Test standalone 3D avatar" style="display:inline-flex;align-items:center;margin:6px 10px;padding:8px 12px;background:#e7eee0;color:#314a32;border-radius:10px;font-weight:800;text-decoration:none;white-space:nowrap">🧑‍🏫 Avatar Lab (3D)</a>
+      
       <nav class="wlTabs" aria-label="Module sections">
         <button class="wlTab" type="button" data-tab="story">Story</button>
         <button class="wlTab" type="button" data-tab="reading">Reading</button>
@@ -14387,9 +14387,6 @@ function open(scenario){
  const character=scenario==='creator'?'chaz':'nova';
  $('wlTavusTitle').textContent=scenario==='creator'?`Game Creator · ${game}`:'Babysitter Interview · Nova';
  panel.hidden=false;panel.scrollIntoView({block:'start',behavior:'auto'});
- const notice=document.createElement('p');notice.id=overlayId;notice.className='wlAvatarPilotNotice';
- notice.textContent='Webilang Realtime pilot (no Tavus). Select Start Realtime inside the window and allow microphone. Role-specific instructions and automatic My Grammar evaluation are not yet connected.';
- frame.before(notice);
  const iframe=document.createElement('iframe');iframe.dataset.webilangRealtime='1';
  iframe.title=`Webilang ${character} Realtime interview`;iframe.allow='microphone; autoplay; fullscreen';
  // The pilot reuses a working page; query parameters do not yet configure AI role.
