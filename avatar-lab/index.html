@@ -88,7 +88,11 @@ function poseVrm(vrm){
 async function loadVrm(url,label,request=++avatarRequest){
   modelLoading=true;status.textContent='Loading '+label+'…';
   try{
-    const gltf=await loader.loadAsync(url),next=gltf.userData.vrm;
+    const response=await fetch(url,{cache:'no-store'});
+    if(!response.ok)throw new Error('HTTP '+response.status+' ('+url+'). Verify the filename and folder on GitHub.');
+    const bytes=await response.arrayBuffer();
+    if(bytes.byteLength<100)throw new Error('Model file is unexpectedly small ('+bytes.byteLength+' bytes).');
+    const gltf=await loader.parseAsync(bytes, url.substring(0,url.lastIndexOf('/')+1)),next=gltf.userData.vrm;
     if(!next)throw new Error('This file does not contain VRM data');
     if(request!==avatarRequest){VRMUtils.deepDispose(next.scene);return;}
     VRMUtils.rotateVRM0(next);
@@ -97,7 +101,7 @@ async function loadVrm(url,label,request=++avatarRequest){
     if(currentVrm){scene.remove(currentVrm.scene);VRMUtils.deepDispose(currentVrm.scene)}
     currentVrm=next;scene.add(next.scene);useMode();
     status.textContent=label+' loaded. Try Speak and Blink.';
-  }catch(err){if(request===avatarRequest){status.textContent='Could not load '+label+': '+(err?.message||String(err));if(!currentVrm){modelMode.value='prototype';useMode()}}}
+  }catch(err){if(request===avatarRequest){const msg=err?.message||String(err);status.textContent='Could not load '+label+': '+msg+' — check that the model file exists in avatar-lab/models on GitHub.'; console.error('[Avatar Lab] Model load failed:',url,err); if(!currentVrm){character.visible=false;} }}
   finally{if(request===avatarRequest)modelLoading=false}
 }
 vrmFile.addEventListener('change',async()=>{
@@ -113,7 +117,7 @@ function resize(){
  const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);
  renderer.setSize(w,h,false);camera.aspect=w/h;
  camera.updateProjectionMatrix();
- if(currentVrm&&modelMode.value==='vrm')framePortrait(currentVrm);
+ if(currentVrm&&modelMode.value!=='prototype')framePortrait(currentVrm);
 }
 new ResizeObserver(resize).observe(host);resize();
 let nextBlink=2.5,blinkStart=-1;
