@@ -103,7 +103,7 @@ function framePortrait(vrm){
   if(headBone)headBone.getWorldPosition(headPoint);
   const mode=cameraMode.value;
   const settings={
-    close:{shift:document.body.classList.contains('interview-pilot')?0.095:0.025,visible:document.body.classList.contains('interview-pilot')?0.365:0.46},
+    close:{shift:document.body.classList.contains('interview-pilot')?-0.005:0.025,visible:document.body.classList.contains('interview-pilot')?0.425:0.46},
     half:{shift:0.20,visible:0.83},
     full:{shift:0.43,visible:1.22}
   }[mode] || {shift:0.025,visible:0.46};
