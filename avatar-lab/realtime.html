@@ -388,7 +388,7 @@ rtStart.onclick=async()=>{
      }catch(err){console.warn(err)}};
    const offer=await rtcPeer.createOffer();await rtcPeer.setLocalDescription(offer);
    rtMessage('Establishing secure Realtime connection…');
-   const r=await fetch('/api/realtime-session?character='+encodeURIComponent(modelMode.value)+'&language='+encodeURIComponent(lang.value)+'&level='+encodeURIComponent(document.getElementById('level').value)+'&topic='+encodeURIComponent(document.getElementById('topic').value),{method:'POST',headers:{'Content-Type':'application/sdp'},body:offer.sdp});
+   const r=await fetch('/api/realtime-session?character='+encodeURIComponent(modelMode.value)+'&language='+encodeURIComponent(lang.value)+'&level='+encodeURIComponent(document.getElementById('level').value)+'&topic='+encodeURIComponent(document.getElementById('topic').value),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:rtcPeer.localDescription?.sdp||offer.sdp})});
    if(!r.ok){let info=await r.text();try{info=JSON.parse(info).error||info}catch(e){}throw Error('Session HTTP '+r.status+': '+String(info).slice(0,220))}
    const answer=await r.text();await rtcPeer.setRemoteDescription({type:'answer',sdp:answer});
    rtMessage('Connecting · Speak after the connection opens…');
