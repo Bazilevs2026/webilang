@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Webilang · Avatar Lab</title><style>
 :root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#22334d;background:#f4f6f1}*{box-sizing:border-box}body{margin:0}.wrap{max-width:1080px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}h1{margin:14px 0 5px;font-size:clamp(25px,4vw,38px)}p{line-height:1.5}.pill{background:#e3eadb;color:#43573a;padding:8px 12px;border-radius:30px;font-size:13px;font-weight:700}.layout{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(280px,1fr);gap:18px;margin-top:20px}.stage{background:linear-gradient(#dde8e4,#f9f6ee);height:520px;border-radius:19px;position:relative;overflow:hidden;border:1px solid #d4dfd1}canvas{display:block;width:100%;height:100%}#scene{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}.stageTag{position:absolute;top:15px;left:15px;background:#fffD;padding:8px 12px;border-radius:10px;pointer-events:none}.panel{background:#fff;padding:23px;border-radius:19px;border:1px solid #e0e7df}label{display:block;font-weight:750;margin:16px 0 6px}select,textarea,input[type=file]{width:100%;padding:11px;border:1px solid #bac8c0;border-radius:10px;font:inherit}textarea{min-height:120px;resize:vertical}button,.home{border:0;border-radius:11px;background:#556944;color:white;padding:12px 15px;font:inherit;font-weight:750;cursor:pointer;text-decoration:none;display:inline-block}button.secondary{background:#e8ede4;color:#334937}button:disabled{opacity:.5;cursor:wait}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.muted{color:#5e7068;font-size:13px}.status{padding:12px;border-radius:10px;background:#f1f4ec;margin-top:15px;min-height:45px}footer{margin-top:18px;color:#647268;font-size:13px}@media(max-width:740px){.layout{grid-template-columns:1fr}.stage{height:390px}.wrap{padding:14px}}
-.chatHistory{max-height:310px;overflow:auto;display:grid;gap:8px;margin:12px 0}.chatBubble{padding:10px 12px;border-radius:12px;background:#eef2ea;white-space:pre-wrap;font-size:14px}.chatBubble.you{background:#e4edf9}.chatBubble strong{display:block;font-size:12px;margin-bottom:4px}</style></head><body><div class="wrap"><header><a class="home" href="/">← Webilang</a><span class="pill">AVATAR LAB · STAGE 7</span></header><h1>Meet Emma · 3D Avatar</h1><p>Meet Emma with adjustable camera framing, soft idle motion, and expressive speech. Existing Tavus lessons are untouched.</p><div class="layout"><section class="stage" aria-label="Animated 3D avatar"><div class="stageTag">Webilang · avatar preview</div><div id="scene"></div></section><section class="panel"><h2>Talk with Emma</h2><p class="muted">Try English and Russian. Emma now has a closer portrait, natural blinking, subtle breathing and speaking gestures. Mouth movement is approximate, not phoneme-accurate.</p><label for="cameraMode">Camera view</label><select id="cameraMode" aria-label="Camera view"><option value="close">Close-up · face and shoulders</option><option value="half">Half-body · waist-up</option><option value="full">Full-body · entire character</option></select><p class="muted">Choose a camera view to inspect mouth movements, gestures, or the full model.</p><label for="modelMode">Character</label><select id="modelMode"><option value="vrm">Emma · 3D character</option><option value="prototype">Original prototype</option></select><div id="vrmOptions" hidden><label for="vrmFile">Optional: replace Emma with your .vrm file</label><input id="vrmFile" type="file" accept=".vrm,model/gltf-binary,application/octet-stream"><p class="muted">The bundled Emma loads automatically. Files selected here stay on your device.</p></div><label for="language">Language</label><select id="language"><option value="en">English</option><option value="ru">Русский</option></select><label for="level">Student level</label><select id="level"><option>A1</option><option selected>A2</option><option>B1</option><option>B2</option><option>C1</option></select><label for="topic">Conversation</label><select id="topic"><option value="everyday">Everyday conversation</option><option value="cafe">At a café</option><option value="travel">Travel and directions</option><option value="university">University life</option><option value="doctor">Visiting the doctor</option></select><div class="actions"><button id="mic">🎙 Record my answer</button><button id="endRecord" class="secondary" disabled>■ Finish recording</button><button id="resetChat" class="secondary">↺ New conversation</button></div><p class="muted">Push-to-talk: allow microphone access, speak, then click Finish recording. Max 25 seconds per answer. No continuous microphone streaming.</p><label for="typedAnswer">Or type your answer</label><textarea id="typedAnswer" style="min-height:64px" placeholder="Type your message if microphone is unavailable"></textarea><div class="actions"><button id="sendTyped" class="secondary">Send text</button></div><div id="chatHistory" class="chatHistory" aria-live="polite"></div><hr style="border:0;border-top:1px solid #dde5dc;margin:20px 0"><h3>Voice test</h3><label for="script">What should Emma say?</label><textarea id="script">Hi! I'm Emma, your new speaking partner at Webilang. It's lovely to meet you!</textarea><div class="actions"><button id="speak">▶ Speak</button><button id="stop" class="secondary">■ Stop</button><button id="blink" class="secondary">☺ Blink</button></div><div class="status" id="status" role="status">Loading 3D scene…</div><p class="muted">The Speak button uses Webilang's existing /api/speak endpoint. If server speech is unavailable, it falls back to your browser's voice.</p></section></div><footer>Architecture: one voice engine with two replaceable renderers (prototype / VRM). A future realistic video renderer can use the same conversational logic.</footer></div>
+.handsFree{background:#eef2ea;border:1px solid #d5e1d4;border-radius:12px;padding:13px;margin:14px 0}.handsFree .actions{margin:8px 0}.chatHistory{max-height:310px;overflow:auto;display:grid;gap:8px;margin:12px 0}.chatBubble{padding:10px 12px;border-radius:12px;background:#eef2ea;white-space:pre-wrap;font-size:14px}.chatBubble.you{background:#e4edf9}.chatBubble strong{display:block;font-size:12px;margin-bottom:4px}</style></head><body><div class="wrap"><header><a class="home" href="/">← Webilang</a><span class="pill">AVATAR LAB · STAGE 8</span></header><h1>Meet Emma · 3D Avatar</h1><p>Meet Emma with adjustable camera framing, soft idle motion, and expressive speech. Existing Tavus lessons are untouched.</p><div class="layout"><section class="stage" aria-label="Animated 3D avatar"><div class="stageTag">Webilang · avatar preview</div><div id="scene"></div></section><section class="panel"><h2>Talk with Emma</h2><p class="muted">Try English and Russian. Emma now has a closer portrait, natural blinking, subtle breathing and speaking gestures. Mouth movement is approximate, not phoneme-accurate.</p><label for="cameraMode">Camera view</label><select id="cameraMode" aria-label="Camera view"><option value="close">Close-up · face and shoulders</option><option value="half">Half-body · waist-up</option><option value="full">Full-body · entire character</option></select><p class="muted">Choose a camera view to inspect mouth movements, gestures, or the full model.</p><label for="modelMode">Character</label><select id="modelMode"><option value="vrm">Emma · 3D character</option><option value="prototype">Original prototype</option></select><div id="vrmOptions" hidden><label for="vrmFile">Optional: replace Emma with your .vrm file</label><input id="vrmFile" type="file" accept=".vrm,model/gltf-binary,application/octet-stream"><p class="muted">The bundled Emma loads automatically. Files selected here stay on your device.</p></div><label for="language">Language</label><select id="language"><option value="en">English</option><option value="ru">Русский</option></select><label for="level">Student level</label><select id="level"><option>A1</option><option selected>A2</option><option>B1</option><option>B2</option><option>C1</option></select><label for="topic">Conversation</label><select id="topic"><option value="everyday">Everyday conversation</option><option value="cafe">At a café</option><option value="travel">Travel and directions</option><option value="university">University life</option><option value="doctor">Visiting the doctor</option></select><div class="handsFree"><label style="margin-top:0" for="handsStatus">Hands-free conversation</label><div class="actions"><button id="handsStart">▶ Start conversation</button><button id="handsEnd" class="secondary" disabled>■ End conversation</button></div><div class="muted" id="handsStatus" aria-live="polite">Off · Manual recording is still available below.</div></div><div class="actions"><button id="mic">🎙 Record my answer</button><button id="endRecord" class="secondary" disabled>■ Finish recording</button><button id="resetChat" class="secondary">↺ New conversation</button></div><p class="muted">Manual alternative: click Record, speak, then Finish recording. Hands-free detects speech and ends each recording after a pause; audio is sent for transcription after the turn, not streamed continuously.</p><label for="typedAnswer">Or type your answer</label><textarea id="typedAnswer" style="min-height:64px" placeholder="Type your message if microphone is unavailable"></textarea><div class="actions"><button id="sendTyped" class="secondary">Send text</button></div><div id="chatHistory" class="chatHistory" aria-live="polite"></div><hr style="border:0;border-top:1px solid #dde5dc;margin:20px 0"><h3>Voice test</h3><label for="script">What should Emma say?</label><textarea id="script">Hi! I'm Emma, your new speaking partner at Webilang. It's lovely to meet you!</textarea><div class="actions"><button id="speak">▶ Speak</button><button id="stop" class="secondary">■ Stop</button><button id="blink" class="secondary">☺ Blink</button></div><div class="status" id="status" role="status">Loading 3D scene…</div><p class="muted">The Speak button uses Webilang's existing /api/speak endpoint. If server speech is unavailable, it falls back to your browser's voice.</p></section></div><footer>Architecture: one voice engine with two replaceable renderers (prototype / VRM). A future realistic video renderer can use the same conversational logic.</footer></div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/","@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"}}</script>
 <script type="module">
 import * as THREE from 'three';
@@ -147,8 +147,12 @@ document.querySelector('#speak').onclick=async()=>{stop();let text=script.value.
 const micBtn=document.querySelector('#mic'),finishBtn=document.querySelector('#endRecord'),sendTyped=document.querySelector('#sendTyped');
 const chatHistory=document.querySelector('#chatHistory'),typedAnswer=document.querySelector('#typedAnswer');
 let conversation=[],mediaRecorder=null,micStream=null,chunks=[],recordStart=0,recordTimer=null,busy=false;
+let handsSession=0,handsRunning=false,handsPhase='off';
+const handsStart=document.querySelector('#handsStart'),handsEnd=document.querySelector('#handsEnd'),handsStatus=document.querySelector('#handsStatus');
+function handsState(message){handsStatus.textContent=message;}
+function handsUI(){handsStart.disabled=handsRunning;handsEnd.disabled=!handsRunning;micBtn.disabled=handsRunning||busy;sendTyped.disabled=busy;}
 function bubble(role,message){const el=document.createElement('div');el.className='chatBubble '+(role==='You'?'you':'');const name=document.createElement('strong');name.textContent=role;const line=document.createElement('span');line.textContent=message;el.append(name,line);chatHistory.append(el);chatHistory.scrollTop=chatHistory.scrollHeight;}
-function setBusy(val){busy=val;micBtn.disabled=val;sendTyped.disabled=val;finishBtn.disabled=!mediaRecorder||mediaRecorder.state!=='recording';}
+function setBusy(val){busy=val;handsUI();finishBtn.disabled=!mediaRecorder||mediaRecorder.state!=='recording';}
 async function postJSON(url,data){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const json=await r.json().catch(()=>({}));if(!r.ok)throw Error(json.error||`${url} failed (${r.status})`);return json;}
 async function voiceReply(reply){
  stop();status.textContent='Emma is preparing her voice…';
@@ -156,7 +160,7 @@ async function voiceReply(reply){
   const r=await fetch('/api/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:reply.slice(0,700),module:lang.value==='ru'?'russian-03':'avatar-lab',targetLanguage:lang.value,speaker:lang.value==='ru'?'anna':'emma'})});
   if(!r.ok)throw Error('Speech server unavailable');
   const blob=await r.blob(),url=URL.createObjectURL(blob);const player=new Audio(url);audio=player;
-  await new Promise((resolve,reject)=>{player.onplay=()=>{active=true;status.textContent='Emma is speaking…'};player.onended=()=>{active=false;URL.revokeObjectURL(url);if(audio===player)audio=null;resolve()};player.onerror=()=>{active=false;URL.revokeObjectURL(url);reject(Error('Playback failed'))};player.play().catch(reject)});
+  await new Promise((resolve,reject)=>{player.onplay=()=>{active=true;status.textContent='Emma is speaking…'};player.onended=()=>{active=false;URL.revokeObjectURL(url);if(audio===player)audio=null;resolve()};player.onpause=()=>{active=false;URL.revokeObjectURL(url);if(audio===player)audio=null;resolve()};player.onerror=()=>{active=false;URL.revokeObjectURL(url);reject(Error('Playback failed'))};player.play().catch(reject)});
  }catch(e){active=false;status.textContent='Voice unavailable; Emma’s text is shown below.';}
 }
 async function submitTurn(message){
@@ -172,7 +176,7 @@ async function submitTurn(message){
 }
 function closeMic(){if(recordTimer){clearTimeout(recordTimer);recordTimer=null;}if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;}mediaRecorder=null;finishBtn.disabled=true;}
 micBtn.onclick=async()=>{
- if(busy)return;
+ if(busy||handsRunning)return;
  if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){status.textContent='Microphone recording is not supported here. Use text input.';return;}
  try{
   stop();micStream=await navigator.mediaDevices.getUserMedia({audio:true});
@@ -195,9 +199,98 @@ micBtn.onclick=async()=>{
 };
 finishBtn.onclick=()=>{if(mediaRecorder?.state==='recording'){finishBtn.disabled=true;mediaRecorder.stop()}};
 sendTyped.onclick=()=>submitTurn(typedAnswer.value);
-document.querySelector('#resetChat').onclick=()=>{if(mediaRecorder?.state==='recording')mediaRecorder.stop();conversation=[];chatHistory.replaceChildren();stop();status.textContent='New conversation. Say hello to Emma.'};
-lang.addEventListener('change',()=>{conversation=[];chatHistory.replaceChildren();status.textContent='Language changed. New conversation started.'});
-window.addEventListener('pagehide',closeMic);
+// Stage 8: local voice activity detection. The microphone is NOT listened to while Emma speaks.
+// All session resources are explicitly released on End, tab hide, or language changes.
+let handsStream=null,handsCtx=null,handsSource=null,handsAnalyser=null,handsRecorder=null,handsAnimation=0,handsMaxTimer=null;
+let handsBuffers=[],handsMime='',handsStartedAt=0,handsVoiceAt=0,handsLastVoice=0,handsNoise=0,handsDetected=false;
+function releaseHandsCapture(){
+ if(handsAnimation){cancelAnimationFrame(handsAnimation);handsAnimation=0;}
+ if(handsMaxTimer){clearTimeout(handsMaxTimer);handsMaxTimer=null;}
+ if(handsRecorder?.state==='recording'){try{handsRecorder.stop()}catch{}}
+ handsRecorder=null;
+ if(handsStream){handsStream.getTracks().forEach(track=>track.stop());handsStream=null;}
+ if(handsSource){try{handsSource.disconnect()}catch{}handsSource=null;}
+ if(handsAnalyser){try{handsAnalyser.disconnect()}catch{}handsAnalyser=null;}
+ if(handsCtx){handsCtx.close().catch(()=>{});handsCtx=null;}
+}
+function endHands(reason='Off · Hands-free ended.'){
+ handsRunning=false;handsSession++;handsPhase='off';releaseHandsCapture();
+ // A reply may still be pending; once it resolves the previous session cannot restart listening.
+ stop();handsState(reason);handsUI();
+}
+async function processHandsBlob(blob,session){
+ if(!handsRunning||session!==handsSession)return;
+ if(blob.size<1000){handsState('Very short recording. Listening again…');return listenHands(session);}
+ handsPhase='processing';handsState('Recognizing your answer…');
+ try{
+  if(blob.size>3000000)throw Error('Recording too large. Try a shorter answer.');
+  const base64=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=()=>reject(Error('Cannot read recording'));reader.readAsDataURL(blob);});
+  if(!handsRunning||session!==handsSession)return;
+  const data=await postJSON('/api/transcribe',{audio:base64,mimeType:blob.type,language:lang.value});
+  if(!handsRunning||session!==handsSession)return;
+  if(!data.text?.trim()){handsState('I did not catch that. Listening again…');return listenHands(session);}
+  handsPhase='answering';handsState('Emma is preparing her reply…');
+  await submitTurn(data.text);
+  if(!handsRunning||session!==handsSession)return;
+  handsState('Your turn · Listening…');
+  await listenHands(session);
+ }catch(err){
+  if(handsRunning&&session===handsSession){handsState('Hands-free error: '+err.message+' · Press End and try again.');endHands('Hands-free error: '+err.message);}
+ }
+}
+async function listenHands(session){
+ if(!handsRunning||session!==handsSession)return;
+ releaseHandsCapture();
+ try{
+  handsStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  if(!handsRunning||session!==handsSession){releaseHandsCapture();return;}
+  const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+  handsCtx=new AudioContextClass();await handsCtx.resume();
+  handsSource=handsCtx.createMediaStreamSource(handsStream);handsAnalyser=handsCtx.createAnalyser();handsAnalyser.fftSize=2048;handsSource.connect(handsAnalyser);
+  handsMime=['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(t=>MediaRecorder.isTypeSupported(t))||'';
+  handsRecorder=new MediaRecorder(handsStream,handsMime?{mimeType:handsMime}:undefined);
+  handsBuffers=[];handsStartedAt=performance.now();handsVoiceAt=0;handsLastVoice=0;handsDetected=false;handsNoise=0;
+  const thisRecorder=handsRecorder;
+  thisRecorder.ondataavailable=e=>{if(e.data.size)handsBuffers.push(e.data);};
+  thisRecorder.onstop=()=>{
+    const recorded=new Blob(handsBuffers,{type:thisRecorder.mimeType||handsMime||'audio/webm'});
+    const voiced=handsDetected;releaseHandsCapture();
+    if(handsRunning&&session===handsSession){if(voiced)processHandsBlob(recorded,session);else listenHands(session);}
+  };
+  thisRecorder.start(250);handsPhase='listening';handsState('Listening · Speak when ready…');
+  const samples=new Uint8Array(handsAnalyser.fftSize);
+  function tick(){
+   if(!handsRunning||session!==handsSession||handsPhase!=='listening'||thisRecorder.state!=='recording')return;
+   handsAnalyser.getByteTimeDomainData(samples);
+   let energy=0;for(let i=0;i<samples.length;i++){const v=(samples[i]-128)/128;energy+=v*v;}
+   const rms=Math.sqrt(energy/samples.length);const now=performance.now();
+   // Follow background noise slowly; cap the minimum threshold for voice onset.
+   if(!handsDetected)handsNoise=handsNoise?handsNoise*.98+rms*.02:rms;
+   const above=rms>Math.max(.022,Math.min(.09,handsNoise*2.8));
+   if(above){if(!handsVoiceAt)handsVoiceAt=now;handsLastVoice=now;}
+   else if(!handsDetected)handsVoiceAt=0;
+   if(!handsDetected&&handsVoiceAt&&now-handsVoiceAt>300){handsDetected=true;handsState('Hearing you · I will respond after a pause…');}
+   if(handsDetected&&now-handsLastVoice>1200){thisRecorder.stop();return;}
+   if(now-handsStartedAt>25000){thisRecorder.stop();return;}
+   handsAnimation=requestAnimationFrame(tick);
+  }
+  handsAnimation=requestAnimationFrame(tick);
+  // Browser tab changes can suspend the AudioContext; cleanup below handles that.
+ }catch(err){if(handsRunning&&session===handsSession)endHands('Microphone error: '+err.message);}
+}
+handsStart.onclick=async()=>{
+ if(handsRunning)return;
+ if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder||!(window.AudioContext||window.webkitAudioContext)){handsState('Hands-free requires a browser with microphone recording and Web Audio support.');return;}
+ if(mediaRecorder?.state==='recording'){handsState('Finish manual recording first.');return;}
+ stop();handsRunning=true;handsSession++;const session=handsSession;handsUI();
+ await listenHands(session);
+};
+handsEnd.onclick=()=>endHands();
+
+document.querySelector('#resetChat').onclick=()=>{if(handsRunning)endHands('New conversation. Hands-free is off.');if(mediaRecorder?.state==='recording')mediaRecorder.stop();conversation=[];chatHistory.replaceChildren();stop();status.textContent='New conversation. Say hello to Emma.'};
+lang.addEventListener('change',()=>{if(handsRunning)endHands('Language changed. Hands-free is off.');conversation=[];chatHistory.replaceChildren();status.textContent='Language changed. New conversation started.'});
+window.addEventListener('pagehide',()=>{if(handsRunning)endHands();closeMic()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&handsRunning)endHands('Hands-free paused because the tab is hidden.')});
 
 window.addEventListener('pagehide',stop);
 </script></body></html>
