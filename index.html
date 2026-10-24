@@ -14356,6 +14356,68 @@ window.addEventListener("pagehide",()=>{if(call)navigator.sendBeacon("/api/tavus
 })();
 </script>
 
+<style id="wl-avatar-interview-pilot-css">
+#wlTavusFrame:has(iframe[data-webilang-realtime]){aspect-ratio:auto;height:min(83vh,820px);min-height:490px;background:#f4f6f1}
+#wlTavusFrame iframe[data-webilang-realtime]{width:100%;height:100%;border:0;display:block;background:#f4f6f1}
+#wlTavusLive .wlAvatarPilotNotice{padding:10px 12px;border:1px solid #e1cfaa;border-radius:9px;background:#fff9eb;margin:10px 0;font-size:13px}
+@media(max-width:650px){#wlTavusFrame:has(iframe[data-webilang-realtime]){height:75vh;min-height:520px}}
+</style>
+<script id="wl-avatar-interview-pilot">
+/* Non-destructive pilot: intercept two Tavus launch buttons and render the existing
+   Realtime page in the SAME roleplay window. No Tavus API calls, transcript or feedback.
+   The iframe must be started by the user to authorize microphone/audio on iOS. */
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const frame=$('wlTavusFrame'),panel=$('wlTavusLive'),status=$('wlTavusStatus');
+if(!frame||!panel||!status)return;
+let active=false,deadline=0,tick=null;
+const overlayId='wlAvatarPilotNotice';
+function updateClock(){const left=Math.max(0,Math.ceil((deadline-Date.now())/1000));$('wlTavusClock').textContent=`${String(Math.floor(left/60)).padStart(2,'0')}:${String(left%60).padStart(2,'0')}`;if(!left)stop('Five-minute interview finished.');}
+function stop(message='Interview ended.'){
+ active=false;clearInterval(tick);tick=null;
+ // Destroying iframe closes the dedicated microphone/WebRTC session.
+ frame.replaceChildren();document.getElementById(overlayId)?.remove();
+ $('wlTavusCallState').textContent='Call ended';
+ $('wlTavusClock').textContent='00:00';status.textContent=message+' Realtime disconnected.';
+}
+function open(scenario){
+ if(active)stop('Previous interview ended.');
+ const game=($('rp2GameInput')?.value||'').trim();
+ if(scenario==='creator'&&!game){status.textContent='Please enter a game name first.';panel.hidden=false;$('rp2GameInput')?.focus();return;}
+ const character=scenario==='creator'?'chaz':'nova';
+ $('wlTavusTitle').textContent=scenario==='creator'?`Game Creator · ${game}`:'Babysitter Interview · Nova';
+ panel.hidden=false;panel.scrollIntoView({block:'start',behavior:'auto'});
+ const notice=document.createElement('p');notice.id=overlayId;notice.className='wlAvatarPilotNotice';
+ notice.textContent='Webilang Realtime pilot (no Tavus). Select Start Realtime inside the window and allow microphone. Role-specific instructions and automatic My Grammar evaluation are not yet connected.';
+ frame.before(notice);
+ const iframe=document.createElement('iframe');iframe.dataset.webilangRealtime='1';
+ iframe.title=`Webilang ${character} Realtime interview`;iframe.allow='microphone; autoplay; fullscreen';
+ // The pilot reuses a working page; query parameters do not yet configure AI role.
+ iframe.src=`/avatar-lab/realtime.html?character=${encodeURIComponent(character)}&pilot=${encodeURIComponent(scenario)}`;
+ frame.replaceChildren(iframe);
+ active=true;deadline=Date.now()+300000;updateClock();tick=setInterval(updateClock,1000);
+ $('wlTavusCallState').textContent='Realtime pilot';
+ status.textContent='Press Start Realtime inside the avatar window. Microphone and voice are handled there.';
+ const assessment=$('wlTavusAssessment');if(assessment)assessment.hidden=true;
+}
+function leave(){stop('Interview closed.');panel.hidden=true;
+ const chooser=$('rp2Chooser');if(chooser){chooser.hidden=false;chooser.scrollIntoView({block:'start',behavior:'auto'});}}
+// Capture phase ensures legacy Tavus click handlers do not also request paid sessions.
+document.addEventListener('click',event=>{
+ const button=event.target.closest?.('button');if(!button)return;
+ const id=button.id;
+ if(id==='wlTavusCreatorStart'||id==='wlTavusEmployerStart'){
+   event.preventDefault();event.stopImmediatePropagation();open(id==='wlTavusCreatorStart'?'creator':'job');
+ }else if(active&&(id==='wlTavusEnd'||id==='wlTavusClose'||id==='wlTavusReturnOverlay')){
+   event.preventDefault();event.stopImmediatePropagation();if(id==='wlTavusEnd')stop();else leave();
+ }else if(active&&id==='wlResetRoleplayLive'){
+   stop('Call stopped for reset.'); // Let original Reset handler ask for confirmation.
+ }
+},true);
+window.addEventListener('pagehide',()=>{if(active)stop('Window closed.')});
+})();
+</script>
+
 <script id="wl-tavus-evaluation-v1">
 (()=>{
 "use strict";
