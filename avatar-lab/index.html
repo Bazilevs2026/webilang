@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Webilang · Avatar Lab</title><style>
 :root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#22334d;background:#f4f6f1}*{box-sizing:border-box}body{margin:0}.wrap{max-width:1080px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}h1{margin:14px 0 5px;font-size:clamp(25px,4vw,38px)}p{line-height:1.5}.pill{background:#e3eadb;color:#43573a;padding:8px 12px;border-radius:30px;font-size:13px;font-weight:700}.layout{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(280px,1fr);gap:18px;margin-top:20px}.stage{background:linear-gradient(#dde8e4,#f9f6ee);height:520px;border-radius:19px;position:relative;overflow:hidden;border:1px solid #d4dfd1}canvas{display:block;width:100%;height:100%}#scene{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}.stageTag{position:absolute;top:15px;left:15px;background:#fffD;padding:8px 12px;border-radius:10px;pointer-events:none}.panel{background:#fff;padding:23px;border-radius:19px;border:1px solid #e0e7df}label{display:block;font-weight:750;margin:16px 0 6px}select,textarea,input[type=file]{width:100%;padding:11px;border:1px solid #bac8c0;border-radius:10px;font:inherit}textarea{min-height:120px;resize:vertical}button,.home{border:0;border-radius:11px;background:#556944;color:white;padding:12px 15px;font:inherit;font-weight:750;cursor:pointer;text-decoration:none;display:inline-block}button.secondary{background:#e8ede4;color:#334937}button:disabled{opacity:.5;cursor:wait}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.muted{color:#5e7068;font-size:13px}.status{padding:12px;border-radius:10px;background:#f1f4ec;margin-top:15px;min-height:45px}footer{margin-top:18px;color:#647268;font-size:13px}@media(max-width:740px){.layout{grid-template-columns:1fr}.stage{height:390px}.wrap{padding:14px}}
-.handsFree{background:#eef2ea;border:1px solid #d5e1d4;border-radius:12px;padding:13px;margin:14px 0}.handsFree .actions{margin:8px 0}.chatHistory{max-height:310px;overflow:auto;display:grid;gap:8px;margin:12px 0}.chatBubble{padding:10px 12px;border-radius:12px;background:#eef2ea;white-space:pre-wrap;font-size:14px}.chatBubble.you{background:#e4edf9}.chatBubble strong{display:block;font-size:12px;margin-bottom:4px}</style></head><body><div class="wrap"><header><a class="home" href="/">← Webilang</a><span class="pill">AVATAR LAB · STAGE 8.1</span></header><h1>Meet Emma · 3D Avatar</h1><p>Meet Emma with adjustable camera framing, soft idle motion, and expressive speech. Existing Tavus lessons are untouched.</p><div class="layout"><section class="stage" aria-label="Animated 3D avatar"><div class="stageTag">Webilang · avatar preview</div><div id="scene"></div></section><section class="panel"><h2>Talk with Emma</h2><p class="muted">Try English and Russian. Emma now has a closer portrait, natural blinking, subtle breathing and speaking gestures. Mouth movement is approximate, not phoneme-accurate.</p><label for="cameraMode">Camera view</label><select id="cameraMode" aria-label="Camera view"><option value="close">Close-up · face and shoulders</option><option value="half">Half-body · waist-up</option><option value="full">Full-body · entire character</option></select><p class="muted">Choose a camera view to inspect mouth movements, gestures, or the full model.</p><label for="modelMode">Character</label><select id="modelMode"><option value="vrm">Emma · 3D character</option><option value="prototype">Original prototype</option></select><div id="vrmOptions" hidden><label for="vrmFile">Optional: replace Emma with your .vrm file</label><input id="vrmFile" type="file" accept=".vrm,model/gltf-binary,application/octet-stream"><p class="muted">The bundled Emma loads automatically. Files selected here stay on your device.</p></div><label for="language">Language</label><select id="language"><option value="en">English</option><option value="ru">Русский</option></select><label for="avatarVoice">Avatar voice</label><select id="avatarVoice"><option value="female" selected>Female · Nova</option><option value="male">Male · Cedar</option></select><p class="muted">Change the voice independently of the avatar appearance. Applies to English and Russian.</p><label for="responsePace">Conversation pace</label><select id="responsePace"><option value="natural" selected>Natural · 0.65 s pause</option><option value="balanced">Balanced · 1.0 s pause</option><option value="patient">Patient · 1.7 s pause</option></select><label for="level">Student level</label><select id="level"><option>A1</option><option selected>A2</option><option>B1</option><option>B2</option><option>C1</option></select><label for="topic">Conversation</label><select id="topic"><option value="everyday">Everyday conversation</option><option value="cafe">At a café</option><option value="travel">Travel and directions</option><option value="university">University life</option><option value="doctor">Visiting the doctor</option></select><div class="handsFree"><label style="margin-top:0" for="handsStatus">Hands-free conversation</label><div class="actions"><button id="handsStart">▶ Start conversation</button><button id="handsEnd" class="secondary" disabled>■ End conversation</button></div><div class="muted" id="handsStatus" aria-live="polite">Off · Manual recording is still available below.</div><div id="micMeter" aria-label="Microphone input level" style="margin-top:9px;height:9px;background:#d5dfd4;border-radius:999px;overflow:hidden"><div id="micMeterBar" style="width:0%;height:100%;background:#557e57;transition:width .08s linear"></div></div><p class="muted" id="micHint" style="margin:6px 0 0">The meter should move when you speak.</p></div><div class="actions"><button id="mic">🎙 Record my answer</button><button id="endRecord" class="secondary" disabled>■ Finish recording</button><button id="resetChat" class="secondary">↺ New conversation</button></div><p class="muted">Manual alternative: click Record, speak, then Finish recording. Hands-free detects speech and ends each recording after a pause; audio is sent for transcription after the turn, not streamed continuously.</p><label for="typedAnswer">Or type your answer</label><textarea id="typedAnswer" style="min-height:64px" placeholder="Type your message if microphone is unavailable"></textarea><div class="actions"><button id="sendTyped" class="secondary">Send text</button></div><div id="chatHistory" class="chatHistory" aria-live="polite"></div><hr style="border:0;border-top:1px solid #dde5dc;margin:20px 0"><h3>Voice test</h3><label for="script">What should Emma say?</label><textarea id="script">Hi! I'm Emma, your new speaking partner at Webilang. It's lovely to meet you!</textarea><div class="actions"><button id="speak">▶ Speak</button><button id="stop" class="secondary">■ Stop</button><button id="blink" class="secondary">☺ Blink</button></div><div class="status" id="status" role="status">Loading 3D scene…</div><p class="muted">The Speak button uses Webilang's existing /api/speak endpoint. If server speech is unavailable, it falls back to your browser's voice.</p></section></div><footer>Architecture: one voice engine with two replaceable renderers (prototype / VRM). A future realistic video renderer can use the same conversational logic.</footer></div>
+.handsFree{background:#eef2ea;border:1px solid #d5e1d4;border-radius:12px;padding:13px;margin:14px 0}.handsFree .actions{margin:8px 0}.chatHistory{max-height:310px;overflow:auto;display:grid;gap:8px;margin:12px 0}.chatBubble{padding:10px 12px;border-radius:12px;background:#eef2ea;white-space:pre-wrap;font-size:14px}.chatBubble.you{background:#e4edf9}.chatBubble strong{display:block;font-size:12px;margin-bottom:4px}</style></head><body><div class="wrap"><header><a class="home" href="/">← Webilang</a><span class="pill">AVATAR LAB · STAGE 10</span></header><h1>Meet Emma &amp; Alex · 3D Avatars</h1><p>Meet Emma or Alex for English and Russian conversation practice. Existing Tavus lessons are untouched.</p><div class="layout"><section class="stage" aria-label="Animated 3D avatar"><div class="stageTag">Webilang · avatar preview</div><div id="scene"></div></section><section class="panel"><h2 id="characterHeading">Talk with Emma</h2><p class="muted">Try English and Russian. Both avatars have close portraits, subtle idle animation and speaking gestures. Mouth movement is approximate, not phoneme-accurate.</p><label for="cameraMode">Camera view</label><select id="cameraMode" aria-label="Camera view"><option value="close">Close-up · face and shoulders</option><option value="half">Half-body · waist-up</option><option value="full">Full-body · entire character</option></select><p class="muted">Choose a camera view to inspect mouth movements, gestures, or the full model.</p><label for="modelMode">Character</label><select id="modelMode"><option value="emma">Emma · Female avatar</option><option value="alex">Alex · Male avatar</option><option value="prototype">Original prototype</option></select><div id="vrmOptions" hidden><label for="vrmFile">Optional: load a temporary .vrm model</label><input id="vrmFile" type="file" accept=".vrm,model/gltf-binary,application/octet-stream"><p class="muted">Emma and Alex load from the Webilang model library. Optional custom files stay on your device.</p></div><label for="language">Language</label><select id="language"><option value="en">English</option><option value="ru">Русский</option></select><label for="avatarVoice">Avatar voice</label><select id="avatarVoice"><option value="female" selected>Female · Nova</option><option value="male">Male · Cedar</option></select><p class="muted">Change the voice independently of the avatar appearance. Applies to English and Russian.</p><label for="responsePace">Conversation pace</label><select id="responsePace"><option value="natural" selected>Natural · 0.65 s pause</option><option value="balanced">Balanced · 1.0 s pause</option><option value="patient">Patient · 1.7 s pause</option></select><label for="level">Student level</label><select id="level"><option>A1</option><option selected>A2</option><option>B1</option><option>B2</option><option>C1</option></select><label for="topic">Conversation</label><select id="topic"><option value="everyday">Everyday conversation</option><option value="cafe">At a café</option><option value="travel">Travel and directions</option><option value="university">University life</option><option value="doctor">Visiting the doctor</option></select><div class="handsFree"><label style="margin-top:0" for="handsStatus">Hands-free conversation</label><div class="actions"><button id="handsStart">▶ Start conversation</button><button id="handsEnd" class="secondary" disabled>■ End conversation</button></div><div class="muted" id="handsStatus" aria-live="polite">Off · Manual recording is still available below.</div><div id="micMeter" aria-label="Microphone input level" style="margin-top:9px;height:9px;background:#d5dfd4;border-radius:999px;overflow:hidden"><div id="micMeterBar" style="width:0%;height:100%;background:#557e57;transition:width .08s linear"></div></div><p class="muted" id="micHint" style="margin:6px 0 0">The meter should move when you speak.</p></div><div class="actions"><button id="mic">🎙 Record my answer</button><button id="endRecord" class="secondary" disabled>■ Finish recording</button><button id="resetChat" class="secondary">↺ New conversation</button></div><p class="muted">Manual alternative: click Record, speak, then Finish recording. Hands-free detects speech and ends each recording after a pause; audio is sent for transcription after the turn, not streamed continuously.</p><label for="typedAnswer">Or type your answer</label><textarea id="typedAnswer" style="min-height:64px" placeholder="Type your message if microphone is unavailable"></textarea><div class="actions"><button id="sendTyped" class="secondary">Send text</button></div><div id="chatHistory" class="chatHistory" aria-live="polite"></div><hr style="border:0;border-top:1px solid #dde5dc;margin:20px 0"><h3>Voice test</h3><label for="script">What should the avatar say?</label><textarea id="script">Hi! I'm Emma, your new speaking partner at Webilang. It's lovely to meet you!</textarea><div class="actions"><button id="speak">▶ Speak</button><button id="stop" class="secondary">■ Stop</button><button id="blink" class="secondary">☺ Blink</button></div><div class="status" id="status" role="status">Loading 3D scene…</div><p class="muted">The Speak button uses Webilang's existing /api/speak endpoint. If server speech is unavailable, it falls back to your browser's voice.</p></section></div><footer>Architecture: one voice engine with two replaceable renderers (prototype / VRM). A future realistic video renderer can use the same conversational logic.</footer></div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/","@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"}}</script>
 <script type="module">
 import * as THREE from 'three';
@@ -13,8 +13,27 @@ scene.add(new THREE.HemisphereLight(0xffffff,0xc6cfb6,2.5));const sun=new THREE.
 const skin=new THREE.MeshStandardMaterial({color:0xf3be9e,roughness:.85}),hair=new THREE.MeshStandardMaterial({color:0x604337,roughness:.9}),shirt=new THREE.MeshStandardMaterial({color:0x668268,roughness:.84}),white=new THREE.MeshStandardMaterial({color:0xffffff}),iris=new THREE.MeshStandardMaterial({color:0x395e55}),lips=new THREE.MeshStandardMaterial({color:0x9d5351});
 const character=new THREE.Group();scene.add(character);
 const modelMode=document.querySelector("#modelMode"),vrmOptions=document.querySelector("#vrmOptions"),vrmFile=document.querySelector("#vrmFile");
-function useMode(){const custom=modelMode.value==="vrm";vrmOptions.hidden=!custom;character.visible=!custom;if(currentVrm)currentVrm.scene.visible=custom;if(custom&&currentVrm){framePortrait(currentVrm)}else if(!custom){camera.position.copy(defaultCamera.position);camera.lookAt(defaultCamera.target)}status.textContent=custom?(currentVrm?"Emma ready. Test Speak and Blink.":"Loading Emma …"):"Original prototype ready."}
-modelMode.onchange=useMode;
+const avatarVoice=document.querySelector('#avatarVoice');
+const avatarProfiles={emma:{name:'Emma',file:'./models/emma.vrm',voice:'female'},alex:{name:'Alex',file:'./models/alex.vrm',voice:'male'}};
+let avatarRequest=0;
+const avatarName=()=>avatarProfiles[modelMode.value]?.name||'Avatar';
+function setAvatarCopy(){
+ const name=avatarName();
+ document.querySelector('#characterHeading').textContent='Talk with '+name;
+ document.querySelector('#script').value=(document.querySelector('#language').value==='ru'?`Привет! Меня зовут ${name==='Alex'?'Алекс':'Эмма'}. Давай поговорим по-русски!`:`Hi! I'm ${name}. Let's practice English together!`);
+}
+function changeAvatar(){
+ if(handsRunning){handsEnd.click();}
+ conversation=[];chatHistory.replaceChildren();
+ const choice=modelMode.value,profile=avatarProfiles[choice];
+ if(!profile){++avatarRequest;useMode();return;}
+ avatarVoice.value=profile.voice;
+ setAvatarCopy();
+ loadVrm(profile.file,profile.name,++avatarRequest);
+}
+
+function useMode(){const custom=modelMode.value!=="prototype";vrmOptions.hidden=!custom;character.visible=!custom;if(currentVrm)currentVrm.scene.visible=custom;if(custom&&currentVrm){framePortrait(currentVrm)}else if(!custom){camera.position.copy(defaultCamera.position);camera.lookAt(defaultCamera.target)}status.textContent=custom?(currentVrm?avatarName()+" ready. Test Speak and Blink.":"Loading "+avatarName()+" …"):"Original prototype ready."}
+modelMode.onchange=changeAvatar;
 function ell(parent,mat,x,y,z,sx,sy,sz){let m=new THREE.Mesh(new THREE.SphereGeometry(1,40,24),mat);m.position.set(x,y,z);m.scale.set(sx,sy,sz);parent.add(m);return m}
 ell(character,shirt,0,-.95,0,.95,1,.55);ell(character,skin,0,-.27,.09,.20,.30,.20);ell(character,hair,0,.67,-.17,.66,.93,.45);const face=ell(character,skin,0,.68,.14,.58,.76,.46);ell(character,hair,-.45,.95,.40,.19,.62,.19);ell(character,hair,.45,.95,.39,.19,.62,.19);ell(character,hair,0,1.34,.37,.53,.18,.32);
 for(let s of [-1,1]){ell(character,white,s*.235,.79,.557,.142,.105,.045);ell(character,iris,s*.235,.79,.598,.060,.068,.026);ell(character,skin,s*.62,.64,.16,.105,.18,.13)}ell(character,skin,0,.55,.60,.10,.17,.13);const mouth=ell(character,lips,0,.285,.567,.205,.026,.022);const lidL=ell(character,skin,-.235,.8,.614,.152,.008,.048),lidR=ell(character,skin,.235,.8,.614,.152,.008,.048);
@@ -27,7 +46,7 @@ const cameraMode=document.querySelector('#cameraMode');
 // Frame the avatar using head/hips joints when possible, not just the full mesh box.
 // Head anchor avoids making the face tiny because of bounding-box padding or tall hair.
 function framePortrait(vrm){
-  if(!vrm || modelMode.value!=='vrm')return;
+  if(!vrm || modelMode.value==='prototype')return;
   vrm.scene.updateWorldMatrix(true,true);
   const bounds=new THREE.Box3().setFromObject(vrm.scene);
   const height=Math.max(0.8,bounds.max.y-bounds.min.y);
@@ -66,29 +85,29 @@ function poseVrm(vrm){
     if(node){node.rotation.z=angle;node.userData.webilangRestZ=angle;}
   }
 }
-async function loadVrm(url,label){
+async function loadVrm(url,label,request=++avatarRequest){
   modelLoading=true;status.textContent='Loading '+label+'…';
   try{
     const gltf=await loader.loadAsync(url),next=gltf.userData.vrm;
     if(!next)throw new Error('This file does not contain VRM data');
+    if(request!==avatarRequest){VRMUtils.deepDispose(next.scene);return;}
     VRMUtils.rotateVRM0(next);
     poseVrm(next);
     // Only dispose old avatar after the replacement is loaded successfully.
     if(currentVrm){scene.remove(currentVrm.scene);VRMUtils.deepDispose(currentVrm.scene)}
     currentVrm=next;scene.add(next.scene);useMode();
     status.textContent=label+' loaded. Try Speak and Blink.';
-  }catch(err){status.textContent='Could not load '+label+': '+(err?.message||String(err));if(!currentVrm){modelMode.value='prototype';useMode()}}
-  finally{modelLoading=false}
+  }catch(err){if(request===avatarRequest){status.textContent='Could not load '+label+': '+(err?.message||String(err));if(!currentVrm){modelMode.value='prototype';useMode()}}}
+  finally{if(request===avatarRequest)modelLoading=false}
 }
 vrmFile.addEventListener('change',async()=>{
   const file=vrmFile.files?.[0];if(!file)return;
   if(!/\.vrm$/i.test(file.name)){status.textContent='Please select a .vrm file.';return}
   if(file.size>50*1024*1024){status.textContent='This model exceeds the 50 MB test limit.';return}
   const url=URL.createObjectURL(file);
-  try{await loadVrm(url,file.name)}finally{URL.revokeObjectURL(url)}
+  try{await loadVrm(url,file.name,++avatarRequest)}finally{URL.revokeObjectURL(url)}
 });
 useMode();
-loadVrm('./models/emma.vrm','Emma');
 const clock=new THREE.Clock();
 function resize(){
  const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);
@@ -137,7 +156,7 @@ function frame(){
  mouth.scale.y+=(mouthTarget-mouth.scale.y)*.28;
  renderer.render(scene,camera);
 }frame();
-const script=document.querySelector('#script'),lang=document.querySelector('#language');lang.onchange=()=>{script.value=lang.value==='ru'?'Привет! Меня зовут Эмма. Давай поговорим по-русски. Как у тебя дела?':"Hi! I'm Emma, your new speaking partner at Webilang. It's lovely to meet you!"};
+const script=document.querySelector('#script'),lang=document.querySelector('#language');lang.onchange=setAvatarCopy;
 function stop(){active=false;if(audio){audio.pause();audio.src='';audio=null}if(utterance&&'speechSynthesis'in window)speechSynthesis.cancel();utterance=null;status.textContent='Stopped.';document.querySelector('#speak').disabled=false}
 document.querySelector('#stop').onclick=stop;document.querySelector('#blink').onclick=()=>{blinking=performance.now()+200};
 function fallback(text){if(!('speechSynthesis'in window)){status.textContent='No speech engine available in this browser.';document.querySelector('#speak').disabled=false;return}const u=new SpeechSynthesisUtterance(text);u.lang=lang.value==='ru'?'ru-RU':'en-US';u.rate=.9;utterance=u;u.onstart=()=>{active=true;status.textContent='Speaking with browser voice…'};u.onend=()=>{active=false;document.querySelector('#speak').disabled=false;status.textContent='Finished.'};u.onerror=()=>{active=false;document.querySelector('#speak').disabled=false;status.textContent='Browser voice failed. Check installed voices.'};speechSynthesis.speak(u)}
@@ -153,25 +172,25 @@ const micMeterBar=document.querySelector('#micMeterBar'),micHint=document.queryS
 function handsState(message){handsStatus.textContent=message;}
 function handsUI(){handsStart.disabled=handsRunning;handsEnd.disabled=!handsRunning;micBtn.disabled=handsRunning||busy;sendTyped.disabled=busy;}
 function bubble(role,message){const el=document.createElement('div');el.className='chatBubble '+(role==='You'?'you':'');const name=document.createElement('strong');name.textContent=role;const line=document.createElement('span');line.textContent=message;el.append(name,line);chatHistory.append(el);chatHistory.scrollTop=chatHistory.scrollHeight;}
-function setBusy(val){busy=val;handsUI();finishBtn.disabled=!mediaRecorder||mediaRecorder.state!=='recording';}
+function setBusy(val){busy=val;modelMode.disabled=val;handsUI();finishBtn.disabled=!mediaRecorder||mediaRecorder.state!=='recording';}
 async function postJSON(url,data){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const json=await r.json().catch(()=>({}));if(!r.ok)throw Error(json.error||`${url} failed (${r.status})`);return json;}
 async function voiceReply(reply){
- stop();status.textContent='Emma is preparing her voice…';
+ stop();status.textContent=avatarName()+' is preparing a voice reply…';
  try{
   const r=await fetch('/api/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:reply.slice(0,700),module:lang.value==='ru'?'russian-03':'avatar-lab',targetLanguage:lang.value,speaker:lang.value==='ru'?'anna':'emma',avatarVoice:document.querySelector('#avatarVoice').value})});
   if(!r.ok)throw Error('Speech server unavailable');
   const blob=await r.blob(),url=URL.createObjectURL(blob);const player=new Audio(url);audio=player;
-  await new Promise((resolve,reject)=>{player.onplay=()=>{active=true;status.textContent='Emma is speaking…'};player.onended=()=>{active=false;URL.revokeObjectURL(url);if(audio===player)audio=null;resolve()};player.onpause=()=>{active=false;URL.revokeObjectURL(url);if(audio===player)audio=null;resolve()};player.onerror=()=>{active=false;URL.revokeObjectURL(url);reject(Error('Playback failed'))};player.play().catch(reject)});
- }catch(e){active=false;status.textContent='Voice unavailable; Emma’s text is shown below.';}
+  await new Promise((resolve,reject)=>{player.onplay=()=>{active=true;status.textContent=avatarName()+' is speaking…'};player.onended=()=>{active=false;URL.revokeObjectURL(url);if(audio===player)audio=null;resolve()};player.onpause=()=>{active=false;URL.revokeObjectURL(url);if(audio===player)audio=null;resolve()};player.onerror=()=>{active=false;URL.revokeObjectURL(url);reject(Error('Playback failed'))};player.play().catch(reject)});
+ }catch(e){active=false;status.textContent='Voice unavailable; the reply is shown below.';}
 }
 async function submitTurn(message){
  const value=String(message||'').trim().slice(0,1200);if(!value||busy)return;
  setBusy(true);bubble('You',value);typedAnswer.value='';const prior=conversation.slice(-16);
- status.textContent='Emma is thinking…';
+ status.textContent=avatarName()+' is thinking…';
  try{
-  const result=await postJSON('/api/avatar-chat',{message:value,history:prior,language:lang.value,level:document.querySelector('#level').value,topic:document.querySelector('#topic').value});
+  const result=await postJSON('/api/avatar-chat',{message:value,history:prior,language:lang.value,level:document.querySelector('#level').value,topic:document.querySelector('#topic').value,character:modelMode.value==='alex'?'alex':'emma'});
   conversation.push({role:'user',content:value},{role:'assistant',content:result.reply});conversation=conversation.slice(-20);
-  bubble('Emma',result.reply);await voiceReply(result.reply);status.textContent='Your turn. Record or type your answer.';
+  bubble(avatarName(),result.reply);await voiceReply(result.reply);status.textContent='Your turn. Record or type your answer.';
  }catch(e){status.textContent='Conversation error: '+e.message;}
  finally{setBusy(false)}
 }
@@ -299,10 +318,11 @@ handsStart.onclick=async()=>{
 };
 handsEnd.onclick=()=>endHands();
 
-document.querySelector('#resetChat').onclick=()=>{if(handsRunning)endHands('New conversation. Hands-free is off.');if(mediaRecorder?.state==='recording')mediaRecorder.stop();conversation=[];chatHistory.replaceChildren();stop();status.textContent='New conversation. Say hello to Emma.'};
+document.querySelector('#resetChat').onclick=()=>{if(handsRunning)endHands('New conversation. Hands-free is off.');if(mediaRecorder?.state==='recording')mediaRecorder.stop();conversation=[];chatHistory.replaceChildren();stop();status.textContent='New conversation. Say hello to '+avatarName()+'.'};
 lang.addEventListener('change',()=>{if(handsRunning)endHands('Language changed. Hands-free is off.');conversation=[];chatHistory.replaceChildren();status.textContent='Language changed. New conversation started.'});
 window.addEventListener('pagehide',()=>{if(handsRunning)endHands();closeMic()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&handsRunning)endHands('Hands-free paused because the tab is hidden.')});
 
+setAvatarCopy();changeAvatar();
 window.addEventListener('pagehide',stop);
 </script></body></html>
