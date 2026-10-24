@@ -340,7 +340,6 @@ lang.addEventListener('change',()=>{if(handsRunning)endHands('Language changed. 
 window.addEventListener('pagehide',()=>{if(handsRunning)endHands();closeMic()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&handsRunning)endHands('Hands-free paused because the tab is hidden.')});
 
-setAvatarCopy();changeAvatar();
 window.addEventListener('pagehide',stop);
 
 // Isolated Realtime pilot: classic conversation handlers above stay unchanged.
@@ -437,5 +436,8 @@ rtStart.onclick=async()=>{
  }catch(err){if(sessionGeneration===rtcGeneration){rtCleanup();rtMessage('Could not start: '+err.message)}console.error(err)}
 };
 window.addEventListener('pagehide',rtCleanup);
+// Initialize avatar only after all Realtime state has been declared.
+setAvatarCopy();
+changeAvatar();
 
 </script></body></html>
