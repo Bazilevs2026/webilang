@@ -7,7 +7,7 @@ export default async function handler(req,res){
   const body=req.body||{},language=body.language==='ru'?'ru':'en',level=['A1','A2','B1','B2','C1'].includes(body.level)?body.level:'A2';
   const topics={everyday:'everyday life',cafe:'ordering at a cafe',travel:'travel and directions',university:'university life',doctor:'visiting a doctor (language practice only, no medical advice)'};
   const topic=topics[body.topic]||topics.everyday;
-  const character=body.character==='alex'?'Alex':'Emma';
+  const character=(body.character==='chaz'||body.character==='alex')?'Chaz':'Nova';
   const message=String(body.message||'').trim().slice(0,1200);
   if(!message)return res.status(400).json({error:'Empty message'});
   const history=(Array.isArray(body.history)?body.history:[]).slice(-16).filter(m=>m&&['user','assistant'].includes(m.role)).map(m=>({role:m.role,content:String(m.content||'').slice(0,1200)}));
