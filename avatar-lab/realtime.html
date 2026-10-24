@@ -28,10 +28,18 @@ function setAvatarCopy(){
  document.querySelector('#script').value=(document.querySelector('#language').value==='ru'?`Привет! Меня зовут ${name==='Chaz'?'Чаз':'Нова'}. Давай поговорим по-русски!`:`Hi! I'm ${name}. Let's practice English together!`);
 }
 function changeAvatar(){
+ // Each realtime session is created with a fixed character identity and voice.
+ // Shut down the previous peer before selecting a different avatar.
+ const hadRealtime=!!(rtcPeer||rtcStream||rtcBusy);
+ if(hadRealtime){
+   rtCleanup();
+   rtMessage('Character changed. Press Start Realtime to talk with '+avatarName()+'.');
+   rtLog.textContent='';
+ }
  if(handsRunning){handsEnd.click();}
  conversation=[];chatHistory.replaceChildren();
  const choice=modelMode.value,profile=avatarProfiles[choice];
- if(!profile){++avatarRequest;useMode();return;}
+ if(!profile){++avatarRequest;setAvatarCopy();useMode();return;}
  avatarVoice.value=profile.voice;
  setAvatarCopy();
  loadVrm(profile.file,profile.name,++avatarRequest);
@@ -336,10 +344,11 @@ setAvatarCopy();changeAvatar();
 window.addEventListener('pagehide',stop);
 
 // Isolated Realtime pilot: classic conversation handlers above stay unchanged.
-let rtcPeer=null,rtcStream=null,rtcChannel=null,rtcAnalyser=null,rtcAudioCtx=null,rtcRAF=0,rtcBusy=false;
+let rtcPeer=null,rtcStream=null,rtcChannel=null,rtcAnalyser=null,rtcAudioCtx=null,rtcRAF=0,rtcBusy=false,rtcGeneration=0;
 const rtStatus=document.getElementById('rtStatus'),rtStart=document.getElementById('rtStart'),rtEnd=document.getElementById('rtEnd'),rtAudio=document.getElementById('rtAudio'),rtLog=document.getElementById('rtLog');
 const rtMessage=s=>{rtStatus.textContent=s};
 function rtCleanup(){
+  ++rtcGeneration;
   active=false;
   if(rtcRAF)cancelAnimationFrame(rtcRAF);rtcRAF=0;
   if(rtcStream)rtcStream.getTracks().forEach(t=>t.stop());rtcStream=null;
@@ -360,7 +369,7 @@ function rtAnimateAudio(){
 }
 rtEnd.onclick=()=>{rtCleanup();rtMessage('Session ended. Classic conversation is still available on the main Avatar Lab page.')};
 rtStart.onclick=async()=>{
- if(rtcBusy)return;rtcBusy=true;rtStart.disabled=true;rtEnd.disabled=false;
+ if(rtcBusy)return;rtcBusy=true;const sessionGeneration=++rtcGeneration;rtStart.disabled=true;rtEnd.disabled=false;
  try{
    if(!window.RTCPeerConnection||!navigator.mediaDevices?.getUserMedia)throw Error('This browser does not support WebRTC microphone access.');
    rtMessage('Requesting microphone permission…');
@@ -390,9 +399,11 @@ rtStart.onclick=async()=>{
    rtMessage('Establishing secure Realtime connection…');
    const r=await fetch('/api/realtime-session?character='+encodeURIComponent(modelMode.value)+'&language='+encodeURIComponent(lang.value)+'&level='+encodeURIComponent(document.getElementById('level').value)+'&topic='+encodeURIComponent(document.getElementById('topic').value),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:rtcPeer.localDescription?.sdp||offer.sdp})});
    if(!r.ok){let info=await r.text();try{info=JSON.parse(info).error||info}catch(e){}throw Error('Session HTTP '+r.status+': '+String(info).slice(0,220))}
-   const answer=await r.text();await rtcPeer.setRemoteDescription({type:'answer',sdp:answer});
+   if(sessionGeneration!==rtcGeneration)return;
+   const answer=await r.text();if(sessionGeneration!==rtcGeneration)return;
+   await rtcPeer.setRemoteDescription({type:'answer',sdp:answer});
    rtMessage('Connecting · Speak after the connection opens…');
- }catch(err){rtCleanup();rtMessage('Could not start: '+err.message);console.error(err)}
+ }catch(err){if(sessionGeneration===rtcGeneration){rtCleanup();rtMessage('Could not start: '+err.message)}console.error(err)}
 };
 window.addEventListener('pagehide',rtCleanup);
 
