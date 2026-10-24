@@ -1,0 +1,399 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Webilang · Realtime Voice Test</title><style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#22334d;background:#f4f6f1}*{box-sizing:border-box}body{margin:0}.wrap{max-width:1080px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}h1{margin:14px 0 5px;font-size:clamp(25px,4vw,38px)}p{line-height:1.5}.pill{background:#e3eadb;color:#43573a;padding:8px 12px;border-radius:30px;font-size:13px;font-weight:700}.layout{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(280px,1fr);gap:18px;margin-top:20px}.stage{background:linear-gradient(#dde8e4,#f9f6ee);height:520px;border-radius:19px;position:relative;overflow:hidden;border:1px solid #d4dfd1}canvas{display:block;width:100%;height:100%}#scene{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}.stageTag{position:absolute;top:15px;left:15px;background:#fffD;padding:8px 12px;border-radius:10px;pointer-events:none}.panel{background:#fff;padding:23px;border-radius:19px;border:1px solid #e0e7df}label{display:block;font-weight:750;margin:16px 0 6px}select,textarea,input[type=file]{width:100%;padding:11px;border:1px solid #bac8c0;border-radius:10px;font:inherit}textarea{min-height:120px;resize:vertical}button,.home{border:0;border-radius:11px;background:#556944;color:white;padding:12px 15px;font:inherit;font-weight:750;cursor:pointer;text-decoration:none;display:inline-block}button.secondary{background:#e8ede4;color:#334937}button:disabled{opacity:.5;cursor:wait}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.muted{color:#5e7068;font-size:13px}.status{padding:12px;border-radius:10px;background:#f1f4ec;margin-top:15px;min-height:45px}footer{margin-top:18px;color:#647268;font-size:13px}@media(max-width:740px){.layout{grid-template-columns:1fr}.stage{height:390px}.wrap{padding:14px}}
+.handsFree{background:#eef2ea;border:1px solid #d5e1d4;border-radius:12px;padding:13px;margin:14px 0}.handsFree .actions{margin:8px 0}.chatHistory{max-height:310px;overflow:auto;display:grid;gap:8px;margin:12px 0}.chatBubble{padding:10px 12px;border-radius:12px;background:#eef2ea;white-space:pre-wrap;font-size:14px}.chatBubble.you{background:#e4edf9}.chatBubble strong{display:block;font-size:12px;margin-bottom:4px}
+/* Standalone realtime pilot: original classic Lab remains untouched */
+.handsFree,#mic,#endRecord,#resetChat,#sendTyped,#typedAnswer,#chatHistory,#script,#speak,#stop,#blink {display:none!important}
+#realtimeCard{background:#edf5ed;border:1px solid #bdd0bc;border-radius:14px;padding:16px;margin:14px 0}
+#rtStart{background:#3e684e}#rtEnd{background:#8a4646}#rtLog{white-space:pre-wrap;font-size:12px;max-height:135px;overflow:auto}
+</style></head><body><div class="wrap"><header><a class="home" href="/">← Webilang</a><span class="pill">AVATAR LAB · REALTIME PILOT</span></header><h1>Meet Nova &amp; Chaz · 3D Avatars</h1><p>Meet Nova or Chaz for English and Russian conversation practice. Realtime voice test. <a href="/avatar-lab/">← Return to Classic Avatar Lab</a>. Existing lessons are untouched.</p><div class="layout"><section class="stage" aria-label="Animated 3D avatar"><div class="stageTag">Webilang · avatar preview</div><div id="scene"></div></section><section class="panel"><h2 id="characterHeading">Talk with Nova</h2><p class="muted">Try English and Russian. Both avatars have close portraits, subtle idle animation and speaking gestures. Mouth movement is approximate, not phoneme-accurate.</p><label for="cameraMode">Camera view</label><select id="cameraMode" aria-label="Camera view"><option value="close">Close-up · face and shoulders</option><option value="half">Half-body · waist-up</option><option value="full">Full-body · entire character</option></select><p class="muted">Choose a camera view to inspect mouth movements, gestures, or the full model.</p><label for="modelMode">Character</label><select id="modelMode"><option value="nova">Nova · Female avatar</option><option value="chaz">Chaz · Male avatar</option><option value="prototype">Original prototype</option></select><div id="vrmOptions" hidden><label for="vrmFile">Optional: load a temporary .vrm model</label><input id="vrmFile" type="file" accept=".vrm,model/gltf-binary,application/octet-stream"><p class="muted">Nova and Chaz load from the Webilang model library. Optional custom files stay on your device.</p></div><label for="language">Language</label><select id="language"><option value="en">English</option><option value="ru">Русский</option></select><label for="avatarVoice">Avatar voice</label><select id="avatarVoice"><option value="female" selected>Female · Nova</option><option value="male">Male · Cedar</option></select><p class="muted">Change the voice independently of the avatar appearance. Applies to English and Russian.</p><label for="responsePace">Conversation pace</label><select id="responsePace"><option value="natural" selected>Natural · 0.65 s pause</option><option value="balanced">Balanced · 1.0 s pause</option><option value="patient">Patient · 1.7 s pause</option></select><label for="level">Student level</label><select id="level"><option>A1</option><option selected>A2</option><option>B1</option><option>B2</option><option>C1</option></select><label for="topic">Conversation</label><select id="topic"><option value="everyday">Everyday conversation</option><option value="cafe">At a café</option><option value="travel">Travel and directions</option><option value="university">University life</option><option value="doctor">Visiting the doctor</option></select><div id="realtimeCard"><h3>Realtime WebRTC · iPhone test</h3><p class="muted">Headphones recommended. Realtime uses different voices from Classic mode and may have different usage costs. For initial testing only.</p><div class="actions"><button id="rtStart">▶ Start Realtime</button><button id="rtEnd" disabled>■ End Realtime</button></div><div id="rtStatus" class="status" aria-live="polite">Ready · Select Nova or Chaz, language and CEFR level.</div><p class="muted">If Safari blocks sound, tap Start again after granting microphone access. Only one voice session at a time.</p><div id="rtLog" class="muted"></div><audio id="rtAudio" autoplay playsinline></audio></div><div class="handsFree"><label style="margin-top:0" for="handsStatus">Hands-free conversation</label><div class="actions"><button id="handsStart">▶ Start conversation</button><button id="handsEnd" class="secondary" disabled>■ End conversation</button></div><div class="muted" id="handsStatus" aria-live="polite">Off · Manual recording is still available below.</div><div id="micMeter" aria-label="Microphone input level" style="margin-top:9px;height:9px;background:#d5dfd4;border-radius:999px;overflow:hidden"><div id="micMeterBar" style="width:0%;height:100%;background:#557e57;transition:width .08s linear"></div></div><p class="muted" id="micHint" style="margin:6px 0 0">The meter should move when you speak.</p></div><div class="actions"><button id="mic">🎙 Record my answer</button><button id="endRecord" class="secondary" disabled>■ Finish recording</button><button id="resetChat" class="secondary">↺ New conversation</button></div><p class="muted">Manual alternative: click Record, speak, then Finish recording. Hands-free detects speech and ends each recording after a pause; audio is sent for transcription after the turn, not streamed continuously.</p><label for="typedAnswer">Or type your answer</label><textarea id="typedAnswer" style="min-height:64px" placeholder="Type your message if microphone is unavailable"></textarea><div class="actions"><button id="sendTyped" class="secondary">Send text</button></div><div id="chatHistory" class="chatHistory" aria-live="polite"></div><hr style="border:0;border-top:1px solid #dde5dc;margin:20px 0"><h3>Voice test</h3><label for="script">What should the avatar say?</label><textarea id="script">Hi! I'm Nova, your new speaking partner at Webilang. It's lovely to meet you!</textarea><div class="actions"><button id="speak">▶ Speak</button><button id="stop" class="secondary">■ Stop</button><button id="blink" class="secondary">☺ Blink</button></div><div class="status" id="status" role="status">Loading 3D scene…</div><p class="muted">The Speak button uses Webilang's existing /api/speak endpoint. If server speech is unavailable, it falls back to your browser's voice.</p></section></div><footer>Architecture: one voice engine with two replaceable renderers (prototype / VRM). A future realistic video renderer can use the same conversational logic.</footer></div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/","@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
+const host=document.querySelector('#scene'),status=document.querySelector('#status');let active=false, audio=null, utterance=null, mouthTarget=0,blinking=0,stopAt=0; let currentVrm=null, modelLoading=false; const defaultCamera={position:new THREE.Vector3(0,1.22,5.7),target:new THREE.Vector3(0,.95,0)};
+const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(34,1,.1,100);camera.position.set(0,1.22,5.7);camera.lookAt(0,.95,0);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.03;host.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xffffff,0xc6cfb6,2.5));const sun=new THREE.DirectionalLight(0xffffff,2.4);sun.position.set(-3,5,5);scene.add(sun);
+const skin=new THREE.MeshStandardMaterial({color:0xf3be9e,roughness:.85}),hair=new THREE.MeshStandardMaterial({color:0x604337,roughness:.9}),shirt=new THREE.MeshStandardMaterial({color:0x668268,roughness:.84}),white=new THREE.MeshStandardMaterial({color:0xffffff}),iris=new THREE.MeshStandardMaterial({color:0x395e55}),lips=new THREE.MeshStandardMaterial({color:0x9d5351});
+const character=new THREE.Group();scene.add(character);
+const modelMode=document.querySelector("#modelMode"),vrmOptions=document.querySelector("#vrmOptions"),vrmFile=document.querySelector("#vrmFile");
+const avatarVoice=document.querySelector('#avatarVoice');
+const avatarProfiles={nova:{name:'Nova',file:'./models/nova.vrm',voice:'female'},chaz:{name:'Chaz',file:'./models/chaz.vrm',voice:'male'}};
+let avatarRequest=0;
+const avatarName=()=>avatarProfiles[modelMode.value]?.name||'Avatar';
+function setAvatarCopy(){
+ const name=avatarName();
+ document.querySelector('#characterHeading').textContent='Talk with '+name;
+ document.querySelector('#script').value=(document.querySelector('#language').value==='ru'?`Привет! Меня зовут ${name==='Chaz'?'Чаз':'Нова'}. Давай поговорим по-русски!`:`Hi! I'm ${name}. Let's practice English together!`);
+}
+function changeAvatar(){
+ if(handsRunning){handsEnd.click();}
+ conversation=[];chatHistory.replaceChildren();
+ const choice=modelMode.value,profile=avatarProfiles[choice];
+ if(!profile){++avatarRequest;useMode();return;}
+ avatarVoice.value=profile.voice;
+ setAvatarCopy();
+ loadVrm(profile.file,profile.name,++avatarRequest);
+}
+
+function useMode(){const custom=modelMode.value!=="prototype";vrmOptions.hidden=!custom;character.visible=!custom;if(currentVrm)currentVrm.scene.visible=custom;if(custom&&currentVrm){framePortrait(currentVrm)}else if(!custom){camera.position.copy(defaultCamera.position);camera.lookAt(defaultCamera.target)}status.textContent=custom?(currentVrm?avatarName()+" ready. Test Speak and Blink.":"Loading "+avatarName()+" …"):"Original prototype ready."}
+modelMode.onchange=changeAvatar;
+function ell(parent,mat,x,y,z,sx,sy,sz){let m=new THREE.Mesh(new THREE.SphereGeometry(1,40,24),mat);m.position.set(x,y,z);m.scale.set(sx,sy,sz);parent.add(m);return m}
+ell(character,shirt,0,-.95,0,.95,1,.55);ell(character,skin,0,-.27,.09,.20,.30,.20);ell(character,hair,0,.67,-.17,.66,.93,.45);const face=ell(character,skin,0,.68,.14,.58,.76,.46);ell(character,hair,-.45,.95,.40,.19,.62,.19);ell(character,hair,.45,.95,.39,.19,.62,.19);ell(character,hair,0,1.34,.37,.53,.18,.32);
+for(let s of [-1,1]){ell(character,white,s*.235,.79,.557,.142,.105,.045);ell(character,iris,s*.235,.79,.598,.060,.068,.026);ell(character,skin,s*.62,.64,.16,.105,.18,.13)}ell(character,skin,0,.55,.60,.10,.17,.13);const mouth=ell(character,lips,0,.285,.567,.205,.026,.022);const lidL=ell(character,skin,-.235,.8,.614,.152,.008,.048),lidR=ell(character,skin,.235,.8,.614,.152,.008,.048);
+// VRM files are parsed locally; the original character remains available as fallback.
+const loader=new GLTFLoader();loader.register(parser=>new VRMLoaderPlugin(parser));
+// Generic loader: accepts the bundled Webilang asset or a locally selected VRM file.
+// Portrait camera measures the actual head position, not the feet or full-body bounding box.
+// Camera distance is based on visible height so the model remains well framed on mobile.
+const cameraMode=document.querySelector('#cameraMode');
+// Frame the avatar using head/hips joints when possible, not just the full mesh box.
+// Head anchor avoids making the face tiny because of bounding-box padding or tall hair.
+function framePortrait(vrm){
+  if(!vrm || modelMode.value==='prototype')return;
+  vrm.scene.updateWorldMatrix(true,true);
+  const bounds=new THREE.Box3().setFromObject(vrm.scene);
+  const height=Math.max(0.8,bounds.max.y-bounds.min.y);
+  const width=Math.max(0.35,bounds.max.x-bounds.min.x);
+  const headBone=vrm.humanoid?.getNormalizedBoneNode('head');
+  const headPoint=new THREE.Vector3((bounds.min.x+bounds.max.x)/2,bounds.min.y+height*0.89,(bounds.min.z+bounds.max.z)/2);
+  if(headBone)headBone.getWorldPosition(headPoint);
+  const mode=cameraMode.value;
+  const settings={
+    close:{shift:0.025,visible:0.46},
+    half:{shift:0.20,visible:0.83},
+    full:{shift:0.43,visible:1.22}
+  }[mode] || {shift:0.025,visible:0.46};
+  const target=headPoint.clone();target.y-=height*settings.shift;
+  // Recalculate based on viewport aspect, so narrow mobile screens cannot clip shoulders.
+  const verticalFov=THREE.MathUtils.degToRad(camera.fov);
+  const desiredHeight=height*settings.visible;
+  const verticalDistance=(desiredHeight/2)/Math.tan(verticalFov/2);
+  const horizontalFov=2*Math.atan(Math.tan(verticalFov/2)*camera.aspect);
+  // Close-up may intentionally crop arms, but the face/shoulders should remain visible.
+  const requiredWidth=mode==='close'?Math.min(width*0.67,height*0.52):width*1.13;
+  const horizontalDistance=(requiredWidth/2)/Math.tan(horizontalFov/2);
+  const distance=Math.max(0.35,verticalDistance,horizontalDistance);
+  camera.position.set(target.x,target.y,target.z+distance);
+  camera.lookAt(target);
+  camera.updateProjectionMatrix();
+}
+cameraMode.addEventListener('change',()=>{if(currentVrm)framePortrait(currentVrm)});
+function poseVrm(vrm){
+  const hum=vrm.humanoid;if(!hum)return;
+  // A relaxed A-pose: arms hang at a comfortable angle with slightly bent elbows.
+  const rest={leftUpperArm:1.19,rightUpperArm:-1.19,leftLowerArm:.12,rightLowerArm:-.12,
+              leftHand:-.04,rightHand:.04};
+  for(const [bone,angle] of Object.entries(rest)){
+    const node=hum.getNormalizedBoneNode(bone);
+    if(node){node.rotation.z=angle;node.userData.webilangRestZ=angle;}
+  }
+}
+async function loadVrm(url,label,request=++avatarRequest){
+  modelLoading=true;status.textContent='Loading '+label+'…';
+  try{
+    const response=await fetch(url,{cache:'no-store'});
+    if(!response.ok)throw new Error('HTTP '+response.status+' ('+url+'). Verify the filename and folder on GitHub.');
+    const bytes=await response.arrayBuffer();
+    if(bytes.byteLength<100)throw new Error('Model file is unexpectedly small ('+bytes.byteLength+' bytes).');
+    const gltf=await loader.parseAsync(bytes, url.substring(0,url.lastIndexOf('/')+1)),next=gltf.userData.vrm;
+    if(!next)throw new Error('This file does not contain VRM data');
+    if(request!==avatarRequest){VRMUtils.deepDispose(next.scene);return;}
+    VRMUtils.rotateVRM0(next);
+    poseVrm(next);
+    // Only dispose old avatar after the replacement is loaded successfully.
+    if(currentVrm){scene.remove(currentVrm.scene);VRMUtils.deepDispose(currentVrm.scene)}
+    currentVrm=next;scene.add(next.scene);useMode();
+    status.textContent=label+' loaded. Try Speak and Blink.';
+  }catch(err){if(request===avatarRequest){const msg=err?.message||String(err);status.textContent='Could not load '+label+': '+msg+' — check that the model file exists in avatar-lab/models on GitHub.'; console.error('[Avatar Lab] Model load failed:',url,err); if(!currentVrm){character.visible=false;} }}
+  finally{if(request===avatarRequest)modelLoading=false}
+}
+vrmFile.addEventListener('change',async()=>{
+  const file=vrmFile.files?.[0];if(!file)return;
+  if(!/\.vrm$/i.test(file.name)){status.textContent='Please select a .vrm file.';return}
+  if(file.size>50*1024*1024){status.textContent='This model exceeds the 50 MB test limit.';return}
+  const url=URL.createObjectURL(file);
+  try{await loadVrm(url,file.name,++avatarRequest)}finally{URL.revokeObjectURL(url)}
+});
+useMode();
+const clock=new THREE.Clock();
+function resize(){
+ const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);
+ renderer.setSize(w,h,false);camera.aspect=w/h;
+ camera.updateProjectionMatrix();
+ if(currentVrm&&modelMode.value!=='prototype')framePortrait(currentVrm);
+}
+new ResizeObserver(resize).observe(host);resize();
+let nextBlink=2.5,blinkStart=-1;
+function frame(){
+ requestAnimationFrame(frame);
+ const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;
+ if(t>=nextBlink){blinkStart=t;nextBlink=t+2.5+Math.random()*3.6;}
+ const blinkProgress=blinkStart>=0?(t-blinkStart)/.19:2;
+ const blink=blinkProgress>=0&&blinkProgress<=1?Math.sin(Math.PI*blinkProgress):0;
+ if(currentVrm){
+   const hum=currentVrm.humanoid;
+   const head=hum?.getNormalizedBoneNode('head');
+   const neck=hum?.getNormalizedBoneNode('neck');
+   const chest=hum?.getNormalizedBoneNode('chest');
+   // Micro-motions: breathing, listening nods, and a restrained speaking gesture.
+   if(head){head.rotation.y=.028*Math.sin(t*.48)+ (active?.017*Math.sin(t*1.55):0);
+     head.rotation.x=.009*Math.sin(t*.82)+(active?.016*Math.sin(t*2.05):0);
+     head.rotation.z=.011*Math.sin(t*.39);}
+   if(neck)neck.rotation.y=.008*Math.sin(t*.65);
+   if(chest){chest.rotation.x=.006*Math.sin(t*1.6);chest.rotation.z=.004*Math.sin(t*.53);}
+   for(const [bone,side] of [['leftUpperArm',1],['rightUpperArm',-1]]){
+     const arm=hum?.getNormalizedBoneNode(bone);
+     if(arm&&Number.isFinite(arm.userData.webilangRestZ)){
+       const gesture=active?(.025*Math.sin(t*2.1+side)+.01*Math.sin(t*3.2)):0;
+       arm.rotation.z=arm.userData.webilangRestZ+side*(.007*Math.sin(t*.95)+gesture);
+     }
+   }
+   const em=currentVrm.expressionManager;
+   if(em){
+     const talk=active?(.14+.57*Math.abs(Math.sin(t*10.5)*Math.cos(t*3.7))):0;
+     em.setValue('aa',talk);em.setValue('blink',blink);
+     // Keep the optional smile subtle and avoid overriding models without this expression.
+     if(em.getExpression?.('happy'))em.setValue('happy',active?.055:.025);
+   }
+   currentVrm.update(dt);
+ }
+ character.rotation.y=.055*Math.sin(t*.7);character.position.y=.018*Math.sin(t*1.5);
+ lidL.scale.y=lidR.scale.y=blink?.105:.008;
+ mouthTarget=active?(0.06+Math.abs(Math.sin(t*14)*Math.cos(t*5))*.16):0.028;
+ mouth.scale.y+=(mouthTarget-mouth.scale.y)*.28;
+ renderer.render(scene,camera);
+}frame();
+const script=document.querySelector('#script'),lang=document.querySelector('#language');lang.onchange=setAvatarCopy;
+function stop(){active=false;if(audio){audio.pause();audio.src='';audio=null}if(utterance&&'speechSynthesis'in window)speechSynthesis.cancel();utterance=null;status.textContent='Stopped.';document.querySelector('#speak').disabled=false}
+document.querySelector('#stop').onclick=stop;document.querySelector('#blink').onclick=()=>{blinking=performance.now()+200};
+function fallback(text){if(!('speechSynthesis'in window)){status.textContent='No speech engine available in this browser.';document.querySelector('#speak').disabled=false;return}const u=new SpeechSynthesisUtterance(text);u.lang=lang.value==='ru'?'ru-RU':'en-US';u.rate=.9;utterance=u;u.onstart=()=>{active=true;status.textContent='Speaking with browser voice…'};u.onend=()=>{active=false;document.querySelector('#speak').disabled=false;status.textContent='Finished.'};u.onerror=()=>{active=false;document.querySelector('#speak').disabled=false;status.textContent='Browser voice failed. Check installed voices.'};speechSynthesis.speak(u)}
+document.querySelector('#speak').onclick=async()=>{stop();let text=script.value.trim();if(!text){status.textContent='Enter a phrase first.';return}document.querySelector('#speak').disabled=true;status.textContent='Generating speech…';try{let r=await fetch('/api/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text.slice(0,700),module:lang.value==='ru'?'russian-03':'avatar-lab',targetLanguage:lang.value,speaker:lang.value==='ru'?'anna':'emma',avatarVoice:document.querySelector('#avatarVoice').value})});if(!r.ok)throw new Error('Speech API unavailable');let blob=await r.blob();audio=new Audio(URL.createObjectURL(blob));audio.onplay=()=>{active=true;status.textContent='Speaking with Webilang voice…'};audio.onended=()=>{active=false;URL.revokeObjectURL(audio.src);audio=null;document.querySelector('#speak').disabled=false;status.textContent='Finished.'};audio.onerror=()=>{active=false;document.querySelector('#speak').disabled=false;status.textContent='Playback failed.'};await audio.play()}catch(e){status.textContent='Server speech unavailable. Trying browser voice…';fallback(text)}};
+
+// Stage 7: turn-taking voice conversation; deliberately isolated from existing lessons.
+const micBtn=document.querySelector('#mic'),finishBtn=document.querySelector('#endRecord'),sendTyped=document.querySelector('#sendTyped');
+const chatHistory=document.querySelector('#chatHistory'),typedAnswer=document.querySelector('#typedAnswer');
+let conversation=[],mediaRecorder=null,micStream=null,chunks=[],recordStart=0,recordTimer=null,busy=false;
+let handsSession=0,handsRunning=false,handsPhase='off';
+const handsStart=document.querySelector('#handsStart'),handsEnd=document.querySelector('#handsEnd'),handsStatus=document.querySelector('#handsStatus');
+const micMeterBar=document.querySelector('#micMeterBar'),micHint=document.querySelector('#micHint');
+function handsState(message){handsStatus.textContent=message;}
+function handsUI(){handsStart.disabled=handsRunning;handsEnd.disabled=!handsRunning;micBtn.disabled=handsRunning||busy;sendTyped.disabled=busy;}
+function bubble(role,message){const el=document.createElement('div');el.className='chatBubble '+(role==='You'?'you':'');const name=document.createElement('strong');name.textContent=role;const line=document.createElement('span');line.textContent=message;el.append(name,line);chatHistory.append(el);chatHistory.scrollTop=chatHistory.scrollHeight;}
+function setBusy(val){busy=val;modelMode.disabled=val;handsUI();finishBtn.disabled=!mediaRecorder||mediaRecorder.state!=='recording';}
+async function postJSON(url,data){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const json=await r.json().catch(()=>({}));if(!r.ok)throw Error(json.error||`${url} failed (${r.status})`);return json;}
+async function voiceReply(reply){
+ stop();status.textContent=avatarName()+' is preparing a voice reply…';
+ try{
+  const r=await fetch('/api/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:reply.slice(0,700),module:lang.value==='ru'?'russian-03':'avatar-lab',targetLanguage:lang.value,speaker:lang.value==='ru'?'anna':'emma',avatarVoice:document.querySelector('#avatarVoice').value})});
+  if(!r.ok)throw Error('Speech server unavailable');
+  const blob=await r.blob(),url=URL.createObjectURL(blob);const player=new Audio(url);audio=player;
+  await new Promise((resolve,reject)=>{player.onplay=()=>{active=true;status.textContent=avatarName()+' is speaking…'};player.onended=()=>{active=false;URL.revokeObjectURL(url);if(audio===player)audio=null;resolve()};player.onpause=()=>{active=false;URL.revokeObjectURL(url);if(audio===player)audio=null;resolve()};player.onerror=()=>{active=false;URL.revokeObjectURL(url);reject(Error('Playback failed'))};player.play().catch(reject)});
+ }catch(e){active=false;status.textContent='Voice unavailable; the reply is shown below.';}
+}
+async function submitTurn(message){
+ const value=String(message||'').trim().slice(0,1200);if(!value||busy)return;
+ setBusy(true);bubble('You',value);typedAnswer.value='';const prior=conversation.slice(-16);
+ status.textContent=avatarName()+' is thinking…';
+ try{
+  const result=await postJSON('/api/avatar-chat',{message:value,history:prior,language:lang.value,level:document.querySelector('#level').value,topic:document.querySelector('#topic').value,character:modelMode.value==='alex'?'alex':'emma'});
+  conversation.push({role:'user',content:value},{role:'assistant',content:result.reply});conversation=conversation.slice(-20);
+  bubble(avatarName(),result.reply);await voiceReply(result.reply);status.textContent='Your turn. Record or type your answer.';
+ }catch(e){status.textContent='Conversation error: '+e.message;}
+ finally{setBusy(false)}
+}
+function closeMic(){if(recordTimer){clearTimeout(recordTimer);recordTimer=null;}if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;}mediaRecorder=null;finishBtn.disabled=true;}
+micBtn.onclick=async()=>{
+ if(busy||handsRunning)return;
+ if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){status.textContent='Microphone recording is not supported here. Use text input.';return;}
+ try{
+  stop();micStream=await navigator.mediaDevices.getUserMedia({audio:true});
+  const types=['audio/webm;codecs=opus','audio/webm','audio/mp4'];const mime=types.find(t=>MediaRecorder.isTypeSupported(t))||'';
+  mediaRecorder=new MediaRecorder(micStream,mime?{mimeType:mime}:undefined);chunks=[];recordStart=Date.now();
+  mediaRecorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+  mediaRecorder.onstop=async()=>{
+   const audioBlob=new Blob(chunks,{type:mediaRecorder?.mimeType||mime||'audio/webm'});closeMic();setBusy(true);
+   try{
+    if(audioBlob.size>3000000)throw Error('Audio is too large. Try a shorter answer.');
+    const base64=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=()=>reject(Error('Cannot read audio'));reader.readAsDataURL(audioBlob)});
+    status.textContent='Recognizing your speech…';const data=await postJSON('/api/transcribe',{audio:base64,mimeType:audioBlob.type,language:lang.value});
+    if(!data.text?.trim())throw Error('No speech recognized. Please try again.');
+    setBusy(false);await submitTurn(data.text);
+   }catch(e){status.textContent='Recording error: '+e.message;setBusy(false)}
+  };
+  mediaRecorder.start();micBtn.disabled=true;finishBtn.disabled=false;status.textContent='Recording… click Finish recording.';
+  recordTimer=setTimeout(()=>{if(mediaRecorder?.state==='recording')mediaRecorder.stop()},25000);
+ }catch(e){closeMic();status.textContent='Microphone error: '+e.message;}
+};
+finishBtn.onclick=()=>{if(mediaRecorder?.state==='recording'){finishBtn.disabled=true;mediaRecorder.stop()}};
+sendTyped.onclick=()=>submitTurn(typedAnswer.value);
+// Stage 8: local voice activity detection. The microphone is NOT listened to while the avatar speaks.
+// All session resources are explicitly released on End, tab hide, or language changes.
+let handsStream=null,handsCtx=null,handsSource=null,handsAnalyser=null,handsRecorder=null,handsAnimation=0,handsMaxTimer=null;
+let handsBuffers=[],handsMime='',handsStartedAt=0,handsVoiceAt=0,handsLastVoice=0,handsNoise=0,handsDetected=false;
+function releaseHandsCapture(){
+ if(handsAnimation){cancelAnimationFrame(handsAnimation);handsAnimation=0;}
+ if(handsMaxTimer){clearTimeout(handsMaxTimer);handsMaxTimer=null;}
+ if(handsRecorder?.state==='recording'){try{handsRecorder.stop()}catch{}}
+ handsRecorder=null;
+ if(handsStream){handsStream.getTracks().forEach(track=>track.stop());handsStream=null;}
+ if(handsSource){try{handsSource.disconnect()}catch{}handsSource=null;}
+ if(handsAnalyser){try{handsAnalyser.disconnect()}catch{}handsAnalyser=null;}
+ if(handsCtx){handsCtx.close().catch(()=>{});handsCtx=null;}
+}
+function endHands(reason='Off · Hands-free ended.'){
+ micMeterBar.style.width='0%';
+ handsRunning=false;handsSession++;handsPhase='off';releaseHandsCapture();
+ // A reply may still be pending; once it resolves the previous session cannot restart listening.
+ stop();handsState(reason);handsUI();
+}
+async function processHandsBlob(blob,session){
+ if(!handsRunning||session!==handsSession)return;
+ if(blob.size<1000){handsState('Very short recording. Listening again…');return listenHands(session);}
+ handsPhase='processing';handsState('Recognizing your answer…');
+ try{
+  if(blob.size>3000000)throw Error('Recording too large. Try a shorter answer.');
+  const base64=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=()=>reject(Error('Cannot read recording'));reader.readAsDataURL(blob);});
+  if(!handsRunning||session!==handsSession)return;
+  const data=await postJSON('/api/transcribe',{audio:base64,mimeType:blob.type,language:lang.value});
+  if(!handsRunning||session!==handsSession)return;
+  if(!data.text?.trim()){handsState('I did not catch that. Listening again…');return listenHands(session);}
+  handsPhase='answering';handsState('Your avatar is preparing a reply…');
+  await submitTurn(data.text);
+  if(!handsRunning||session!==handsSession)return;
+  handsState('Your turn · Listening…');
+  await listenHands(session);
+ }catch(err){
+  if(handsRunning&&session===handsSession){handsState('Hands-free error: '+err.message+' · Press End and try again.');endHands('Hands-free error: '+err.message);}
+ }
+}
+async function listenHands(session){
+ if(!handsRunning||session!==handsSession)return;
+ releaseHandsCapture();
+ try{
+  handsStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  if(!handsRunning||session!==handsSession){releaseHandsCapture();return;}
+  const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+  handsCtx=new AudioContextClass();await handsCtx.resume();
+  handsSource=handsCtx.createMediaStreamSource(handsStream);handsAnalyser=handsCtx.createAnalyser();handsAnalyser.fftSize=2048;handsSource.connect(handsAnalyser);
+  handsMime=['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(t=>MediaRecorder.isTypeSupported(t))||'';
+  handsRecorder=new MediaRecorder(handsStream,handsMime?{mimeType:handsMime}:undefined);
+  handsBuffers=[];handsStartedAt=performance.now();handsVoiceAt=0;handsLastVoice=0;handsDetected=false;handsNoise=0;
+  micHint.textContent='Speak normally. Watch the microphone meter.';
+  const thisRecorder=handsRecorder;
+  thisRecorder.ondataavailable=e=>{if(e.data.size)handsBuffers.push(e.data);};
+  thisRecorder.onstop=()=>{
+    const recorded=new Blob(handsBuffers,{type:thisRecorder.mimeType||handsMime||'audio/webm'});
+    const voiced=handsDetected;releaseHandsCapture();
+    if(handsRunning&&session===handsSession){if(voiced)processHandsBlob(recorded,session);else {handsState('No speech detected · retrying microphone…');listenHands(session);}}
+  };
+  thisRecorder.start(250);handsPhase='listening';handsState('Listening · Speak when ready…');
+  const samples=new Uint8Array(handsAnalyser.fftSize);
+  function tick(){
+   if(!handsRunning||session!==handsSession||handsPhase!=='listening'||thisRecorder.state!=='recording')return;
+   handsAnalyser.getByteTimeDomainData(samples);
+   let energy=0;for(let i=0;i<samples.length;i++){const v=(samples[i]-128)/128;energy+=v*v;}
+   const rms=Math.sqrt(energy/samples.length);const now=performance.now();
+   // Stage 8.1: stable baseline from quiet frames only. Do not let speech raise the threshold.
+   // Typical laptop speech levels are often below 0.022 RMS, so that fixed floor missed users.
+   const warmup=now-handsStartedAt<250;
+   if(!handsDetected && !warmup && (!handsNoise || rms<handsNoise*1.5)){
+     handsNoise=handsNoise?handsNoise*.97+rms*.03:rms;
+   }
+   const threshold=Math.max(.0065,Math.min(.035,(handsNoise||.003)*2.1));
+   const above=!warmup && rms>threshold;
+   micMeterBar.style.width=Math.min(100,Math.max(2,rms*2200))+'%';
+   if(above){if(!handsVoiceAt)handsVoiceAt=now;handsLastVoice=now;}
+   else if(!handsDetected)handsVoiceAt=0;
+   if(!handsDetected&&handsVoiceAt&&now-handsVoiceAt>160){
+     handsDetected=true;handsState('Hearing you · finish speaking, then pause…');
+     micHint.textContent='Speech detected ✓';
+   }
+   if(handsDetected&&now-handsLastVoice>({natural:650,balanced:1000,patient:1700}[document.querySelector('#responsePace').value]||1000)){thisRecorder.stop();return;}
+   if(now-handsStartedAt>25000){thisRecorder.stop();return;}
+   handsAnimation=requestAnimationFrame(tick);
+  }
+  handsAnimation=requestAnimationFrame(tick);
+  // Browser tab changes can suspend the AudioContext; cleanup below handles that.
+ }catch(err){if(handsRunning&&session===handsSession)endHands('Microphone error: '+err.message);}
+}
+handsStart.onclick=async()=>{
+ if(handsRunning)return;
+ if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder||!(window.AudioContext||window.webkitAudioContext)){handsState('Hands-free requires a browser with microphone recording and Web Audio support.');return;}
+ if(mediaRecorder?.state==='recording'){handsState('Finish manual recording first.');return;}
+ stop();handsRunning=true;handsSession++;const session=handsSession;handsUI();
+ await listenHands(session);
+};
+handsEnd.onclick=()=>endHands();
+
+document.querySelector('#resetChat').onclick=()=>{if(handsRunning)endHands('New conversation. Hands-free is off.');if(mediaRecorder?.state==='recording')mediaRecorder.stop();conversation=[];chatHistory.replaceChildren();stop();status.textContent='New conversation. Say hello to '+avatarName()+'.'};
+lang.addEventListener('change',()=>{if(handsRunning)endHands('Language changed. Hands-free is off.');conversation=[];chatHistory.replaceChildren();status.textContent='Language changed. New conversation started.'});
+window.addEventListener('pagehide',()=>{if(handsRunning)endHands();closeMic()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&handsRunning)endHands('Hands-free paused because the tab is hidden.')});
+
+setAvatarCopy();changeAvatar();
+window.addEventListener('pagehide',stop);
+
+// Isolated Realtime pilot: classic conversation handlers above stay unchanged.
+let rtcPeer=null,rtcStream=null,rtcChannel=null,rtcAnalyser=null,rtcAudioCtx=null,rtcRAF=0,rtcBusy=false;
+const rtStatus=document.getElementById('rtStatus'),rtStart=document.getElementById('rtStart'),rtEnd=document.getElementById('rtEnd'),rtAudio=document.getElementById('rtAudio'),rtLog=document.getElementById('rtLog');
+const rtMessage=s=>{rtStatus.textContent=s};
+function rtCleanup(){
+  active=false;
+  if(rtcRAF)cancelAnimationFrame(rtcRAF);rtcRAF=0;
+  if(rtcStream)rtcStream.getTracks().forEach(t=>t.stop());rtcStream=null;
+  if(rtcChannel)try{rtcChannel.close()}catch(e){}rtcChannel=null;
+  if(rtcPeer)try{rtcPeer.close()}catch(e){}rtcPeer=null;
+  if(rtcAudioCtx)rtcAudioCtx.close().catch(()=>{});rtcAudioCtx=null;rtcAnalyser=null;
+  rtAudio.pause();rtAudio.srcObject=null;
+  rtStart.disabled=false;rtEnd.disabled=true;rtcBusy=false;
+}
+function rtAnimateAudio(){
+  if(!rtcAnalyser)return;
+  const samples=new Uint8Array(rtcAnalyser.fftSize);
+  rtcAnalyser.getByteTimeDomainData(samples);
+  let n=0;for(const s of samples){const v=(s-128)/128;n+=v*v;}
+  const rms=Math.sqrt(n/samples.length);
+  active=rms>0.018;
+  rtcRAF=requestAnimationFrame(rtAnimateAudio);
+}
+rtEnd.onclick=()=>{rtCleanup();rtMessage('Session ended. Classic conversation is still available on the main Avatar Lab page.')};
+rtStart.onclick=async()=>{
+ if(rtcBusy)return;rtcBusy=true;rtStart.disabled=true;rtEnd.disabled=false;
+ try{
+   if(!window.RTCPeerConnection||!navigator.mediaDevices?.getUserMedia)throw Error('This browser does not support WebRTC microphone access.');
+   rtMessage('Requesting microphone permission…');
+   // Prevent a classic hands-free recording from running simultaneously.
+   document.getElementById('handsEnd')?.click();
+   stop();
+   rtcPeer=new RTCPeerConnection();
+   rtcPeer.onconnectionstatechange=()=>{const s=rtcPeer?.connectionState;if(s==='failed'||s==='disconnected'){rtMessage('Connection '+s+'. End and retry if it does not recover.')}};
+   rtcPeer.ontrack=async e=>{
+     rtAudio.srcObject=e.streams[0];
+     try{await rtAudio.play()}catch(err){rtMessage('Audio requires a tap in Safari: tap Start again. '+err.message)}
+     try{rtcAudioCtx=new (window.AudioContext||window.webkitAudioContext)();
+       const source=rtcAudioCtx.createMediaStreamSource(e.streams[0]);rtcAnalyser=rtcAudioCtx.createAnalyser();rtcAnalyser.fftSize=512;source.connect(rtcAnalyser);rtAnimateAudio();}catch(err){console.warn('Visual mouth animation unavailable',err)}
+   };
+   rtcStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
+   rtcStream.getAudioTracks().forEach(track=>rtcPeer.addTrack(track,rtcStream));
+   rtcChannel=rtcPeer.createDataChannel('oai-events');
+   rtcChannel.onopen=()=>rtMessage('Connected · Speak naturally to '+avatarName()+'.');
+   rtcChannel.onmessage=e=>{try{const m=JSON.parse(e.data);if(m.type==='error'){rtMessage('Realtime error: '+(m.error?.message||'unknown'));return;}
+     if(m.type==='input_audio_buffer.speech_started')rtMessage('Hearing you…');
+     if(m.type==='input_audio_buffer.speech_stopped')rtMessage('Processing your turn…');
+     if(m.type==='response.created')rtMessage(avatarName()+' is answering…');
+     if(m.type==='response.done')rtMessage('Your turn · Speak when ready.');
+     if(m.type==='response.output_audio_transcript.done'||m.type==='response.audio_transcript.done')rtLog.textContent=(m.transcript||'').slice(0,1500);
+     }catch(err){console.warn(err)}};
+   const offer=await rtcPeer.createOffer();await rtcPeer.setLocalDescription(offer);
+   rtMessage('Establishing secure Realtime connection…');
+   const r=await fetch('/api/realtime-session?character='+encodeURIComponent(modelMode.value)+'&language='+encodeURIComponent(lang.value)+'&level='+encodeURIComponent(document.getElementById('level').value)+'&topic='+encodeURIComponent(document.getElementById('topic').value),{method:'POST',headers:{'Content-Type':'application/sdp'},body:offer.sdp});
+   if(!r.ok){let info=await r.text();try{info=JSON.parse(info).error||info}catch(e){}throw Error('Session HTTP '+r.status+': '+String(info).slice(0,220))}
+   const answer=await r.text();await rtcPeer.setRemoteDescription({type:'answer',sdp:answer});
+   rtMessage('Connecting · Speak after the connection opens…');
+ }catch(err){rtCleanup();rtMessage('Could not start: '+err.message);console.error(err)}
+};
+window.addEventListener('pagehide',rtCleanup);
+
+</script></body></html>
