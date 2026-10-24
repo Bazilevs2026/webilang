@@ -13,7 +13,7 @@ export default async function handler(req,res){
  if(typeof payload==='string'){
    try{payload=JSON.parse(payload)}catch{payload={sdp:payload}}
  }
- const sdp=typeof payload?.sdp==='string'?payload.sdp.trim():'';
+ const sdp=typeof payload?.sdp==='string'?payload.sdp:'';
  if(!sdp.startsWith('v=0')||!sdp.includes('m=audio')||sdp.length>150000){
    return res.status(400).json({error:'Invalid or missing WebRTC offer. Send JSON with an sdp field.'});
  }
@@ -21,7 +21,9 @@ export default async function handler(req,res){
  const session={type:'realtime',model:process.env.WEBILANG_REALTIME_MODEL||'gpt-realtime-2.1',instructions,
    audio:{input:{turn_detection:{type:'semantic_vad',eagerness:'medium'}},output:{voice:character==='Chaz'?'cedar':'marin'}}};
  try{
-   const fd=new FormData();fd.set('sdp',sdp);fd.set('session',JSON.stringify(session));
+   // Preserve SDP lines exactly; .trim() strips required trailing CRLF.
+   const exactSdp=sdp.endsWith('\r\n')?sdp:sdp.replace(/(?:\r?\n)*$/, '')+'\r\n';
+   const fd=new FormData();fd.set('sdp',exactSdp);fd.set('session',JSON.stringify(session));
    const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),20000);
    let upstream;try{upstream=await fetch('https://api.openai.com/v1/realtime/calls',{method:'POST',headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`},body:fd,signal:controller.signal})}finally{clearTimeout(timeout)}
    const result=await upstream.text();
