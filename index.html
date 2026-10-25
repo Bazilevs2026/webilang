@@ -14376,8 +14376,9 @@ let wl14Scenario="",wl14Transcript=[];let wl14Seen=new Set();
 const overlayId='wlAvatarPilotNotice';
 function updateClock(){const left=Math.max(0,Math.ceil((deadline-Date.now())/1000));$('wlTavusClock').textContent=`${String(Math.floor(left/60)).padStart(2,'0')}:${String(left%60).padStart(2,'0')}`;if(!left)stop('Five-minute interview finished.');}
 function stop(message='Interview ended.'){
+ const shouldAssess = active && !!wl14Scenario;
  active=false;clearInterval(tick);tick=null;
- if(active)wl14Assess(wl14Scenario,wl14Transcript.slice());
+ if(shouldAssess)wl14Assess(wl14Scenario,wl14Transcript.slice());
  // Destroying iframe closes the dedicated microphone/WebRTC session.
  frame.replaceChildren();document.getElementById(overlayId)?.remove();
  $('wlTavusCallState').textContent='Call ended';
