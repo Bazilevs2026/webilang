@@ -14469,10 +14469,10 @@ async function wl14Assess(scenario,transcript){
  status.textContent='Analyzing your actual conversation…';
  try{const r=await fetch('/api/realtime-session?action=feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scenario,transcript})});
  const data=await r.json();if(!r.ok)throw Error(data.error||'Feedback request failed');
- status.textContent=data.summary||'Assessment completed.';
- for(const [key,title] of [['communication','Communication'],['interaction','Interaction'],['grammar','Grammar'],['vocabulary','Vocabulary'],['fluency','Fluency']]){
+ status.textContent=(data.summary||'Assessment completed.').split(/\s+/).slice(0,30).join(' ');
+ for(const [key,title] of [['interaction','Interaction'],['grammar','Grammar'],['vocabulary','Vocabulary'],['fluency','Fluency']]){
  const v=data.scores?.[key];if(!v)continue;const card=document.createElement('article');card.className='wl14Score';
- const h=document.createElement('strong');h.textContent=title+' · '+(v.score??'—')+'/5';const comment=document.createElement('p');comment.textContent=v.comment||'';card.append(h,comment);cards.append(card);
+ const h=document.createElement('strong');h.textContent=title+' · '+(v.score??'—')+'/5';const comment=document.createElement('p');comment.textContent=String(v.comment||'').split(/\s+/).slice(0,20).join(' ');card.append(h,comment);cards.append(card);
  }
  for(const e of (data.grammarErrors||[]).slice(0,6)){
  const row=document.createElement('div');row.className='wl14Error';const input=document.createElement('input');input.type='checkbox';input.setAttribute('aria-label','Select grammar mistake');
