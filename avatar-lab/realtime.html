@@ -494,10 +494,10 @@ if(interviewMode||russianInterview){
   document.body.classList.add('interview-pilot');
   rtEnd.hidden=true;
   rtEnd.style.display='none';
-  rtStart.textContent='▶ Start Interview';
-  const chosen=interviewScenario==='russian_michael'?'michael':interviewScenario==='russian_anna'?'anna':interviewScenario==='creator'?'chaz':'nova';
+  rtStart.textContent=teacherMode?'▶ Talk to Kostya':'▶ Start Interview';
+  const chosen=teacherMode?'kostya':interviewScenario==='russian_michael'?'michael':interviewScenario==='russian_anna'?'anna':interviewScenario==='creator'?'chaz':'nova';
   modelMode.value=chosen;
-  document.title=russianInterview?'Webilang · Russian Café · '+(chosen==='michael'?'Michael':'Anna'):'Webilang · '+(interviewScenario==='creator'?'Game Creator':'Babysitter')+' Interview';
+  document.title=teacherMode?'Webilang · Kostya AI Teacher':russianInterview?'Webilang · Russian Café · '+(chosen==='michael'?'Michael':'Anna'):'Webilang · '+(interviewScenario==='creator'?'Game Creator':'Babysitter')+' Interview';
   if(russianInterview){lang.value='ru';document.getElementById('level').value='A1';document.getElementById('topic').value='university';}
 }
 // Initialize avatar only after all Realtime state has been declared.
