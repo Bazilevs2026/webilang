@@ -682,7 +682,7 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
 </div>
 <div id="avatarVideoBox" class="avatar-video-box" hidden>
  <div class="avatar-video-head"><b id="avatarVideoTitle">Разговор с аватаром</b><button type="button" class="avatar-end" id="avatarEndCall">✕ Завершить разговор</button></div>
- <iframe id="avatarVideoFrame" title="Tavus AI video conversation" allow="camera; microphone; autoplay; fullscreen; display-capture" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+ <iframe id="avatarVideoFrame" title="Webilang 3D Realtime Russian conversation" allow="microphone; autoplay; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
  <div class="avatar-video-footer"><span id="avatarCallStatus" aria-live="polite">Подключаемся…</span><a id="avatarOpenExternal" href="#" target="_blank" rel="noopener noreferrer">↗ Открыть разговор отдельно</a></div>
 </div>
 <div id="avatarPostFeedback" class="card avatar-feedback">
@@ -2065,108 +2065,64 @@ root.closest("#tab-vocab").addEventListener("webilang:reset-vocabulary",()=>{
 </script>
 <script id="avatar-roleplay-v30-script">
 (function(){
-"use strict";
+'use strict';
 const $=id=>document.getElementById(id);
-const videoBox=$("avatarVideoBox"),frame=$("avatarVideoFrame"),endButton=$("avatarEndCall"),topControls=$("avatarCallControlsTop"),topEndButton=$("avatarEndAndFeedback"),callStatus=$("avatarCallStatus");
-let activeId=null,activeToken=null,creating=false,startedAt=null,activeRole=null,accessForFeedback="";
-let lastFeedbackSession=null;
-let transcriptRequestSerial=0;
-const RECOVERY_KEY="webilang:russian03:pending-avatar-end";
-function rememberCall(){
- if(activeId&&activeToken)try{sessionStorage.setItem(RECOVERY_KEY,JSON.stringify({conversationId:activeId,token:activeToken}))}catch(_){}
-}
-function forgetCall(){try{sessionStorage.removeItem(RECOVERY_KEY)}catch(_){}}
-async function recoverPreviousCall(){
- let previous=null;
- try{previous=JSON.parse(sessionStorage.getItem(RECOVERY_KEY)||"null")}catch(_){}
- if(!previous?.conversationId||!previous?.token)return;
- callStatus.textContent="Завершаем прошлый разговор перед новой сессией…";
- try{
-  await api({action:"end",conversationId:previous.conversationId,token:previous.token});
-  forgetCall();
-  callStatus.textContent="✓ Предыдущая сессия освобождена.";
- }catch(e){
-  callStatus.textContent="Прошлый разговор ещё не закрыт: "+e.message+". Обновите страницу для повторной попытки.";
- }
+const videoBox=$('avatarVideoBox'),frame=$('avatarVideoFrame'),endButton=$('avatarEndCall'),topControls=$('avatarCallControlsTop'),topEndButton=$('avatarEndAndFeedback'),callStatus=$('avatarCallStatus');
+let activeRole=null,creating=false,lastFeedbackSession=null,transcriptRequestSerial=0;
+let learnerTurns=[],seenTurns=new Set();
+function message(role,text){$(role==='michael'?'avatarMsgMichael':'avatarMsgAnna').textContent=text;}
+function currentTranscript(){return learnerTurns.map(x=>x.text).filter(Boolean).join('\n')}
+async function api(body){
+ if(body.action!=='feedback')throw Error('Unknown request');
+ const r=await fetch('/api/realtime-session?action=russian_feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({role:body.role,transcript:body.transcript})});
+ const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||'AI Feedback unavailable');return data;
 }
 async function fetchTranscript(){
- const serial=++transcriptRequestSerial;
- const status=$("avatarFeedbackStatus"),b=$("avatarFetchTranscript");
- if(!lastFeedbackSession){status.textContent="Сначала завершите разговор.";return}
- b.disabled=true;status.textContent="Получаем транскрипцию Tavus…";
- try{
-  const r=await api({action:"transcript",...lastFeedbackSession});
-  if(serial!==transcriptRequestSerial)return;
-  if(r.status==="pending"){status.textContent="Tavus ещё обрабатывает разговор. Нажмите «Получить транскрипцию» ещё раз через несколько секунд.";return}
-  if(r.status!=="ready")throw new Error("Неизвестный статус транскрипции.");
-  if(!r.transcript){status.textContent="Tavus не обнаружил реплик ученика. Вы можете вписать их вручную.";return}
-  $("avatarLearnerTranscript").value=r.transcript;
-  status.textContent="✓ Получено "+r.learnerTurns+" реплик ученика. Проверьте распознавание и нажмите «Get AI Feedback».";
- }catch(e){if(serial===transcriptRequestSerial)status.textContent="Автоматическая транскрипция недоступна: "+e.message+". Можно ввести реплики вручную."}
- finally{if(serial===transcriptRequestSerial)b.disabled=false}
+ const status=$('avatarFeedbackStatus');
+ const current=$('avatarLearnerTranscript').value.trim();const fromRealtime=currentTranscript();
+ if(fromRealtime && !current)$('avatarLearnerTranscript').value=fromRealtime;
+ status.textContent=fromRealtime?'✓ Realtime captured '+learnerTurns.length+' learner turns. Review the text, then click Get AI Feedback.':'No learner speech was transcribed. You may enter your actual Russian sentences manually.';
 }
-$("avatarFetchTranscript").addEventListener("click",fetchTranscript);
-function message(role,text){$(role==="michael"?"avatarMsgMichael":"avatarMsgAnna").textContent=text;}
-function urlSafe(s){try{const u=new URL(s);return u.protocol==="https:"&&(u.hostname==="tavus.daily.co"||u.hostname.endsWith(".daily.co"));}catch(_){return false;}}
-async function api(body){
- const r=await fetch("/api/tavus",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),credentials:"same-origin"});
- const d=await r.json().catch(()=>({error:"Некорректный ответ сервера."}));
- if(!r.ok)throw new Error(d.error||"Ошибка Tavus ("+r.status+")");
- return d;
-}
+$('avatarFetchTranscript').addEventListener('click',fetchTranscript);
+window.addEventListener('message',event=>{
+ if(event.origin!==location.origin||event.source!==frame.contentWindow||event.data?.source!=='webilang-realtime')return;
+ const m=event.data;
+ if(m.type==='connected'){callStatus.textContent='✓ Realtime connected · Говорите по-русски';return;}
+ if(m.type==='transcript'&&m.speaker==='student'&&typeof m.text==='string'&&m.text.trim()){
+  const key=m.id||m.text;
+  if(seenTurns.has(key))return;seenTurns.add(key);learnerTurns.push({id:key,text:m.text.trim()});
+  callStatus.textContent='✓ Получено '+learnerTurns.length+' реплик ученика';
+ }
+});
 async function endCall(){
- if(!activeId||!activeToken)return true;
- const old=activeId,oldToken=activeToken,oldRole=activeRole;
- endButton.disabled=true;topEndButton.disabled=true;
- callStatus.textContent="Завершаем разговор с Tavus…";
- try{
-  await api({action:"end",conversationId:old,token:oldToken});
-  if(oldRole){
-    lastFeedbackSession={conversationId:old,token:oldToken,role:oldRole,accessCode:accessForFeedback};
-    $("avatarPostFeedback").hidden=false;
-    $("avatarFeedbackStatus").textContent="Разговор завершён. Запрашиваем транскрипцию Tavus…";
-  }
-  activeId=null;activeToken=null;activeRole=null;startedAt=null;
-  forgetCall();
-  frame.src="about:blank";videoBox.hidden=true;topControls.hidden=true;
-  document.querySelectorAll("[data-avatar-launch]").forEach(x=>x.disabled=false);
-  callStatus.textContent="✓ Разговор завершён, сессия освобождена.";
-  if(oldRole){
-    $("avatarPostFeedback").scrollIntoView({behavior:"smooth",block:"start"});
-    await fetchTranscript();
-  }
-  return true;
- }catch(e){
-  // Keep session credentials, iframe and End buttons so learner can retry safely.
-  callStatus.textContent="Не удалось освободить сессию: "+e.message+". Нажмите «Завершить разговор» повторно.";
-  return false;
- }finally{endButton.disabled=false;topEndButton.disabled=false}
+ if(!activeRole)return;
+ const old=activeRole;activeRole=null;
+ frame.src='about:blank';videoBox.hidden=true;topControls.hidden=true;
+ document.querySelectorAll('[data-avatar-launch]').forEach(x=>x.disabled=false);
+ lastFeedbackSession={role:old};$('avatarPostFeedback').hidden=false;
+ $('avatarLearnerTranscript').value=currentTranscript();
+ await fetchTranscript();
+ $('avatarPostFeedback').scrollIntoView({block:'start',behavior:'smooth'});
+ callStatus.textContent='✓ Realtime завершён.';
 }
-endButton.addEventListener("click",endCall);
-topEndButton.addEventListener("click",endCall);
-document.querySelectorAll("[data-avatar-launch]").forEach(btn=>btn.addEventListener("click",async function(){
- if(creating)return;
- await previousCallRecovery;
+endButton.addEventListener('click',endCall);topEndButton.addEventListener('click',endCall);
+document.querySelectorAll('[data-avatar-launch]').forEach(btn=>btn.addEventListener('click',async()=>{
+ if(creating)return;creating=true;
  const role=btn.dataset.avatarLaunch;
- if(activeId&&!(await endCall()))return;
- creating=true;btn.disabled=true;
- message(role,"Создаём индивидуальный видеозвонок Tavus…");
  try{
-  const accessCode=window.prompt("Код доступа к русским ролевым играм (получите у преподавателя):");
-  if(!accessCode){message(role,"Запуск отменён. Нужен код доступа преподавателя.");return;}
-  accessForFeedback=accessCode;
-  const d=await api({action:"start",scenario:role==="michael"?"russian_michael":"russian_anna",accessCode});
-  if(!urlSafe(d.url)||!/^[a-zA-Z0-9_-]{5,100}$/.test(d.conversationId||"")||!/^[0-9a-f]{48}$/.test(d.token||""))throw Error("Сервер прислал неверные данные разговора.");
-  activeId=d.conversationId;activeToken=d.token;activeRole=role;startedAt=Date.now();rememberCall();
-  $("avatarVideoTitle").textContent=role==="michael"?"🎭 Разговор с Майклом · Вы — Анна":"🎭 Разговор с Анной · Вы — Майкл";
-  $("avatarOpenExternal").href=d.url;
-  frame.src=d.url;
+  if(activeRole)await endCall();
+  activeRole=role;learnerTurns=[];seenTurns=new Set();lastFeedbackSession=null;
+  $('avatarPostFeedback').hidden=true;$('avatarLearnerTranscript').value='';$('avatarFeedbackReport').replaceChildren();
+  $('avatarVideoTitle').textContent=role==='michael'?'🎭 Майкл · Вы — Анна':'🎭 Анна · Вы — Майкл';
+  frame.src='/avatar-lab/realtime.html?pilot='+encodeURIComponent(role==='michael'?'russian_michael':'russian_anna');
+  frame.title=role==='michael'?'3D Michael · Russian conversation':'3D Anna · Russian conversation';
   videoBox.hidden=false;topControls.hidden=false;
-  callStatus.textContent="Разрешите микрофон и камеру, когда браузер попросит.";
-  videoBox.scrollIntoView({behavior:"smooth",block:"start"});
-  message(role,"✓ Разговор готов. Видеозвонок открыт ниже. После разговора нажмите «Завершить разговор».");
- }catch(e){message(role,"Не удалось начать разговор: "+e.message)}
- finally{creating=false;btn.disabled=false}
+  $('avatarOpenExternal').href=frame.src;
+  callStatus.textContent='Нажмите Start Realtime внутри окна аватара. Камера не требуется.';
+  videoBox.scrollIntoView({behavior:'smooth',block:'start'});
+  message(role,'✓ Откройте разговор ниже и нажмите Start Realtime. После беседы завершите разговор сверху.');
+ }catch(e){message(role,'Ошибка запуска: '+e.message);activeRole=null}
+ finally{creating=false}
 }));
 document.querySelectorAll("[data-avatar-choice]").forEach(group=>group.addEventListener("click",event=>{
  const btn=event.target.closest("button[data-answer]");if(!btn)return;
@@ -2263,7 +2219,7 @@ $("avatarEvaluate").addEventListener("click",async()=>{
  }catch(e){status.textContent="Не удалось получить анализ: "+e.message; $("avatarEvaluate").disabled=false;}
 });
 const previousCallRecovery=recoverPreviousCall();
-window.addEventListener("pagehide",()=>{if(activeId&&activeToken&&navigator.sendBeacon){const payload=new Blob([JSON.stringify({action:"end",conversationId:activeId,token:activeToken})],{type:"application/json"});navigator.sendBeacon("/api/tavus",payload)}});
+window.addEventListener("pagehide",()=>{if(activeRole)frame.src="about:blank"});
 })();
 </script>
 <script id="v59-shared-microphone">
