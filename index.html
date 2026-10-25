@@ -14374,11 +14374,15 @@ if(!frame||!panel||!status)return;
 let active=false,deadline=0,tick=null;
 let wl14Scenario="",wl14Transcript=[];let wl14Seen=new Set();
 const overlayId='wlAvatarPilotNotice';
-function updateClock(){const left=Math.max(0,Math.ceil((deadline-Date.now())/1000));$('wlTavusClock').textContent=`${String(Math.floor(left/60)).padStart(2,'0')}:${String(left%60).padStart(2,'0')}`;if(!left)stop('Five-minute interview finished.');}
+let wl14Started=false;
+function wl14SetStartButton(connected){
+  const btn=$('wlTavusEnd');if(btn){btn.textContent='☎ End Interview & Get Feedback';btn.disabled=!connected;}
+}
+function updateClock(){if(!wl14Started)return;const left=Math.max(0,Math.ceil((deadline-Date.now())/1000));$('wlTavusClock').textContent=`${String(Math.floor(left/60)).padStart(2,'0')}:${String(left%60).padStart(2,'0')}`;if(!left)stop('Five-minute interview finished.');}
 function stop(message='Interview ended.',evaluate=true){
- const shouldAssess = evaluate && active && !!wl14Scenario;
+ const shouldAssess = evaluate && active && wl14Started && !!wl14Scenario;
  const completedScenario = wl14Scenario;
- active=false;clearInterval(tick);tick=null;
+ active=false;wl14Started=false;clearInterval(tick);tick=null;wl14SetStartButton(false);
  // Finish with one parent-owned action; never trigger an old Tavus assessment.
  if(shouldAssess){
    const feedbackPanel=$('wl14Feedback'),feedbackStatus=$('wl14FeedbackStatus');
@@ -14404,8 +14408,9 @@ function open(scenario){
  // The pilot reuses a working page; query parameters do not yet configure AI role.
  iframe.src=`/avatar-lab/realtime.html?character=${encodeURIComponent(character)}&pilot=${encodeURIComponent(scenario)}`;
  frame.replaceChildren(iframe);
- active=true;deadline=Date.now()+300000;updateClock();tick=setInterval(updateClock,1000);
- $('wlTavusCallState').textContent='Realtime pilot';
+ active=true;wl14Started=false;deadline=0;clearInterval(tick);tick=null;
+ $('wlTavusClock').textContent='05:00';wl14SetStartButton(false);
+ $('wlTavusCallState').textContent='Ready to start';
  status.textContent='Press Start Realtime inside the avatar window. Microphone and voice are handled there.';
  const assessment=$('wlTavusAssessment');if(assessment)assessment.hidden=true;
 }
@@ -14427,7 +14432,13 @@ window.addEventListener('message',ev=>{
  if(ev.origin!==location.origin||ev.data?.source!=='webilang-realtime'||!active)return;
  if(ev.source!==frame.querySelector('iframe[data-webilang-realtime]')?.contentWindow)return;
  if(ev.data.type==='end-request'){stop('Interview ended.');return;}
- if(ev.data.type==='session-status'){$('wlTavusCallState').textContent=ev.data.status==='connected'?'Interview connected':'Realtime pilot';return;}
+ if(ev.data.type==='session-status'){
+   if(ev.data.status==='connected'&&!wl14Started){
+     wl14Started=true;deadline=Date.now()+300000;updateClock();tick=setInterval(updateClock,1000);wl14SetStartButton(true);
+     status.textContent='Interview connected. Speak naturally; end with the red button for AI Feedback.';
+   }
+   $('wlTavusCallState').textContent=wl14Started?'Interview connected':'Ready to start';return;
+ }
  if(ev.data.type!=='transcript')return;
  const m=ev.data;if(!['student','avatar'].includes(m.speaker)||typeof m.text!=='string'||!m.text.trim())return;
  const k=m.speaker+':'+(m.id||m.text);if(wl14Seen.has(k))return;wl14Seen.add(k);
