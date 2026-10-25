@@ -18,7 +18,8 @@ body.interview-pilot .panel>*:not(#realtimeCard){display:none!important}
 body.interview-pilot #realtimeCard{margin:0;padding:10px;background:#f0f5ee}
 body.interview-pilot #realtimeCard h3,body.interview-pilot #realtimeCard>p{display:none!important}
 body.interview-pilot #rtLog{display:none}
-body.interview-pilot #rtStart,body.interview-pilot #rtEnd{padding:10px 15px}
+body.interview-pilot #rtStart{padding:10px 15px}
+body.interview-pilot #rtEnd{display:none!important}
 body.interview-pilot #rtStatus{margin-top:8px;padding:9px;min-height:0;font-size:13px}
 body.interview-pilot #rtEnableSound{padding:8px 12px;font-size:13px}
 body.interview-pilot #rtAudioStatus{font-size:12px}
@@ -486,6 +487,7 @@ if(interviewMode){
   document.body.classList.add('interview-pilot');
   rtEnd.hidden=true;
   rtEnd.style.display='none';
+  rtStart.textContent='▶ Start Interview';
   const chosen=interviewScenario==='creator'?'chaz':'nova';
   modelMode.value=chosen;
   document.title='Webilang · '+(interviewScenario==='creator'?'Game Creator':'Babysitter')+' Interview';
