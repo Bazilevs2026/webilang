@@ -14375,17 +14375,24 @@ let active=false,deadline=0,tick=null;
 let wl14Scenario="",wl14Transcript=[];let wl14Seen=new Set();
 const overlayId='wlAvatarPilotNotice';
 function updateClock(){const left=Math.max(0,Math.ceil((deadline-Date.now())/1000));$('wlTavusClock').textContent=`${String(Math.floor(left/60)).padStart(2,'0')}:${String(left%60).padStart(2,'0')}`;if(!left)stop('Five-minute interview finished.');}
-function stop(message='Interview ended.'){
- const shouldAssess = active && !!wl14Scenario;
+function stop(message='Interview ended.',evaluate=true){
+ const shouldAssess = evaluate && active && !!wl14Scenario;
+ const completedScenario = wl14Scenario;
  active=false;clearInterval(tick);tick=null;
- if(shouldAssess)wl14Assess(wl14Scenario,wl14Transcript.slice());
+ // Finish with one parent-owned action; never trigger an old Tavus assessment.
+ if(shouldAssess){
+   const feedbackPanel=$('wl14Feedback'),feedbackStatus=$('wl14FeedbackStatus');
+   if(feedbackPanel){feedbackPanel.hidden=false;feedbackStatus.textContent='Finishing interview and preparing AI Feedback…';}
+   // Allow already queued transcription messages to arrive before removing iframe.
+   setTimeout(()=>wl14Assess(completedScenario,wl14Transcript.slice()),450);
+ }
  // Destroying iframe closes the dedicated microphone/WebRTC session.
  frame.replaceChildren();document.getElementById(overlayId)?.remove();
  $('wlTavusCallState').textContent='Call ended';
  $('wlTavusClock').textContent='00:00';status.textContent=message+' Realtime disconnected.';
 }
 function open(scenario){
- if(active)stop('Previous interview ended.');
+ if(active)stop('Previous interview ended.',false);
  const game=($('rp2GameInput')?.value||'').trim();
  if(scenario==='creator'&&!game){status.textContent='Please enter a game name first.';panel.hidden=false;$('rp2GameInput')?.focus();return;}
  wl14Scenario=scenario;wl14Transcript=[];wl14Seen=new Set();wl14ShowPoints(scenario);
@@ -14402,7 +14409,7 @@ function open(scenario){
  status.textContent='Press Start Realtime inside the avatar window. Microphone and voice are handled there.';
  const assessment=$('wlTavusAssessment');if(assessment)assessment.hidden=true;
 }
-function leave(){stop('Interview closed.');panel.hidden=true;
+function leave(){stop('Interview closed.',false);panel.hidden=true;
  const chooser=$('rp2Chooser');if(chooser){chooser.hidden=false;chooser.scrollIntoView({block:'start',behavior:'auto'});}}
 // Capture phase ensures legacy Tavus click handlers do not also request paid sessions.
 document.addEventListener('click',event=>{
@@ -14413,11 +14420,15 @@ document.addEventListener('click',event=>{
  }else if(active&&(id==='wlTavusEnd'||id==='wlTavusClose'||id==='wlTavusReturnOverlay')){
    event.preventDefault();event.stopImmediatePropagation();if(id==='wlTavusEnd')stop();else leave();
  }else if(active&&id==='wlResetRoleplayLive'){
-   stop('Call stopped for reset.'); // Let original Reset handler ask for confirmation.
+   stop('Call stopped for reset.',false); // Let original Reset handler ask for confirmation.
  }
 },true);
 window.addEventListener('message',ev=>{
- if(ev.origin!==location.origin||ev.data?.source!=='webilang-realtime'||ev.data?.type!=='transcript'||!active)return;
+ if(ev.origin!==location.origin||ev.data?.source!=='webilang-realtime'||!active)return;
+ if(ev.source!==frame.querySelector('iframe[data-webilang-realtime]')?.contentWindow)return;
+ if(ev.data.type==='end-request'){stop('Interview ended.');return;}
+ if(ev.data.type==='session-status'){$('wlTavusCallState').textContent=ev.data.status==='connected'?'Interview connected':'Realtime pilot';return;}
+ if(ev.data.type!=='transcript')return;
  const m=ev.data;if(!['student','avatar'].includes(m.speaker)||typeof m.text!=='string'||!m.text.trim())return;
  const k=m.speaker+':'+(m.id||m.text);if(wl14Seen.has(k))return;wl14Seen.add(k);
  wl14Transcript.push({speaker:m.speaker,text:m.text.trim().slice(0,1500)});
@@ -14441,9 +14452,9 @@ function wl14ShowPoints(scenario){
 }
 async function wl14Assess(scenario,transcript){
  const panel=$('wl14Feedback'),status=$('wl14FeedbackStatus'),cards=$('wl14FeedbackCards'),errors=$('wl14GrammarErrors');
- panel.hidden=false;panel.scrollIntoView({block:'start',behavior:'smooth'});cards.replaceChildren();errors.replaceChildren();
+ panel.hidden=false;panel.scrollIntoView({block:'start',behavior:'smooth'});cards.replaceChildren();errors.replaceChildren();$('wl14SaveErrors').hidden=true;
  const student=transcript.filter(x=>x.speaker==='student');
- if(!student.length){status.textContent='No confirmed student transcript was received. AI assessment is unavailable; try another call.';return}
+ if(!student.length){status.textContent='AI Feedback unavailable: no student speech transcript arrived from Realtime. Check microphone/transcription before trying again.';return}
  status.textContent='Analyzing your actual conversation…';
  try{const r=await fetch('/api/realtime-session?action=feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scenario,transcript})});
  const data=await r.json();if(!r.ok)throw Error(data.error||'Feedback request failed');
@@ -14483,7 +14494,7 @@ $('wl14SaveErrors')?.addEventListener('click',async()=>{
   document.querySelectorAll('#wl14GrammarErrors input[type=checkbox]:checked').forEach(cb=>cb.checked=false);
  }catch(e){status.textContent='Could not save: '+e.message}finally{button.disabled=false}
 });
-window.addEventListener('pagehide',()=>{if(active)stop('Window closed.')});
+window.addEventListener('pagehide',()=>{if(active)stop('Window closed.',false)});
 })();
 </script>
 
