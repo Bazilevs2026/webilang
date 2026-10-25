@@ -14452,18 +14452,35 @@ async function wl14Assess(scenario,transcript){
  const h=document.createElement('strong');h.textContent=title+' · '+(v.score??'—')+'/5';const comment=document.createElement('p');comment.textContent=v.comment||'';card.append(h,comment);cards.append(card);
  }
  for(const e of (data.grammarErrors||[]).slice(0,6)){
- const row=document.createElement('label');row.className='wl14Error';const input=document.createElement('input');input.type='checkbox';
- input.dataset.original=e.original||'';input.dataset.corrected=e.corrected||'';input.dataset.explanation=e.explanation||'';
- const t=document.createElement('span');t.textContent=(e.original||'')+' → '+(e.corrected||'')+' — '+(e.explanation||'');row.append(input,t);errors.append(row);
+ const row=document.createElement('div');row.className='wl14Error';const input=document.createElement('input');input.type='checkbox';input.setAttribute('aria-label','Select grammar mistake');
+ const edit=document.createElement('div');edit.style.flex='1';
+ const original=document.createElement('input');original.value=e.original||'';original.maxLength=240;original.setAttribute('aria-label','Check your spoken words');original.title='Correct transcription errors before saving';original.style.cssText='display:block;width:100%;margin-bottom:5px;padding:6px';
+ const corrected=document.createElement('input');corrected.value=e.corrected||'';corrected.maxLength=240;corrected.setAttribute('aria-label','Corrected sentence');corrected.style.cssText='display:block;width:100%;margin-bottom:5px;padding:6px';
+ const explanation=document.createElement('small');explanation.textContent=e.explanation||'';
+ edit.append(original,corrected,explanation);row.append(input,edit);errors.append(row);
  }
  $('wl14SaveErrors').hidden=!errors.children.length;
  }catch(e){status.textContent='AI Feedback unavailable: '+e.message}
 }
-$('wl14SaveErrors')?.addEventListener('click',()=>{
- const selected=[...document.querySelectorAll('#wl14GrammarErrors input:checked')].map(el=>({original:el.dataset.original,correction:el.dataset.corrected,explanation:el.dataset.explanation,rule:el.dataset.explanation,source:'Realtime interview'}));
- if(!selected.length){$('wl14SaveStatus').textContent='Select a mistake first.';return}
- // Avoid claiming integration with undocumented Grammar Stock storage.
- $('wl14SaveStatus').textContent='Corrections selected, but direct My Grammar Stock saving is not yet connected. No mistakes were stored.';
+$('wl14SaveErrors')?.addEventListener('click',async()=>{
+ const button=$('wl14SaveErrors'),status=$('wl14SaveStatus');
+ const selected=[...document.querySelectorAll('#wl14GrammarErrors .wl14Error')].filter(row=>row.querySelector('input[type=checkbox]')?.checked).map(row=>({original:row.querySelector('input[aria-label="Check your spoken words"]')?.value.trim(),correction:row.querySelector('input[aria-label="Corrected sentence"]')?.value.trim(),explanation:row.querySelector('small')?.textContent.trim()})).filter(e=>e.original&&e.correction&&e.original!==e.correction).slice(0,3);
+ if(!selected.length){status.textContent='Select at least one clear grammar mistake and check its transcription.';return}
+ if(!window.WebilangGrammarStock?.add){status.textContent='My Grammar Stock is not available. Nothing was saved.';return}
+ button.disabled=true;status.textContent='Creating personalized AI exercises…';
+ try{
+  const response=await fetch('/api/realtime-session?action=practice',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({errors:selected})});
+  const result=await response.json().catch(()=>({}));if(!response.ok)throw Error(result.error||'Practice generation failed');
+  const items=Array.isArray(result.grammarItems)?result.grammarItems:[];
+  if(!items.length)throw Error('AI did not return usable exercises. No mistakes were saved.');
+  const before=window.WebilangGrammarStock.get?.()||[];
+  window.WebilangGrammarStock.add(items);
+  const after=window.WebilangGrammarStock.get?.()||[];
+  if(!after.length)throw Error('Grammar Stock did not confirm storage');
+  status.replaceChildren();const msg=document.createElement('span');msg.textContent=`Saved ${items.length} grammar item(s) to My Grammar Stock on this device. `;
+  const link=document.createElement('button');link.type='button';link.textContent='Open My Grammar Stock →';link.onclick=()=>window.WebilangGrammarStock.open();status.append(msg,link);
+  document.querySelectorAll('#wl14GrammarErrors input[type=checkbox]:checked').forEach(cb=>cb.checked=false);
+ }catch(e){status.textContent='Could not save: '+e.message}finally{button.disabled=false}
 });
 window.addEventListener('pagehide',()=>{if(active)stop('Window closed.')});
 })();
