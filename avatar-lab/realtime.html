@@ -28,7 +28,9 @@ body.interview-pilot #rtAudioStatus{font-size:12px}
 body.interview-pilot .stage{isolation:isolate}
 body.interview-pilot .stage.theme-game{background:#737d80 url('./backgrounds/game-studio.jpg') center center / cover no-repeat}
 body.interview-pilot .stage.theme-home{background:#d7c8b6 url('./backgrounds/family-home.jpg') center center / cover no-repeat}
+body.interview-pilot:has(.theme-cafe-michael) .stage,body.interview-pilot:has(.theme-cafe-anna) .stage{height:min(70vh,560px);min-height:360px}
 body.interview-pilot .stage.theme-cafe-michael{background:#b4afa0 url('./backgrounds/university-cafe-michael.jpg') center center / cover no-repeat}
+@media(max-width:740px){body.interview-pilot:has(.theme-cafe-michael) .stage,body.interview-pilot:has(.theme-cafe-anna) .stage{height:min(55vh,460px);min-height:310px}}
 body.interview-pilot .stage.theme-cafe-anna{background:#e4c9b8 url('./backgrounds/university-cafe-anna.jpg') center center / cover no-repeat}
 body.interview-pilot #scene{z-index:2}
 /* No foreground tabletop: keep the full VRM portrait visible. */
@@ -112,7 +114,7 @@ function framePortrait(vrm){
     half:{shift:0.20,visible:0.83},
     full:{shift:0.43,visible:1.22}
   }[mode] || {shift:0.025,visible:0.46};
-  const target=headPoint.clone();target.y-=height*(settings.shift + ((document.body.classList.contains('interview-pilot') && ['michael','anna'].includes(modelMode.value) && mode==='close')?0.085:0));
+  const target=headPoint.clone();target.y-=height*(settings.shift + ((document.body.classList.contains('interview-pilot') && ['michael','anna'].includes(modelMode.value) && mode==='close')?-0.005:0));
   // Recalculate based on viewport aspect, so narrow mobile screens cannot clip shoulders.
   const verticalFov=THREE.MathUtils.degToRad(camera.fov);
   const desiredHeight=height*settings.visible;
@@ -127,7 +129,7 @@ function framePortrait(vrm){
   // Stage 13.5: explicit optical zoom. Previous changes to visible height had
   // little visible effect in wide interview frames. Keep phone framing safer.
   const embeddedInterview=document.body.classList.contains('interview-pilot');
-  camera.zoom=embeddedInterview?(camera.aspect>=1.35?(['michael','anna'].includes(modelMode.value)?1.52:1.27):(['michael','anna'].includes(modelMode.value)?1.19:1.08)):1;
+  camera.zoom=embeddedInterview?(camera.aspect>=1.35?(['michael','anna'].includes(modelMode.value)?1.16:1.27):(['michael','anna'].includes(modelMode.value)?1.08:1.08)):1;
   camera.updateProjectionMatrix();
 }
 cameraMode.addEventListener('change',()=>{if(currentVrm)framePortrait(currentVrm)});
