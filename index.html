@@ -13955,11 +13955,11 @@ if(storyResetButton){
   function addFromFeedback(newItems){
     if(!Array.isArray(newItems)||!newItems.length) return 0;
     let added=0;
-    newItems.slice(0,3).forEach(raw=>{
+    newItems.forEach(raw=>{
       const rule=clean(raw?.rule);
       if(!rule) return;
-      const key=norm(rule);
-      const existing=items.find(x=>norm(x.rule)===key);
+      const key=norm(rule)+'|'+norm(raw.original)+'|'+norm(raw.correction);
+      const existing=items.find(x=>norm(x.rule)+'|'+norm(x.original)+'|'+norm(x.correction)===key);
       if(existing){
         existing.seen=(existing.seen||1)+1;
         existing.original=raw.original||existing.original;
@@ -13971,7 +13971,7 @@ if(storyResetButton){
         added++;
       }
     });
-    items=items.slice(0,20);
+    items=items.slice(0,60);
     saveState();render();
     return added;
   }
@@ -14475,13 +14475,13 @@ async function wl14Assess(scenario,transcript){
  const h=document.createElement('strong');h.textContent=title+' · '+(v.score??'—')+'/5';const comment=document.createElement('p');comment.textContent=String(v.comment||'').split(/\s+/).slice(0,20).join(' ');card.append(h,comment);cards.append(card);
  }
  for(const e of (data.grammarErrors||[]).slice(0,6)){
- const row=document.createElement('div');row.className='wl14Error';const input=document.createElement('input');input.type='checkbox';input.setAttribute('aria-label','Select grammar mistake');
- const edit=document.createElement('div');edit.style.flex='1';
- const makeLine=(symbol,heading,color)=>{const line=document.createElement('div');line.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:6px';const mark=document.createElement('span');mark.textContent=symbol;mark.setAttribute('aria-hidden','true');mark.style.cssText='font-size:20px;font-weight:900;color:'+color+';flex:0 0 25px;text-align:center';const content=document.createElement('div');content.style.cssText='flex:1;min-width:0';const label=document.createElement('div');label.textContent=heading;label.style.cssText='font-size:12px;font-weight:800;color:'+color+';margin-bottom:3px';content.append(label);line.append(mark,content);return {line,content};};
- const wrong=makeLine('✕','Your sentence · grammar mistake','#b33a38');
- const original=document.createElement('input');original.value=e.original||'';original.maxLength=240;original.setAttribute('aria-label','Check your spoken words');original.title='Correct transcription errors before saving';original.style.cssText='display:block;width:100%;padding:8px;border:1px solid #e0b8b8;border-radius:9px;background:#fff8f7';wrong.content.append(original);
- const right=makeLine('✓','Correct sentence','#247746');
- const corrected=document.createElement('input');corrected.value=e.corrected||'';corrected.maxLength=240;corrected.setAttribute('aria-label','Corrected sentence');corrected.style.cssText='display:block;width:100%;padding:8px;border:1px solid #a9d2b3;border-radius:9px;background:#f3fbf4';right.content.append(corrected);
+ const row=document.createElement('div');row.className='wl14Error';row.style.cssText='display:flex;align-items:center;gap:12px;border-bottom:1px solid #e1e8ee;padding:14px 0';const input=document.createElement('input');input.type='checkbox';input.setAttribute('aria-label','Select grammar mistake');input.style.cssText='width:20px;height:20px;flex:0 0 20px;accent-color:#247746';
+ const edit=document.createElement('div');edit.style.cssText='flex:1;min-width:0';
+ const makeLine=(symbol,heading,color)=>{const line=document.createElement('div');line.style.cssText='display:flex;align-items:center;gap:10px;margin:7px 0 11px;min-width:0';const mark=document.createElement('span');mark.textContent=symbol;mark.setAttribute('aria-hidden','true');mark.style.cssText='display:grid;place-items:center;background:'+color+';color:white;border-radius:50%;font-size:19px;font-weight:900;flex:0 0 31px;width:31px;height:31px;text-align:center';const content=document.createElement('div');content.style.cssText='flex:1;min-width:0';const label=document.createElement('div');label.textContent=heading;label.style.cssText='font-size:12px;font-weight:800;color:'+color+';margin-bottom:3px';content.append(label);line.append(mark,content);return {line,content};};
+ const wrong=makeLine('✕','INCORRECT · What you said','#bb3537');
+ const original=document.createElement('input');original.value=e.original||'';original.maxLength=240;original.setAttribute('aria-label','Check your spoken words');original.title='Correct transcription errors before saving';original.style.cssText='display:block;box-sizing:border-box;width:100%;padding:11px;border:2px solid #df999b;border-radius:10px;background:#fff0f0;font-size:17px;color:#782a2a';wrong.content.append(original);
+ const right=makeLine('✓','CORRECT · Say it this way','#237b44');
+ const corrected=document.createElement('input');corrected.value=e.corrected||'';corrected.maxLength=240;corrected.setAttribute('aria-label','Corrected sentence');corrected.style.cssText='display:block;box-sizing:border-box;width:100%;padding:11px;border:2px solid #8bc89a;border-radius:10px;background:#edfaef;font-size:17px;color:#195b33';right.content.append(corrected);
  const explanation=document.createElement('small');explanation.textContent=e.explanation||'';explanation.style.cssText='display:block;margin:5px 0 0 35px;color:#47617b;line-height:1.45';
  edit.append(wrong.line,right.line,explanation);row.append(input,edit);errors.append(row);
  }
@@ -14490,20 +14490,27 @@ async function wl14Assess(scenario,transcript){
 }
 $('wl14SaveErrors')?.addEventListener('click',async()=>{
  const button=$('wl14SaveErrors'),status=$('wl14SaveStatus');
- const selected=[...document.querySelectorAll('#wl14GrammarErrors .wl14Error')].filter(row=>row.querySelector('input[type=checkbox]')?.checked).map(row=>({original:row.querySelector('input[aria-label="Check your spoken words"]')?.value.trim(),correction:row.querySelector('input[aria-label="Corrected sentence"]')?.value.trim(),explanation:row.querySelector('small')?.textContent.trim()})).filter(e=>e.original&&e.correction&&e.original!==e.correction).slice(0,3);
+ const selected=[...document.querySelectorAll('#wl14GrammarErrors .wl14Error')].filter(row=>row.querySelector('input[type=checkbox]')?.checked).map(row=>({original:row.querySelector('input[aria-label="Check your spoken words"]')?.value.trim(),correction:row.querySelector('input[aria-label="Corrected sentence"]')?.value.trim(),explanation:row.querySelector('small')?.textContent.trim()})).filter(e=>e.original&&e.correction&&e.original!==e.correction);
  if(!selected.length){status.textContent='Select at least one clear grammar mistake and check its transcription.';return}
  if(!window.WebilangGrammarStock?.add){status.textContent='My Grammar Stock is not available. Nothing was saved.';return}
  button.disabled=true;status.textContent='Creating personalized AI exercises…';
  try{
-  const response=await fetch('/api/realtime-session?action=practice',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({errors:selected})});
-  const result=await response.json().catch(()=>({}));if(!response.ok)throw Error(result.error||'Practice generation failed');
-  const items=Array.isArray(result.grammarItems)?result.grammarItems:[];
-  if(!items.length)throw Error('AI did not return usable exercises. No mistakes were saved.');
-  const before=window.WebilangGrammarStock.get?.()||[];
+  const items=[];
+  for(let i=0;i<selected.length;i+=3){
+    const batch=selected.slice(i,i+3);
+    const response=await fetch('/api/realtime-session?action=practice',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({errors:batch})});
+    const result=await response.json().catch(()=>({}));if(!response.ok)throw Error(result.error||'Practice generation failed');
+    const produced=Array.isArray(result.grammarItems)?result.grammarItems:[];
+    if(produced.length!==batch.length)throw Error('AI produced only '+produced.length+' of '+batch.length+' exercises. Nothing was saved.');
+    items.push(...produced);
+  }
+  if(items.length!==selected.length)throw Error('Exercise count did not match selected mistakes. Nothing was saved.');
   window.WebilangGrammarStock.add(items);
   const after=window.WebilangGrammarStock.get?.()||[];
-  if(!after.length)throw Error('Grammar Stock did not confirm storage');
-  status.replaceChildren();const msg=document.createElement('span');msg.textContent=`Saved ${items.length} grammar item(s) to My Grammar Stock on this device. `;
+  const normText=v=>String(v||'').replace(/\s+/g,' ').trim().toLowerCase();
+  const confirmed=items.filter(item=>after.some(saved=>normText(saved.original)===normText(item.original)&&normText(saved.correction)===normText(item.correction)));
+  if(confirmed.length!==items.length)throw Error('Only '+confirmed.length+' of '+items.length+' mistakes could be verified in Grammar Stock.');
+  status.replaceChildren();const msg=document.createElement('span');msg.textContent=`Verified: ${confirmed.length} of ${selected.length} selected mistakes saved to My Grammar Stock on this device. `;
   const link=document.createElement('button');link.type='button';link.textContent='Open My Grammar Stock →';link.onclick=()=>window.WebilangGrammarStock.open();status.append(msg,link);
   document.querySelectorAll('#wl14GrammarErrors input[type=checkbox]:checked').forEach(cb=>cb.checked=false);
  }catch(e){status.textContent='Could not save: '+e.message}finally{button.disabled=false}
