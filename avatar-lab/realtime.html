@@ -31,6 +31,14 @@ body.interview-pilot .stage.theme-home{background:#d7c8b6 url('./backgrounds/fam
 body.interview-pilot .stage.theme-cafe-michael{background:#b4afa0 url('./backgrounds/university-cafe-michael.jpg') center center / cover no-repeat}
 body.interview-pilot .stage.theme-cafe-anna{background:#e4c9b8 url('./backgrounds/university-cafe-anna.jpg') center center / cover no-repeat}
 body.interview-pilot #scene{z-index:2}
+/* Photographic café tabletop overlays the lower part of the VRM, creating a seated-at-table framing. */
+body.interview-pilot .stage.theme-cafe-michael::after,
+body.interview-pilot .stage.theme-cafe-anna::after{
+ content:"";position:absolute;left:0;right:0;bottom:0;height:24%;z-index:3;
+ background:url('./backgrounds/university-cafe-table.png') center bottom / 100% 100% no-repeat;
+ pointer-events:none;
+}
+
 body.interview-pilot .stageTag{z-index:3}
 body.interview-pilot .stageTag{display:none!important}
 body.interview-pilot .stage.theme-game::before,body.interview-pilot .stage.theme-home::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:rgba(238,239,230,.10)}
