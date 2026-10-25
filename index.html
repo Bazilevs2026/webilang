@@ -14477,10 +14477,13 @@ async function wl14Assess(scenario,transcript){
  for(const e of (data.grammarErrors||[]).slice(0,6)){
  const row=document.createElement('div');row.className='wl14Error';const input=document.createElement('input');input.type='checkbox';input.setAttribute('aria-label','Select grammar mistake');
  const edit=document.createElement('div');edit.style.flex='1';
- const original=document.createElement('input');original.value=e.original||'';original.maxLength=240;original.setAttribute('aria-label','Check your spoken words');original.title='Correct transcription errors before saving';original.style.cssText='display:block;width:100%;margin-bottom:5px;padding:6px';
- const corrected=document.createElement('input');corrected.value=e.corrected||'';corrected.maxLength=240;corrected.setAttribute('aria-label','Corrected sentence');corrected.style.cssText='display:block;width:100%;margin-bottom:5px;padding:6px';
- const explanation=document.createElement('small');explanation.textContent=e.explanation||'';
- edit.append(original,corrected,explanation);row.append(input,edit);errors.append(row);
+ const makeLine=(symbol,heading,color)=>{const line=document.createElement('div');line.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:6px';const mark=document.createElement('span');mark.textContent=symbol;mark.setAttribute('aria-hidden','true');mark.style.cssText='font-size:20px;font-weight:900;color:'+color+';flex:0 0 25px;text-align:center';const content=document.createElement('div');content.style.cssText='flex:1;min-width:0';const label=document.createElement('div');label.textContent=heading;label.style.cssText='font-size:12px;font-weight:800;color:'+color+';margin-bottom:3px';content.append(label);line.append(mark,content);return {line,content};};
+ const wrong=makeLine('✕','Your sentence · grammar mistake','#b33a38');
+ const original=document.createElement('input');original.value=e.original||'';original.maxLength=240;original.setAttribute('aria-label','Check your spoken words');original.title='Correct transcription errors before saving';original.style.cssText='display:block;width:100%;padding:8px;border:1px solid #e0b8b8;border-radius:9px;background:#fff8f7';wrong.content.append(original);
+ const right=makeLine('✓','Correct sentence','#247746');
+ const corrected=document.createElement('input');corrected.value=e.corrected||'';corrected.maxLength=240;corrected.setAttribute('aria-label','Corrected sentence');corrected.style.cssText='display:block;width:100%;padding:8px;border:1px solid #a9d2b3;border-radius:9px;background:#f3fbf4';right.content.append(corrected);
+ const explanation=document.createElement('small');explanation.textContent=e.explanation||'';explanation.style.cssText='display:block;margin:5px 0 0 35px;color:#47617b;line-height:1.45';
+ edit.append(wrong.line,right.line,explanation);row.append(input,edit);errors.append(row);
  }
  $('wl14SaveErrors').hidden=!errors.children.length;
  }catch(e){status.textContent='AI Feedback unavailable: '+e.message}
