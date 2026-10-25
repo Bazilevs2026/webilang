@@ -1,5 +1,7 @@
 // Isolated WebRTC Realtime experiment. Never expose OPENAI_API_KEY to the browser.
+import interviewFeedbackHandler from '../lib/interview-feedback.js';
 export default async function handler(req,res){
+ if(req.query.action==='feedback')return interviewFeedbackHandler(req,res);
  if(req.method!=='POST')return res.status(405).json({error:'POST required'});
  if(!process.env.OPENAI_API_KEY)return res.status(503).json({error:'OPENAI_API_KEY missing on Vercel'});
  const character=req.query.character==='chaz'?'Chaz':'Nova';
