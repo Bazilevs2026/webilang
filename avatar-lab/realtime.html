@@ -31,14 +31,7 @@ body.interview-pilot .stage.theme-home{background:#d7c8b6 url('./backgrounds/fam
 body.interview-pilot .stage.theme-cafe-michael{background:#b4afa0 url('./backgrounds/university-cafe-michael.jpg') center center / cover no-repeat}
 body.interview-pilot .stage.theme-cafe-anna{background:#e4c9b8 url('./backgrounds/university-cafe-anna.jpg') center center / cover no-repeat}
 body.interview-pilot #scene{z-index:2}
-/* Photographic café tabletop overlays the lower part of the VRM, creating a seated-at-table framing. */
-body.interview-pilot .stage.theme-cafe-michael::after,
-body.interview-pilot .stage.theme-cafe-anna::after{
- content:"";position:absolute;left:0;right:0;bottom:0;height:24%;z-index:3;
- background:url('./backgrounds/university-cafe-table.png') center bottom / 100% 100% no-repeat;
- pointer-events:none;
-}
-
+/* No foreground tabletop: keep the full VRM portrait visible. */
 body.interview-pilot .stageTag{z-index:3}
 body.interview-pilot .stageTag{display:none!important}
 body.interview-pilot .stage.theme-game::before,body.interview-pilot .stage.theme-home::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:rgba(238,239,230,.10)}
@@ -119,7 +112,7 @@ function framePortrait(vrm){
     half:{shift:0.20,visible:0.83},
     full:{shift:0.43,visible:1.22}
   }[mode] || {shift:0.025,visible:0.46};
-  const target=headPoint.clone();target.y-=height*settings.shift;
+  const target=headPoint.clone();target.y-=height*(settings.shift + ((document.body.classList.contains('interview-pilot') && ['michael','anna'].includes(modelMode.value) && mode==='close')?0.085:0));
   // Recalculate based on viewport aspect, so narrow mobile screens cannot clip shoulders.
   const verticalFov=THREE.MathUtils.degToRad(camera.fov);
   const desiredHeight=height*settings.visible;
@@ -134,7 +127,7 @@ function framePortrait(vrm){
   // Stage 13.5: explicit optical zoom. Previous changes to visible height had
   // little visible effect in wide interview frames. Keep phone framing safer.
   const embeddedInterview=document.body.classList.contains('interview-pilot');
-  camera.zoom=embeddedInterview?(camera.aspect>=1.35?1.27:1.08):1;
+  camera.zoom=embeddedInterview?(camera.aspect>=1.35?(['michael','anna'].includes(modelMode.value)?1.52:1.27):(['michael','anna'].includes(modelMode.value)?1.19:1.08)):1;
   camera.updateProjectionMatrix();
 }
 cameraMode.addEventListener('change',()=>{if(currentVrm)framePortrait(currentVrm)});
