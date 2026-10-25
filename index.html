@@ -5743,11 +5743,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus
 <div class="wlLivePrompt" id="wlLivePrompt">
 <div class="wlLiveMission"><strong id="wlLiveMissionTitle">🎮 Your interview mission</strong><span id="wlLiveMissionText">Ask at least two of YOUR prepared questions. Listen carefully and ask a natural follow-up. Your own unexpected questions are welcome.</span></div>
 <aside class="wlLiveQuestions"><div class="wlLiveQTop"><strong id="wlLiveNotesTitle">📝 My questions</strong><button type="button" id="wlLiveEdit">Edit</button></div><ol id="wlLiveQuestionList"></ol><div id="wlLiveBabyNotes" hidden></div><small id="wlLiveNotesHint">Your own questions stay here during the conversation. You can ask something different, too.</small></aside>
-</div><div class="wlTavusVideoWrap">
+</div><div class="wl14InterviewGrid"><div class="wlTavusVideoWrap">
   <div id="wlTavusFrame" role="group" aria-label="Live video conversation"></div>
 
-</div>
-<p id="wlTavusStatus" role="status" aria-live="polite">Ready.</p>
+</div><aside id="wl14TalkingPoints" class="wl14TalkingPoints" aria-label="My talking points"><h3>My Talking Points</h3><div id="wl14Points"></div><button type="button" id="wl14Hint" hidden>Show my preparation</button><div id="wl14Original" hidden></div></aside></div>
+<p id="wlTavusStatus" role="status" aria-live="polite">Ready.</p><section id="wl14Feedback" hidden aria-live="polite"><h3>AI Interview Feedback</h3><p id="wl14FeedbackStatus"></p><div id="wl14FeedbackCards"></div><h4>Grammar corrections</h4><div id="wl14GrammarErrors"></div><button type="button" id="wl14SaveErrors" hidden>Save selected mistakes to My Grammar Stock</button><p id="wl14SaveStatus"></p></section>
 
 <section id="wlTavusAssessment" class="wlTavusAssessment" aria-labelledby="wlTavusAssessmentTitle" hidden>
   <h3 id="wlTavusAssessmentTitle">Your live interview feedback</h3>
@@ -5756,7 +5756,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus
   <button type="button" class="wlTavusAction" id="wlTavusRetry" hidden>↻ Check transcript again</button>
   <button type="button" class="wlTavusAction" id="wlTavusOpenGrammar" hidden>Open My Grammar Stock →</button>
 </section>
-<p><strong>Learning note:</strong> After the call, Webilang evaluates the actual Tavus speech transcript. Wait briefly if Tavus has not processed it yet. Camera is off; speech may be transcribed for learning feedback.</p>
+<p><strong>Learning note:</strong> After a Realtime call, Webilang attempts to assess confirmed speech transcripts. Transcription may be incomplete; no assessment is given without student speech. Camera is off; speech may be transcribed for learning feedback.</p>
 </section><div class="rp2Session" id="rp2Session" hidden>
     <div class="rp2SessionTop">
       <button type="button" class="rp2BackBtn" id="rp2Back">← Choose another scenario</button>
@@ -14362,6 +14362,7 @@ window.addEventListener("pagehide",()=>{if(call)navigator.sendBeacon("/api/tavus
 #wlTavusLive .wlAvatarPilotNotice{padding:10px 12px;border:1px solid #e1cfaa;border-radius:9px;background:#fff9eb;margin:10px 0;font-size:13px}
 @media(max-width:650px){#wlTavusFrame:has(iframe[data-webilang-realtime]){height:75vh;min-height:520px}}
 </style>
+<style id="wl14-ui">#wlTavusLive .wlLivePrompt{display:block}#wlTavusLive .wlLiveQuestions{display:none}#wlTavusLive .wl14InterviewGrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,290px);gap:12px;align-items:start}#wlTavusLive .wl14InterviewGrid .wlTavusVideoWrap{min-width:0}#wlTavusLive .wl14TalkingPoints{background:#f6f9ff;border:1px solid #ccdbed;border-radius:14px;padding:15px;max-height:650px;overflow:auto}#wlTavusLive .wl14TalkingPoints h3{margin:0 0 13px;font-size:17px}#wlTavusLive .wl14Point{display:flex;gap:9px;align-items:start;padding:9px 0;border-bottom:1px solid #d8e3ef;font-size:14px}#wl14Hint{margin-top:12px;border:1px solid #9cb6d3;padding:8px;border-radius:8px;background:#fff}#wl14Original p{font-size:13px;border-left:3px solid #adc3db;padding-left:8px}#wl14Feedback{background:#fff;border:2px solid #bfd6ef;border-radius:14px;padding:17px;margin:18px 0}#wl14Feedback[hidden]{display:none}#wl14FeedbackCards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px}#wl14Feedback .wl14Score{padding:11px;border-radius:11px;background:#f4f7ff;border-top:5px solid #4984b7}#wl14Feedback .wl14Score:nth-child(2){border-color:#4b9b89}#wl14Feedback .wl14Score:nth-child(3){border-color:#d6a24c}#wl14Feedback .wl14Score:nth-child(4){border-color:#9178c3}#wl14Feedback .wl14Score:nth-child(5){border-color:#708da2}#wl14Feedback .wl14Score p{font-size:13px}#wl14Feedback .wl14Error{display:flex;gap:10px;padding:9px;border-bottom:1px solid #eee}#wl14SaveErrors{margin:12px 0;padding:10px;border:0;border-radius:9px;background:#225f9e;color:white}@media(max-width:780px){#wlTavusLive .wl14InterviewGrid{grid-template-columns:1fr}#wlTavusLive .wl14TalkingPoints{max-height:225px}#wlTavusFrame:has(iframe[data-webilang-realtime]){min-height:490px}}</style>
 <script id="wl-avatar-interview-pilot">
 /* Non-destructive pilot: intercept two Tavus launch buttons and render the existing
    Realtime page in the SAME roleplay window. No Tavus API calls, transcript or feedback.
@@ -14371,10 +14372,12 @@ const $=id=>document.getElementById(id);
 const frame=$('wlTavusFrame'),panel=$('wlTavusLive'),status=$('wlTavusStatus');
 if(!frame||!panel||!status)return;
 let active=false,deadline=0,tick=null;
+let wl14Scenario="",wl14Transcript=[];let wl14Seen=new Set();
 const overlayId='wlAvatarPilotNotice';
 function updateClock(){const left=Math.max(0,Math.ceil((deadline-Date.now())/1000));$('wlTavusClock').textContent=`${String(Math.floor(left/60)).padStart(2,'0')}:${String(left%60).padStart(2,'0')}`;if(!left)stop('Five-minute interview finished.');}
 function stop(message='Interview ended.'){
  active=false;clearInterval(tick);tick=null;
+ if(active)wl14Assess(wl14Scenario,wl14Transcript.slice());
  // Destroying iframe closes the dedicated microphone/WebRTC session.
  frame.replaceChildren();document.getElementById(overlayId)?.remove();
  $('wlTavusCallState').textContent='Call ended';
@@ -14384,6 +14387,7 @@ function open(scenario){
  if(active)stop('Previous interview ended.');
  const game=($('rp2GameInput')?.value||'').trim();
  if(scenario==='creator'&&!game){status.textContent='Please enter a game name first.';panel.hidden=false;$('rp2GameInput')?.focus();return;}
+ wl14Scenario=scenario;wl14Transcript=[];wl14Seen=new Set();wl14ShowPoints(scenario);
  const character=scenario==='creator'?'chaz':'nova';
  $('wlTavusTitle').textContent=scenario==='creator'?`Game Creator · ${game}`:'Babysitter Interview · Nova';
  panel.hidden=false;panel.scrollIntoView({block:'start',behavior:'auto'});
@@ -14411,6 +14415,56 @@ document.addEventListener('click',event=>{
    stop('Call stopped for reset.'); // Let original Reset handler ask for confirmation.
  }
 },true);
+window.addEventListener('message',ev=>{
+ if(ev.origin!==location.origin||ev.data?.source!=='webilang-realtime'||ev.data?.type!=='transcript'||!active)return;
+ const m=ev.data;if(!['student','avatar'].includes(m.speaker)||typeof m.text!=='string'||!m.text.trim())return;
+ const k=m.speaker+':'+(m.id||m.text);if(wl14Seen.has(k))return;wl14Seen.add(k);
+ wl14Transcript.push({speaker:m.speaker,text:m.text.trim().slice(0,1500)});
+});
+function wl14ShowPoints(scenario){
+ const holder=$('wl14Points'),aside=$('wl14TalkingPoints'),hint=$('wl14Hint'),full=$('wl14Original');
+ holder.replaceChildren();full.replaceChildren();hint.hidden=true;full.hidden=true;
+ const values=scenario==='creator'?[...document.querySelectorAll('[data-wl-q]')].map(e=>e.value.trim()).filter(Boolean):[...document.querySelectorAll('[data-baby-frame]')].map(e=>e.value.trim()).filter(Boolean);
+ const saved=scenario==='creator'? $('wlPrepState')?.textContent||'': $('wlBabySaveState')?.textContent||'';
+ const labels=scenario==='creator'?'My question ideas':'My answer ideas';aside.querySelector('h3').textContent=labels;
+ if(!values.length){const em=document.createElement('p');em.textContent='No prepared notes yet. Feel free to improvise.';holder.append(em);return}
+ values.slice(0,6).forEach((v,i)=>{
+  // A compact deterministic fallback: short phrase from student's own wording, without inventing facts.
+  const words=v.replace(/[?!.]/g,'').split(/\s+/).filter(Boolean);
+  const concise=words.length<=7?words.join(' '):words.slice(-Math.min(5,words.length)).join(' ');
+  const line=document.createElement('label');line.className='wl14Point';const cb=document.createElement('input');cb.type='checkbox';
+  const t=document.createElement('span');t.textContent=concise;line.append(cb,t);holder.append(line);
+  const orig=document.createElement('p');orig.textContent=v;full.append(orig);
+ });
+ hint.hidden=false;hint.textContent='Show my full preparation';hint.onclick=()=>{full.hidden=!full.hidden;hint.textContent=full.hidden?'Show my full preparation':'Hide preparation'};
+}
+async function wl14Assess(scenario,transcript){
+ const panel=$('wl14Feedback'),status=$('wl14FeedbackStatus'),cards=$('wl14FeedbackCards'),errors=$('wl14GrammarErrors');
+ panel.hidden=false;panel.scrollIntoView({block:'start',behavior:'smooth'});cards.replaceChildren();errors.replaceChildren();
+ const student=transcript.filter(x=>x.speaker==='student');
+ if(!student.length){status.textContent='No confirmed student transcript was received. AI assessment is unavailable; try another call.';return}
+ status.textContent='Analyzing your actual conversation…';
+ try{const r=await fetch('/api/realtime-session?action=feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scenario,transcript})});
+ const data=await r.json();if(!r.ok)throw Error(data.error||'Feedback request failed');
+ status.textContent=data.summary||'Assessment completed.';
+ for(const [key,title] of [['communication','Communication'],['interaction','Interaction'],['grammar','Grammar'],['vocabulary','Vocabulary'],['fluency','Fluency']]){
+ const v=data.scores?.[key];if(!v)continue;const card=document.createElement('article');card.className='wl14Score';
+ const h=document.createElement('strong');h.textContent=title+' · '+(v.score??'—')+'/5';const comment=document.createElement('p');comment.textContent=v.comment||'';card.append(h,comment);cards.append(card);
+ }
+ for(const e of (data.grammarErrors||[]).slice(0,6)){
+ const row=document.createElement('label');row.className='wl14Error';const input=document.createElement('input');input.type='checkbox';
+ input.dataset.original=e.original||'';input.dataset.corrected=e.corrected||'';input.dataset.explanation=e.explanation||'';
+ const t=document.createElement('span');t.textContent=(e.original||'')+' → '+(e.corrected||'')+' — '+(e.explanation||'');row.append(input,t);errors.append(row);
+ }
+ $('wl14SaveErrors').hidden=!errors.children.length;
+ }catch(e){status.textContent='AI Feedback unavailable: '+e.message}
+}
+$('wl14SaveErrors')?.addEventListener('click',()=>{
+ const selected=[...document.querySelectorAll('#wl14GrammarErrors input:checked')].map(el=>({original:el.dataset.original,correction:el.dataset.corrected,explanation:el.dataset.explanation,rule:el.dataset.explanation,source:'Realtime interview'}));
+ if(!selected.length){$('wl14SaveStatus').textContent='Select a mistake first.';return}
+ // Avoid claiming integration with undocumented Grammar Stock storage.
+ $('wl14SaveStatus').textContent='Corrections selected, but direct My Grammar Stock saving is not yet connected. No mistakes were stored.';
+});
 window.addEventListener('pagehide',()=>{if(active)stop('Window closed.')});
 })();
 </script>
