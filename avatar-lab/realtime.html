@@ -463,6 +463,8 @@ rtStart.onclick=async()=>{
      if(m.type==='response.created')rtMessage(avatarName()+' is answering…');
      if(m.type==='response.done')rtMessage('Your turn · Speak when ready.');
      if(m.type==='response.output_audio_transcript.done'||m.type==='response.audio_transcript.done')rtLog.textContent=(m.transcript||'').slice(0,1500);
+     if(m.type==='conversation.item.input_audio_transcription.completed'&&m.transcript){window.parent.postMessage({source:'webilang-realtime',type:'transcript',speaker:'student',id:m.item_id||'',text:m.transcript},location.origin)}
+     if((m.type==='response.output_audio_transcript.done'||m.type==='response.audio_transcript.done')&&m.transcript){window.parent.postMessage({source:'webilang-realtime',type:'transcript',speaker:'avatar',id:m.item_id||m.response_id||'',text:m.transcript},location.origin)}
      }catch(err){console.warn(err)}};
    const offer=await rtcPeer.createOffer();await rtcPeer.setLocalDescription(offer);
    rtMessage('Establishing secure Realtime connection…');
