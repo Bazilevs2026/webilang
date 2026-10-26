@@ -14955,21 +14955,27 @@ try{const saved=JSON.parse(sessionStorage.getItem(sessionKey)||'null');if(saved?
 #wlKostyaPanel header button{border:1px solid #b0cde9;background:#fff;border-radius:8px;padding:5px 9px;font-weight:800;cursor:pointer}
 #wlKostyaPanel p{font:13px/1.45 system-ui,sans-serif;color:#425975;padding:8px 12px;margin:0}
 #wlKostyaFrame{width:100%;flex:1;border:0;background:#f1f6fc}
+#wlKostyaProactive{font-size:11px;padding:5px 7px;white-space:nowrap}
+#wlKostyaPrompt[hidden]{display:none!important}
+#wlKostyaPrompt{position:fixed;right:18px;bottom:80px;z-index:5992;background:white;border:1px solid #9bb6d6;border-radius:12px;padding:11px 12px;box-shadow:0 7px 24px #17395d33;max-width:min(350px,calc(100vw - 28px));font:13px/1.4 system-ui,sans-serif;color:#193d66}
+#wlKostyaPrompt button{margin:7px 7px 0 0;padding:6px 10px;border:1px solid #a5bed9;border-radius:8px;background:#eef5ff;cursor:pointer}
+#wlKostyaPrompt button:first-of-type{background:#245b9b;color:white}
 @media(max-width:600px){#wlKostyaFab{right:10px;bottom:10px}#wlKostyaPanel{right:7px;bottom:69px;width:calc(100vw - 14px);height:calc(100dvh - 85px)}}
 </style>
 <button id="wlKostyaFab" type="button" aria-controls="wlKostyaPanel" aria-expanded="false">🎓 Ask Kostya</button>
 <aside id="wlKostyaPanel" hidden aria-label="Kostya AI Teacher">
-<header id="wlKostyaDragHandle"><strong>🎓 Kostya · AI Teacher</strong><span style="flex:1"></span><button id="wlKostyaMinimize" type="button" title="Minimize but keep conversation active" aria-label="Minimize Kostya">—</button><button id="wlKostyaClose" type="button" aria-label="Close teacher help">✕ Close</button></header>
+<header id="wlKostyaDragHandle"><strong>🎓 Kostya · AI Teacher</strong><span style="flex:1"></span><button id="wlKostyaProactive" type="button" aria-pressed="false" title="Proactive help is off">Help: OFF</button><button id="wlKostyaMinimize" type="button" title="Minimize but keep conversation active" aria-label="Minimize Kostya">—</button><button id="wlKostyaClose" type="button" aria-label="Close teacher help">✕ Close</button></header>
 <p>Ask for a hint in English (A2–B1). Your exercise stays open. End the help call before returning.</p>
 <iframe id="wlKostyaFrame" title="Kostya 3D voice teacher" allow="microphone;autoplay"></iframe>
 </aside>
+<div id="wlKostyaPrompt" role="status" hidden>Repeated mistakes in this activity. Would you like a hint from Kostya?<div><button id="wlKostyaExplain" type="button">Explain</button><button id="wlKostyaDismiss" type="button">Not now</button></div></div>
 <script id="wl-kostya-pilot-js">
 (()=>{'use strict';
 const fab=document.getElementById('wlKostyaFab'), panel=document.getElementById('wlKostyaPanel'), frame=document.getElementById('wlKostyaFrame');
 if(!fab||!panel||!frame)return;
 const minimizeButton=document.getElementById('wlKostyaMinimize');
 const minimize=on=>{panel.classList.toggle('wl-minimized',on);minimizeButton.textContent=on?'▢':'—';minimizeButton.title=on?'Expand Kostya':'Minimize without ending call';fab.textContent=on?'🎓 Kostya · Active':'🎓 Ask Kostya';};
-const close=()=>{frame.removeAttribute('src');panel.hidden=true;panel.classList.remove('wl-minimized');fab.textContent='🎓 Ask Kostya';fab.setAttribute('aria-expanded','false');fab.focus()};
+const close=()=>{document.getElementById('wlKostyaPrompt').hidden=true;frame.removeAttribute('src');panel.hidden=true;panel.classList.remove('wl-minimized');fab.textContent='🎓 Ask Kostya';fab.setAttribute('aria-expanded','false');fab.focus()};
 minimizeButton.addEventListener('click',()=>minimize(!panel.classList.contains('wl-minimized')));
 const handle=document.getElementById('wlKostyaDragHandle');
 let drag=null;
@@ -14997,6 +15003,39 @@ fab.addEventListener('click',()=>{
  }
  panel.hidden=false;minimize(false);fab.setAttribute('aria-expanded','true');
  frame.src='/avatar-lab/realtime.html?pilot=kostya_teacher&character=kostya';
+});
+// Stage 22: opt-in, non-interrupting proactive suggestions from verified checker events only.
+const wlProactiveToggle=document.getElementById('wlKostyaProactive');
+const wlProactivePrompt=document.getElementById('wlKostyaPrompt');
+let wlProactiveEnabled=false,wlProactiveLastPrompt=0,wlProactiveLastKey='',wlProactiveStreak={key:'',count:0,at:0};
+function wlProactiveHide(){wlProactivePrompt.hidden=true;}
+wlProactiveToggle.addEventListener('click',()=>{
+ wlProactiveEnabled=!wlProactiveEnabled;
+ wlProactiveToggle.textContent='Help: '+(wlProactiveEnabled?'ON':'OFF');
+ wlProactiveToggle.setAttribute('aria-pressed',String(wlProactiveEnabled));
+ wlProactiveToggle.title=wlProactiveEnabled?'Turn off proactive suggestions':'Turn on proactive suggestions';
+ if(!wlProactiveEnabled){wlProactiveHide();wlProactiveStreak={key:'',count:0,at:0};}
+});
+function wlProactiveGrade(d){
+ if(!wlProactiveEnabled||panel.hidden||!d||!['correct','incorrect'].includes(d.status))return;
+ const key=String(d.source||'')+'|'+String(d.task||'').slice(0,170);
+ if(d.status==='correct'){wlProactiveStreak={key:'',count:0,at:0};wlProactiveHide();return;}
+ const now=Date.now();
+ if(wlProactiveStreak.key!==key||now-wlProactiveStreak.at>180000){wlProactiveStreak={key,count:0,at:now};}
+ wlProactiveStreak.count++;wlProactiveStreak.at=now;
+ // At most one prompt per exercise within five minutes; never start an AI response automatically.
+ if(wlProactiveStreak.count>=2&&(wlProactiveLastKey!==key||now-wlProactiveLastPrompt>300000)){
+  wlProactiveLastKey=key;wlProactiveLastPrompt=now;
+  wlProactivePrompt.hidden=false;
+ }
+}
+window.addEventListener('webilang:answer-graded',e=>wlProactiveGrade(e.detail));
+document.getElementById('wlKostyaDismiss').addEventListener('click',wlProactiveHide);
+document.getElementById('wlKostyaExplain').addEventListener('click',()=>{
+ wlProactiveHide();
+ if(panel.classList.contains('wl-minimized'))minimize(false);
+ if(panel.hidden)return;
+ frame.contentWindow?.postMessage({source:'webilang-lesson',type:'help-request',reason:'repeated-verified-mistakes'},location.origin);
 });
 // Stage 16: read-only lesson awareness for Kostya (no grading or answer modification).
 let wlKostyaContextTimer=0,wlKostyaLastContext='';
