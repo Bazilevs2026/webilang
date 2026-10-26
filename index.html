@@ -8881,11 +8881,10 @@ function contextForShared(entry){
 
       const inp=$("input",card), fb=$(".exFeedback",card), ru=$(".exRuContext",card);
       $(".check",card).onclick=()=>{
-        if(isCorrect(inp.value,entry.item)){
-          fb.className="exFeedback ok";fb.textContent="✓ Correct.";
-        }else{
-          fb.className="exFeedback bad";fb.textContent="Not yet. Read the situation again or reveal RU.";
-        }
+        const correct=isCorrect(inp.value,entry.item);
+        if(correct){fb.className="exFeedback ok";fb.textContent="✓ Correct.";}
+        else{fb.className="exFeedback bad";fb.textContent="Not yet. Read the situation again or reveal RU.";}
+        window.wlReportKostyaGrade?.('comic-word-stock',correct?'correct':'incorrect',inp.value,entry.item,fb.textContent,ctx.en);
       };
       $(".hear",card).onclick=()=>speak(ctx.en.replace("_____",entry.item));
       $(".ruHelp",card).onclick=()=>ru.classList.toggle("show");
@@ -11284,6 +11283,7 @@ if(storyResetButton){
       const data=await response.json().catch(()=>({}));
       if(!response.ok)throw new Error(data?.error||`Server error (${response.status})`);
       render(data?.feedback||"No feedback returned.");
+      window.wlReportKostyaAIReview?.('reading-ai',transcript,data?.feedback||'',task,data?.grammarItems);
       addGrammar(data?.grammarItems||[]);
     }catch(err){
       body.className="watchAiBody error";
@@ -11374,6 +11374,7 @@ if(storyResetButton){
       const data=await response.json().catch(()=>({}));
       if(!response.ok)throw new Error(data?.error||`Server error (${response.status})`);
       render(data?.feedback||"No feedback returned.");
+      window.wlReportKostyaAIReview?.('watching-listening-ai',transcript,data?.feedback||'',task,data?.grammarItems);
       addGrammar(data?.grammarItems||[]);
     }catch(err){
       body.className="watchAiBody error";
@@ -12436,6 +12437,7 @@ if(storyResetButton){
       const data=await response.json().catch(()=>({}));
       if(!response.ok)throw new Error(data?.error||`Server error (${response.status})`);
       renderIwAiFeedback(data?.feedback||"No feedback returned.");
+      window.wlReportKostyaAIReview?.('writing-ai',draft,data?.feedback||'', 'Independent Writing: helpful or harmful video games',data?.grammarItems);
       saveIwGrammar(data?.grammarItems||[]);
     }catch(err){
       body.className="watchAiBody error";
@@ -13364,6 +13366,7 @@ if(storyResetButton){
       if(!feedback) throw new Error("The AI endpoint returned an empty response.");
 
       showMessage(feedback);
+      window.wlReportKostyaAIReview?.('speaking-ai',transcript,feedback,task,data?.grammarItems);
     }catch(err){
       showMessage("AI Feedback could not connect. Check that /api/feedback is deployed on your website." +
         (err?.message ? "\\n\\nTechnical message: " + err.message : ""), "error");
@@ -13723,6 +13726,7 @@ if(storyResetButton){
       const r=await fetch(window.WEBILANG_AGENT_ENDPOINT||"/api/agent",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload("feedback",agentTurns))});
       const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data?.error||`Feedback error (${r.status})`);
       feedbackBody.textContent=String(data?.feedback||"No feedback returned.");
+      window.wlReportKostyaAIReview?.('agent-conversation-ai',history.filter(x=>x.role==='student').map(x=>x.content||x.text||'').join(' ').slice(0,950),data?.feedback||'',scenario||'Conversation feedback',data?.grammarItems);
       const grammarItems=Array.isArray(data?.grammarItems)?data.grammarItems:[];
       if(grammarItems.length&&window.WebilangGrammarStock?.add){
         window.WebilangGrammarStock.add(grammarItems);
@@ -14481,6 +14485,7 @@ async function wl14Assess(scenario,transcript){
  try{const r=await fetch('/api/realtime-session?action=feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scenario,transcript})});
  const data=await r.json();if(!r.ok)throw Error(data.error||'Feedback request failed');
  status.textContent=(data.summary||'Assessment completed.').split(/\s+/).slice(0,30).join(' ');
+ window.wlReportKostyaAIReview?.('realtime-interview-ai',student.map(x=>x.text).join(' ').slice(0,950),[data.summary||'',...(data.grammarErrors||[]).slice(0,5).map(x=>[x.original,x.corrected,x.explanation].filter(Boolean).join(' → '))].join('\n'),scenario+' interview feedback',(data.grammarErrors||[]).map(x=>({original:x.original,corrected:x.corrected,explanation:x.explanation})));
  for(const [key,title] of [['interaction','Interaction'],['grammar','Grammar'],['vocabulary','Vocabulary'],['fluency','Fluency']]){
  const v=data.scores?.[key];if(!v)continue;const card=document.createElement('article');card.className='wl14Score';
  const h=document.createElement('strong');h.textContent=title+' · '+(v.score??'—')+'/5';const comment=document.createElement('p');comment.textContent=String(v.comment||'').split(/\s+/).slice(0,20).join(' ');card.append(h,comment);cards.append(card);
@@ -15026,8 +15031,8 @@ function wlKostyaRecordCheck(button){
 }
 function wlKostyaActionForContext(){
  if(!wlKostyaLastAction||Date.now()-wlKostyaLastAction.at>120000)return null;
- const {kind,button,task,visibleFeedbackAfter,verifiedCorrectness,at,studentAnswer,expectedAnswer,source}=wlKostyaLastAction;
- return {kind,button,task,visibleFeedbackAfter,verifiedCorrectness,studentAnswer,expectedAnswer,source,at};
+ const {kind,button,task,visibleFeedbackAfter,verifiedCorrectness,at,studentAnswer,expectedAnswer,source,grammarItems}=wlKostyaLastAction;
+ return {kind,button,task,visibleFeedbackAfter,verifiedCorrectness,studentAnswer,expectedAnswer,source,grammarItems,at};
 }
 
 // Stage 20: explicit event bus. Only existing grading functions decide correctness.
@@ -15035,6 +15040,18 @@ window.wlReportKostyaGrade=function(source, status, studentAnswer, expectedAnswe
  if(!['correct','incorrect'].includes(status))return;
  window.dispatchEvent(new CustomEvent('webilang:answer-graded',{detail:{source,status,studentAnswer:String(studentAnswer??''),expectedAnswer:String(expectedAnswer??''),feedback:String(feedback??''),task:String(task??'')}}));
 }
+
+// Stage 21: direct AI review payloads. This is not a binary grading event.
+window.wlReportKostyaAIReview=function(source,studentAnswer,feedback,task,grammarItems){
+ const d={source:String(source||'').slice(0,65),studentAnswer:String(studentAnswer||'').slice(0,950),feedback:String(feedback||'').slice(0,2300),task:String(task||'').slice(0,650),grammarItems:Array.isArray(grammarItems)?grammarItems.slice(0,5).map(x=>({original:String(x?.original||x?.mistake||'').slice(0,180),corrected:String(x?.corrected||x?.correction||'').slice(0,180),explanation:String(x?.explanation||'').slice(0,260)})):[]};
+ window.dispatchEvent(new CustomEvent('webilang:ai-reviewed',{detail:d}));
+};
+window.addEventListener('webilang:ai-reviewed',e=>{
+ const d=e.detail||{};
+ clearTimeout(wlKostyaActionTimer);
+ wlKostyaLastAction={kind:'ai_review',source:d.source||'',button:'AI Feedback',task:d.task||'',studentAnswer:d.studentAnswer||'',expectedAnswer:'',visibleFeedbackAfter:[d.feedback||''],grammarItems:d.grammarItems||[],verifiedCorrectness:'unknown',at:Date.now()};
+ wlKostyaSendContext(true);
+});
 // Stage 19: trusted direct grading events emitted by the actual synchronous check handlers.
 // Unknown exercise types continue using the read-only Stage 18 feedback fallback.
 window.addEventListener('webilang:answer-graded',e=>{
