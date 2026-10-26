@@ -8016,6 +8016,7 @@ function wireBuilder(prefix){
   build.onclick=buildExercises;
   $("#"+prefix+"GapNew")?.addEventListener("click",newGap);
   $("#"+prefix+"GapCheck")?.addEventListener("click",checkGap);
+  $("#"+prefix+"GapCheck")?.addEventListener("click",()=>{if(!current)return;window.dispatchEvent(new CustomEvent('webilang:answer-graded',{detail:{source:'word-gap',status:feedback.classList.contains('ok')?'correct':'incorrect',studentAnswer:input.value,expectedAnswer:current.word,feedback:feedback.textContent,task:current.ctx?.en||''}}));});
   $("#"+prefix+"GapListen")?.addEventListener("click",()=>{if(current)speak(current.ctx.en.replace("_____",current.word));});
   $("#"+prefix+"GapHint")?.addEventListener("click",()=>hint?.classList.toggle("show"));
   input?.addEventListener("keydown",e=>{if(e.key==="Enter")checkGap();});
@@ -10219,6 +10220,8 @@ function addFeedback(card){
         }
 
         check.onclick=checkAnswer;
+        const wlOriginalGapCheck=checkAnswer;
+        check.onclick=()=>{wlOriginalGapCheck();window.dispatchEvent(new CustomEvent('webilang:answer-graded',{detail:{source:'practice-gap',status:inp.classList.contains('answerCorrect')?'correct':'incorrect',studentAnswer:inp.value,expectedAnswer:entry.item,feedback:fb.textContent,task:card.innerText.slice(0,450)}}));};
         inp.addEventListener('keydown',e=>{if(e.key==='Enter')checkAnswer();});
 
         say.onclick=async()=>{
@@ -10323,6 +10326,7 @@ function addFeedback(card){
       }
 
       check.addEventListener('click',checkAnswer);
+      check.addEventListener('click',()=>{window.dispatchEvent(new CustomEvent('webilang:answer-graded',{detail:{source:'practice-check',status:inp.classList.contains('answerCorrect')?'correct':'incorrect',studentAnswer:inp.value,expectedAnswer:entry.item,feedback:fb.textContent,task:card.innerText.slice(0,450)}}));});
       inp.addEventListener('keydown',e=>{if(e.key==='Enter')checkAnswer();});
 
       say.addEventListener('click',async()=>{
@@ -10394,6 +10398,7 @@ function addFeedback(card){
         }
       }
       check.addEventListener('click',checkAnswer);
+      check.addEventListener('click',()=>{window.dispatchEvent(new CustomEvent('webilang:answer-graded',{detail:{source:'practice-check',status:inp.classList.contains('answerCorrect')?'correct':'incorrect',studentAnswer:inp.value,expectedAnswer:entry.item,feedback:fb.textContent,task:card.innerText.slice(0,450)}}));});
       inp.addEventListener('keydown',e=>{if(e.key==='Enter')checkAnswer();});
       stage.appendChild(card);
     });
@@ -15013,10 +15018,19 @@ function wlKostyaRecordCheck(button){
 }
 function wlKostyaActionForContext(){
  if(!wlKostyaLastAction||Date.now()-wlKostyaLastAction.at>120000)return null;
- const {kind,button,task,visibleFeedbackAfter,verifiedCorrectness,at}=wlKostyaLastAction;
- return {kind,button,task,visibleFeedbackAfter,verifiedCorrectness,at};
+ const {kind,button,task,visibleFeedbackAfter,verifiedCorrectness,at,studentAnswer,expectedAnswer,source}=wlKostyaLastAction;
+ return {kind,button,task,visibleFeedbackAfter,verifiedCorrectness,studentAnswer,expectedAnswer,source,at};
 }
 
+// Stage 19: trusted direct grading events emitted by the actual synchronous check handlers.
+// Unknown exercise types continue using the read-only Stage 18 feedback fallback.
+window.addEventListener('webilang:answer-graded',e=>{
+ const d=e.detail||{};
+ if(!['correct','incorrect'].includes(d.status))return;
+ clearTimeout(wlKostyaActionTimer);
+ wlKostyaLastAction={kind:'answer_check',source:String(d.source||'').slice(0,60),button:'Check',task:String(d.task||'').slice(0,450),studentAnswer:String(d.studentAnswer||'').slice(0,200),expectedAnswer:String(d.expectedAnswer||'').slice(0,200),visibleFeedbackAfter:[String(d.feedback||'').slice(0,240)],verifiedCorrectness:d.status,at:Date.now()};
+ wlKostyaSendContext(true);
+});
 const wlKostyaVisible=el=>{if(!el||!el.isConnected)return false;const st=getComputedStyle(el);return st.display!=='none'&&st.visibility!=='hidden'&&!!el.getClientRects().length&&!el.closest('[hidden],[aria-hidden="true"],#wlKostyaPanel');};
 const wlKostyaText=(el,max=480)=>String(el?.innerText||el?.textContent||'').replace(/\s+/g,' ').trim().slice(0,max);
 function wlKostyaSnapshot(){
