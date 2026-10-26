@@ -516,18 +516,19 @@ window.addEventListener('pagehide',rtCleanup);
 const interviewParams=new URLSearchParams(location.search);
 const interviewScenario=interviewParams.get('pilot');
 const russianInterview=interviewScenario==='russian_michael'||interviewScenario==='russian_anna';
-const teacherMode=interviewScenario==='kostya_teacher';
+const teacherMode=['kostya_teacher','russian_kostya_teacher'].includes(interviewScenario);
 if(teacherMode){document.body.classList.add('kostya-teacher');rtEnd.textContent='■ Завершить разговор';}
 const interviewMode=interviewScenario==='creator'||interviewScenario==='job'||teacherMode;
 if(interviewMode||russianInterview){
   document.body.classList.add('interview-pilot');
   rtEnd.hidden=!teacherMode;
   rtEnd.style.display=teacherMode?'inline-flex':'none';
-  rtStart.textContent=teacherMode?'▶ Talk to Kostya':'▶ Start Interview';
+  rtStart.textContent=teacherMode?(interviewScenario==='russian_kostya_teacher'?'▶ Говорить с Костей':'▶ Talk to Kostya'):'▶ Start Interview';
   const chosen=teacherMode?'kostya':interviewScenario==='russian_michael'?'michael':interviewScenario==='russian_anna'?'anna':interviewScenario==='creator'?'chaz':'nova';
   modelMode.value=chosen;
   document.title=teacherMode?'Webilang · Kostya AI Teacher':russianInterview?'Webilang · Russian Café · '+(chosen==='michael'?'Michael':'Anna'):'Webilang · '+(interviewScenario==='creator'?'Game Creator':'Babysitter')+' Interview';
   if(russianInterview){lang.value='ru';document.getElementById('level').value='A1';document.getElementById('topic').value='university';}
+  if(interviewScenario==='russian_kostya_teacher'){lang.value='ru';document.getElementById('level').value='A1';document.getElementById('topic').value='everyday';}
 }
 // Initialize avatar only after all Realtime state has been declared.
 setAvatarCopy();
