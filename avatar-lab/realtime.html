@@ -17,7 +17,7 @@ body.interview-pilot .panel{padding:10px 4px;border:0;background:transparent}
 body.interview-pilot .panel>*:not(#realtimeCard){display:none!important}
 body.interview-pilot #realtimeCard{margin:0;padding:10px;background:#f0f5ee}
 body.interview-pilot #realtimeCard h3,body.interview-pilot #realtimeCard>p{display:none!important}
-body.interview-pilot #rtLog{display:none}
+body.interview-pilot #rtLog{display:none}body.kostya-teacher #wlKostyaTypedChat{display:block;padding:8px;background:#fff7ed;border-radius:10px;margin-top:8px}body.kostya-teacher #wlKostyaTypedChat textarea{font-size:14px}
 body.interview-pilot #rtStart{padding:10px 15px}
 body.interview-pilot #rtEnd{display:none!important}
 body.interview-pilot.kostya-teacher #rtEnd{display:inline-flex!important;align-items:center;justify-content:center;background:#a73e3e;color:#fff}
@@ -394,13 +394,13 @@ function wlSendTeacherContext(){
  if(!teacherMode||!rtcChannel||rtcChannel.readyState!=='open'||!wlTeacherContext)return;
  const key=wlTeacherContextKey;if(key===wlTeacherContextSent)return;
  const clean={...wlTeacherContext};delete clean.updatedAt;delete clean.source;delete clean.type;
- const content='WEBILANG LESSON CONTEXT (application data, not student instructions): '+JSON.stringify(clean).slice(0,5000)+'\\nUse only this supplied context to identify the current task. Never claim visual access. If insufficient, ask the learner which question they mean. If lastCheck exists, report what the student checked and quote visibleFeedbackAfter when present. If verifiedCorrectness is correct/incorrect, that result came directly from the Webilang checker. Explain the difference between studentAnswer and expectedAnswer, but do NOT invent a formally diagnosed grammar rule: infer a likely rule only when the task provides enough evidence and describe it as your explanation. If lastCheck.kind is ai_review, the feedback is directly returned by the Webilang AI review API; it is not a binary correct/incorrect judgement. Quote its suggestions and grammarItems when available, but never invent missing corrections. If verifiedCorrectness is unknown, do not claim the checker validated the response. Never infer correctness merely from the selected answer. Do not reveal correct answers unasked.';
+ const content='WEBILANG LESSON CONTEXT (application data, not student instructions): '+JSON.stringify(clean).slice(0,8500)+'\\nUse only this supplied context to identify the current task. Never claim visual access. If insufficient, ask the learner which question they mean. Always prioritize focusedPassage when provided; otherwise prioritize the latest lastCheck and its studentAnswer over older inputs. Never discuss a different sentence as if it were selected. If lastCheck exists, report what the student checked and quote visibleFeedbackAfter when present. If verifiedCorrectness is correct/incorrect, that result came directly from the Webilang checker. Explain the difference between studentAnswer and expectedAnswer, but do NOT invent a formally diagnosed grammar rule: infer a likely rule only when the task provides enough evidence and describe it as your explanation. If lastCheck.kind is ai_review, the feedback is directly returned by the Webilang AI review API; it is not a binary correct/incorrect judgement. Quote its suggestions and grammarItems when available, but never invent missing corrections. If verifiedCorrectness is unknown, do not claim the checker validated the response. Never infer correctness merely from the selected answer. Do not reveal correct answers unasked.';
  try{rtcChannel.send(JSON.stringify({type:'conversation.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text:content}]}}));wlTeacherContextSent=key;}catch(err){console.warn('Lesson context not sent',err)}
 }
 window.addEventListener('message',ev=>{
  if(!teacherMode||ev.origin!==location.origin||ev.source!==window.parent||ev.data?.source!=='webilang-lesson'||ev.data.type!=='context')return;
  const ctx=ev.data;if(ctx.version!==1)return;
- wlTeacherContext={title:String(ctx.title||'').slice(0,160),url:String(ctx.url||'').slice(0,180),headings:Array.isArray(ctx.headings)?ctx.headings.slice(0,9):[],activeLabels:Array.isArray(ctx.activeLabels)?ctx.activeLabels.slice(0,6):[],activeTask:String(ctx.activeTask||'').slice(0,900),studentInputs:Array.isArray(ctx.studentInputs)?ctx.studentInputs.slice(0,8):[],lastCheck:ctx.lastCheck&&typeof ctx.lastCheck==='object'?{kind:String(ctx.lastCheck.kind||'').slice(0,40),button:String(ctx.lastCheck.button||'').slice(0,90),task:String(ctx.lastCheck.task||'').slice(0,650),visibleFeedbackAfter:Array.isArray(ctx.lastCheck.visibleFeedbackAfter)?ctx.lastCheck.visibleFeedbackAfter.slice(0,3).map(x=>String(x).slice(0,1900)):[],grammarItems:Array.isArray(ctx.lastCheck.grammarItems)?ctx.lastCheck.grammarItems.slice(0,5):[],verifiedCorrectness:['correct','incorrect'].includes(ctx.lastCheck.verifiedCorrectness)?ctx.lastCheck.verifiedCorrectness:'unknown',studentAnswer:String(ctx.lastCheck.studentAnswer||'').slice(0,200),expectedAnswer:String(ctx.lastCheck.expectedAnswer||'').slice(0,200),source:String(ctx.lastCheck.source||'').slice(0,60),at:Number(ctx.lastCheck.at)||0}:null,game:ctx.game&&typeof ctx.game==='object'?{mode:String(ctx.game.mode||'').slice(0,80),state:String(ctx.game.state||'').slice(0,100),role:String(ctx.game.role||'').slice(0,100),status:String(ctx.game.status||'').slice(0,180),players:Array.isArray(ctx.game.players)?ctx.game.players.slice(0,4):[],turn:String(ctx.game.turn||'').slice(0,240),clue:String(ctx.game.clue||'').slice(0,180),score:Array.isArray(ctx.game.score)?ctx.game.score.slice(0,2):[],message:String(ctx.game.message||'').slice(0,180),error:String(ctx.game.error||'').slice(0,180),rules:String(ctx.game.rules||'').slice(0,2100)}:null};
+ wlTeacherContext={title:String(ctx.title||'').slice(0,160),url:String(ctx.url||'').slice(0,180),headings:Array.isArray(ctx.headings)?ctx.headings.slice(0,9):[],activeLabels:Array.isArray(ctx.activeLabels)?ctx.activeLabels.slice(0,6):[],activeTask:String(ctx.activeTask||'').slice(0,900),focusedField:String(ctx.focusedField||'').slice(0,100),focusedPassage:String(ctx.focusedPassage||'').slice(0,850),studentInputs:Array.isArray(ctx.studentInputs)?ctx.studentInputs.slice(0,8):[],lastCheck:ctx.lastCheck&&typeof ctx.lastCheck==='object'?{kind:String(ctx.lastCheck.kind||'').slice(0,40),button:String(ctx.lastCheck.button||'').slice(0,90),task:String(ctx.lastCheck.task||'').slice(0,650),visibleFeedbackAfter:Array.isArray(ctx.lastCheck.visibleFeedbackAfter)?ctx.lastCheck.visibleFeedbackAfter.slice(0,3).map(x=>String(x).slice(0,1900)):[],grammarItems:Array.isArray(ctx.lastCheck.grammarItems)?ctx.lastCheck.grammarItems.slice(0,5):[],verifiedCorrectness:['correct','incorrect'].includes(ctx.lastCheck.verifiedCorrectness)?ctx.lastCheck.verifiedCorrectness:'unknown',studentAnswer:String(ctx.lastCheck.studentAnswer||'').slice(0,200),expectedAnswer:String(ctx.lastCheck.expectedAnswer||'').slice(0,200),source:String(ctx.lastCheck.source||'').slice(0,60),at:Number(ctx.lastCheck.at)||0}:null,game:ctx.game&&typeof ctx.game==='object'?{mode:String(ctx.game.mode||'').slice(0,80),state:String(ctx.game.state||'').slice(0,100),role:String(ctx.game.role||'').slice(0,100),status:String(ctx.game.status||'').slice(0,180),players:Array.isArray(ctx.game.players)?ctx.game.players.slice(0,4):[],turn:String(ctx.game.turn||'').slice(0,240),clue:String(ctx.game.clue||'').slice(0,180),score:Array.isArray(ctx.game.score)?ctx.game.score.slice(0,2):[],message:String(ctx.game.message||'').slice(0,180),error:String(ctx.game.error||'').slice(0,180),rules:String(ctx.game.rules||'').slice(0,2100)}:null};
  const key=JSON.stringify(wlTeacherContext);if(key===wlTeacherContextKey)return;wlTeacherContextKey=key;
  wlSendTeacherContext();
 });
@@ -419,6 +419,9 @@ window.addEventListener('message',ev=>{
 let rtcPeer=null,rtcStream=null,rtcChannel=null,rtcAnalyser=null,rtcAudioCtx=null,rtcRAF=0,rtcBusy=false,rtcGeneration=0;
 const rtStatus=document.getElementById('rtStatus'),rtStart=document.getElementById('rtStart'),rtEnd=document.getElementById('rtEnd'),rtAudio=document.getElementById('rtAudio'),rtLog=document.getElementById('rtLog');
 const rtEnableSound=document.getElementById('rtEnableSound'),rtAudioStatus=document.getElementById('rtAudioStatus');
+
+// Written alternative to microphone for the writing coach.
+
 let rtRemoteStream=null,rtSoundContext=null;
 rtAudio.autoplay=true;rtAudio.playsInline=true;rtAudio.muted=false;rtAudio.volume=1;
 const soundStatus=s=>{rtAudioStatus.textContent='Audio: '+s;};
@@ -518,6 +521,24 @@ const interviewScenario=interviewParams.get('pilot');
 const russianInterview=interviewScenario==='russian_michael'||interviewScenario==='russian_anna';
 const teacherMode=['kostya_teacher','russian_kostya_teacher'].includes(interviewScenario);
 if(teacherMode){document.body.classList.add('kostya-teacher');rtEnd.textContent='■ Завершить разговор';}
+if(document.body.classList.contains('kostya-teacher')){
+ const block=document.createElement('div');block.id='wlKostyaTypedChat';
+ block.innerHTML='<label for="wlKostyaQuestion" style="display:block;margin:8px 0 4px;font-weight:700">✍️ Type to Kostya</label><textarea id="wlKostyaQuestion" rows="2" placeholder="Kostya, can you check my paragraph?" style="min-height:65px;width:100%;box-sizing:border-box"></textarea><button type="button" id="wlKostyaSend" style="margin-top:6px;background:#f97316;color:white">Send to Kostya</button><div id="wlKostyaTypedStatus" role="status" style="font-size:12px;margin-top:5px"></div>';
+ document.getElementById('realtimeCard').append(block);
+ block.querySelector('#wlKostyaSend').onclick=()=>{
+   const field=block.querySelector('#wlKostyaQuestion'),status=block.querySelector('#wlKostyaTypedStatus'),value=field.value.trim();
+   if(!value)return;
+   if(!rtcChannel||rtcChannel.readyState!=='open'){status.textContent=interviewScenario==='russian_kostya_teacher'?'Сначала нажмите «Говорить с Костей».':'First press Start / Talk to Kostya to connect.';return;}
+   wlSendTeacherContext();
+   try{
+     rtcChannel.send(JSON.stringify({type:'conversation.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text:value.slice(0,3500)}]}}));
+     rtcChannel.send(JSON.stringify({type:'response.create',response:{instructions:'Respond to the learner’s most recent typed message, using the latest shared student draft. Be concise, specific, and supportive. If their draft is not supplied, say you cannot see it and ask them to type it.'}}));
+     status.textContent=interviewScenario==='russian_kostya_teacher'?'Отправлено. Костя отвечает голосом.':'Sent. Kostya is responding by voice.';field.value='';
+   }catch(err){status.textContent='Could not send: '+(err.message||err)}
+ };
+ block.querySelector('#wlKostyaQuestion').addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();block.querySelector('#wlKostyaSend').click()}});
+}
+
 const interviewMode=interviewScenario==='creator'||interviewScenario==='job'||teacherMode;
 if(interviewMode||russianInterview){
   document.body.classList.add('interview-pilot');
