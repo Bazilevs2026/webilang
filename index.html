@@ -10640,6 +10640,7 @@ function addFeedback(card){
           fb.textContent=`Try again and include “${entry.item}”.`;
           fb.className='practiceFeedback bad';
         }
+        window.wlReportKostyaGrade?.('practice-speaking-target',fb.classList.contains('ok')?'correct':'incorrect',ta.value,entry.item,fb.textContent,card.innerText.slice(0,450));
       }
       check.onclick=checkUsage;
       const model=document.createElement('button');
@@ -11502,6 +11503,7 @@ if(storyResetButton){
         }else{
           b.classList.add("wrong");fb.textContent="Try again.";fb.className="vocabFeedback bad";
         }
+        window.wlReportKostyaGrade?.('vocab-choice',fb.classList.contains('ok')?'correct':'incorrect',b.dataset.value,q.a,fb.textContent,card.innerText.slice(0,400));
       }));
       box.appendChild(card);
     });
@@ -11545,6 +11547,7 @@ if(storyResetButton){
         const ok=clean(input.value)===clean(q.a)||clean(input.value).includes(clean(q.a));
         fb.textContent=ok?"✓ Correct.":"Not yet. Try again.";
         fb.className="vocabFeedback "+(ok?"ok":"bad");
+        window.wlReportKostyaGrade?.('vocab-gap',ok?'correct':'incorrect',input.value,q.a,fb.textContent,card.innerText.slice(0,450));
       };
       card.querySelector(".vocabCheck").onclick=check;
       card.querySelector(".vocabHint").onclick=()=>card.querySelector(".vocabRuHint").classList.toggle("show");
@@ -11748,6 +11751,7 @@ if(storyResetButton){
         }else{
           b.classList.add("wrong");fb.textContent="Try again.";fb.className="grammarFeedback bad";
         }
+        window.wlReportKostyaGrade?.('grammar-choice',fb.classList.contains('ok')?'correct':'incorrect',b.dataset.value,item.a,fb.textContent,card.innerText.slice(0,400));
       }));
       box.appendChild(card);
     });
@@ -11791,6 +11795,7 @@ if(storyResetButton){
         const ok=clean(input.value)===clean(item.a);
         fb.textContent=ok?"✓ Correct.":"Try the Past Simple form again.";
         fb.className="grammarFeedback "+(ok?"ok":"bad");
+        window.wlReportKostyaGrade?.('grammar-past-gap',ok?'correct':'incorrect',input.value,item.a,fb.textContent,card.innerText.slice(0,450));
       };
       card.querySelector(".grammarCheck").onclick=check;
       say.onclick=()=>sayToInput(input,item.a,fb,say,false);
@@ -11815,6 +11820,7 @@ if(storyResetButton){
         const ok=clean(input.value)===clean(item.a);
         fb.textContent=ok?"✓ Correct.":"Not yet. Check the verb after the modal.";
         fb.className="grammarFeedback "+(ok?"ok":"bad");
+        window.wlReportKostyaGrade?.('grammar-correction',ok?'correct':'incorrect',input.value,item.a,fb.textContent,card.innerText.slice(0,450));
       };
       card.querySelector(".grammarCheck").onclick=check;
       say.onclick=()=>sayToInput(input,item.a,fb,say,false);
@@ -14686,6 +14692,7 @@ check?.addEventListener('click',async()=>{
   reviews.forEach((r,i)=>{
    const entry=entries[i],box=document.createElement('div');box.className='wlResult';feedback.appendChild(box);
    put('div',entry.question,box,'wlOriginal');
+   if(typeof r.correct==='boolean')window.wlReportKostyaGrade?.('interview-question-ai',r.correct?'correct':'incorrect',entry.question,r.suggestion||'',r.explanation||'', 'Interview question '+(i+1));
    if(r.correct===true){
     put('div','✓ Good English — your question is ready!',box,'wlGood');
    }else if(typeof r.suggestion==='string'&&r.suggestion.trim()){
@@ -14829,6 +14836,7 @@ check?.addEventListener("click",async()=>{
       if(!sentences[i])return;
       const panel=document.createElement("div");panel.className="wlBabyReview"+(review.correct?" good":"");results.appendChild(panel);
       put(panel,sentences[i],"wlBabyOriginal");
+      if(typeof review.correct==='boolean')window.wlReportKostyaGrade?.('babysitter-ai',review.correct?'correct':'incorrect',sentences[i],review.suggestion||'',review.explanation||'', 'Babysitter interview note '+(i+1));
       if(review.correct){put(panel,"✓ Looks good!","wlBabyCorrection");return}
       const suggestion=(review.suggestion||"").trim();
       if(!suggestion){put(panel,"Please check with your teacher.","wlBabyCorrection");return}
@@ -15022,6 +15030,11 @@ function wlKostyaActionForContext(){
  return {kind,button,task,visibleFeedbackAfter,verifiedCorrectness,studentAnswer,expectedAnswer,source,at};
 }
 
+// Stage 20: explicit event bus. Only existing grading functions decide correctness.
+window.wlReportKostyaGrade=function(source, status, studentAnswer, expectedAnswer, feedback, task){
+ if(!['correct','incorrect'].includes(status))return;
+ window.dispatchEvent(new CustomEvent('webilang:answer-graded',{detail:{source,status,studentAnswer:String(studentAnswer??''),expectedAnswer:String(expectedAnswer??''),feedback:String(feedback??''),task:String(task??'')}}));
+}
 // Stage 19: trusted direct grading events emitted by the actual synchronous check handlers.
 // Unknown exercise types continue using the read-only Stage 18 feedback fallback.
 window.addEventListener('webilang:answer-graded',e=>{
