@@ -14956,6 +14956,38 @@ fab.addEventListener('click',()=>{
  panel.hidden=false;fab.setAttribute('aria-expanded','true');
  frame.src='/avatar-lab/realtime.html?pilot=kostya_teacher&character=kostya';
 });
+// Stage 16: read-only lesson awareness for Kostya (no grading or answer modification).
+let wlKostyaContextTimer=0,wlKostyaLastContext='';
+const wlKostyaVisible=el=>{if(!el||!el.isConnected)return false;const st=getComputedStyle(el);return st.display!=='none'&&st.visibility!=='hidden'&&!!el.getClientRects().length&&!el.closest('[hidden],[aria-hidden="true"],#wlKostyaPanel');};
+const wlKostyaText=(el,max=480)=>String(el?.innerText||el?.textContent||'').replace(/\s+/g,' ').trim().slice(0,max);
+function wlKostyaSnapshot(){
+ const main=document.querySelector('main')||document.body;
+ const selected=Array.from(document.querySelectorAll('[aria-current="page"],[aria-selected="true"],.active,.is-active')).filter(wlKostyaVisible).slice(-6).map(e=>wlKostyaText(e,90)).filter(Boolean);
+ const headings=Array.from(main.querySelectorAll('h1,h2,h3,[role="heading"]')).filter(wlKostyaVisible).slice(-9).map(e=>wlKostyaText(e,110)).filter(Boolean);
+ const focus=document.activeElement;
+ let task=null;
+ if(focus&&focus!==document.body&&!panel.contains(focus)&&wlKostyaVisible(focus))task=focus.closest('article,fieldset,[role="group"],section,.exercise,.question,.task,.card')||focus.parentElement;
+ if(!task||!wlKostyaVisible(task)){
+  const candidates=Array.from(main.querySelectorAll('article,fieldset,[role="group"],section,.exercise,.question,.task')).filter(wlKostyaVisible);
+  task=candidates.filter(x=>x.querySelector('input,select,textarea,button,[contenteditable]')).slice(-1)[0]||null;
+ }
+ const controls=task?Array.from(task.querySelectorAll('input:not([type="hidden"]),select,textarea,[contenteditable="true"]')).filter(wlKostyaVisible).slice(0,8).map(el=>({label:wlKostyaText(el.closest('label')||el.parentElement,120),type:el.type||el.tagName.toLowerCase(),value:el.type==='password'?'[omitted]':el.type==='checkbox'||el.type==='radio'?(el.checked?'selected':'not selected'):String(el.value||'').slice(0,90)})):[];
+ return {source:'webilang-lesson',type:'context',version:1,title:document.title,url:location.pathname,headings,activeLabels:selected,activeTask:task?wlKostyaText(task,900):'',studentInputs:controls,updatedAt:Date.now()};
+}
+function wlKostyaSendContext(force=false){
+ if(panel.hidden||!frame.contentWindow)return;
+ const data=wlKostyaSnapshot();const key=JSON.stringify({...data,updatedAt:0});
+ if(!force&&key===wlKostyaLastContext)return;
+ wlKostyaLastContext=key;frame.contentWindow.postMessage(data,location.origin);
+}
+function wlKostyaScheduleContext(){if(panel.hidden)return;clearTimeout(wlKostyaContextTimer);wlKostyaContextTimer=setTimeout(()=>wlKostyaSendContext(),400)}
+frame.addEventListener('load',()=>{wlKostyaLastContext='';wlKostyaSendContext(true)});
+document.addEventListener('click',wlKostyaScheduleContext,true);
+document.addEventListener('change',wlKostyaScheduleContext,true);
+document.addEventListener('input',wlKostyaScheduleContext,true);
+window.addEventListener('hashchange',wlKostyaScheduleContext);
+const wlKostyaObserver=new MutationObserver(wlKostyaScheduleContext);
+wlKostyaObserver.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-selected','aria-current']});
 document.getElementById('wlKostyaClose')?.addEventListener('click',close);
 window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close()});
 })();
