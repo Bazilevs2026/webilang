@@ -14982,6 +14982,41 @@ fab.addEventListener('click',()=>{
 });
 // Stage 16: read-only lesson awareness for Kostya (no grading or answer modification).
 let wlKostyaContextTimer=0,wlKostyaLastContext='';
+// Stage 18: read-only student activity / feedback, scoped to the currently visible task.
+let wlKostyaLastAction=null,wlKostyaActionTimer=0;
+const wlKostyaIsCheck=(label)=>/^(check|check answers?|check my answer|submit|verify|проверить|проверь|ответить|проверка|готово|проверить ответы)(\s*[!✓✔→]*)?$/i.test(label.trim());
+function wlKostyaActiveTask(){
+ const focus=document.activeElement;
+ if(focus&&focus!==document.body&&!panel.contains(focus)&&wlKostyaVisible(focus))return focus.closest('article,fieldset,[role="group"],section,.exercise,.question,.task,.card')||focus.parentElement;
+ return Array.from(document.querySelectorAll('article,fieldset,[role="group"],section,.exercise,.question,.task')).filter(wlKostyaVisible).filter(x=>x.querySelector('input,select,textarea,button,[contenteditable]')).slice(-1)[0]||null;
+}
+function wlKostyaFeedback(task){
+ if(!task||!wlKostyaVisible(task))return [];
+ const marked=Array.from(task.querySelectorAll('[role="alert"],[aria-live],.feedback,.result,.explanation,.error-message,.correct-answer,.incorrect,.is-correct,.is-incorrect,.correct,.wrong,.invalid-feedback,.valid-feedback'));
+ const values=marked.filter(wlKostyaVisible).map(el=>wlKostyaText(el,210)).filter(t=>t.length>2);
+ return [...new Set(values)].slice(-5);
+}
+function wlKostyaRecordCheck(button){
+ const task=button.closest('article,fieldset,[role="group"],section,.exercise,.question,.task,.card')||button.parentElement;
+ const current=task&&wlKostyaVisible(task)?task:wlKostyaActiveTask();
+ const before=wlKostyaFeedback(current);
+ clearTimeout(wlKostyaActionTimer);
+ wlKostyaLastAction={kind:'answer_check',button:wlKostyaText(button,70)||button.getAttribute('aria-label')||'Check',task:wlKostyaText(current,650),visibleFeedbackBefore:before,visibleFeedbackAfter:[],verifiedCorrectness:'unknown',at:Date.now()};
+ // Wait for existing asynchronous UI evaluation. Do not infer correctness from colors or guesses.
+ wlKostyaActionTimer=setTimeout(()=>{
+  if(!wlKostyaLastAction||wlKostyaLastAction.kind!=='answer_check')return;
+  const after=wlKostyaFeedback(current);
+  wlKostyaLastAction.visibleFeedbackAfter=after.filter(t=>!before.includes(t));
+  if(!wlKostyaLastAction.visibleFeedbackAfter.length)wlKostyaLastAction.visibleFeedbackAfter=after;
+  wlKostyaSendContext(true);
+ },900);
+}
+function wlKostyaActionForContext(){
+ if(!wlKostyaLastAction||Date.now()-wlKostyaLastAction.at>120000)return null;
+ const {kind,button,task,visibleFeedbackAfter,verifiedCorrectness,at}=wlKostyaLastAction;
+ return {kind,button,task,visibleFeedbackAfter,verifiedCorrectness,at};
+}
+
 const wlKostyaVisible=el=>{if(!el||!el.isConnected)return false;const st=getComputedStyle(el);return st.display!=='none'&&st.visibility!=='hidden'&&!!el.getClientRects().length&&!el.closest('[hidden],[aria-hidden="true"],#wlKostyaPanel');};
 const wlKostyaText=(el,max=480)=>String(el?.innerText||el?.textContent||'').replace(/\s+/g,' ').trim().slice(0,max);
 function wlKostyaSnapshot(){
@@ -14996,7 +15031,7 @@ function wlKostyaSnapshot(){
   task=candidates.filter(x=>x.querySelector('input,select,textarea,button,[contenteditable]')).slice(-1)[0]||null;
  }
  const controls=task?Array.from(task.querySelectorAll('input:not([type="hidden"]),select,textarea,[contenteditable="true"]')).filter(wlKostyaVisible).slice(0,8).map(el=>({label:wlKostyaText(el.closest('label')||el.parentElement,120),type:el.type||el.tagName.toLowerCase(),value:el.type==='password'?'[omitted]':el.type==='checkbox'||el.type==='radio'?(el.checked?'selected':'not selected'):String(el.value||'').slice(0,90)})):[];
- return {source:'webilang-lesson',type:'context',version:1,title:document.title,url:location.pathname,headings,activeLabels:selected,activeTask:task?wlKostyaText(task,900):'',studentInputs:controls,updatedAt:Date.now()};
+ return {source:'webilang-lesson',type:'context',version:1,title:document.title,url:location.pathname,headings,activeLabels:selected,activeTask:task?wlKostyaText(task,900):'',studentInputs:controls,lastCheck:wlKostyaActionForContext(),updatedAt:Date.now()};
 }
 function wlKostyaSendContext(force=false){
  if(panel.hidden||!frame.contentWindow)return;
@@ -15006,10 +15041,16 @@ function wlKostyaSendContext(force=false){
 }
 function wlKostyaScheduleContext(){if(panel.hidden)return;clearTimeout(wlKostyaContextTimer);wlKostyaContextTimer=setTimeout(()=>wlKostyaSendContext(),400)}
 frame.addEventListener('load',()=>{wlKostyaLastContext='';wlKostyaSendContext(true)});
+document.addEventListener('click',e=>{
+ const button=e.target.closest?.('button,[role="button"],input[type="submit"],input[type="button"]');
+ if(!button||panel.contains(button))return;
+ const label=(button.innerText||button.value||button.getAttribute('aria-label')||'').replace(/\s+/g,' ').trim();
+ if(wlKostyaIsCheck(label))wlKostyaRecordCheck(button);
+},true);
 document.addEventListener('click',wlKostyaScheduleContext,true);
 document.addEventListener('change',wlKostyaScheduleContext,true);
 document.addEventListener('input',wlKostyaScheduleContext,true);
-window.addEventListener('hashchange',wlKostyaScheduleContext);
+window.addEventListener('hashchange',()=>{wlKostyaLastAction=null;wlKostyaScheduleContext()});
 const wlKostyaObserver=new MutationObserver(wlKostyaScheduleContext);
 wlKostyaObserver.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-selected','aria-current']});
 document.getElementById('wlKostyaClose')?.addEventListener('click',close);
