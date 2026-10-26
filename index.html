@@ -14928,7 +14928,12 @@ try{const saved=JSON.parse(sessionStorage.getItem(sessionKey)||'null');if(saved?
 #wlKostyaFab{position:fixed;right:18px;bottom:18px;z-index:5990;border:0;border-radius:999px;background:#245b9b;color:white;font:800 15px system-ui,sans-serif;padding:14px 19px;box-shadow:0 8px 24px #0d366955;cursor:pointer}
 #wlKostyaPanel[hidden]{display:none!important}
 #wlKostyaPanel{position:fixed;right:18px;bottom:79px;z-index:5991;background:white;width:min(430px,calc(100vw - 25px));height:min(670px,calc(100dvh - 105px));border:2px solid #acc7e6;border-radius:18px;box-shadow:0 16px 50px #183b5c66;display:flex;flex-direction:column;overflow:hidden}
-#wlKostyaPanel header{background:#eaf3ff;padding:10px 13px;display:flex;gap:8px;align-items:center;justify-content:space-between;color:#193d66}
+#wlKostyaPanel header{cursor:grab;touch-action:none;user-select:none;background:#eaf3ff;padding:10px 13px;display:flex;gap:8px;align-items:center;justify-content:space-between;color:#193d66}
+#wlKostyaPanel header:active{cursor:grabbing}
+#wlKostyaPanel header button{cursor:pointer;touch-action:auto}
+#wlKostyaPanel.wl-minimized{width:270px;height:49px;min-height:49px;overflow:hidden}
+#wlKostyaPanel.wl-minimized > p{display:none}
+#wlKostyaPanel.wl-minimized #wlKostyaFrame{position:absolute;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none}
 #wlKostyaPanel header button{border:1px solid #b0cde9;background:#fff;border-radius:8px;padding:5px 9px;font-weight:800;cursor:pointer}
 #wlKostyaPanel p{font:13px/1.45 system-ui,sans-serif;color:#425975;padding:8px 12px;margin:0}
 #wlKostyaFrame{width:100%;flex:1;border:0;background:#f1f6fc}
@@ -14936,7 +14941,7 @@ try{const saved=JSON.parse(sessionStorage.getItem(sessionKey)||'null');if(saved?
 </style>
 <button id="wlKostyaFab" type="button" aria-controls="wlKostyaPanel" aria-expanded="false">🎓 Ask Kostya</button>
 <aside id="wlKostyaPanel" hidden aria-label="Kostya AI Teacher">
-<header><strong>🎓 Kostya · AI Teacher</strong><button id="wlKostyaClose" type="button" aria-label="Close teacher help">✕ Close</button></header>
+<header id="wlKostyaDragHandle"><strong>🎓 Kostya · AI Teacher</strong><span style="flex:1"></span><button id="wlKostyaMinimize" type="button" title="Minimize but keep conversation active" aria-label="Minimize Kostya">—</button><button id="wlKostyaClose" type="button" aria-label="Close teacher help">✕ Close</button></header>
 <p>Ask for a hint in English (A2–B1). Your exercise stays open. End the help call before returning.</p>
 <iframe id="wlKostyaFrame" title="Kostya 3D voice teacher" allow="microphone;autoplay"></iframe>
 </aside>
@@ -14944,16 +14949,35 @@ try{const saved=JSON.parse(sessionStorage.getItem(sessionKey)||'null');if(saved?
 (()=>{'use strict';
 const fab=document.getElementById('wlKostyaFab'), panel=document.getElementById('wlKostyaPanel'), frame=document.getElementById('wlKostyaFrame');
 if(!fab||!panel||!frame)return;
-const close=()=>{frame.removeAttribute('src');panel.hidden=true;fab.setAttribute('aria-expanded','false');fab.focus()};
+const minimizeButton=document.getElementById('wlKostyaMinimize');
+const minimize=on=>{panel.classList.toggle('wl-minimized',on);minimizeButton.textContent=on?'▢':'—';minimizeButton.title=on?'Expand Kostya':'Minimize without ending call';fab.textContent=on?'🎓 Kostya · Active':'🎓 Ask Kostya';};
+const close=()=>{frame.removeAttribute('src');panel.hidden=true;panel.classList.remove('wl-minimized');fab.textContent='🎓 Ask Kostya';fab.setAttribute('aria-expanded','false');fab.focus()};
+minimizeButton.addEventListener('click',()=>minimize(!panel.classList.contains('wl-minimized')));
+const handle=document.getElementById('wlKostyaDragHandle');
+let drag=null;
+handle.addEventListener('pointerdown',e=>{
+ if(e.button!==0||e.target.closest('button')||window.innerWidth<650)return;
+ const rect=panel.getBoundingClientRect();drag={id:e.pointerId,x:e.clientX,y:e.clientY,left:rect.left,top:rect.top};
+ try{handle.setPointerCapture(e.pointerId)}catch{}e.preventDefault();
+});
+handle.addEventListener('pointermove',e=>{
+ if(!drag||drag.id!==e.pointerId)return;
+ const left=Math.max(0,Math.min(window.innerWidth-panel.offsetWidth,drag.left+e.clientX-drag.x));
+ const top=Math.max(0,Math.min(window.innerHeight-panel.offsetHeight,drag.top+e.clientY-drag.y));
+ panel.style.left=left+'px';panel.style.top=top+'px';panel.style.right='auto';panel.style.bottom='auto';
+});
+for(const type of ['pointerup','pointercancel','lostpointercapture'])handle.addEventListener(type,()=>drag=null);
+window.addEventListener('resize',()=>{if(!panel.style.left)return;panel.style.left=Math.max(0,Math.min(innerWidth-panel.offsetWidth,parseFloat(panel.style.left)||0))+'px';panel.style.top=Math.max(0,Math.min(innerHeight-panel.offsetHeight,parseFloat(panel.style.top)||0))+'px'});
+
 fab.addEventListener('click',()=>{
- if(!panel.hidden){close();return}
+ if(!panel.hidden){minimize(!panel.classList.contains('wl-minimized'));return}
  // A second live microphone session would interfere with the interview.
  const live=document.getElementById('wlTavusLive');
  const state=document.getElementById('wlTavusCallState');
  if(live&&!live.hidden&&state&&/connected|in progress/i.test(state.textContent||'')){
   alert('Finish the conversation with Chaz or Nova before opening Kostya. This first pilot supports one live microphone at a time.');return;
  }
- panel.hidden=false;fab.setAttribute('aria-expanded','true');
+ panel.hidden=false;minimize(false);fab.setAttribute('aria-expanded','true');
  frame.src='/avatar-lab/realtime.html?pilot=kostya_teacher&character=kostya';
 });
 // Stage 16: read-only lesson awareness for Kostya (no grading or answer modification).
