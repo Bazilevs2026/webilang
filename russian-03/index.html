@@ -2832,7 +2832,7 @@ function build(i){
         ctrl.append(btn);
       });
       const check=make("button","wl-gram-check","Check");check.type="button";
-      check.onclick=()=>{if(!selected){feedback(fb,false,"Сначала выберите ответ.");return;}const ok=norm(selected)===norm(item[1]);feedback(fb,ok,ok?"✓ Верно!":"Попробуйте снова.");if(ok){state[i].done.add(k);progress(i);}};
+      check.onclick=()=>{if(!selected){feedback(fb,false,"Сначала выберите ответ.");return;}const ok=norm(selected)===norm(item[1]);feedback(fb,ok,ok?"✓ Верно!":"Попробуйте снова.");window.wlReportKostyaGrade?.("russian-03/grammar/recognize",ok?"correct":"incorrect",selected,item[1],fb.textContent,`${t.name} · ${heading} · вопрос ${j+1}: ${item[0]}`);if(ok){state[i].done.add(k);progress(i);}};
       ctrl.append(check);
     }else{
       const input=make("input");input.type="text";input.autocomplete="off";input.placeholder=mode==="prod"?"Ваше предложение…":"Одно слово";input.setAttribute("aria-label",item[0]);
@@ -2871,6 +2871,7 @@ function build(i){
          msg="Здесь смысл «likes music», а не «studies music». Откройте ENG.";
        }
        feedback(fb,ok,msg);
+       window.wlReportKostyaGrade?.("russian-03/grammar/"+mode,ok?"correct":"incorrect",input.value,mode==="ret"?item[1]:"[Открытый ответ — несколько допустимых вариантов]",msg,`${t.name} · ${heading} · вопрос ${j+1}: ${item[0]}`);
       };
       ctrl.append(check);
       if(mode==="prod")card.append(make("div","wl-gram-status-note","Используйте свои данные. Проверяется конструкция, а не конкретное имя или город."));
@@ -3155,7 +3156,7 @@ function wlKostyaRecordCheck(button){
  wlKostyaLastAction={kind:'answer_check',button:wlKostyaText(button,70)||button.getAttribute('aria-label')||'Check',task:wlKostyaText(current,650),visibleFeedbackBefore:before,visibleFeedbackAfter:[],verifiedCorrectness:'unknown',at:Date.now()};
  // Wait for existing asynchronous UI evaluation. Do not infer correctness from colors or guesses.
  wlKostyaActionTimer=setTimeout(()=>{
-  if(!wlKostyaLastAction||wlKostyaLastAction.kind!=='answer_check')return;
+  if(!wlKostyaLastAction||wlKostyaLastAction.kind!=='answer_check'||wlKostyaLastAction.verifiedCorrectness!=='unknown')return;
   const after=wlKostyaFeedback(current);
   wlKostyaLastAction.visibleFeedbackAfter=after.filter(t=>!before.includes(t));
   if(!wlKostyaLastAction.visibleFeedbackAfter.length)wlKostyaLastAction.visibleFeedbackAfter=after;
