@@ -3038,7 +3038,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 <style id="wl-kostya-pilot-css">
-#wlKostyaFab{position:fixed;right:18px;bottom:18px;z-index:5990;border:0;border-radius:999px;background:#245b9b;color:white;font:800 15px system-ui,sans-serif;padding:14px 19px;box-shadow:0 8px 24px #0d366955;cursor:pointer}
+#wlKostyaFab{position:fixed;right:18px;bottom:18px;z-index:5990;border:0;border-radius:999px;background:#f97316;color:white;font:800 15px system-ui,sans-serif;padding:14px 19px;box-shadow:0 8px 24px #b4530966;cursor:pointer;outline-offset:3px}#wlKostyaFab:hover{background:#ea580c}#wlKostyaFab:focus-visible{outline:3px solid #fdba74}
 #wlKostyaPanel[hidden]{display:none!important}
 #wlKostyaPanel{position:fixed;right:18px;bottom:79px;z-index:5991;background:white;width:min(430px,calc(100vw - 25px));height:min(670px,calc(100dvh - 105px));border:2px solid #acc7e6;border-radius:18px;box-shadow:0 16px 50px #183b5c66;display:flex;flex-direction:column;overflow:hidden}
 #wlKostyaPanel header{cursor:grab;touch-action:none;user-select:none;background:#eaf3ff;padding:10px 13px;display:flex;gap:8px;align-items:center;justify-content:space-between;color:#193d66}
@@ -3060,7 +3060,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <button id="wlKostyaFab" type="button" aria-controls="wlKostyaPanel" aria-expanded="false">🎓 Спросить Костю</button>
 <aside id="wlKostyaPanel" hidden aria-label="Kostya AI Teacher">
 <header id="wlKostyaDragHandle"><strong>🎓 Костя · AI-преподаватель</strong><span style="flex:1"></span><button id="wlKostyaProactive" type="button" aria-pressed="false" title="Proactive help is off">Подсказки: ВЫКЛ</button><button id="wlKostyaMinimize" type="button" title="Minimize but keep conversation active" aria-label="Minimize Kostya">—</button><button id="wlKostyaClose" type="button" aria-label="Close teacher help">✕ Close</button></header>
-<p>Задайте вопрос о русском языке или текущем упражнении. Разговор не закрывает задание.</p>
+<p>Говорите или пишите Косте. Он получит ваш последний проверенный ответ и текст выбранного задания.</p><div id="wlKostyaContextStatus" role="status" style="font:12px system-ui,sans-serif;color:#526476;padding:3px 12px">Выберите ответ или проверьте упражнение, чтобы уточнить контекст.</div>
 <iframe id="wlKostyaFrame" title="Kostya 3D voice teacher" allow="microphone;autoplay"></iframe>
 </aside>
 <div id="wlKostyaPrompt" role="status" hidden>В этом задании повторяются ошибки. Подсказать?<div><button id="wlKostyaExplain" type="button">Объясни</button><button id="wlKostyaDismiss" type="button">Не сейчас</button></div></div>
@@ -3134,6 +3134,31 @@ document.getElementById('wlKostyaExplain').addEventListener('click',()=>{
 });
 // Stage 16: read-only lesson awareness for Kostya (no grading or answer modification).
 let wlKostyaContextTimer=0,wlKostyaLastContext='';
+// Preserve the student's last active question even after clicking the assistant button.
+let wlKostyaLastStudentFocus=null,wlKostyaLastSelection=null;
+function wlKostyaCaptureFocus(e){
+ const el=e.target;
+ if(!el||panel.contains(el)||!el.matches?.('input:not([type="hidden"]),textarea,select,[contenteditable="true"]'))return;
+ wlKostyaLastStudentFocus=el;
+}
+document.addEventListener('focusin',wlKostyaCaptureFocus,true);
+document.addEventListener('keyup',e=>{if(e.target===wlKostyaLastStudentFocus)wlKostyaCaptureSelection()},true);
+document.addEventListener('mouseup',e=>{if(e.target===wlKostyaLastStudentFocus)wlKostyaCaptureSelection()},true);
+function wlKostyaCaptureSelection(){
+ const el=wlKostyaLastStudentFocus;if(!el||!el.isConnected)return;
+ const raw=String(el.value??el.innerText??'');
+ if(typeof el.selectionStart!=='number')return;
+ const a=el.selectionStart,b=el.selectionEnd;
+ let fragment=b>a?raw.slice(a,b):'';
+ if(!fragment){const prev=raw.slice(0,a).search(/[^.!?\n]*$/);const rest=raw.slice(a).search(/[.!?\n]/);fragment=raw.slice(prev<0?0:prev,rest<0?raw.length:a+rest+1)}
+ wlKostyaLastSelection=fragment.trim().slice(0,800);
+}
+function wlKostyaFocusedData(){
+ const el=wlKostyaLastStudentFocus;
+ if(!el||!el.isConnected||!wlKostyaVisible(el))return null;
+ return {label:wlKostyaText(el.closest('label')||el.parentElement,150),value:String(el.value??el.innerText??'').slice(0,3000),field:el.id||el.name||el.tagName.toLowerCase(),passage:wlKostyaLastSelection||''};
+}
+
 // Stage 18: read-only student activity / feedback, scoped to the currently visible task.
 let wlKostyaLastAction=null,wlKostyaActionTimer=0;
 const wlKostyaIsCheck=(label)=>/^(check|check answers?|check my answer|submit|verify|проверить|проверь|ответить|проверка|готово|проверить ответы)(\s*[!✓✔→]*)?$/i.test(label.trim());
@@ -3201,7 +3226,7 @@ function wlKostyaSnapshot(){
  const main=document.querySelector('main')||document.body;
  const selected=Array.from(document.querySelectorAll('[aria-current="page"],[aria-selected="true"],.active,.is-active')).filter(wlKostyaVisible).slice(-6).map(e=>wlKostyaText(e,90)).filter(Boolean);
  const headings=Array.from(main.querySelectorAll('h1,h2,h3,[role="heading"]')).filter(wlKostyaVisible).slice(-9).map(e=>wlKostyaText(e,110)).filter(Boolean);
- const focus=document.activeElement;
+ const focus=(document.activeElement&&!panel.contains(document.activeElement)&&document.activeElement!==document.body)?document.activeElement:wlKostyaLastStudentFocus;
  let task=null;
  if(focus&&focus!==document.body&&!panel.contains(focus)&&wlKostyaVisible(focus))task=focus.closest('article,fieldset,[role="group"],section,.exercise,.question,.task,.card')||focus.parentElement;
  if(!task||!wlKostyaVisible(task)){
@@ -3209,11 +3234,14 @@ function wlKostyaSnapshot(){
   task=candidates.filter(x=>x.querySelector('input,select,textarea,button,[contenteditable]')).slice(-1)[0]||null;
  }
  const controls=task?Array.from(task.querySelectorAll('input:not([type="hidden"]),select,textarea,[contenteditable="true"]')).filter(wlKostyaVisible).slice(0,8).map(el=>({label:wlKostyaText(el.closest('label')||el.parentElement,120),type:el.type||el.tagName.toLowerCase(),value:el.type==='password'?'[omitted]':el.type==='checkbox'||el.type==='radio'?(el.checked?'selected':'not selected'):String(el.value||'').slice(0,90)})):[];
- return {source:'webilang-lesson',type:'context',version:1,courseLanguage:'Russian',cefrLevel:'A1',title:document.title,url:location.pathname,headings,activeLabels:selected,activeTask:task?wlKostyaText(task,900):'',studentInputs:controls,lastCheck:wlKostyaActionForContext(),updatedAt:Date.now()};
+ const chosen=wlKostyaFocusedData();
+ if(chosen&&!controls.some(x=>x.value===chosen.value))controls.unshift({label:chosen.label||chosen.field,type:'student-response',value:chosen.value});
+ return {source:'webilang-lesson',type:'context',version:1,focusedPassage:chosen?.passage||'',focusedField:chosen?.field||'',courseLanguage:'Russian',cefrLevel:'A1',title:document.title,url:location.pathname,headings,activeLabels:selected,activeTask:task?wlKostyaText(task,900):'',studentInputs:controls,lastCheck:wlKostyaActionForContext(),updatedAt:Date.now()};
 }
 function wlKostyaSendContext(force=false){
  if(panel.hidden||!frame.contentWindow)return;
  const data=wlKostyaSnapshot();const key=JSON.stringify({...data,updatedAt:0});
+ const status=document.getElementById('wlKostyaContextStatus');if(status)status.textContent=data.lastCheck?.studentAnswer?'Последний ответ передан Косте: '+data.lastCheck.studentAnswer.slice(0,90):data.focusedPassage?'Выбранный фрагмент передан: '+data.focusedPassage.slice(0,90):data.focusedField?'Текущий ответ передан Косте.':'Выберите поле ответа или проверьте задание.';
  if(!force&&key===wlKostyaLastContext)return;
  wlKostyaLastContext=key;frame.contentWindow.postMessage(data,location.origin);
 }
