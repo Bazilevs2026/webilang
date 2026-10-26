@@ -682,7 +682,7 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
 </div>
 <div id="avatarVideoBox" class="avatar-video-box" hidden>
  <div class="avatar-video-head"><b id="avatarVideoTitle">Разговор с аватаром</b><button type="button" class="avatar-end" id="avatarEndCall">✕ Завершить разговор</button></div>
- <iframe id="avatarVideoFrame" title="Webilang 3D Realtime Russian conversation" allow="microphone; autoplay; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+ <iframe id="avatarVideoFrame" title="Tavus AI video conversation" allow="camera; microphone; autoplay; fullscreen; display-capture" referrerpolicy="strict-origin-when-cross-origin"></iframe>
  <div class="avatar-video-footer"><span id="avatarCallStatus" aria-live="polite">Подключаемся…</span><a id="avatarOpenExternal" href="#" target="_blank" rel="noopener noreferrer">↗ Открыть разговор отдельно</a></div>
 </div>
 <div id="avatarPostFeedback" class="card avatar-feedback">
@@ -1163,7 +1163,7 @@ drawQuiz($("readingQuestions"),READING,selections);
  const feedback=wrap.querySelector(".result");
  check.onclick=()=>{
    if(selections[i]===undefined){feedback.textContent="Choose an answer first.";feedback.className="result bad";return}
-   const q=READING[i];const good=selections[i]===q.a;
+   const q=READING[i];const good=selections[i]===q.a;window.wlReportKostyaGrade?.("Russian Reading",good?"correct":"incorrect",String(selections[i]),String(q.a),good?q.why:"Try again",q.q||"Reading question");
    feedback.className="result "+(good?"good":"bad");
    feedback.textContent=(good?"✓ Correct! ":"✗ Try again. ")+(good?q.why:"");
  };
@@ -1367,11 +1367,11 @@ function renderPractice(){
    let opts=[w.en,...REQUIRED.filter(x=>x.en!==w.en).slice(index,index+4).map(x=>x.en)].slice(0,3);
    if(opts.length<3)opts.push("to eat","to swim");
    opts=[...new Set(opts)].sort(()=>Math.random()-.5);
-   opts.forEach(o=>{const b=document.createElement("button");b.className="btn sm secondary";b.textContent=o;b.onclick=()=>{feed.textContent=o===w.en?"✓ Верно!":"✗ Правильный ответ: "+w.en;feed.className="status "+(o===w.en?"good":"bad");actions.querySelectorAll("button").forEach(x=>x.disabled=true);nButton()};actions.append(b)});
+   opts.forEach(o=>{const b=document.createElement("button");b.className="btn sm secondary";b.textContent=o;b.onclick=()=>{feed.textContent=o===w.en?"✓ Верно!":"✗ Правильный ответ: "+w.en;window.wlReportKostyaGrade?.("Russian vocabulary",o===w.en?"correct":"incorrect",o,w.en,feed.textContent,w.ru);feed.className="status "+(o===w.en?"good":"bad");actions.querySelectorAll("button").forEach(x=>x.disabled=true);nButton()};actions.append(b)});
   }else if(stage===1){
    explain.textContent="Вспомните русский вариант: "+w.en;
    const inp=document.createElement("input");inp.type="text";inp.placeholder="Напишите по-русски";box.append(inp);
-   const btn=document.createElement("button");btn.className="btn sm";btn.textContent="Проверить";btn.onclick=()=>{const good=norm(inp.value)===norm(w.ru)||REQUIRED.find(x=>x.ru===w.ru)?.alts?.some(a=>norm(inp.value)===norm(a));feed.textContent=good?"✓ Верно!":"Возможный вариант: "+w.ru;btn.disabled=true;nButton()};actions.append(btn);
+   const btn=document.createElement("button");btn.className="btn sm";btn.textContent="Проверить";btn.onclick=()=>{const good=norm(inp.value)===norm(w.ru)||REQUIRED.find(x=>x.ru===w.ru)?.alts?.some(a=>norm(inp.value)===norm(a));feed.textContent=good?"✓ Верно!":"Возможный вариант: "+w.ru;window.wlReportKostyaGrade?.("Russian vocabulary",good?"correct":"incorrect",inp.value,w.ru,feed.textContent,w.en);btn.disabled=true;nButton()};actions.append(btn);
   }else{
    explain.textContent="Составьте своё предложение с «"+w.ru+"» (можно изменить форму слова).";
    const input=document.createElement("textarea");input.rows=3;input.placeholder="Моё предложение на русском...";box.append(input);
@@ -1409,7 +1409,7 @@ document.querySelectorAll("[data-ai-speak]").forEach(btn=>btn.addEventListener("
  const assessments=data.scores||{};
  aiCard(out,null,"p","",`Grammar accuracy: ${assessments.grammar??"—"} · Target structure: ${assessments.target??"—"} · Task relevance: ${assessments.relevance??"—"}`);
  aiCard(out,null,"p","",data.feedback||"");
- for(const e of (window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[])){
+ for(const e of ((window.wlReportKostyaAIReview?.("Russian module AI feedback", "", String(data?.feedback||""), document.title, []), window.webilangCaptureFeedback?.(data)), window.webilangGrammarCorrections?.(data)||[])){
    const box=aiCard(out,null,"div","ai-error");
    aiCard(box,null,"p","",`Your wording: ${e.original||""}`);
    aiCard(box,null,"p","",`Corrected: ${e.corrected||""}`);
@@ -1422,7 +1422,7 @@ document.querySelectorAll("[data-ai-speak]").forEach(btn=>btn.addEventListener("
       save();renderGrammarStock();saveBtn.textContent="✓ Saved";saveBtn.disabled=true;
    };
  }
- if(!(window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).length)aiCard(out,null,"p","result good","No specific grammar corrections detected in this feedback.");
+ if(!((window.wlReportKostyaAIReview?.("Russian module AI feedback", "", String(data?.feedback||""), document.title, []), window.webilangCaptureFeedback?.(data)), window.webilangGrammarCorrections?.(data)||[]).length)aiCard(out,null,"p","result good","No specific grammar corrections detected in this feedback.");
  status.textContent="Feedback received. Save only genuine errors.";
  }catch(err){status.textContent="AI unavailable: "+err.message+". Your transcript is kept."}
  finally{btn.disabled=false}
@@ -1507,7 +1507,7 @@ grammarButton.addEventListener("click",()=>{
          const caseOK=!requiresMichael || !mentionsMichael || /(?<![А-Яа-яЁё])Майкла(?![А-Яа-яЁё])/iu.test(field.value);
          const ok=checkTarget(field.value,g)&&caseOK;
          feedback.className="status "+(ok?"good":"");
-         feedback.textContent=ok?"✓ Целевая форма использована. Образец: "+corrected:"Проверьте форму глагола и падеж имени. Правильно: "+corrected;
+         feedback.textContent=ok?"✓ Целевая форма использована. Образец: "+corrected:"Проверьте форму глагола и падеж имени. Правильно: "+corrected;window.wlReportKostyaGrade?.("Russian grammar",ok?"correct":"incorrect",field.value,corrected,feedback.textContent,"Target form and case");
          if(!ok){aiCard(card,null,"p","small muted","Пример: "+showGrammarText(g.corrected))}
        };
      }else{
@@ -1679,7 +1679,7 @@ READ_QUESTIONS.forEach((q,i)=>{
  const check=document.createElement("button");check.className="btn sm secondary";check.textContent="Check";
  const result=document.createElement("div");result.className="result";
  check.onclick=()=>{if(readSelections[i]===undefined){result.textContent="Select an answer first.";return}
- const correct=readSelections[i]===q.a;result.className="result "+(correct?"good":"bad");
+ const correct=readSelections[i]===q.a;window.wlReportKostyaGrade?.("Russian reading practice",correct?"correct":"incorrect",String(readSelections[i]),String(q.a),correct?q.why:"Try again",q.q||"Reading practice");result.className="result "+(correct?"good":"bad");
  result.textContent=(correct?"✓ Correct! ":"✗ Try again. ")+(correct?q.why:"");
  };row.append(check,result);readQuiz.append(row);
 });
@@ -1715,7 +1715,7 @@ document.getElementById("readingAi").onclick=async()=>{
  aiCard(out,null,"h4","","AI Feedback");
  const scores=data.scores||{};aiCard(out,null,"p","",`Grammar accuracy: ${scores.grammar??"—"} · Target structure: ${scores.target??"—"} · Task relevance: ${scores.relevance??"—"}`);
  aiCard(out,null,"p","",data.feedback||"");
- for(const e of (window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[])){
+ for(const e of ((window.wlReportKostyaAIReview?.("Russian module AI feedback", "", String(data?.feedback||""), document.title, []), window.webilangCaptureFeedback?.(data)), window.webilangGrammarCorrections?.(data)||[])){
  const block=aiCard(out,null,"div","ai-error");
  aiCard(block,null,"p","",`Your wording: ${e.original||""}`);
  aiCard(block,null,"p","",`Corrected: ${e.corrected||""}`);
@@ -1725,7 +1725,7 @@ document.getElementById("readingAi").onclick=async()=>{
  if(!store.grammar.some(g=>g.original===e.original&&g.corrected===e.corrected))store.grammar.push({original:e.original,corrected:e.corrected,rule:e.explanation||"",module:"russian-03"});
  save();renderGrammarStock();saveBtn.textContent="✓ Saved";saveBtn.disabled=true};
  }
- if(!(window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).length)aiCard(out,null,"p","result good","No specific grammar corrections detected in this feedback.");
+ if(!((window.wlReportKostyaAIReview?.("Russian module AI feedback", "", String(data?.feedback||""), document.title, []), window.webilangCaptureFeedback?.(data)), window.webilangGrammarCorrections?.(data)||[]).length)aiCard(out,null,"p","result good","No specific grammar corrections detected in this feedback.");
  status.textContent="Feedback received. Review errors before saving.";
  }catch(e){status.textContent="AI unavailable: "+e.message+". Your transcript is preserved."}finally{btn.disabled=false}
 };
@@ -1762,7 +1762,7 @@ document.getElementById("readingCommonAi").onclick=async()=>{
  aiCard(out,null,"h4","","AI Feedback");
  const scores=data.scores||{};aiCard(out,null,"p","",`Grammar accuracy: ${scores.grammar??"—"} · Target structure: ${scores.target??"—"} · Task relevance: ${scores.relevance??"—"}`);
  aiCard(out,null,"p","",data.feedback||"");
- for(const e of (window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[])){
+ for(const e of ((window.wlReportKostyaAIReview?.("Russian module AI feedback", "", String(data?.feedback||""), document.title, []), window.webilangCaptureFeedback?.(data)), window.webilangGrammarCorrections?.(data)||[])){
  const block=aiCard(out,null,"div","ai-error");
  aiCard(block,null,"p","",`Your wording: ${e.original||""}`);
  aiCard(block,null,"p","",`Corrected: ${e.corrected||""}`);
@@ -1772,7 +1772,7 @@ document.getElementById("readingCommonAi").onclick=async()=>{
  if(!store.grammar.some(g=>g.original===e.original&&g.corrected===e.corrected))store.grammar.push({original:e.original,corrected:e.corrected,rule:e.explanation||"",module:"russian-03"});
  save();renderGrammarStock();saveBtn.textContent="✓ Saved";saveBtn.disabled=true};
  }
- if(!(window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).length)aiCard(out,null,"p","result good","No specific grammar corrections detected in this feedback.");
+ if(!((window.wlReportKostyaAIReview?.("Russian module AI feedback", "", String(data?.feedback||""), document.title, []), window.webilangCaptureFeedback?.(data)), window.webilangGrammarCorrections?.(data)||[]).length)aiCard(out,null,"p","result good","No specific grammar corrections detected in this feedback.");
  status.textContent="Feedback received. Review errors before saving.";
  }catch(e){status.textContent="AI unavailable: "+e.message+". Your transcript is preserved."}finally{btn.disabled=false}
 };
@@ -1846,7 +1846,7 @@ TASKS.forEach((task,i)=>{
    const data=await response.json();if(!response.ok)throw Error(data.error||"AI unavailable");
    const scores=document.createElement("p");scores.textContent="Grammar: "+(data.scores?.grammar??"—")+" · Present Tense: "+(data.scores?.target??"—")+" · Relevance: "+(data.scores?.relevance??"—");out.append(scores);
    const msg=document.createElement("p");msg.textContent=data.feedback||"";out.append(msg);
-   (window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).forEach(err=>{
+   ((window.wlReportKostyaAIReview?.("Russian module AI feedback", "", String(data?.feedback||""), document.title, []), window.webilangCaptureFeedback?.(data)), window.webilangGrammarCorrections?.(data)||[]).forEach(err=>{
      const box=document.createElement("div");box.className="exercise";
      const lines=document.createElement("p");lines.textContent=(err.original||"")+" → "+(err.corrected||"")+" · "+(err.explanation||"");box.append(lines);
      const saveBtn=document.createElement("button");saveBtn.className="btn sm green";saveBtn.textContent="💾 Save my mistake → My Grammar";
@@ -1857,7 +1857,7 @@ TASKS.forEach((task,i)=>{
      };
      box.append(saveBtn);out.append(box);
    });
-   if(!(window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).length){const p=document.createElement("p");p.textContent="No specific grammar corrections detected in this feedback.";out.append(p)}
+   if(!((window.wlReportKostyaAIReview?.("Russian module AI feedback", "", String(data?.feedback||""), document.title, []), window.webilangCaptureFeedback?.(data)), window.webilangGrammarCorrections?.(data)||[]).length){const p=document.createElement("p");p.textContent="No specific grammar corrections detected in this feedback.";out.append(p)}
    status.textContent="Feedback ready. Save only confirmed errors.";
   }catch(e){status.textContent="AI requires the Webilang server: "+e.message}finally{feedback.disabled=false}
  };
@@ -2065,64 +2065,108 @@ root.closest("#tab-vocab").addEventListener("webilang:reset-vocabulary",()=>{
 </script>
 <script id="avatar-roleplay-v30-script">
 (function(){
-'use strict';
+"use strict";
 const $=id=>document.getElementById(id);
-const videoBox=$('avatarVideoBox'),frame=$('avatarVideoFrame'),endButton=$('avatarEndCall'),topControls=$('avatarCallControlsTop'),topEndButton=$('avatarEndAndFeedback'),callStatus=$('avatarCallStatus');
-let activeRole=null,creating=false,lastFeedbackSession=null,transcriptRequestSerial=0;
-let learnerTurns=[],seenTurns=new Set();
-function message(role,text){$(role==='michael'?'avatarMsgMichael':'avatarMsgAnna').textContent=text;}
-function currentTranscript(){return learnerTurns.map(x=>x.text).filter(Boolean).join('\n')}
-async function api(body){
- if(body.action!=='feedback')throw Error('Unknown request');
- const r=await fetch('/api/realtime-session?action=russian_feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({role:body.role,transcript:body.transcript})});
- const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||'AI Feedback unavailable');return data;
+const videoBox=$("avatarVideoBox"),frame=$("avatarVideoFrame"),endButton=$("avatarEndCall"),topControls=$("avatarCallControlsTop"),topEndButton=$("avatarEndAndFeedback"),callStatus=$("avatarCallStatus");
+let activeId=null,activeToken=null,creating=false,startedAt=null,activeRole=null,accessForFeedback="";
+let lastFeedbackSession=null;
+let transcriptRequestSerial=0;
+const RECOVERY_KEY="webilang:russian03:pending-avatar-end";
+function rememberCall(){
+ if(activeId&&activeToken)try{sessionStorage.setItem(RECOVERY_KEY,JSON.stringify({conversationId:activeId,token:activeToken}))}catch(_){}
+}
+function forgetCall(){try{sessionStorage.removeItem(RECOVERY_KEY)}catch(_){}}
+async function recoverPreviousCall(){
+ let previous=null;
+ try{previous=JSON.parse(sessionStorage.getItem(RECOVERY_KEY)||"null")}catch(_){}
+ if(!previous?.conversationId||!previous?.token)return;
+ callStatus.textContent="Завершаем прошлый разговор перед новой сессией…";
+ try{
+  await api({action:"end",conversationId:previous.conversationId,token:previous.token});
+  forgetCall();
+  callStatus.textContent="✓ Предыдущая сессия освобождена.";
+ }catch(e){
+  callStatus.textContent="Прошлый разговор ещё не закрыт: "+e.message+". Обновите страницу для повторной попытки.";
+ }
 }
 async function fetchTranscript(){
- const status=$('avatarFeedbackStatus');
- const current=$('avatarLearnerTranscript').value.trim();const fromRealtime=currentTranscript();
- if(fromRealtime && !current)$('avatarLearnerTranscript').value=fromRealtime;
- status.textContent=fromRealtime?'✓ Realtime captured '+learnerTurns.length+' learner turns. Review the text, then click Get AI Feedback.':'No learner speech was transcribed. You may enter your actual Russian sentences manually.';
-}
-$('avatarFetchTranscript').addEventListener('click',fetchTranscript);
-window.addEventListener('message',event=>{
- if(event.origin!==location.origin||event.source!==frame.contentWindow||event.data?.source!=='webilang-realtime')return;
- const m=event.data;
- if(m.type==='connected'){callStatus.textContent='✓ Realtime connected · Говорите по-русски';return;}
- if(m.type==='transcript'&&m.speaker==='student'&&typeof m.text==='string'&&m.text.trim()){
-  const key=m.id||m.text;
-  if(seenTurns.has(key))return;seenTurns.add(key);learnerTurns.push({id:key,text:m.text.trim()});
-  callStatus.textContent='✓ Получено '+learnerTurns.length+' реплик ученика';
- }
-});
-async function endCall(){
- if(!activeRole)return;
- const old=activeRole;activeRole=null;
- frame.src='about:blank';videoBox.hidden=true;topControls.hidden=true;
- document.querySelectorAll('[data-avatar-launch]').forEach(x=>x.disabled=false);
- lastFeedbackSession={role:old};$('avatarPostFeedback').hidden=false;
- $('avatarLearnerTranscript').value=currentTranscript();
- await fetchTranscript();
- $('avatarPostFeedback').scrollIntoView({block:'start',behavior:'smooth'});
- callStatus.textContent='✓ Realtime завершён.';
-}
-endButton.addEventListener('click',endCall);topEndButton.addEventListener('click',endCall);
-document.querySelectorAll('[data-avatar-launch]').forEach(btn=>btn.addEventListener('click',async()=>{
- if(creating)return;creating=true;
- const role=btn.dataset.avatarLaunch;
+ const serial=++transcriptRequestSerial;
+ const status=$("avatarFeedbackStatus"),b=$("avatarFetchTranscript");
+ if(!lastFeedbackSession){status.textContent="Сначала завершите разговор.";return}
+ b.disabled=true;status.textContent="Получаем транскрипцию Tavus…";
  try{
-  if(activeRole)await endCall();
-  activeRole=role;learnerTurns=[];seenTurns=new Set();lastFeedbackSession=null;
-  $('avatarPostFeedback').hidden=true;$('avatarLearnerTranscript').value='';$('avatarFeedbackReport').replaceChildren();
-  $('avatarVideoTitle').textContent=role==='michael'?'🎭 Майкл · Вы — Анна':'🎭 Анна · Вы — Майкл';
-  frame.src='/avatar-lab/realtime.html?pilot='+encodeURIComponent(role==='michael'?'russian_michael':'russian_anna');
-  frame.title=role==='michael'?'3D Michael · Russian conversation':'3D Anna · Russian conversation';
+  const r=await api({action:"transcript",...lastFeedbackSession});
+  if(serial!==transcriptRequestSerial)return;
+  if(r.status==="pending"){status.textContent="Tavus ещё обрабатывает разговор. Нажмите «Получить транскрипцию» ещё раз через несколько секунд.";return}
+  if(r.status!=="ready")throw new Error("Неизвестный статус транскрипции.");
+  if(!r.transcript){status.textContent="Tavus не обнаружил реплик ученика. Вы можете вписать их вручную.";return}
+  $("avatarLearnerTranscript").value=r.transcript;
+  status.textContent="✓ Получено "+r.learnerTurns+" реплик ученика. Проверьте распознавание и нажмите «Get AI Feedback».";
+ }catch(e){if(serial===transcriptRequestSerial)status.textContent="Автоматическая транскрипция недоступна: "+e.message+". Можно ввести реплики вручную."}
+ finally{if(serial===transcriptRequestSerial)b.disabled=false}
+}
+$("avatarFetchTranscript").addEventListener("click",fetchTranscript);
+function message(role,text){$(role==="michael"?"avatarMsgMichael":"avatarMsgAnna").textContent=text;}
+function urlSafe(s){try{const u=new URL(s);return u.protocol==="https:"&&(u.hostname==="tavus.daily.co"||u.hostname.endsWith(".daily.co"));}catch(_){return false;}}
+async function api(body){
+ const r=await fetch("/api/tavus",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),credentials:"same-origin"});
+ const d=await r.json().catch(()=>({error:"Некорректный ответ сервера."}));
+ if(!r.ok)throw new Error(d.error||"Ошибка Tavus ("+r.status+")");
+ return d;
+}
+async function endCall(){
+ if(!activeId||!activeToken)return true;
+ const old=activeId,oldToken=activeToken,oldRole=activeRole;
+ endButton.disabled=true;topEndButton.disabled=true;
+ callStatus.textContent="Завершаем разговор с Tavus…";
+ try{
+  await api({action:"end",conversationId:old,token:oldToken});
+  if(oldRole){
+    lastFeedbackSession={conversationId:old,token:oldToken,role:oldRole,accessCode:accessForFeedback};
+    $("avatarPostFeedback").hidden=false;
+    $("avatarFeedbackStatus").textContent="Разговор завершён. Запрашиваем транскрипцию Tavus…";
+  }
+  activeId=null;activeToken=null;activeRole=null;startedAt=null;
+  forgetCall();
+  frame.src="about:blank";videoBox.hidden=true;topControls.hidden=true;
+  document.querySelectorAll("[data-avatar-launch]").forEach(x=>x.disabled=false);
+  callStatus.textContent="✓ Разговор завершён, сессия освобождена.";
+  if(oldRole){
+    $("avatarPostFeedback").scrollIntoView({behavior:"smooth",block:"start"});
+    await fetchTranscript();
+  }
+  return true;
+ }catch(e){
+  // Keep session credentials, iframe and End buttons so learner can retry safely.
+  callStatus.textContent="Не удалось освободить сессию: "+e.message+". Нажмите «Завершить разговор» повторно.";
+  return false;
+ }finally{endButton.disabled=false;topEndButton.disabled=false}
+}
+endButton.addEventListener("click",endCall);
+topEndButton.addEventListener("click",endCall);
+document.querySelectorAll("[data-avatar-launch]").forEach(btn=>btn.addEventListener("click",async function(){
+ if(creating)return;
+ await previousCallRecovery;
+ const role=btn.dataset.avatarLaunch;
+ if(activeId&&!(await endCall()))return;
+ creating=true;btn.disabled=true;
+ message(role,"Создаём индивидуальный видеозвонок Tavus…");
+ try{
+  const accessCode=window.prompt("Код доступа к русским ролевым играм (получите у преподавателя):");
+  if(!accessCode){message(role,"Запуск отменён. Нужен код доступа преподавателя.");return;}
+  accessForFeedback=accessCode;
+  const d=await api({action:"start",scenario:role==="michael"?"russian_michael":"russian_anna",accessCode});
+  if(!urlSafe(d.url)||!/^[a-zA-Z0-9_-]{5,100}$/.test(d.conversationId||"")||!/^[0-9a-f]{48}$/.test(d.token||""))throw Error("Сервер прислал неверные данные разговора.");
+  activeId=d.conversationId;activeToken=d.token;activeRole=role;startedAt=Date.now();rememberCall();
+  $("avatarVideoTitle").textContent=role==="michael"?"🎭 Разговор с Майклом · Вы — Анна":"🎭 Разговор с Анной · Вы — Майкл";
+  $("avatarOpenExternal").href=d.url;
+  frame.src=d.url;
   videoBox.hidden=false;topControls.hidden=false;
-  $('avatarOpenExternal').href=frame.src;
-  callStatus.textContent='Нажмите Start Realtime внутри окна аватара. Камера не требуется.';
-  videoBox.scrollIntoView({behavior:'smooth',block:'start'});
-  message(role,'✓ Откройте разговор ниже и нажмите Start Realtime. После беседы завершите разговор сверху.');
- }catch(e){message(role,'Ошибка запуска: '+e.message);activeRole=null}
- finally{creating=false}
+  callStatus.textContent="Разрешите микрофон и камеру, когда браузер попросит.";
+  videoBox.scrollIntoView({behavior:"smooth",block:"start"});
+  message(role,"✓ Разговор готов. Видеозвонок открыт ниже. После разговора нажмите «Завершить разговор».");
+ }catch(e){message(role,"Не удалось начать разговор: "+e.message)}
+ finally{creating=false;btn.disabled=false}
 }));
 document.querySelectorAll("[data-avatar-choice]").forEach(group=>group.addEventListener("click",event=>{
  const btn=event.target.closest("button[data-answer]");if(!btn)return;
@@ -2219,7 +2263,7 @@ $("avatarEvaluate").addEventListener("click",async()=>{
  }catch(e){status.textContent="Не удалось получить анализ: "+e.message; $("avatarEvaluate").disabled=false;}
 });
 const previousCallRecovery=recoverPreviousCall();
-window.addEventListener("pagehide",()=>{if(activeRole)frame.src="about:blank"});
+window.addEventListener("pagehide",()=>{if(activeId&&activeToken&&navigator.sendBeacon){const payload=new Blob([JSON.stringify({action:"end",conversationId:activeId,token:activeToken})],{type:"application/json"});navigator.sendBeacon("/api/tavus",payload)}});
 })();
 </script>
 <script id="v59-shared-microphone">
@@ -2901,7 +2945,7 @@ feedback.onclick=async()=>{
   const data=await r.json();if(!r.ok)throw Error(data.error||"AI unavailable");
   const add=(tag,t)=>{const el=document.createElement(tag);el.textContent=t;output.append(el)};
   add("h4","AI Feedback");const sc=data.scores||{};if(Object.keys(sc).length)add("p","Grammar: "+(sc.grammar??"—")+" · Task: "+(sc.relevance??"—"));add("p",data.feedback||data.message||"Проверка завершена.");
-  (window.webilangCaptureFeedback?.(data), window.webilangGrammarCorrections?.(data)||[]).slice(0,3).forEach(x=>{
+  ((window.wlReportKostyaAIReview?.("Russian module AI feedback", "", String(data?.feedback||""), document.title, []), window.webilangCaptureFeedback?.(data)), window.webilangGrammarCorrections?.(data)||[]).slice(0,3).forEach(x=>{
    const box=document.createElement("div");box.className="wl-ai-error";
    const line=document.createElement("p");line.textContent=(x.original||x.incorrect||"")+" → "+(x.corrected||x.correction||"")+(x.explanation?" · "+x.explanation:"");
    box.append(line,window.webilangGrammarSaveButton(x));output.append(box);
@@ -2990,6 +3034,204 @@ const start=()=>{
  observer.observe(document.body,{childList:true,subtree:true,characterData:false});
 };
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+})();
+</script>
+<style id="wl-kostya-pilot-css">
+#wlKostyaFab{position:fixed;right:18px;bottom:18px;z-index:5990;border:0;border-radius:999px;background:#245b9b;color:white;font:800 15px system-ui,sans-serif;padding:14px 19px;box-shadow:0 8px 24px #0d366955;cursor:pointer}
+#wlKostyaPanel[hidden]{display:none!important}
+#wlKostyaPanel{position:fixed;right:18px;bottom:79px;z-index:5991;background:white;width:min(430px,calc(100vw - 25px));height:min(670px,calc(100dvh - 105px));border:2px solid #acc7e6;border-radius:18px;box-shadow:0 16px 50px #183b5c66;display:flex;flex-direction:column;overflow:hidden}
+#wlKostyaPanel header{cursor:grab;touch-action:none;user-select:none;background:#eaf3ff;padding:10px 13px;display:flex;gap:8px;align-items:center;justify-content:space-between;color:#193d66}
+#wlKostyaPanel header:active{cursor:grabbing}
+#wlKostyaPanel header button{cursor:pointer;touch-action:auto}
+#wlKostyaPanel.wl-minimized{width:270px;height:49px;min-height:49px;overflow:hidden}
+#wlKostyaPanel.wl-minimized > p{display:none}
+#wlKostyaPanel.wl-minimized #wlKostyaFrame{position:absolute;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none}
+#wlKostyaPanel header button{border:1px solid #b0cde9;background:#fff;border-radius:8px;padding:5px 9px;font-weight:800;cursor:pointer}
+#wlKostyaPanel p{font:13px/1.45 system-ui,sans-serif;color:#425975;padding:8px 12px;margin:0}
+#wlKostyaFrame{width:100%;flex:1;border:0;background:#f1f6fc}
+#wlKostyaProactive{font-size:11px;padding:5px 7px;white-space:nowrap}
+#wlKostyaPrompt[hidden]{display:none!important}
+#wlKostyaPrompt{position:fixed;right:18px;bottom:80px;z-index:5992;background:white;border:1px solid #9bb6d6;border-radius:12px;padding:11px 12px;box-shadow:0 7px 24px #17395d33;max-width:min(350px,calc(100vw - 28px));font:13px/1.4 system-ui,sans-serif;color:#193d66}
+#wlKostyaPrompt button{margin:7px 7px 0 0;padding:6px 10px;border:1px solid #a5bed9;border-radius:8px;background:#eef5ff;cursor:pointer}
+#wlKostyaPrompt button:first-of-type{background:#245b9b;color:white}
+@media(max-width:600px){#wlKostyaFab{right:10px;bottom:10px}#wlKostyaPanel{right:7px;bottom:69px;width:calc(100vw - 14px);height:calc(100dvh - 85px)}}
+</style>
+<button id="wlKostyaFab" type="button" aria-controls="wlKostyaPanel" aria-expanded="false">🎓 Спросить Костю</button>
+<aside id="wlKostyaPanel" hidden aria-label="Kostya AI Teacher">
+<header id="wlKostyaDragHandle"><strong>🎓 Костя · AI-преподаватель</strong><span style="flex:1"></span><button id="wlKostyaProactive" type="button" aria-pressed="false" title="Proactive help is off">Подсказки: ВЫКЛ</button><button id="wlKostyaMinimize" type="button" title="Minimize but keep conversation active" aria-label="Minimize Kostya">—</button><button id="wlKostyaClose" type="button" aria-label="Close teacher help">✕ Close</button></header>
+<p>Задайте вопрос о русском языке или текущем упражнении. Разговор не закрывает задание.</p>
+<iframe id="wlKostyaFrame" title="Kostya 3D voice teacher" allow="microphone;autoplay"></iframe>
+</aside>
+<div id="wlKostyaPrompt" role="status" hidden>В этом задании повторяются ошибки. Подсказать?<div><button id="wlKostyaExplain" type="button">Объясни</button><button id="wlKostyaDismiss" type="button">Не сейчас</button></div></div>
+<script id="wl-kostya-pilot-js">
+(()=>{'use strict';
+const fab=document.getElementById('wlKostyaFab'), panel=document.getElementById('wlKostyaPanel'), frame=document.getElementById('wlKostyaFrame');
+if(!fab||!panel||!frame)return;
+const minimizeButton=document.getElementById('wlKostyaMinimize');
+const minimize=on=>{panel.classList.toggle('wl-minimized',on);minimizeButton.textContent=on?'▢':'—';minimizeButton.title=on?'Expand Kostya':'Minimize without ending call';fab.textContent=on?'🎓 Kostya · Active':'🎓 Спросить Костю';};
+const close=()=>{document.getElementById('wlKostyaPrompt').hidden=true;frame.removeAttribute('src');panel.hidden=true;panel.classList.remove('wl-minimized');fab.textContent='🎓 Спросить Костю';fab.setAttribute('aria-expanded','false');fab.focus()};
+minimizeButton.addEventListener('click',()=>minimize(!panel.classList.contains('wl-minimized')));
+const handle=document.getElementById('wlKostyaDragHandle');
+let drag=null;
+handle.addEventListener('pointerdown',e=>{
+ if(e.button!==0||e.target.closest('button')||window.innerWidth<650)return;
+ const rect=panel.getBoundingClientRect();drag={id:e.pointerId,x:e.clientX,y:e.clientY,left:rect.left,top:rect.top};
+ try{handle.setPointerCapture(e.pointerId)}catch{}e.preventDefault();
+});
+handle.addEventListener('pointermove',e=>{
+ if(!drag||drag.id!==e.pointerId)return;
+ const left=Math.max(0,Math.min(window.innerWidth-panel.offsetWidth,drag.left+e.clientX-drag.x));
+ const top=Math.max(0,Math.min(window.innerHeight-panel.offsetHeight,drag.top+e.clientY-drag.y));
+ panel.style.left=left+'px';panel.style.top=top+'px';panel.style.right='auto';panel.style.bottom='auto';
+});
+for(const type of ['pointerup','pointercancel','lostpointercapture'])handle.addEventListener(type,()=>drag=null);
+window.addEventListener('resize',()=>{if(!panel.style.left)return;panel.style.left=Math.max(0,Math.min(innerWidth-panel.offsetWidth,parseFloat(panel.style.left)||0))+'px';panel.style.top=Math.max(0,Math.min(innerHeight-panel.offsetHeight,parseFloat(panel.style.top)||0))+'px'});
+
+fab.addEventListener('click',()=>{
+ if(!panel.hidden){minimize(!panel.classList.contains('wl-minimized'));return}
+ // A second live microphone session would interfere with the interview.
+ const live=document.getElementById('wlTavusLive');
+ const state=document.getElementById('wlTavusCallState');
+ if(live&&!live.hidden&&state&&/connected|in progress/i.test(state.textContent||'')){
+  alert('Finish the conversation with Chaz or Nova before opening Kostya. This first pilot supports one live microphone at a time.');return;
+ }
+ panel.hidden=false;minimize(false);fab.setAttribute('aria-expanded','true');
+ frame.src='/avatar-lab/realtime.html?pilot=russian_kostya_teacher&character=kostya';
+});
+// Stage 22: opt-in, non-interrupting proactive suggestions from verified checker events only.
+const wlProactiveToggle=document.getElementById('wlKostyaProactive');
+const wlProactivePrompt=document.getElementById('wlKostyaPrompt');
+let wlProactiveEnabled=false,wlProactiveLastPrompt=0,wlProactiveLastKey='',wlProactiveStreak={key:'',count:0,at:0};
+function wlProactiveHide(){wlProactivePrompt.hidden=true;}
+wlProactiveToggle.addEventListener('click',()=>{
+ wlProactiveEnabled=!wlProactiveEnabled;
+ wlProactiveToggle.textContent='Подсказки: '+(wlProactiveEnabled?'ВКЛ':'ВЫКЛ');
+ wlProactiveToggle.setAttribute('aria-pressed',String(wlProactiveEnabled));
+ wlProactiveToggle.title=wlProactiveEnabled?'Turn off proactive suggestions':'Turn on proactive suggestions';
+ if(!wlProactiveEnabled){wlProactiveHide();wlProactiveStreak={key:'',count:0,at:0};}
+});
+function wlProactiveGrade(d){
+ if(!wlProactiveEnabled||panel.hidden||!d||!['correct','incorrect'].includes(d.status))return;
+ const key=String(d.source||'')+'|'+String(d.task||'').slice(0,170);
+ if(d.status==='correct'){wlProactiveStreak={key:'',count:0,at:0};wlProactiveHide();return;}
+ const now=Date.now();
+ if(wlProactiveStreak.key!==key||now-wlProactiveStreak.at>180000){wlProactiveStreak={key,count:0,at:now};}
+ wlProactiveStreak.count++;wlProactiveStreak.at=now;
+ // At most one prompt per exercise within five minutes; never start an AI response automatically.
+ if(wlProactiveStreak.count>=2&&(wlProactiveLastKey!==key||now-wlProactiveLastPrompt>300000)){
+  wlProactiveLastKey=key;wlProactiveLastPrompt=now;
+  wlProactivePrompt.hidden=false;
+ }
+}
+window.addEventListener('webilang:answer-graded',e=>wlProactiveGrade(e.detail));
+document.getElementById('wlKostyaDismiss').addEventListener('click',wlProactiveHide);
+document.getElementById('wlKostyaExplain').addEventListener('click',()=>{
+ wlProactiveHide();
+ if(panel.classList.contains('wl-minimized'))minimize(false);
+ if(panel.hidden)return;
+ frame.contentWindow?.postMessage({source:'webilang-lesson',type:'help-request',reason:'repeated-verified-mistakes'},location.origin);
+});
+// Stage 16: read-only lesson awareness for Kostya (no grading or answer modification).
+let wlKostyaContextTimer=0,wlKostyaLastContext='';
+// Stage 18: read-only student activity / feedback, scoped to the currently visible task.
+let wlKostyaLastAction=null,wlKostyaActionTimer=0;
+const wlKostyaIsCheck=(label)=>/^(check|check answers?|check my answer|submit|verify|проверить|проверь|ответить|проверка|готово|проверить ответы)(\s*[!✓✔→]*)?$/i.test(label.trim());
+function wlKostyaActiveTask(){
+ const focus=document.activeElement;
+ if(focus&&focus!==document.body&&!panel.contains(focus)&&wlKostyaVisible(focus))return focus.closest('article,fieldset,[role="group"],section,.exercise,.question,.task,.card')||focus.parentElement;
+ return Array.from(document.querySelectorAll('article,fieldset,[role="group"],section,.exercise,.question,.task')).filter(wlKostyaVisible).filter(x=>x.querySelector('input,select,textarea,button,[contenteditable]')).slice(-1)[0]||null;
+}
+function wlKostyaFeedback(task){
+ if(!task||!wlKostyaVisible(task))return [];
+ const marked=Array.from(task.querySelectorAll('[role="alert"],[aria-live],.feedback,.result,.explanation,.error-message,.correct-answer,.incorrect,.is-correct,.is-incorrect,.correct,.wrong,.invalid-feedback,.valid-feedback'));
+ const values=marked.filter(wlKostyaVisible).map(el=>wlKostyaText(el,210)).filter(t=>t.length>2);
+ return [...new Set(values)].slice(-5);
+}
+function wlKostyaRecordCheck(button){
+ const task=button.closest('article,fieldset,[role="group"],section,.exercise,.question,.task,.card')||button.parentElement;
+ const current=task&&wlKostyaVisible(task)?task:wlKostyaActiveTask();
+ const before=wlKostyaFeedback(current);
+ clearTimeout(wlKostyaActionTimer);
+ wlKostyaLastAction={kind:'answer_check',button:wlKostyaText(button,70)||button.getAttribute('aria-label')||'Check',task:wlKostyaText(current,650),visibleFeedbackBefore:before,visibleFeedbackAfter:[],verifiedCorrectness:'unknown',at:Date.now()};
+ // Wait for existing asynchronous UI evaluation. Do not infer correctness from colors or guesses.
+ wlKostyaActionTimer=setTimeout(()=>{
+  if(!wlKostyaLastAction||wlKostyaLastAction.kind!=='answer_check')return;
+  const after=wlKostyaFeedback(current);
+  wlKostyaLastAction.visibleFeedbackAfter=after.filter(t=>!before.includes(t));
+  if(!wlKostyaLastAction.visibleFeedbackAfter.length)wlKostyaLastAction.visibleFeedbackAfter=after;
+  wlKostyaSendContext(true);
+ },900);
+}
+function wlKostyaActionForContext(){
+ if(!wlKostyaLastAction||Date.now()-wlKostyaLastAction.at>120000)return null;
+ const {kind,button,task,visibleFeedbackAfter,verifiedCorrectness,at,studentAnswer,expectedAnswer,source,grammarItems}=wlKostyaLastAction;
+ return {kind,button,task,visibleFeedbackAfter,verifiedCorrectness,studentAnswer,expectedAnswer,source,grammarItems,at};
+}
+
+// Stage 20: explicit event bus. Only existing grading functions decide correctness.
+window.wlReportKostyaGrade=function(source, status, studentAnswer, expectedAnswer, feedback, task){
+ if(!['correct','incorrect'].includes(status))return;
+ window.dispatchEvent(new CustomEvent('webilang:answer-graded',{detail:{source,status,studentAnswer:String(studentAnswer??''),expectedAnswer:String(expectedAnswer??''),feedback:String(feedback??''),task:String(task??'')}}));
+}
+
+// Stage 21: direct AI review payloads. This is not a binary grading event.
+window.wlReportKostyaAIReview=function(source,studentAnswer,feedback,task,grammarItems){
+ const d={source:String(source||'').slice(0,65),studentAnswer:String(studentAnswer||'').slice(0,950),feedback:String(feedback||'').slice(0,2300),task:String(task||'').slice(0,650),grammarItems:Array.isArray(grammarItems)?grammarItems.slice(0,5).map(x=>({original:String(x?.original||x?.mistake||'').slice(0,180),corrected:String(x?.corrected||x?.correction||'').slice(0,180),explanation:String(x?.explanation||'').slice(0,260)})):[]};
+ window.dispatchEvent(new CustomEvent('webilang:ai-reviewed',{detail:d}));
+};
+window.addEventListener('webilang:ai-reviewed',e=>{
+ const d=e.detail||{};
+ clearTimeout(wlKostyaActionTimer);
+ wlKostyaLastAction={kind:'ai_review',source:d.source||'',button:'AI Feedback',task:d.task||'',studentAnswer:d.studentAnswer||'',expectedAnswer:'',visibleFeedbackAfter:[d.feedback||''],grammarItems:d.grammarItems||[],verifiedCorrectness:'unknown',at:Date.now()};
+ wlKostyaSendContext(true);
+});
+// Stage 19: trusted direct grading events emitted by the actual synchronous check handlers.
+// Unknown exercise types continue using the read-only Stage 18 feedback fallback.
+window.addEventListener('webilang:answer-graded',e=>{
+ const d=e.detail||{};
+ if(!['correct','incorrect'].includes(d.status))return;
+ clearTimeout(wlKostyaActionTimer);
+ wlKostyaLastAction={kind:'answer_check',source:String(d.source||'').slice(0,60),button:'Check',task:String(d.task||'').slice(0,450),studentAnswer:String(d.studentAnswer||'').slice(0,200),expectedAnswer:String(d.expectedAnswer||'').slice(0,200),visibleFeedbackAfter:[String(d.feedback||'').slice(0,240)],verifiedCorrectness:d.status,at:Date.now()};
+ wlKostyaSendContext(true);
+});
+const wlKostyaVisible=el=>{if(!el||!el.isConnected)return false;const st=getComputedStyle(el);return st.display!=='none'&&st.visibility!=='hidden'&&!!el.getClientRects().length&&!el.closest('[hidden],[aria-hidden="true"],#wlKostyaPanel');};
+const wlKostyaText=(el,max=480)=>String(el?.innerText||el?.textContent||'').replace(/\s+/g,' ').trim().slice(0,max);
+function wlKostyaSnapshot(){
+ const main=document.querySelector('main')||document.body;
+ const selected=Array.from(document.querySelectorAll('[aria-current="page"],[aria-selected="true"],.active,.is-active')).filter(wlKostyaVisible).slice(-6).map(e=>wlKostyaText(e,90)).filter(Boolean);
+ const headings=Array.from(main.querySelectorAll('h1,h2,h3,[role="heading"]')).filter(wlKostyaVisible).slice(-9).map(e=>wlKostyaText(e,110)).filter(Boolean);
+ const focus=document.activeElement;
+ let task=null;
+ if(focus&&focus!==document.body&&!panel.contains(focus)&&wlKostyaVisible(focus))task=focus.closest('article,fieldset,[role="group"],section,.exercise,.question,.task,.card')||focus.parentElement;
+ if(!task||!wlKostyaVisible(task)){
+  const candidates=Array.from(main.querySelectorAll('article,fieldset,[role="group"],section,.exercise,.question,.task')).filter(wlKostyaVisible);
+  task=candidates.filter(x=>x.querySelector('input,select,textarea,button,[contenteditable]')).slice(-1)[0]||null;
+ }
+ const controls=task?Array.from(task.querySelectorAll('input:not([type="hidden"]),select,textarea,[contenteditable="true"]')).filter(wlKostyaVisible).slice(0,8).map(el=>({label:wlKostyaText(el.closest('label')||el.parentElement,120),type:el.type||el.tagName.toLowerCase(),value:el.type==='password'?'[omitted]':el.type==='checkbox'||el.type==='radio'?(el.checked?'selected':'not selected'):String(el.value||'').slice(0,90)})):[];
+ return {source:'webilang-lesson',type:'context',version:1,courseLanguage:'Russian',cefrLevel:'A1',title:document.title,url:location.pathname,headings,activeLabels:selected,activeTask:task?wlKostyaText(task,900):'',studentInputs:controls,lastCheck:wlKostyaActionForContext(),updatedAt:Date.now()};
+}
+function wlKostyaSendContext(force=false){
+ if(panel.hidden||!frame.contentWindow)return;
+ const data=wlKostyaSnapshot();const key=JSON.stringify({...data,updatedAt:0});
+ if(!force&&key===wlKostyaLastContext)return;
+ wlKostyaLastContext=key;frame.contentWindow.postMessage(data,location.origin);
+}
+function wlKostyaScheduleContext(){if(panel.hidden)return;clearTimeout(wlKostyaContextTimer);wlKostyaContextTimer=setTimeout(()=>wlKostyaSendContext(),400)}
+frame.addEventListener('load',()=>{wlKostyaLastContext='';wlKostyaSendContext(true)});
+document.addEventListener('click',e=>{
+ const button=e.target.closest?.('button,[role="button"],input[type="submit"],input[type="button"]');
+ if(!button||panel.contains(button))return;
+ const label=(button.innerText||button.value||button.getAttribute('aria-label')||'').replace(/\s+/g,' ').trim();
+ if(wlKostyaIsCheck(label))wlKostyaRecordCheck(button);
+},true);
+document.addEventListener('click',wlKostyaScheduleContext,true);
+document.addEventListener('change',wlKostyaScheduleContext,true);
+document.addEventListener('input',wlKostyaScheduleContext,true);
+window.addEventListener('hashchange',()=>{wlKostyaLastAction=null;wlKostyaScheduleContext()});
+const wlKostyaObserver=new MutationObserver(wlKostyaScheduleContext);
+wlKostyaObserver.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-selected','aria-current']});
+document.getElementById('wlKostyaClose')?.addEventListener('click',close);
+window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close()});
 })();
 </script>
 </body></html>
