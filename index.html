@@ -8616,6 +8616,20 @@ function ensureSupportUI(q,index){
   return wrap;
 }
 
+// Keep the most recently CHECKED Reading question available to Kostya.
+// The answer is tracked at click time, not inferred from an essay draft.
+let wlLastReadingCheck=null;
+function wlRecordReadingCheck(q,choice,correct){
+ const section=q.closest('.quickCheck');
+ const sectionName=section?.querySelector('.quickCheckHead h3')?.textContent?.trim()||'Reading Quick Check';
+ const question=q.querySelector('.qcStem')?.textContent?.trim()||'';
+ const options=[...q.querySelectorAll('.qcOption')].map(x=>x.textContent.trim());
+ wlLastReadingCheck={kind:'reading_quick_check',source:'reading',button:'Selected answer',task:sectionName+' — '+question+' Options: '+options.join(' | '),
+  studentAnswer:choice.textContent.trim(),expectedAnswer:'',verifiedCorrectness:correct?'correct':'incorrect',
+  visibleFeedbackAfter:[correct?'Correct.':'Not quite. Use Support to find the relevant part of the text, then try again.'],at:Date.now()};
+ // Send immediately if the teacher panel is open; otherwise it is sent on opening.
+ document.dispatchEvent(new CustomEvent('wl-reading-check-updated'));
+}
 function wireQuickCheckQuestion(q,index){
   const correctValue=q.dataset.answer;
   const options=[...q.querySelectorAll(".qcOption")];
@@ -8650,6 +8664,7 @@ function wireQuickCheckQuestion(q,index){
     btn.addEventListener("click",()=>{
       options.forEach(resetOption);
       btn.classList.add("selected");
+      wlRecordReadingCheck(q,btn,btn.dataset.value===correctValue);
 
       if(btn.dataset.value===correctValue){
         paintCorrect(btn);
@@ -14937,7 +14952,7 @@ try{const saved=JSON.parse(sessionStorage.getItem(sessionKey)||'null');if(saved?
 <button id="wlKostyaFab" type="button" aria-controls="wlKostyaPanel" aria-expanded="false">🎓 Ask Kostya</button>
 <aside id="wlKostyaPanel" hidden aria-label="Kostya AI Teacher">
 <header><strong>🎓 Kostya · AI Teacher</strong><button id="wlKostyaClose" type="button" aria-label="Close teacher help">✕ Close</button></header>
-<p>Speak or type to Kostya. Your current writing is shared while this panel is open. Finish the call before returning.</p><div id="wlKostyaWritingStatus" role="status" style="font:12px system-ui,sans-serif;padding:3px 12px;color:#526476">Checking the current writing…</div>
+<p>Speak or type to Kostya. He receives the current activity and checked answer when available.</p><div id="wlKostyaWritingStatus" role="status" style="font:12px system-ui,sans-serif;padding:3px 12px;color:#526476">Checking the current writing…</div>
 <iframe id="wlKostyaFrame" title="Kostya 3D voice teacher" allow="microphone;autoplay"></iframe>
 </aside>
 <script id="wl-kostya-pilot-js">
@@ -14958,9 +14973,21 @@ function findWriting(){
  const long=candidates.filter(x=>x.el.tagName==='TEXTAREA').sort((a,b)=>b.text.length-a.text.length);
  return long[0]?{text:long[0].text,field:long[0].el.id||'writing-field',el:long[0].el}:null;
 }
+let wlContextChangeTimer=null;
+function wlActiveArea(){
+ const tabs=[...document.querySelectorAll('[role="tab"][aria-selected="true"],.tab.active,[data-tab].active,.active[data-target],nav button.active')];
+ const selected=tabs.map(x=>[x.dataset.tab,x.dataset.target,x.getAttribute('aria-controls'),x.textContent].filter(Boolean).join(' ')).join(' ').toLowerCase();
+ const visible=['reading','writing','grammar','vocab','speaking','story','game'].find(t=>selected.includes(t));
+ const activePanels=[...document.querySelectorAll('[id^="tab-"]')].filter(x=>x.getClientRects().length&&getComputedStyle(x).display!=='none'&&!x.hidden);
+ const fromPanel=activePanels.map(x=>x.id.replace(/^tab-/,''));
+ return fromPanel.find(t=>['reading','writing','grammar','vocab','speaking','story','game'].some(k=>t.includes(k)))||visible||'story';
+}
+function wlPlanContext(){if(panel.hidden)return;clearTimeout(wlContextChangeTimer);wlContextChangeTimer=setTimeout(()=>shareWriting(),300)}
 function shareWriting(force=false){
  if(panel.hidden||!frame.contentWindow)return;
- const draft=findWriting();
+ const section=wlActiveArea();
+ const draft=section==='writing'?findWriting():null;
+ const readingCheck=section==='reading'?wlLastReadingCheck:null;
  let specific='';
  if(draft&&typeof draft.el.selectionStart==='number'){
    const t=draft.text, a=draft.el.selectionStart,b=draft.el.selectionEnd;
@@ -14972,15 +14999,16 @@ function shareWriting(force=false){
    }
  }
  const payload={source:'webilang-lesson',type:'context',version:1,title:document.title,url:location.pathname,
-   activeTask:'Guided story writing. The student may select a sentence or place the cursor in it; discuss that exact passage when provided, not another sentence. If no target passage is identified, ask which sentence the learner means. Never claim to see typing visually.',
+   activeSection:section,courseLanguage:'English',
+   activeTask:section==='reading'?'Reading comprehension. Focus only on the latest checked Reading question if available. Guide learner to textual evidence without giving away answer.':section==='writing'?'Guided writing. Focus on selected sentence or cursor sentence; otherwise ask which one.':('Current section: '+section+'. Ask which specific activity needs help if no checked answer is present.'),
    focusedPassage:specific.slice(0,850),
    studentInputs:draft?[{label:'Current student writing ('+draft.field+')',value:draft.text.slice(0,4400)}]:[],
-   lastCheck:null};
+   lastCheck:readingCheck};
  const key=JSON.stringify(payload);if(!force&&key===lastShared)return;
  lastShared=key;frame.contentWindow.postMessage(payload,location.origin);
- if(writingStatus)writingStatus.textContent=draft?'Draft shared ('+draft.text.length+' characters). '+(specific?'Focus: '+specific.slice(0,90):'Select a sentence or place the cursor in it to focus Kostya.'):'No written draft detected yet. Type your paragraph, then Kostya will receive it.';
+ if(writingStatus)writingStatus.textContent='Current section: '+section+'. '+(readingCheck?'Checked answer shared: '+readingCheck.studentAnswer.slice(0,80):draft?'Writing shared ('+draft.text.length+' characters). '+(specific?'Focus: '+specific.slice(0,80):'Select the sentence you need help with.'):'Select or check a task, then ask Kostya.');
 }
-function startSharing(){lastShared='';shareWriting(true);clearInterval(shareTimer);shareTimer=setInterval(()=>shareWriting(),1700)}
+function startSharing(){lastShared='';shareWriting(true);clearInterval(shareTimer);shareTimer=setInterval(()=>shareWriting(),7000)}
 
 const close=()=>{clearInterval(shareTimer);shareTimer=null;frame.removeAttribute('src');panel.hidden=true;fab.setAttribute('aria-expanded','false');fab.focus()};
 fab.addEventListener('click',()=>{
@@ -14996,10 +15024,13 @@ fab.addEventListener('click',()=>{
  startSharing();
 });
 frame.addEventListener('load',()=>shareWriting(true));
-document.addEventListener('input',()=>{if(!panel.hidden)shareWriting()},{passive:true});
+document.addEventListener('input',wlPlanContext,{passive:true});
 document.addEventListener('focusin',e=>{if(e.target?.matches?.('textarea,input[type="text"],[contenteditable="true"]')&&!panel.contains(e.target))lastWritingFocus=e.target},true);
-document.addEventListener('selectionchange',()=>{if(!panel.hidden)shareWriting()});
-document.addEventListener('click',()=>{if(!panel.hidden)shareWriting()},{passive:true});
+document.addEventListener('selectionchange',wlPlanContext);
+document.addEventListener('click',wlPlanContext,{passive:true});
+document.addEventListener('change',wlPlanContext,{passive:true});
+document.addEventListener('wl-reading-check-updated',()=>shareWriting(true));
+window.addEventListener('hashchange',wlPlanContext);
 document.getElementById('wlKostyaClose')?.addEventListener('click',close);
 window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close()});
 })();
