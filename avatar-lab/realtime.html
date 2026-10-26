@@ -405,6 +405,16 @@ window.addEventListener('message',ev=>{
  wlSendTeacherContext();
 });
 
+// Stage 22: start the explanation only after the learner clicks Explain.
+window.addEventListener('message',ev=>{
+ if(!teacherMode||ev.origin!==location.origin||ev.source!==window.parent||ev.data?.source!=='webilang-lesson'||ev.data.type!=='help-request')return;
+ if(!rtcChannel||rtcChannel.readyState!=='open'){
+  rtMessage('Start Talk to Kostya, then ask about your last mistake.');return;
+ }
+ wlSendTeacherContext();
+ try{rtcChannel.send(JSON.stringify({type:'response.create',response:{instructions:'The learner has clicked Explain after repeated verified mistakes. Refer to the latest Webilang lesson context and lastCheck. Give a brief supportive hint about the specific mistake; do not reveal the whole answer unless requested. If lastCheck is missing, ask which item they need help with.'}}));}
+ catch(err){rtMessage('Could not request help: '+(err?.message||err));}
+});
 // Isolated Realtime pilot: classic conversation handlers above stay unchanged.
 let rtcPeer=null,rtcStream=null,rtcChannel=null,rtcAnalyser=null,rtcAudioCtx=null,rtcRAF=0,rtcBusy=false,rtcGeneration=0;
 const rtStatus=document.getElementById('rtStatus'),rtStart=document.getElementById('rtStart'),rtEnd=document.getElementById('rtEnd'),rtAudio=document.getElementById('rtAudio'),rtLog=document.getElementById('rtLog');
