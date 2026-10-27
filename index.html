@@ -14933,27 +14933,50 @@ try{const saved=JSON.parse(sessionStorage.getItem(sessionKey)||'null');if(saved?
 #wlKostyaPanel p{font:13px/1.45 system-ui,sans-serif;color:#425975;padding:8px 12px;margin:0}
 #wlKostyaFrame{width:100%;flex:1;border:0;background:#f1f6fc}
 @media(max-width:600px){#wlKostyaFab{right:10px;bottom:10px}#wlKostyaPanel{right:7px;bottom:69px;width:calc(100vw - 14px);height:calc(100dvh - 85px)}}
+
+/* Cosmetic only: mirror Russian Kostya's movable/minimizable layout. */
+#wlKostyaFab{background:#f97316;color:white;box-shadow:0 8px 24px #b4530966}
+#wlKostyaFab:hover{background:#ea580c}
+#wlKostyaPanel header{cursor:grab;user-select:none;touch-action:none;min-height:52px;box-sizing:border-box;flex-shrink:0;gap:7px}
+#wlKostyaPanel header:active{cursor:grabbing}
+#wlKostyaPanel header strong{font-size:15px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#wlKostyaPanel header .wl-kostya-fill{flex:1;min-width:0}
+#wlKostyaPanel header button{touch-action:auto;flex-shrink:0;padding:5px 8px;font-size:13px;white-space:nowrap}
+#wlKostyaPanel.wl-minimized{width:min(270px,calc(100vw - 20px))!important;height:52px!important;min-height:52px!important;overflow:hidden!important}
+#wlKostyaPanel.wl-minimized #wlKostyaFrame{position:absolute!important;left:0!important;top:0!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
+#wlKostyaPanel.wl-minimized #wlKostyaContextStatus{display:none!important}
+@media(max-width:540px){#wlKostyaPanel header strong{font-size:13px}#wlKostyaPanel header button{font-size:12px;padding:5px 6px}}
 </style>
 <button id="wlKostyaFab" type="button" aria-controls="wlKostyaPanel" aria-expanded="false">🎓 Ask Kostya</button>
 <aside id="wlKostyaPanel" hidden aria-label="Kostya AI Teacher">
-<header><strong>🎓 Kostya · AI Teacher</strong><button id="wlKostyaClose" type="button" aria-label="Close teacher help">✕ Close</button></header>
-<p>Ask for a hint in English (A2–B1). Your exercise stays open. End the help call before returning.</p>
+<header id="wlKostyaDragHandle"><strong>🎓 Kostya · AI Teacher</strong><span class="wl-kostya-fill"></span><button id="wlKostyaMinimize" type="button" aria-label="Minimize Kostya" title="Minimize without ending conversation">—</button><button id="wlKostyaClose" type="button" aria-label="Close teacher help">✕ Close</button></header>
+
 <iframe id="wlKostyaFrame" title="Kostya 3D voice teacher" allow="microphone;autoplay"></iframe>
 </aside>
 <script id="wl-kostya-pilot-js">
 (()=>{'use strict';
 const fab=document.getElementById('wlKostyaFab'), panel=document.getElementById('wlKostyaPanel'), frame=document.getElementById('wlKostyaFrame');
 if(!fab||!panel||!frame)return;
-const close=()=>{frame.removeAttribute('src');panel.hidden=true;fab.setAttribute('aria-expanded','false');fab.focus()};
+const minimizeBtn=document.getElementById('wlKostyaMinimize');
+const setMinimized=(on)=>{panel.classList.toggle('wl-minimized',on);minimizeBtn.textContent=on?'▢':'—';minimizeBtn.setAttribute('aria-label',on?'Expand Kostya':'Minimize Kostya');fab.textContent=on?'🎓 Kostya · Active':'🎓 Ask Kostya';};
+const close=()=>{frame.removeAttribute('src');panel.hidden=true;setMinimized(false);fab.setAttribute('aria-expanded','false');fab.focus()};
+minimizeBtn?.addEventListener('click',()=>setMinimized(!panel.classList.contains('wl-minimized')));
+const dragHandle=document.getElementById('wlKostyaDragHandle');let drag=null;
+dragHandle?.addEventListener('pointerdown',e=>{if(e.button!==0||e.target.closest('button')||innerWidth<650)return;const r=panel.getBoundingClientRect();drag={id:e.pointerId,x:e.clientX,y:e.clientY,left:r.left,top:r.top};dragHandle.setPointerCapture(e.pointerId);e.preventDefault();});
+dragHandle?.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;const x=Math.max(0,Math.min(innerWidth-panel.offsetWidth,drag.left+e.clientX-drag.x));const y=Math.max(0,Math.min(innerHeight-panel.offsetHeight,drag.top+e.clientY-drag.y));panel.style.left=x+'px';panel.style.top=y+'px';panel.style.right='auto';panel.style.bottom='auto';});
+const endDrag=e=>{if(drag?.id===e.pointerId)drag=null;};dragHandle?.addEventListener('pointerup',endDrag);dragHandle?.addEventListener('pointercancel',endDrag);
+function clampPanel(){if(panel.hidden)return; const r=panel.getBoundingClientRect();if(!panel.style.left&&!panel.style.top)return;panel.style.left=Math.max(0,Math.min(innerWidth-panel.offsetWidth,r.left))+'px';panel.style.top=Math.max(0,Math.min(innerHeight-panel.offsetHeight,r.top))+'px';}
+addEventListener('resize',clampPanel);
+
 fab.addEventListener('click',()=>{
- if(!panel.hidden){close();return}
+ if(!panel.hidden){if(panel.classList.contains('wl-minimized')){setMinimized(false);clampPanel();}else{setMinimized(true);clampPanel();}return}
  // A second live microphone session would interfere with the interview.
  const live=document.getElementById('wlTavusLive');
  const state=document.getElementById('wlTavusCallState');
  if(live&&!live.hidden&&state&&/connected|in progress/i.test(state.textContent||'')){
   alert('Finish the conversation with Chaz or Nova before opening Kostya. This first pilot supports one live microphone at a time.');return;
  }
- panel.hidden=false;fab.setAttribute('aria-expanded','true');
+ panel.hidden=false;setMinimized(false);fab.setAttribute('aria-expanded','true');
  frame.src='/avatar-lab/realtime-english.html?pilot=kostya_teacher&character=kostya';
 });
 document.getElementById('wlKostyaClose')?.addEventListener('click',close);
@@ -14970,7 +14993,7 @@ let currentExercise=null,lastCheck=null,seq=0;
 const status=document.createElement('div');
 status.id='wlKostyaContextStatus';
 status.setAttribute('role','status');
-status.style.cssText='font-size:12px;line-height:1.35;padding:6px 12px;background:#eff6ff;color:#183b61;white-space:normal;';
+status.style.cssText='position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;';
 status.textContent='Kostya context: choose an answer to share it.';
 iframe.before(status);
 const txt=x=>(x?.textContent||'').trim().replace(/\s+/g,' ').slice(0,700);
