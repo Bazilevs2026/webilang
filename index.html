@@ -8625,6 +8625,7 @@ function wlRecordReadingCheck(q,choice,correct){
   studentAnswer:choice.textContent.trim(),expectedAnswer:'',verifiedCorrectness:correct?'correct':'incorrect',
   visibleFeedbackAfter:[correct?'Correct.':'Not quite. Use Support to find the relevant part of the text, then try again.'],at:Date.now()};
  // Send immediately if the teacher panel is open; otherwise it is sent on opening.
+ wlEnglishActions.set('reading',{kind:'current_exercise',section:'reading',question,options,studentAnswer:choice.textContent.trim(),verifiedCorrectness:correct?'correct':'incorrect',at:wlLastReadingCheck.at});
  document.dispatchEvent(new CustomEvent('wl-reading-check-updated'));
 }
 function wireQuickCheckQuestion(q,index){
@@ -15009,13 +15010,29 @@ function findWriting(){
 }
 let wlContextChangeTimer=null;
 function wlActiveArea(){
- const tabs=[...document.querySelectorAll('[role="tab"][aria-selected="true"],.tab.active,[data-tab].active,.active[data-target],nav button.active')];
- const selected=tabs.map(x=>[x.dataset.tab,x.dataset.target,x.getAttribute('aria-controls'),x.textContent].filter(Boolean).join(' ')).join(' ').toLowerCase();
- const visible=['reading','writing','grammar','vocab','speaking','story','game'].find(t=>selected.includes(t));
- const activePanels=[...document.querySelectorAll('[id^="tab-"]')].filter(x=>x.getClientRects().length&&getComputedStyle(x).display!=='none'&&!x.hidden);
- const fromPanel=activePanels.map(x=>x.id.replace(/^tab-/,''));
- return fromPanel.find(t=>['reading','writing','grammar','vocab','speaking','story','game'].some(k=>t.includes(k)))||visible||'story';
+ const selected=document.querySelector('.wlTab.active[data-tab],.wlTab[aria-selected="true"][data-tab]');
+ if(selected)return selected.dataset.tab;
+ const pane=[...document.querySelectorAll('[id^="tab-"]')].find(x=>x.classList.contains('active')&&!x.hidden);
+ return pane?pane.id.slice(4):'story';
 }
+// Same architecture as Russian Kostya: snapshot actual student interaction,
+// not an inferred writing field. Keep the most recent task per section.
+const wlEnglishActions=new Map();
+function wlTaskBox(el){return el?.closest?.('.qcQuestion,.exercise-item,.question,.quiz-question,[data-question],fieldset,.exercise,.task,[data-exercise]')||null}
+function wlText(el,n=850){return String(el?.innerText||el?.textContent||'').replace(/\s+/g,' ').trim().slice(0,n)}
+function wlCaptureAction(el,verified){
+ if(!el||panel.contains(el)||el.closest?.('.wlTabs,[role="tablist"]'))return;
+ const section=wlActiveArea();const box=wlTaskBox(el);if(!box)return;
+ const stem=box.querySelector('.qcStem,legend,.question-text,.prompt,[data-prompt],h3,h4')||box;
+ const opts=[...box.querySelectorAll('.qcOption,[role="radio"],[role="option"]')].map(x=>wlText(x,160)).filter(Boolean).slice(0,9);
+ const answer=el.matches('input,textarea,select')?String(el.type==='checkbox'||el.type==='radio'?(el.checked?el.value:''):el.value||''):wlText(el,450);
+ wlEnglishActions.set(section,{kind:'current_exercise',question:wlText(stem,850),options:opts,studentAnswer:answer,verifiedCorrectness:verified||'unknown',at:Date.now(),element:el});
+ wlPlanContext();
+}
+document.addEventListener('click',e=>{const el=e.target.closest?.('.qcOption,.exercise-item button,.question button,[data-question] button,[role="radio"],[role="option"]');if(el)wlCaptureAction(el)},true);
+document.addEventListener('focusin',e=>{if(e.target.matches?.('input,textarea,select,[contenteditable="true"]'))wlCaptureAction(e.target)},true);
+document.addEventListener('input',e=>{if(e.target.matches?.('input,textarea,select,[contenteditable="true"]'))wlCaptureAction(e.target)},true);
+function wlExerciseSnapshot(){const item=wlEnglishActions.get(wlActiveArea());return item?{...item,element:undefined,section:wlActiveArea()}:null}
 function wlPlanContext(){if(panel.hidden)return;clearTimeout(wlContextChangeTimer);wlContextChangeTimer=setTimeout(()=>shareWriting(),300)}
 function shareWriting(force=false){
  if(panel.hidden||!frame.contentWindow)return;
@@ -15027,7 +15044,7 @@ function shareWriting(force=false){
  const relevantExercise=currentExercise&&currentExercise.section===section?currentExercise:null;
  // The shared Kostya Realtime frame consumes lastCheck and studentInputs, NOT currentExercise.
  // Normalize every active interaction into the established lastCheck contract.
- const readingIsLatest=readingCheck && (!relevantExercise || readingCheck.at >= relevantExercise.at - 200 || relevantExercise.question.includes(readingCheck.task.split(' — ').slice(-1)[0].slice(0,35)));
+ const readingIsLatest=readingCheck && (!relevantExercise || readingCheck.at >= relevantExercise.at - 200);
  const latestExercise=readingIsLatest ? {
    kind:readingCheck.kind,source:'reading',button:'Selected answer',task:readingCheck.task,
    studentAnswer:readingCheck.studentAnswer,verifiedCorrectness:readingCheck.verifiedCorrectness,
@@ -15052,10 +15069,11 @@ function shareWriting(force=false){
    activeTask:(latestExercise ? 'ACTIVE STUDENT ITEM: '+latestExercise.task+' | STUDENT ANSWER: '+latestExercise.studentAnswer+' | RESULT: '+latestExercise.verifiedCorrectness+'. Discuss this item, not a nearby question. ' : '')+(section==='reading'?'Reading comprehension: guide learner to textual evidence without giving away answer.':section==='writing'?'Guided writing: focus on selected or cursor sentence.':'Help with the current section: '+section+'.'),
    focusedPassage:specific.slice(0,850),
    studentInputs:[...(draft?[{label:'Current student writing ('+draft.field+')',value:draft.text.slice(0,4400)}]:[]),...(latestExercise?[{label:'Active exercise — '+latestExercise.task.slice(0,180),value:'Student selected or typed: '+latestExercise.studentAnswer+'; checked: '+latestExercise.verifiedCorrectness}]:[])],
-   lastCheck:latestExercise};
+   currentExercise:relevantExercise?{question:relevantExercise.question,options:relevantExercise.options||[],studentAnswer:relevantExercise.studentAnswer,verifiedCorrectness:relevantExercise.verifiedCorrectness}:null,
+   lastCheck:readingIsLatest?latestExercise:null};
  const key=JSON.stringify(payload);if(!force&&key===lastShared)return;
  lastShared=key;frame.contentWindow.postMessage(payload,location.origin);
- if(writingStatus)writingStatus.textContent='Current section: '+section+'. '+(readingCheck?'Checked answer shared: '+readingCheck.studentAnswer.slice(0,80):relevantExercise?'Current task shared: '+relevantExercise.question.slice(0,85):draft?'Writing shared ('+draft.text.length+' characters). '+(specific?'Focus: '+specific.slice(0,80):'Select the sentence you need help with.'):'Select or check a task, then ask Kostya.');
+ if(writingStatus)writingStatus.textContent='Current section: '+section+'. '+(readingCheck&&readingIsLatest?'Checked answer shared: '+readingCheck.studentAnswer.slice(0,80):relevantExercise?'Current task shared: '+relevantExercise.question.slice(0,85):draft?'Writing shared ('+draft.text.length+' characters). '+(specific?'Focus: '+specific.slice(0,80):'Select the sentence you need help with.'):'Select or check a task, then ask Kostya.');
 }
 function startSharing(){lastShared='';shareWriting(true);clearInterval(shareTimer);shareTimer=setInterval(()=>shareWriting(),7000)}
 
