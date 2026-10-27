@@ -3044,7 +3044,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 #wlKostyaPanel header{cursor:grab;touch-action:none;user-select:none;background:#eaf3ff;padding:10px 13px;display:flex;gap:8px;align-items:center;justify-content:space-between;color:#193d66}
 #wlKostyaPanel header:active{cursor:grabbing}
 #wlKostyaPanel header button{cursor:pointer;touch-action:auto}
-#wlKostyaPanel.wl-minimized{width:270px;height:49px;min-height:49px;overflow:hidden}
+#wlKostyaPanel.wl-minimized{visibility:hidden;opacity:0;pointer-events:none;transform:translateY(20px)}
 #wlKostyaPanel.wl-minimized > p{display:none}
 #wlKostyaPanel.wl-minimized #wlKostyaFrame{position:absolute;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none}
 #wlKostyaPanel header button{border:1px solid #b0cde9;background:#fff;border-radius:8px;padding:5px 9px;font-weight:800;cursor:pointer}
@@ -3056,12 +3056,19 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 #wlKostyaPrompt button{margin:7px 7px 0 0;padding:6px 10px;border:1px solid #a5bed9;border-radius:8px;background:#eef5ff;cursor:pointer}
 #wlKostyaPrompt button:first-of-type{background:#245b9b;color:white}
 @media(max-width:600px){#wlKostyaFab{right:10px;bottom:10px}#wlKostyaPanel{right:7px;bottom:69px;width:calc(100vw - 14px);height:calc(100dvh - 85px)}}
+
+/* Additional bottom drag handle. Does not intercept controls inside the avatar. */
+#wlKostyaPanel{position:fixed}
+#wlKostyaBottomDrag{height:30px;flex:0 0 30px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;background:#eaf3ff;border-top:1px solid #b0cde9;color:#315779;font:600 12px system-ui,sans-serif;cursor:grab;user-select:none;touch-action:none;z-index:2}
+#wlKostyaBottomDrag:active{cursor:grabbing}
+#wlKostyaPanel.wl-minimized #wlKostyaBottomDrag{display:none!important}
 </style>
 <button id="wlKostyaFab" type="button" aria-controls="wlKostyaPanel" aria-expanded="false">🎓 Спросить Костю</button>
 <aside id="wlKostyaPanel" hidden aria-label="Kostya AI Teacher">
 <header id="wlKostyaDragHandle"><strong>🎓 Костя · AI-преподаватель</strong><span style="flex:1"></span><button id="wlKostyaProactive" type="button" aria-pressed="false" title="Proactive help is off">Подсказки: ВЫКЛ</button><button id="wlKostyaMinimize" type="button" title="Minimize but keep conversation active" aria-label="Minimize Kostya">—</button><button id="wlKostyaClose" type="button" aria-label="Close teacher help">✕ Close</button></header>
 <p>Говорите или пишите Косте. Он получит ваш последний проверенный ответ и текст выбранного задания.</p><div id="wlKostyaContextStatus" role="status" style="font:12px system-ui,sans-serif;color:#526476;padding:3px 12px">Выберите ответ или проверьте упражнение, чтобы уточнить контекст.</div>
 <iframe id="wlKostyaFrame" title="Kostya 3D voice teacher" allow="microphone;autoplay"></iframe>
+<div id="wlKostyaBottomDrag" class="wl-kostya-bottom-grip" title="Drag Kostya window / Перетащить окно Кости" aria-label="Drag Kostya window">⋮⋮ &nbsp; Drag to move / Перетащить &nbsp; ⋮⋮</div>
 </aside>
 <div id="wlKostyaPrompt" role="status" hidden>В этом задании повторяются ошибки. Подсказать?<div><button id="wlKostyaExplain" type="button">Объясни</button><button id="wlKostyaDismiss" type="button">Не сейчас</button></div></div>
 <script id="wl-kostya-pilot-js">
@@ -3069,23 +3076,25 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 const fab=document.getElementById('wlKostyaFab'), panel=document.getElementById('wlKostyaPanel'), frame=document.getElementById('wlKostyaFrame');
 if(!fab||!panel||!frame)return;
 const minimizeButton=document.getElementById('wlKostyaMinimize');
-const minimize=on=>{panel.classList.toggle('wl-minimized',on);minimizeButton.textContent=on?'▢':'—';minimizeButton.title=on?'Expand Kostya':'Minimize without ending call';fab.textContent=on?'🎓 Kostya · Active':'🎓 Спросить Костю';};
+const minimize=on=>{panel.classList.toggle('wl-minimized',on);minimizeButton.textContent=on?'▢':'—';minimizeButton.title=on?'Expand Kostya':'Minimize without ending call';fab.textContent=on?'🎓 Костя · активен':'🎓 Спросить Костю';};
 const close=()=>{document.getElementById('wlKostyaPrompt').hidden=true;frame.removeAttribute('src');panel.hidden=true;panel.classList.remove('wl-minimized');fab.textContent='🎓 Спросить Костю';fab.setAttribute('aria-expanded','false');fab.focus()};
 minimizeButton.addEventListener('click',()=>minimize(!panel.classList.contains('wl-minimized')));
-const handle=document.getElementById('wlKostyaDragHandle');
+const dragHandles=[document.getElementById('wlKostyaDragHandle'),document.getElementById('wlKostyaBottomDrag')].filter(Boolean);
 let drag=null;
-handle.addEventListener('pointerdown',e=>{
- if(e.button!==0||e.target.closest('button')||window.innerWidth<650)return;
- const rect=panel.getBoundingClientRect();drag={id:e.pointerId,x:e.clientX,y:e.clientY,left:rect.left,top:rect.top};
- try{handle.setPointerCapture(e.pointerId)}catch{}e.preventDefault();
-});
-handle.addEventListener('pointermove',e=>{
- if(!drag||drag.id!==e.pointerId)return;
- const left=Math.max(0,Math.min(window.innerWidth-panel.offsetWidth,drag.left+e.clientX-drag.x));
- const top=Math.max(0,Math.min(window.innerHeight-panel.offsetHeight,drag.top+e.clientY-drag.y));
- panel.style.left=left+'px';panel.style.top=top+'px';panel.style.right='auto';panel.style.bottom='auto';
-});
-for(const type of ['pointerup','pointercancel','lostpointercapture'])handle.addEventListener(type,()=>drag=null);
+for(const handle of dragHandles){
+ handle.addEventListener('pointerdown',e=>{
+  if(e.button!==0||e.target.closest('button,a,input,textarea,select')||window.innerWidth<650)return;
+  const rect=panel.getBoundingClientRect();drag={id:e.pointerId,x:e.clientX,y:e.clientY,left:rect.left,top:rect.top};
+  try{handle.setPointerCapture(e.pointerId)}catch{}e.preventDefault();
+ });
+ handle.addEventListener('pointermove',e=>{
+  if(!drag||drag.id!==e.pointerId)return;
+  const left=Math.max(0,Math.min(Math.max(0,window.innerWidth-panel.offsetWidth),drag.left+e.clientX-drag.x));
+  const top=Math.max(0,Math.min(Math.max(0,window.innerHeight-panel.offsetHeight),drag.top+e.clientY-drag.y));
+  panel.style.left=left+'px';panel.style.top=top+'px';panel.style.right='auto';panel.style.bottom='auto';
+ });
+ for(const type of ['pointerup','pointercancel','lostpointercapture'])handle.addEventListener(type,()=>drag=null);
+}
 window.addEventListener('resize',()=>{if(!panel.style.left)return;panel.style.left=Math.max(0,Math.min(innerWidth-panel.offsetWidth,parseFloat(panel.style.left)||0))+'px';panel.style.top=Math.max(0,Math.min(innerHeight-panel.offsetHeight,parseFloat(panel.style.top)||0))+'px'});
 
 fab.addEventListener('click',()=>{
@@ -3136,6 +3145,28 @@ document.getElementById('wlKostyaExplain').addEventListener('click',()=>{
 let wlKostyaContextTimer=0,wlKostyaLastContext='';
 // Preserve the student's last active question even after clicking the assistant button.
 let wlKostyaLastStudentFocus=null,wlKostyaLastSelection=null;
+
+// Remember the exact item the learner touched; tabs are navigation, not exercise answers.
+let wlKostyaExerciseTarget=null;
+function wlKostyaMarkExercise(e){
+ const el=e.target?.closest?.('input,textarea,select,button,[role="radio"],[role="option"],[contenteditable="true"]');
+ if(!el||panel.contains(el)||el.closest('nav,[role="tablist"]'))return;
+ wlKostyaExerciseTarget={el,at:Date.now()};
+}
+document.addEventListener('pointerdown',wlKostyaMarkExercise,true);
+document.addEventListener('focusin',wlKostyaMarkExercise,true);
+document.addEventListener('input',wlKostyaMarkExercise,true);
+function wlKostyaExactExercise(){
+ const el=wlKostyaExerciseTarget?.el;
+ if(!el?.isConnected||!wlKostyaVisible(el))return null;
+ const box=el.closest('.question,.exercise-item,.task-item,[data-question],fieldset,[role="group"],.exercise,.task,.quiz-question,li')||el.parentElement?.parentElement;
+ if(!box||!wlKostyaVisible(box))return null;
+ const stem=box.querySelector('legend,.question-text,.prompt,h3,h4,[data-prompt]');
+ const response=el.type==='password'?'[omitted]':el.type==='checkbox'||el.type==='radio'?(el.checked?el.value:'not selected'):String(el.value??el.innerText??'');
+ const choices=[...box.querySelectorAll('select option,[role="option"],label')].slice(0,8).map(x=>wlKostyaText(x,100)).filter(Boolean);
+ return {kind:'current_exercise',question:wlKostyaText(stem||box,800),studentAnswer:String(response).slice(0,450),options:choices,field:el.id||el.name||el.tagName.toLowerCase(),verifiedCorrectness:'unknown',at:wlKostyaExerciseTarget.at};
+}
+
 function wlKostyaCaptureFocus(e){
  const el=e.target;
  if(!el||panel.contains(el)||!el.matches?.('input:not([type="hidden"]),textarea,select,[contenteditable="true"]'))return;
@@ -3245,12 +3276,12 @@ function wlKostyaSnapshot(){
  const controls=task?Array.from(task.querySelectorAll('input:not([type="hidden"]),select,textarea,[contenteditable="true"]')).filter(wlKostyaVisible).slice(0,8).map(el=>({label:wlKostyaText(el.closest('label')||el.parentElement,120),type:el.type||el.tagName.toLowerCase(),value:el.type==='password'?'[omitted]':el.type==='checkbox'||el.type==='radio'?(el.checked?'selected':'not selected'):String(el.value||'').slice(0,90)})):[];
  const chosen=wlKostyaFocusedData();
  if(chosen&&!controls.some(x=>x.value===chosen.value))controls.unshift({label:chosen.label||chosen.field,type:'student-response',value:chosen.value});
- return {source:'webilang-lesson',type:'context',version:1,activeSection:wlKostyaActiveArea(),focusedPassage:chosen?.passage||'',focusedField:chosen?.field||'',courseLanguage:'Russian',cefrLevel:'A1',title:document.title,url:location.pathname,headings,activeLabels:selected,activeTask:task?wlKostyaText(task,900):'',studentInputs:controls,lastCheck:wlKostyaActionForContext(),updatedAt:Date.now()};
+ return {source:'webilang-lesson',type:'context',version:1,activeSection:wlKostyaActiveArea(),focusedPassage:chosen?.passage||'',focusedField:chosen?.field||'',courseLanguage:'Russian',cefrLevel:'A1',title:document.title,url:location.pathname,headings,activeLabels:selected,activeTask:task?wlKostyaText(task,900):'',studentInputs:controls,currentExercise:wlKostyaExactExercise(),lastCheck:wlKostyaActionForContext(),updatedAt:Date.now()};
 }
 function wlKostyaSendContext(force=false){
  if(panel.hidden||!frame.contentWindow)return;
  const data=wlKostyaSnapshot();const key=JSON.stringify({...data,updatedAt:0});
- const status=document.getElementById('wlKostyaContextStatus');if(status)status.textContent=data.lastCheck?.studentAnswer?'Последний ответ передан Косте: '+data.lastCheck.studentAnswer.slice(0,90):data.focusedPassage?'Выбранный фрагмент передан: '+data.focusedPassage.slice(0,90):data.focusedField?'Текущий ответ передан Косте.':'Выберите поле ответа или проверьте задание.';
+ const status=document.getElementById('wlKostyaContextStatus');if(status)status.textContent=data.lastCheck?.studentAnswer?'Последний ответ передан Косте: '+data.lastCheck.studentAnswer.slice(0,90):data.focusedPassage?'Выбранный фрагмент передан: '+data.focusedPassage.slice(0,90):data.currentExercise?'Текущий элемент упражнения передан: '+data.currentExercise.question.slice(0,100):data.focusedField?'Текущий ответ передан Косте.':'Выберите поле ответа или проверьте задание.';
  if(!force&&key===wlKostyaLastContext)return;
  wlKostyaLastContext=key;frame.contentWindow.postMessage(data,location.origin);
 }
