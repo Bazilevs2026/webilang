@@ -605,7 +605,14 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
 <section id="tab-watching" class="panel">
  <div class="pane-head"><h2>Видео · Watching</h2><p>Смотрите видео, затем ответьте на вопросы. <span class="muted">Watch the video, then answer the questions.</span></p></div>
  <div class="card softblue padded"><a class="btn" target="_blank" rel="noopener noreferrer" href="https://youtu.be/-msXUXgReI4" style="display:inline-block;text-decoration:none">▶ Watch on YouTube ↗</a></div>
- <div class="card padded"><h3>6 вопросов · Listening comprehension (A1)</h3><p class="small muted">Choose one answer. Press Check for each question. After a wrong answer, you can open the matching dialogue excerpt.</p><div id="watchQuestions"></div></div>
+ <div class="card padded" id="wlWatchTranscriptCard" style="margin-top:14px;border:1px solid #c9ddf1;background:#f8fbff">
+ <details><summary style="cursor:pointer;font-weight:850;color:#173f73">📄 Текст видео для Кости · Video transcript</summary>
+ <p class="small muted">Вставьте точный транскрипт видео. Он автоматически сохраняется в этом браузере и передаётся Косте при работе во вкладке Watching. Учебные выдержки из вопросов — не дословный полный транскрипт.</p>
+ <textarea id="wlWatchTranscriptText" rows="7" spellcheck="false" placeholder="Вставьте сюда транскрипт видео…" aria-label="Транскрипт видео" style="width:100%;min-height:145px;box-sizing:border-box"></textarea>
+ <div id="wlWatchTranscriptStatus" class="small muted" aria-live="polite">Транскрипт пока не добавлен.</div>
+ </details>
+</div>
+<div class="card padded"><h3>6 вопросов · Listening comprehension (A1)</h3><p class="small muted">Choose one answer. Press Check for each question. After a wrong answer, you can open the matching dialogue excerpt.</p><div id="watchQuestions"></div></div>
  <div class="card padded"><h3>Говорение после видео · Speaking</h3><p class="small muted">Speak in Russian in the present tense. Live Transcript is editable before AI Feedback. Recognition mistakes are not automatically saved as grammar errors.</p><div id="watchSpeaking"></div></div>
  </section>
 
@@ -1799,6 +1806,21 @@ document.getElementById("readingCommonAi").onclick=async()=>{
 (function(){
 "use strict";
 const Q=[["На каком курсе Анна?", "Which year is Anna in?", ["На первом", "На втором", "На третьем"], 0, "Майкл: Я на втором курсе. А ты? Анна: Я на первом курсе.", "Я на первом курсе."], ["Что изучает Майкл?", "What does Michael study?", ["Историю и английский язык", "Русский язык и политологию", "Музыку"], 1, "Майкл: Я изучаю русский язык и политологию.", "русский язык и политологию"], ["Где живёт Майкл?", "Where does Michael live?", ["В Москве", "В Арлингтоне", "В Лондоне"], 1, "Майкл: Я живу в Арлингтоне. А ты?", "Я живу в Арлингтоне."], ["На каких языках говорит Майкл?", "Which languages does Michael speak?", ["По-английски и немного по-русски", "Только по-испански", "По-французски"], 0, "Майкл: Я говорю по-английски и немного по-русски.", "по-английски и немного по-русски"], ["Какой спорт любит Майкл?", "Which sports does Michael like?", ["Теннис", "Футбол и баскетбол", "Хоккей"], 1, "Майкл: Я люблю футбол и баскетбол. Я хорошо играю в футбол.", "футбол и баскетбол"], ["На чём играет Анна?", "Which instrument does Anna play?", ["На фортепиано", "На гитаре", "На скрипке"], 1, "Анна: Да, я играю на гитаре.", "играю на гитаре"]];
+// Reference excerpts support the comprehension tasks but are NOT a verified verbatim transcript.
+window.wlWatchReferenceExcerpts=Q.map((q,i)=>({question:q[0],excerpt:q[4]}));
+(function(){
+ const field=document.getElementById('wlWatchTranscriptText');
+ const status=document.getElementById('wlWatchTranscriptStatus');
+ if(!field)return;
+ const storageKey='webilang_russian03_video_transcript_-msXUXgReI4';
+ try{field.value=localStorage.getItem(storageKey)||'';}catch(_){ }
+ const update=()=>{
+   status.textContent=field.value.trim()?'✓ Текст сохранён для Кости в этом браузере.':'Транскрипт пока не добавлен.';
+   if(typeof wlKostyaScheduleContext==='function')wlKostyaScheduleContext();
+ };
+ field.addEventListener('input',()=>{try{localStorage.setItem(storageKey,field.value)}catch(_){status.textContent='Не удалось сохранить текст в браузере.';return;}update();});
+ update();
+})();
 const TASKS=[["Учёба", "Расскажите, где вы учитесь, на каком вы курсе и что изучаете. Задайте один вопрос собеседнику.", "Say where you study, what year you are in, and what subjects you study. Ask one question.", "Я учусь в университете. Я на втором курсе. Я изучаю русский язык."], ["Языки", "Расскажите, на каких языках вы говорите и какой язык изучаете сейчас. Используйте настоящее время.", "Say which languages you speak and which language you are studying now. Use the present tense.", "Я говорю по-английски и немного по-русски."], ["Спорт и музыка", "Расскажите, какой спорт вы любите, во что играете и играете ли вы на музыкальном инструменте. Используйте настоящее время.", "Say which sports you like, what you play, and whether you play a musical instrument. Use the present tense.", "Я люблю футбол. Я играю в теннис и на гитаре."]];
 const escW=v=>String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const qroot=document.getElementById("watchQuestions"),sroot=document.getElementById("watchSpeaking");
@@ -3300,6 +3322,14 @@ function wlKostyaSnapshot(){
  const controls=task?Array.from(task.querySelectorAll('input:not([type="hidden"]),select,textarea,[contenteditable="true"]')).filter(wlKostyaVisible).slice(0,8).map(el=>({label:wlKostyaText(el.closest('label')||el.parentElement,120),type:el.type||el.tagName.toLowerCase(),value:el.type==='password'?'[omitted]':el.type==='checkbox'||el.type==='radio'?(el.checked?'selected':'not selected'):String(el.value||'').slice(0,90)})):[];
  const chosen=wlKostyaFocusedData();
  if(chosen&&!controls.some(x=>x.value===chosen.value))controls.unshift({label:chosen.label||chosen.field,type:'student-response',value:chosen.value});
+ // Only share video material while the Watching tab is active. Never claim the excerpts are a verbatim transcript.
+ if(document.getElementById('tab-watching')?.classList.contains('active')){
+   const exact=(document.getElementById('wlWatchTranscriptText')?.value||'').trim();
+   const excerpts=Array.isArray(window.wlWatchReferenceExcerpts)?window.wlWatchReferenceExcerpts:[];
+   const references=excerpts.map((x,i)=>(i+1)+'. '+x.question+' — '+x.excerpt).join('\n');
+   controls.unshift({label:'Watching: reference excerpts for comprehension (NOT verified verbatim video transcript)',type:'video-reference',value:references.slice(0,1800)});
+   controls.unshift({label:exact?'Watching: user-provided video transcript':'Watching: full transcript unavailable',type:'video-transcript',value:exact?exact.slice(0,4500):'[Full verbatim transcript not supplied. Use reference excerpts only; do not claim to have watched the video.]'});
+ }
  return {source:'webilang-lesson',type:'context',version:1,activeSection:wlKostyaActiveArea(),focusedPassage:chosen?.passage||'',focusedField:chosen?.field||'',courseLanguage:'Russian',cefrLevel:'A1',title:document.title,url:location.pathname,headings,activeLabels:selected,activeTask:task?wlKostyaText(task,900):'',studentInputs:controls,currentExercise:wlKostyaExactExercise(),lastCheck:wlKostyaActionForContext(),updatedAt:Date.now()};
 }
 function wlKostyaSendContext(force=false){
