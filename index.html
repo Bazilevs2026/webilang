@@ -15024,7 +15024,7 @@ function shareWriting(force=false){
  const relevantExercise=currentExercise&&currentExercise.section===section?currentExercise:null;
  // The shared Kostya Realtime frame consumes lastCheck and studentInputs, NOT currentExercise.
  // Normalize every active interaction into the established lastCheck contract.
- const readingIsLatest=readingCheck && (!relevantExercise || readingCheck.at >= relevantExercise.at - 200);
+ const readingIsLatest=readingCheck && (!relevantExercise || readingCheck.at >= relevantExercise.at - 200 || relevantExercise.question.includes(readingCheck.task.split(' — ').slice(-1)[0].slice(0,35)));
  const latestExercise=readingIsLatest ? {
    kind:readingCheck.kind,source:'reading',button:'Selected answer',task:readingCheck.task,
    studentAnswer:readingCheck.studentAnswer,verifiedCorrectness:readingCheck.verifiedCorrectness,
@@ -15077,7 +15077,7 @@ fab.addEventListener('click',()=>{
  }
  panel.hidden=false;setMinimized(false);
  panel.style.left='';panel.style.top='';panel.style.right='';panel.style.bottom='';
- frame.src='/avatar-lab/realtime.html?pilot=kostya_teacher&character=kostya';
+ frame.src='/avatar-lab/realtime-english.html?pilot=kostya_teacher&character=kostya';
  startSharing();
 });
 // Move the panel by its header; never start dragging from the buttons.
@@ -15099,6 +15099,12 @@ const stopDrag=()=>{dragState=null};
 dragHandle?.addEventListener('pointerup',stopDrag);
 dragHandle?.addEventListener('pointercancel',stopDrag);
 window.addEventListener('resize',()=>{if(panel.hidden)return;const r=panel.getBoundingClientRect();if(panel.style.left){panel.style.left=Math.max(0,Math.min(r.left,innerWidth-r.width))+'px';panel.style.top=Math.max(0,Math.min(r.top,innerHeight-r.height))+'px';}});
+// Delivery diagnostics: distinguish data collected from data accepted by English avatar.
+window.addEventListener('message',ev=>{
+ if(ev.origin!==location.origin||ev.source!==frame.contentWindow||ev.data?.source!=='webilang-realtime-english'||ev.data.type!=='lesson-context-ack')return;
+ const status=document.getElementById('wlKostyaWritingStatus');if(!status)return;
+ const x=ev.data;status.textContent='✓ Kostya received '+(x.section||'section')+(x.question?' | Question: '+x.question.slice(0,95):' | no active question')+(x.answer?' | Your answer: '+x.answer.slice(0,100):' | no answer yet')+(x.connected?' | AI connected':' | start Talk to Kostya');
+});
 frame.addEventListener('load',()=>shareWriting(true));
 document.addEventListener('input',wlPlanContext,{passive:true});
 document.addEventListener('focusin',e=>{if(e.target?.matches?.('textarea,input[type="text"],[contenteditable="true"]')&&!panel.contains(e.target))lastWritingFocus=e.target},true);
