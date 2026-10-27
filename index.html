@@ -14952,12 +14952,19 @@ try{const saved=JSON.parse(sessionStorage.getItem(sessionKey)||'null');if(saved?
 #wlKostyaBottomDrag{height:30px;flex:0 0 30px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;background:#eaf3ff;border-top:1px solid #b0cde9;color:#315779;font:600 12px system-ui,sans-serif;cursor:grab;user-select:none;touch-action:none;z-index:2}
 #wlKostyaBottomDrag:active{cursor:grabbing}
 #wlKostyaPanel.wl-minimized #wlKostyaBottomDrag{display:none!important}
+
+/* Pointer-safe window dragging over the non-control portion of the avatar.
+   Leaves the lower voice/text controls inside the iframe accessible. */
+#wlKostyaPanel .wl-kostya-avatar-drag{position:absolute;z-index:3;left:0;right:0;top:26%;height:35%;cursor:grab;touch-action:none;background:transparent;user-select:none}
+#wlKostyaPanel .wl-kostya-avatar-drag:active{cursor:grabbing}
+#wlKostyaPanel.wl-minimized .wl-kostya-avatar-drag{display:none!important}
 </style>
 <button id="wlKostyaFab" type="button" aria-controls="wlKostyaPanel" aria-expanded="false">🎓 Ask Kostya</button>
 <aside id="wlKostyaPanel" hidden aria-label="Kostya AI Teacher">
 <header id="wlKostyaDragHandle"><strong>🎓 Kostya · AI Teacher</strong><span class="wl-kostya-fill"></span><button id="wlKostyaMinimize" type="button" aria-label="Minimize Kostya" title="Minimize without ending conversation">—</button><button id="wlKostyaClose" type="button" aria-label="Close teacher help">✕ Close</button></header>
 
 <iframe id="wlKostyaFrame" title="Kostya 3D voice teacher" allow="microphone;autoplay"></iframe>
+<div id="wlKostyaAvatarDrag" class="wl-kostya-avatar-drag" title="Drag Kostya using the avatar area / Перетащить Костю за область аватара" aria-label="Drag Kostya by avatar background"></div>
 <div id="wlKostyaBottomDrag" class="wl-kostya-bottom-grip" title="Drag Kostya window / Перетащить окно Кости" aria-label="Drag Kostya window">⋮⋮ &nbsp; Drag to move / Перетащить &nbsp; ⋮⋮</div>
 </aside>
 <script id="wl-kostya-pilot-js">
@@ -14968,9 +14975,9 @@ const minimizeBtn=document.getElementById('wlKostyaMinimize');
 const setMinimized=(on)=>{panel.classList.toggle('wl-minimized',on);minimizeBtn.textContent=on?'▢':'—';minimizeBtn.setAttribute('aria-label',on?'Expand Kostya':'Minimize Kostya');fab.textContent=on?'🎓 Kostya · Active':'🎓 Ask Kostya';};
 const close=()=>{frame.removeAttribute('src');panel.hidden=true;setMinimized(false);fab.setAttribute('aria-expanded','false');fab.focus()};
 minimizeBtn?.addEventListener('click',()=>setMinimized(!panel.classList.contains('wl-minimized')));
-const dragHandles=[document.getElementById('wlKostyaDragHandle'),document.getElementById('wlKostyaBottomDrag')].filter(Boolean);let drag=null;
+const dragHandles=[document.getElementById('wlKostyaDragHandle'),document.getElementById('wlKostyaBottomDrag'),document.getElementById('wlKostyaAvatarDrag')].filter(Boolean);let drag=null;
 for(const handle of dragHandles){
- handle.addEventListener('pointerdown',e=>{if(e.button!==0||e.target.closest('button,a,input,textarea,select')||innerWidth<650)return;const r=panel.getBoundingClientRect();drag={id:e.pointerId,x:e.clientX,y:e.clientY,left:r.left,top:r.top};try{handle.setPointerCapture(e.pointerId)}catch{}e.preventDefault();});
+ handle.addEventListener('pointerdown',e=>{if(e.button!==0||e.target.closest('button,a,input,textarea,select')||e.pointerType==='touch')return;const r=panel.getBoundingClientRect();drag={id:e.pointerId,x:e.clientX,y:e.clientY,left:r.left,top:r.top};try{handle.setPointerCapture(e.pointerId)}catch{}e.preventDefault();});
  handle.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;const x=Math.max(0,Math.min(Math.max(0,innerWidth-panel.offsetWidth),drag.left+e.clientX-drag.x));const y=Math.max(0,Math.min(Math.max(0,innerHeight-panel.offsetHeight),drag.top+e.clientY-drag.y));panel.style.left=x+'px';panel.style.top=y+'px';panel.style.right='auto';panel.style.bottom='auto';});
  for(const type of ['pointerup','pointercancel','lostpointercapture'])handle.addEventListener(type,()=>drag=null);
 }
