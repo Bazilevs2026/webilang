@@ -15018,9 +15018,22 @@ function shareWriting(force=false){
  if(panel.hidden||!frame.contentWindow)return;
  const section=wlActiveArea();
  const draft=section==='writing'?findWriting():null;
- const readingCheck=section==='reading'?wlLastReadingCheck:null;
+ // A checked Quick Check is the authoritative Reading interaction only when its question remains visible.
+ const readingCheck=wlLastReadingCheck && section==='reading' ? wlLastReadingCheck : null;
  const currentExercise=wlExerciseSnapshot();
  const relevantExercise=currentExercise&&currentExercise.section===section?currentExercise:null;
+ // The shared Kostya Realtime frame consumes lastCheck and studentInputs, NOT currentExercise.
+ // Normalize every active interaction into the established lastCheck contract.
+ const readingIsLatest=readingCheck && (!relevantExercise || readingCheck.at >= relevantExercise.at - 200);
+ const latestExercise=readingIsLatest ? {
+   kind:readingCheck.kind,source:'reading',button:'Selected answer',task:readingCheck.task,
+   studentAnswer:readingCheck.studentAnswer,verifiedCorrectness:readingCheck.verifiedCorrectness,
+   visibleFeedbackAfter:readingCheck.visibleFeedbackAfter||[],expectedAnswer:'',at:readingCheck.at
+ } : relevantExercise ? {
+   kind:'active_exercise',source:section,button:'Current field or choice',task:relevantExercise.question,
+   studentAnswer:relevantExercise.studentAnswer,verifiedCorrectness:'unknown',
+   visibleFeedbackAfter:[],expectedAnswer:'',at:relevantExercise.at
+ } : null;
  let specific='';
  if(draft&&typeof draft.el.selectionStart==='number'){
    const t=draft.text, a=draft.el.selectionStart,b=draft.el.selectionEnd;
@@ -15033,10 +15046,10 @@ function shareWriting(force=false){
  }
  const payload={source:'webilang-lesson',type:'context',version:1,title:document.title,url:location.pathname,
    activeSection:section,courseLanguage:'English',
-   activeTask:section==='reading'?'Reading comprehension. Focus only on the latest checked Reading question if available. Guide learner to textual evidence without giving away answer.':section==='writing'?'Guided writing. Focus on selected sentence or cursor sentence; otherwise ask which one.':('Current section: '+section+'. Ask which specific activity needs help if no checked answer is present.'),
+   activeTask:(latestExercise ? 'ACTIVE STUDENT ITEM: '+latestExercise.task+' | STUDENT ANSWER: '+latestExercise.studentAnswer+' | RESULT: '+latestExercise.verifiedCorrectness+'. Discuss this item, not a nearby question. ' : '')+(section==='reading'?'Reading comprehension: guide learner to textual evidence without giving away answer.':section==='writing'?'Guided writing: focus on selected or cursor sentence.':'Help with the current section: '+section+'.'),
    focusedPassage:specific.slice(0,850),
-   studentInputs:draft?[{label:'Current student writing ('+draft.field+')',value:draft.text.slice(0,4400)}]:[],
-   currentExercise:readingCheck?{kind:'reading_question',question:readingCheck.task,studentAnswer:readingCheck.studentAnswer,verifiedCorrectness:readingCheck.verifiedCorrectness,at:readingCheck.at}:relevantExercise, lastCheck:readingCheck};
+   studentInputs:[...(draft?[{label:'Current student writing ('+draft.field+')',value:draft.text.slice(0,4400)}]:[]),...(latestExercise?[{label:'Active exercise — '+latestExercise.task.slice(0,180),value:'Student selected or typed: '+latestExercise.studentAnswer+'; checked: '+latestExercise.verifiedCorrectness}]:[])],
+   lastCheck:latestExercise};
  const key=JSON.stringify(payload);if(!force&&key===lastShared)return;
  lastShared=key;frame.contentWindow.postMessage(payload,location.origin);
  if(writingStatus)writingStatus.textContent='Current section: '+section+'. '+(readingCheck?'Checked answer shared: '+readingCheck.studentAnswer.slice(0,80):relevantExercise?'Current task shared: '+relevantExercise.question.slice(0,85):draft?'Writing shared ('+draft.text.length+' characters). '+(specific?'Focus: '+specific.slice(0,80):'Select the sentence you need help with.'):'Select or check a task, then ask Kostya.');
@@ -15092,7 +15105,7 @@ document.addEventListener('focusin',e=>{if(e.target?.matches?.('textarea,input[t
 document.addEventListener('selectionchange',wlPlanContext);
 document.addEventListener('click',wlPlanContext,{passive:true});
 document.addEventListener('change',wlPlanContext,{passive:true});
-document.addEventListener('wl-reading-check-updated',()=>shareWriting(true));
+document.addEventListener('wl-reading-check-updated',()=>{shareWriting(true);setTimeout(()=>shareWriting(true),80)});
 window.addEventListener('hashchange',wlPlanContext);
 document.getElementById('wlKostyaClose')?.addEventListener('click',close);
 window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close()});
