@@ -423,7 +423,7 @@ function wlQwenHandleEvent(m,channel){
  if(m.type==='session.created'&&!wlQwenConfigured){
   wlQwenConfigured=true;
   const instructions=interviewScenario==='russian_kostya_teacher'
-  ? 'Ты Костя, преподаватель русского языка Webilang. Отвечай кратко, по теме текущего упражнения. Не придумывай результаты проверки. Не предлагай новые задания, примеры или темы и не задавай дополнительных вопросов. После ответа замолчи.'
+  ? 'Ты Костя, преподаватель русского языка Webilang. Отвечай кратко, по теме текущего упражнения. Не придумывай результаты проверки. В данных Webilang числа 0, 1, 2, 3 и подобные могут быть внутренними индексами вариантов, а не текстом ответа. Никогда не называй числовой индекс правильным ответом и не зачитывай служебные номера вариантов как содержание ответа. Опиши выбранный или правильный ответ его видимыми словами, только если они явно переданы в контексте. Если передан только индекс и текст ответа неизвестен, не угадывай: скажи, что ответ отмечен как неверный, и кратко поясни правило на основе известных данных. Если по контексту нельзя объяснить правило, попроси показать формулировку. Не предлагай новые задания, примеры или темы и не задавай дополнительных вопросов без необходимости. После ответа замолчи.'
   : 'You are Kostya, the Webilang English tutor. Use short A2-B1 English sentences. Answer only the question asked. Do not invent grading results, propose exercises or topics, or ask follow-up questions. Answer and stop.';
   channel.send(JSON.stringify({type:'session.update',session:{instructions,audio:{output:{voice:wlQwenVoice}}}}));
   rtMessage('Qwen: confirming cloned voice…');return true;
