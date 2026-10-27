@@ -14954,10 +14954,66 @@ fab.addEventListener('click',()=>{
   alert('Finish the conversation with Chaz or Nova before opening Kostya. This first pilot supports one live microphone at a time.');return;
  }
  panel.hidden=false;fab.setAttribute('aria-expanded','true');
- frame.src='/avatar-lab/realtime.html?pilot=kostya_teacher&character=kostya';
+ frame.src='/avatar-lab/realtime-english.html?pilot=kostya_teacher&character=kostya';
 });
 document.getElementById('wlKostyaClose')?.addEventListener('click',close);
 window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close()});
+})();
+</script>
+<script id="wl-english-kostya-bridge">
+/* English-only bridge. Do not change the native Reading check handlers. */
+(()=>{'use strict';
+const iframe=document.getElementById('wlKostyaFrame');
+const panel=document.getElementById('wlKostyaPanel');
+if(!iframe||!panel)return;
+let currentExercise=null,lastCheck=null,seq=0;
+const status=document.createElement('div');
+status.id='wlKostyaContextStatus';
+status.setAttribute('role','status');
+status.style.cssText='font-size:12px;line-height:1.35;padding:6px 12px;background:#eff6ff;color:#183b61;white-space:normal;';
+status.textContent='Kostya context: choose an answer to share it.';
+iframe.before(status);
+const txt=x=>(x?.textContent||'').trim().replace(/\s+/g,' ').slice(0,700);
+const section=()=>{
+ const q=document.querySelector('.qcQuestion:has(.qcOption.selected)');
+ if(q&&q.offsetParent!==null)return 'Reading';
+ const active=document.querySelector('[role=tab][aria-selected=true],.tab.active,.nav-tab.active,[data-tab].active');
+ return txt(active)||'Reading / current lesson';
+};
+function snapshot(){return {source:'webilang-lesson',type:'context',version:1,activeSection:currentExercise?.section||section(),courseLanguage:'English',title:document.title,url:location.href,currentExercise:currentExercise&&{question:currentExercise.question,studentAnswer:currentExercise.studentAnswer,options:currentExercise.options,field:currentExercise.field||''},lastCheck:lastCheck&&{kind:'quiz_check',task:lastCheck.question,studentAnswer:lastCheck.answer,verifiedCorrectness:lastCheck.correct?'correct':'incorrect',visibleFeedbackAfter:[lastCheck.feedback],source:'English Reading Quick Check',at:lastCheck.at}};}
+function send(){if(!iframe.contentWindow||!iframe.getAttribute('src'))return; iframe.contentWindow.postMessage(snapshot(),location.origin);}
+function captureQuestion(q,btn){
+ const question=txt(q.querySelector('.qcStem'));
+ const answer=txt(btn);
+ const options=[...q.querySelectorAll('.qcOption')].map(txt);
+ currentExercise={section:'Reading',question,studentAnswer:answer,options};
+ /* Let the already-working native checker paint its feedback first. */
+ setTimeout(()=>{
+  const feedback=txt(q.querySelector('.qcFeedback'));
+  const correct=btn.classList.contains('correct');
+  const wrong=btn.classList.contains('wrong');
+  lastCheck=(correct||wrong)?{question,answer,correct,feedback,at:Date.now()}:null;
+  seq++;
+  status.textContent=`Kostya context #${seq}: Reading · ${question} · chosen: ${answer} · ${correct?'Correct':wrong?'Not quite':'Not checked'} · sending…`;
+  send();
+ },0);
+}
+document.addEventListener('click',ev=>{
+ const btn=ev.target.closest?.('.qcQuestion .qcOption');
+ if(btn){const q=btn.closest('.qcQuestion');if(q)captureQuestion(q,btn);return;}
+ /* Tab changes do not overwrite the last quiz answer until a new task is touched. */
+ const tab=ev.target.closest?.('[role=tab],.tab,[data-tab]');
+ if(tab)setTimeout(()=>send(),0);
+},false);
+iframe.addEventListener('load',()=>{send();});
+window.addEventListener('message',ev=>{
+ if(ev.origin!==location.origin||ev.source!==iframe.contentWindow)return;
+ if(ev.data?.source!=='webilang-realtime-english'||ev.data.type!=='lesson-context-ack')return;
+ const ack=ev.data;
+ status.textContent=`Kostya ${ack.connected?'AI connected':'window received'}: ${ack.section||'lesson'} · ${ack.question||'no question yet'} · ${ack.answer||'no selected answer yet'}`;
+});
+/* Resend on opening; the iframe may still be loading. */
+document.getElementById('wlKostyaFab')?.addEventListener('click',()=>setTimeout(send,350));
 })();
 </script>
 </body>
