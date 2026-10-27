@@ -14981,13 +14981,35 @@ const text=(node,max=700)=>String(node?.innerText||node?.textContent||'').replac
 const visible=el=>{if(!el||!el.isConnected)return false;const st=getComputedStyle(el);return st.display!=='none'&&st.visibility!=='hidden'&&el.getClientRects().length>0&&!el.closest('[hidden],[aria-hidden="true"],#wlKostyaPanel')};
 const taskSelector='.qcQuestion,.question,.exercise-item,.task-item,[data-question],fieldset,[role="group"],.exercise,.task,.quiz-question,article,.card,section';
 let touched=null,focused=null,selectedPassage='',lastCheck=null,lastSignature='',sendTimer=0,checkTimer=0;
+// Remember the student's actual answer before the checker changes button classes or focus.
+let exactAnswer=null;
+function answerFrom(el){
+ if(!el)return '';
+ if(el.matches('input[type="radio"],input[type="checkbox"]'))return el.checked?(el.value||el.closest('label')?.innerText||'selected'):'';
+ if(el.matches('input,textarea,select'))return String(el.value||'');
+ if(el.matches('[contenteditable="true"]'))return String(el.innerText||'');
+ return text(el,450);
+}
+function captureAnswer(el){
+ if(!(el instanceof Element)||panel.contains(el))return;
+ const choice=el.closest('.qcOption,[role="option"],[role="radio"],.option, label, input,textarea,select,[contenteditable="true"]');
+ if(!choice)return;
+ const task=choice.closest(taskSelector)||choice.parentElement;
+ if(!task)return;
+ const questionEl=task.querySelector('.qcStem,legend,.question-text,.prompt,[data-prompt],h3,h4');
+ const answer=answerFrom(choice);
+ if(!answer)return;
+ exactAnswer={task,question:text(questionEl||task,800),answer:String(answer).slice(0,450),at:Date.now()};
+ touched=task;
+}
+
 // Same explicit grading event contract as the working Russian module.
 window.addEventListener('webilang:answer-graded',e=>{
  const d=e.detail||{};
  if(!['correct','incorrect'].includes(d.status))return;
  clearTimeout(checkTimer);
  lastCheck={kind:'answer_check',button:'Check',task:String(d.task||'').slice(0,650),
-  studentAnswer:String(d.studentAnswer||'').slice(0,450),
+  studentAnswer:String(d.studentAnswer||exactAnswer?.answer||'').slice(0,450),
   expectedAnswer:String(d.expectedAnswer||'').slice(0,250),
   verifiedCorrectness:d.status,visibleFeedbackAfter:[String(d.feedback||'').slice(0,800)],
   source:String(d.source||'English exercise'),section:section(),at:Date.now()};
@@ -15031,7 +15053,8 @@ function selectedQuestion(){
  const stem=q.querySelector('.qcStem,legend,.question-text,.prompt,[data-prompt],h3,h4')||q;
  const control=focused&&q.contains(focused)?focused:null;
  const chosen=q.querySelector('.qcOption.selected,.qcOption[aria-pressed="true"],input:checked');
- const answer=chosen?text(chosen,450):control?String(control.type==='password'?'[omitted]':control.value??control.innerText??'').slice(0,450):'';
+ const liveAnswer=chosen?text(chosen,450):control?String(control.type==='password'?'[omitted]':control.value??control.innerText??'').slice(0,450):'';
+ const answer=liveAnswer||(exactAnswer?.task===q?exactAnswer.answer:'');
  const options=[...q.querySelectorAll('.qcOption,select option,[role="option"]')].slice(0,9).map(x=>text(x,130)).filter(Boolean);
  return {kind:'current_exercise',question:text(stem,800),studentAnswer:answer,options,field:control?.id||control?.name||control?.tagName?.toLowerCase()||'',at:Date.now()};
 }
@@ -15039,7 +15062,9 @@ function snapshot(){
  const main=document.querySelector('main')||document.body,task=currentTask(),active=section();
  const controls=task?[...task.querySelectorAll('input:not([type="hidden"]),textarea,select,[contenteditable="true"]')].filter(visible).slice(0,8).map(el=>({label:text(el.closest('label')||el.parentElement,100),type:el.type||el.tagName.toLowerCase(),value:el.type==='password'?'[omitted]':el.type==='checkbox'||el.type==='radio'?(el.checked?'selected':'not selected'):String(el.value??el.innerText??'').slice(0,150)})):[];
  const recentCheck=lastCheck&&Date.now()-lastCheck.at<120000&&lastCheck.section===active?lastCheck:null;
- return {source:'webilang-lesson',type:'context',version:1,activeSection:active,courseLanguage:'English',title:document.title,url:location.pathname,headings:[...main.querySelectorAll('h1,h2,h3,[role="heading"]')].filter(visible).slice(-9).map(x=>text(x,110)),activeLabels:[...document.querySelectorAll('[aria-selected="true"],[aria-current="page"]')].filter(visible).slice(-6).map(x=>text(x,90)),activeTask:task?text(task,900):'',studentInputs:controls,focusedField:focused?.id||focused?.name||'',focusedPassage:selectedPassage,currentExercise:selectedQuestion(),lastCheck:recentCheck,updatedAt:Date.now()};
+ const current=selectedQuestion();
+ if(current&&!current.studentAnswer&&exactAnswer?.task===task)current.studentAnswer=exactAnswer.answer;
+ return {source:'webilang-lesson',type:'context',version:1,activeSection:active,courseLanguage:'English',title:document.title,url:location.pathname,headings:[...main.querySelectorAll('h1,h2,h3,[role="heading"]')].filter(visible).slice(-9).map(x=>text(x,110)),activeLabels:[...document.querySelectorAll('[aria-selected="true"],[aria-current="page"]')].filter(visible).slice(-6).map(x=>text(x,90)),activeTask:task?text(task,900):'',studentInputs:controls,focusedField:focused?.id||focused?.name||'',focusedPassage:selectedPassage,currentExercise:current,lastCheck:recentCheck,updatedAt:Date.now()};
 }
 function send(force=false){
  if(panel.hidden||!iframe.contentWindow||!iframe.getAttribute('src'))return;
@@ -15061,21 +15086,21 @@ function noteCheck(q,btn){
 }
 document.addEventListener('pointerdown',e=>{
  const el=e.target;if(!(el instanceof Element)||panel.contains(el))return;
- const q=el.closest(taskSelector);if(q&&visible(q))touched=q;
+ const q=el.closest(taskSelector);if(q&&visible(q))touched=q; captureAnswer(el);
 },true);
 document.addEventListener('click',e=>{
  const el=e.target;if(!(el instanceof Element)||panel.contains(el))return;
- const opt=el.closest('.qcQuestion .qcOption');if(opt){const q=opt.closest('.qcQuestion');if(q){touched=q}}
+ const opt=el.closest('.qcQuestion .qcOption');if(opt){const q=opt.closest('.qcQuestion');if(q){touched=q;captureAnswer(opt)}} else captureAnswer(el);
  if(!opt && el.closest('button') && /^(?:check|check answer|submit|verify|проверить)(?:\s|$)/i.test(text(el.closest('button'),70)))captureOtherCheck(el.closest('button'));
- const tab=el.closest('.wlTab,[role="tab"],[data-tab]');if(tab){touched=null;focused=null;selectedPassage='';lastCheck=null;lastSignature=''}
+ const tab=el.closest('.wlTab,[role="tab"],[data-tab]');if(tab){touched=null;focused=null;selectedPassage='';lastCheck=null;exactAnswer=null;lastSignature=''}
  schedule();
 },true);
 document.addEventListener('focusin',e=>{const el=e.target;if(el instanceof Element&&!panel.contains(el)&&el.matches('input:not([type="hidden"]),textarea,select,[contenteditable="true"]')){focused=el;touched=el.closest(taskSelector)||el.parentElement;selectedPassage='';schedule()}},true);
-document.addEventListener('input',schedule,true);
-document.addEventListener('change',schedule,true);
+document.addEventListener('input',e=>{captureAnswer(e.target);schedule()},true);
+document.addEventListener('change',e=>{captureAnswer(e.target);schedule()},true);
 document.addEventListener('keyup',e=>{if(e.target===focused)selectedPassage=selectedFragment(focused);schedule()},true);
 document.addEventListener('mouseup',e=>{if(e.target===focused)selectedPassage=selectedFragment(focused);schedule()},true);
-window.addEventListener('hashchange',()=>{touched=null;lastCheck=null;lastSignature='';schedule()});
+window.addEventListener('hashchange',()=>{touched=null;lastCheck=null;exactAnswer=null;lastSignature='';schedule()});
 iframe.addEventListener('load',()=>{lastSignature='';send(true)});
 window.addEventListener('message',e=>{
  if(e.origin!==location.origin||e.source!==iframe.contentWindow)return;
