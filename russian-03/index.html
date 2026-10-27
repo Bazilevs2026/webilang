@@ -532,6 +532,23 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
 #tab-reading .reading-speaking-help summary{font-weight:750;cursor:pointer;color:#32608a}
 #tab-reading .reading-speaking-help p{font-size:13px;margin:8px 0 0;line-height:1.5}
 </style>
+<style id="wl-kostya-universal-ui">
+/* Shared Kostya window UI: pedagogical context remains available to the AI, never shown to learners. */
+#wlKostyaPanel > p, #wlKostyaContextStatus { display:none!important; }
+#wlKostyaPanel header { display:flex; align-items:center; gap:7px; min-height:58px; box-sizing:border-box; flex-wrap:nowrap; padding:8px 10px; }
+#wlKostyaPanel header strong { flex:1 1 auto; min-width:0; font-size:clamp(13px,2.4vw,16px); line-height:1.18; overflow-wrap:anywhere; }
+#wlKostyaPanel header .wl-kostya-fill, #wlKostyaPanel header span[style*="flex:1"] { display:none!important; }
+#wlKostyaPanel header button { flex:0 0 auto; white-space:nowrap; font-size:12px; padding:6px 8px; line-height:1.2; }
+#wlKostyaMinimize { min-width:32px; }
+#wlKostyaClose { min-width:42px; }
+#wlKostyaPanel:not([hidden]) { max-height:calc(100dvh - 24px); }
+@media(max-width:560px) {
+ #wlKostyaPanel header { gap:4px; padding:6px; }
+ #wlKostyaPanel header strong {font-size:12px;}
+ #wlKostyaPanel header button {font-size:11px;padding:5px 5px;}
+ #wlKostyaProactive {max-width:95px;white-space:normal!important;}
+}
+</style>
 </head><body>
 <header class="header"><div class="header-inner"><div class="brand">◆ WEBILANG <span class="tag">Russian · Unit 3 · A1–A1+</span></div><h1>Знакомства</h1></div><nav class="tabs" aria-label="Разделы урока">
 <button type="button" class="tab active" data-tab="story">📖 История</button><button type="button" class="tab" data-tab="reading">📚 Чтение</button><button type="button" class="tab" data-tab="vocab">🗂 Лексика</button><button type="button" class="tab" data-tab="watching">▶ Видео</button><button type="button" class="tab" data-tab="grammar">🧩 Грамматика</button><button type="button" class="tab" data-tab="speaking">🎭 Диалог с ИИ</button><button type="button" class="tab" data-tab="words">🔖 Мои слова <span id="navWordCount">0</span></button><button type="button" class="tab" data-tab="mygrammar">📗 Моя грамматика</button><button type="button" class="tab" data-tab="roulette">🎙 Говорение</button><button type="button" class="tab" data-tab="writing">✍ Письмо</button><button type="button" class="tab" data-tab="game">🎲 Игра</button>
@@ -3072,7 +3089,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <button id="wlKostyaFab" type="button" aria-controls="wlKostyaPanel" aria-expanded="false">🎓 Спросить Костю</button>
 <aside id="wlKostyaPanel" hidden aria-label="Kostya AI Teacher">
 <header id="wlKostyaDragHandle"><strong>🎓 Костя · AI-преподаватель</strong><span style="flex:1"></span><button id="wlKostyaProactive" type="button" aria-pressed="false" title="Proactive help is off">Подсказки: ВЫКЛ</button><button id="wlKostyaMinimize" type="button" title="Minimize but keep conversation active" aria-label="Minimize Kostya">—</button><button id="wlKostyaClose" type="button" aria-label="Close teacher help">✕ Close</button></header>
-<p>Говорите или пишите Косте. Он получит ваш последний проверенный ответ и текст выбранного задания.</p><div id="wlKostyaContextStatus" role="status" style="font:12px system-ui,sans-serif;color:#526476;padding:3px 12px">Выберите ответ или проверьте упражнение, чтобы уточнить контекст.</div>
+<div id="wlKostyaContextStatus" role="status" style="font:12px system-ui,sans-serif;color:#526476;padding:3px 12px">Выберите ответ или проверьте упражнение, чтобы уточнить контекст.</div>
 <iframe id="wlKostyaFrame" title="Kostya 3D voice teacher" allow="microphone;autoplay"></iframe>
 <div id="wlKostyaAvatarDrag" class="wl-kostya-avatar-drag" title="Drag Kostya using the avatar area / Перетащить Костю за область аватара" aria-label="Drag Kostya by avatar background"></div>
 <div id="wlKostyaBottomDrag" class="wl-kostya-bottom-grip" title="Drag Kostya window / Перетащить окно Кости" aria-label="Drag Kostya window">⋮⋮ &nbsp; Drag to move / Перетащить &nbsp; ⋮⋮</div>
