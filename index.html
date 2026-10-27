@@ -4007,23 +4007,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus
  .wlMissionField {height:auto;min-height:50px}
 }
 </style>
-<style id="wl-kostya-universal-ui">
-/* Shared Kostya window UI: pedagogical context remains available to the AI, never shown to learners. */
-#wlKostyaPanel > p, #wlKostyaContextStatus { display:none!important; }
-#wlKostyaPanel header { display:flex; align-items:center; gap:7px; min-height:58px; box-sizing:border-box; flex-wrap:nowrap; padding:8px 10px; }
-#wlKostyaPanel header strong { flex:1 1 auto; min-width:0; font-size:clamp(13px,2.4vw,16px); line-height:1.18; overflow-wrap:anywhere; }
-#wlKostyaPanel header .wl-kostya-fill, #wlKostyaPanel header span[style*="flex:1"] { display:none!important; }
-#wlKostyaPanel header button { flex:0 0 auto; white-space:nowrap; font-size:12px; padding:6px 8px; line-height:1.2; }
-#wlKostyaMinimize { min-width:32px; }
-#wlKostyaClose { min-width:42px; }
-#wlKostyaPanel:not([hidden]) { max-height:calc(100dvh - 24px); }
-@media(max-width:560px) {
- #wlKostyaPanel header { gap:4px; padding:6px; }
- #wlKostyaPanel header strong {font-size:12px;}
- #wlKostyaPanel header button {font-size:11px;padding:5px 5px;}
- #wlKostyaProactive {max-width:95px;white-space:normal!important;}
-}
-</style>
 </head>
 <body>
 <a class="skipLink" href="#main-content">Skip to main content</a>
@@ -14950,66 +14933,27 @@ try{const saved=JSON.parse(sessionStorage.getItem(sessionKey)||'null');if(saved?
 #wlKostyaPanel p{font:13px/1.45 system-ui,sans-serif;color:#425975;padding:8px 12px;margin:0}
 #wlKostyaFrame{width:100%;flex:1;border:0;background:#f1f6fc}
 @media(max-width:600px){#wlKostyaFab{right:10px;bottom:10px}#wlKostyaPanel{right:7px;bottom:69px;width:calc(100vw - 14px);height:calc(100dvh - 85px)}}
-
-/* Cosmetic only: mirror Russian Kostya's movable/minimizable layout. */
-#wlKostyaFab{background:#f97316;color:white;box-shadow:0 8px 24px #b4530966}
-#wlKostyaFab:hover{background:#ea580c}
-#wlKostyaPanel header{cursor:grab;user-select:none;touch-action:none;min-height:52px;box-sizing:border-box;flex-shrink:0;gap:7px}
-#wlKostyaPanel header:active{cursor:grabbing}
-#wlKostyaPanel header strong{font-size:15px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-#wlKostyaPanel header .wl-kostya-fill{flex:1;min-width:0}
-#wlKostyaPanel header button{touch-action:auto;flex-shrink:0;padding:5px 8px;font-size:13px;white-space:nowrap}
-#wlKostyaPanel.wl-minimized{width:min(270px,calc(100vw - 20px))!important;height:52px!important;min-height:52px!important;overflow:hidden!important}
-#wlKostyaPanel.wl-minimized #wlKostyaFrame{position:absolute!important;left:0!important;top:0!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
-#wlKostyaPanel.wl-minimized #wlKostyaContextStatus{display:none!important}
-@media(max-width:540px){#wlKostyaPanel header strong{font-size:13px}#wlKostyaPanel header button{font-size:12px;padding:5px 6px}}
-
-/* Additional bottom drag handle. Does not intercept controls inside the avatar. */
-#wlKostyaPanel{position:fixed}
-#wlKostyaBottomDrag{height:30px;flex:0 0 30px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;background:#eaf3ff;border-top:1px solid #b0cde9;color:#315779;font:600 12px system-ui,sans-serif;cursor:grab;user-select:none;touch-action:none;z-index:2}
-#wlKostyaBottomDrag:active{cursor:grabbing}
-#wlKostyaPanel.wl-minimized #wlKostyaBottomDrag{display:none!important}
-
-/* Pointer-safe window dragging over the non-control portion of the avatar.
-   Leaves the lower voice/text controls inside the iframe accessible. */
-#wlKostyaPanel .wl-kostya-avatar-drag{position:absolute;z-index:3;left:0;right:0;top:26%;height:35%;cursor:grab;touch-action:none;background:transparent;user-select:none}
-#wlKostyaPanel .wl-kostya-avatar-drag:active{cursor:grabbing}
-#wlKostyaPanel.wl-minimized .wl-kostya-avatar-drag{display:none!important}
 </style>
 <button id="wlKostyaFab" type="button" aria-controls="wlKostyaPanel" aria-expanded="false">🎓 Ask Kostya</button>
 <aside id="wlKostyaPanel" hidden aria-label="Kostya AI Teacher">
-<header id="wlKostyaDragHandle"><strong>🎓 Kostya · AI Teacher</strong><span class="wl-kostya-fill"></span><button id="wlKostyaMinimize" type="button" aria-label="Minimize Kostya" title="Minimize without ending conversation">—</button><button id="wlKostyaClose" type="button" aria-label="Close teacher help">✕ Close</button></header>
-
+<header><strong>🎓 Kostya · AI Teacher</strong><button id="wlKostyaClose" type="button" aria-label="Close teacher help">✕ Close</button></header>
+<p>Ask for a hint in English (A2–B1). Your exercise stays open. End the help call before returning.</p>
 <iframe id="wlKostyaFrame" title="Kostya 3D voice teacher" allow="microphone;autoplay"></iframe>
-<div id="wlKostyaAvatarDrag" class="wl-kostya-avatar-drag" title="Drag Kostya using the avatar area / Перетащить Костю за область аватара" aria-label="Drag Kostya by avatar background"></div>
-<div id="wlKostyaBottomDrag" class="wl-kostya-bottom-grip" title="Drag Kostya window / Перетащить окно Кости" aria-label="Drag Kostya window">⋮⋮ &nbsp; Drag to move / Перетащить &nbsp; ⋮⋮</div>
 </aside>
 <script id="wl-kostya-pilot-js">
 (()=>{'use strict';
 const fab=document.getElementById('wlKostyaFab'), panel=document.getElementById('wlKostyaPanel'), frame=document.getElementById('wlKostyaFrame');
 if(!fab||!panel||!frame)return;
-const minimizeBtn=document.getElementById('wlKostyaMinimize');
-const setMinimized=(on)=>{panel.classList.toggle('wl-minimized',on);minimizeBtn.textContent=on?'▢':'—';minimizeBtn.setAttribute('aria-label',on?'Expand Kostya':'Minimize Kostya');fab.textContent=on?'🎓 Kostya · Active':'🎓 Ask Kostya';};
-const close=()=>{frame.removeAttribute('src');panel.hidden=true;setMinimized(false);fab.setAttribute('aria-expanded','false');fab.focus()};
-minimizeBtn?.addEventListener('click',()=>setMinimized(!panel.classList.contains('wl-minimized')));
-const dragHandles=[document.getElementById('wlKostyaDragHandle'),document.getElementById('wlKostyaBottomDrag'),document.getElementById('wlKostyaAvatarDrag')].filter(Boolean);let drag=null;
-for(const handle of dragHandles){
- handle.addEventListener('pointerdown',e=>{if(e.button!==0||e.target.closest('button,a,input,textarea,select')||e.pointerType==='touch')return;const r=panel.getBoundingClientRect();drag={id:e.pointerId,x:e.clientX,y:e.clientY,left:r.left,top:r.top};try{handle.setPointerCapture(e.pointerId)}catch{}e.preventDefault();});
- handle.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;const x=Math.max(0,Math.min(Math.max(0,innerWidth-panel.offsetWidth),drag.left+e.clientX-drag.x));const y=Math.max(0,Math.min(Math.max(0,innerHeight-panel.offsetHeight),drag.top+e.clientY-drag.y));panel.style.left=x+'px';panel.style.top=y+'px';panel.style.right='auto';panel.style.bottom='auto';});
- for(const type of ['pointerup','pointercancel','lostpointercapture'])handle.addEventListener(type,()=>drag=null);
-}
-function clampPanel(){if(panel.hidden)return; const r=panel.getBoundingClientRect();if(!panel.style.left&&!panel.style.top)return;panel.style.left=Math.max(0,Math.min(innerWidth-panel.offsetWidth,r.left))+'px';panel.style.top=Math.max(0,Math.min(innerHeight-panel.offsetHeight,r.top))+'px';}
-addEventListener('resize',clampPanel);
-
+const close=()=>{frame.removeAttribute('src');panel.hidden=true;fab.setAttribute('aria-expanded','false');fab.focus()};
 fab.addEventListener('click',()=>{
- if(!panel.hidden){if(panel.classList.contains('wl-minimized')){setMinimized(false);clampPanel();}else{setMinimized(true);clampPanel();}return}
+ if(!panel.hidden){close();return}
  // A second live microphone session would interfere with the interview.
  const live=document.getElementById('wlTavusLive');
  const state=document.getElementById('wlTavusCallState');
  if(live&&!live.hidden&&state&&/connected|in progress/i.test(state.textContent||'')){
   alert('Finish the conversation with Chaz or Nova before opening Kostya. This first pilot supports one live microphone at a time.');return;
  }
- panel.hidden=false;setMinimized(false);fab.setAttribute('aria-expanded','true');
+ panel.hidden=false;fab.setAttribute('aria-expanded','true');
  frame.src='/avatar-lab/realtime-english.html?pilot=kostya_teacher&character=kostya';
 });
 document.getElementById('wlKostyaClose')?.addEventListener('click',close);
@@ -15022,70 +14966,54 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close()
 const iframe=document.getElementById('wlKostyaFrame');
 const panel=document.getElementById('wlKostyaPanel');
 if(!iframe||!panel)return;
-let currentExercise=null,lastCheck=null;
-const txt=x=>(x?.textContent||x?.value||'').trim().replace(/\s+/g,' ').slice(0,850);
-const visible=el=>!!el&&!!(el.getClientRects().length);
+let currentExercise=null,lastCheck=null,seq=0;
+const status=document.createElement('div');
+status.id='wlKostyaContextStatus';
+status.setAttribute('role','status');
+status.style.cssText='font-size:12px;line-height:1.35;padding:6px 12px;background:#eff6ff;color:#183b61;white-space:normal;';
+status.textContent='Kostya context: choose an answer to share it.';
+iframe.before(status);
+const txt=x=>(x?.textContent||'').trim().replace(/\s+/g,' ').slice(0,700);
 const section=()=>{
- const tabs=[...document.querySelectorAll('[role="tab"][aria-selected="true"],.tab.active,.nav-tab.active,[data-tab].active')];
- const active=tabs.find(visible);
- if(active)return txt(active);
- const r=document.querySelector('.qcQuestion');
- return r&&visible(r)?'Reading':'Current lesson';
+ const q=document.querySelector('.qcQuestion:has(.qcOption.selected)');
+ if(q&&q.offsetParent!==null)return 'Reading';
+ const active=document.querySelector('[role=tab][aria-selected=true],.tab.active,.nav-tab.active,[data-tab].active');
+ return txt(active)||'Reading / current lesson';
 };
-function latestReading(){
- const questions=[...document.querySelectorAll('.qcQuestion')].filter(visible);
- const active=document.activeElement?.closest?.('.qcQuestion');
- const recent=questions.find(q=>q.contains(document.activeElement))||questions.find(q=>q.querySelector('.qcOption.selected,.qcOption.correct,.qcOption.wrong'));
- const q=active||recent;
- if(!q)return;
+function snapshot(){return {source:'webilang-lesson',type:'context',version:1,activeSection:currentExercise?.section||section(),courseLanguage:'English',title:document.title,url:location.href,currentExercise:currentExercise&&{question:currentExercise.question,studentAnswer:currentExercise.studentAnswer,options:currentExercise.options,field:currentExercise.field||''},lastCheck:lastCheck&&{kind:'quiz_check',task:lastCheck.question,studentAnswer:lastCheck.answer,verifiedCorrectness:lastCheck.correct?'correct':'incorrect',visibleFeedbackAfter:[lastCheck.feedback],source:'English Reading Quick Check',at:lastCheck.at}};}
+function send(){if(!iframe.contentWindow||!iframe.getAttribute('src'))return; iframe.contentWindow.postMessage(snapshot(),location.origin);}
+function captureQuestion(q,btn){
  const question=txt(q.querySelector('.qcStem'));
- const options=[...q.querySelectorAll('.qcOption')];
- const selected=options.find(b=>b.classList.contains('selected'))||options.find(b=>b.classList.contains('wrong'))||options.find(b=>b.classList.contains('correct'));
- if(!selected)return;
- const answer=txt(selected);
- currentExercise={section:'Reading',question,studentAnswer:answer,options:options.map(txt)};
- const feedback=txt(q.querySelector('.qcFeedback'));
- const correct=selected.classList.contains('correct');
- const wrong=selected.classList.contains('wrong');
- if(correct||wrong)lastCheck={question,answer,correct,feedback,at:Date.now()};
+ const answer=txt(btn);
+ const options=[...q.querySelectorAll('.qcOption')].map(txt);
+ currentExercise={section:'Reading',question,studentAnswer:answer,options};
+ /* Let the already-working native checker paint its feedback first. */
+ setTimeout(()=>{
+  const feedback=txt(q.querySelector('.qcFeedback'));
+  const correct=btn.classList.contains('correct');
+  const wrong=btn.classList.contains('wrong');
+  lastCheck=(correct||wrong)?{question,answer,correct,feedback,at:Date.now()}:null;
+  seq++;
+  status.textContent=`Kostya context #${seq}: Reading · ${question} · chosen: ${answer} · ${correct?'Correct':wrong?'Not quite':'Not checked'} · sending…`;
+  send();
+ },0);
 }
-function snapshot(){
- const activeSection=section();
- if(/reading/i.test(activeSection)||visible(document.querySelector('.qcQuestion')))latestReading();
- const field=document.activeElement;
- const writing=field?.matches?.('textarea,input[type="text"],[contenteditable="true"]')&&visible(field);
- const focusedPassage=String(window.getSelection?.()?.toString()||'').slice(0,750);
- const current=writing?{question:txt(field.closest('label')||field.closest('[class*="question"]')||field.getAttribute('aria-label')||''),studentAnswer:txt(field),options:[],field:field.name||field.id||''}:currentExercise;
- return {source:'webilang-lesson',type:'context',version:1,activeSection,courseLanguage:'English',title:document.title,url:location.href,
-  focusedPassage,focusedField:writing?(field.name||field.id||'writing'): '',
-  currentExercise:current&&{question:current.question,studentAnswer:current.studentAnswer,options:current.options,field:current.field||''},
-  lastCheck:lastCheck&&{kind:'quiz_check',task:lastCheck.question,studentAnswer:lastCheck.answer,verifiedCorrectness:lastCheck.correct?'correct':'incorrect',visibleFeedbackAfter:[lastCheck.feedback],source:'English Reading Quick Check',at:lastCheck.at}};
-}
-function send(){if(iframe.contentWindow&&iframe.getAttribute('src'))iframe.contentWindow.postMessage(snapshot(),location.origin);}
-let scheduled=0;
-function schedule(){clearTimeout(scheduled);scheduled=setTimeout(send,160);}
 document.addEventListener('click',ev=>{
  const btn=ev.target.closest?.('.qcQuestion .qcOption');
- if(btn){
-  const q=btn.closest('.qcQuestion');
-  if(q){currentExercise={section:'Reading',question:txt(q.querySelector('.qcStem')),studentAnswer:txt(btn),options:[...q.querySelectorAll('.qcOption')].map(txt)};
-   setTimeout(()=>{const f=txt(q.querySelector('.qcFeedback')); const c=btn.classList.contains('correct'),w=btn.classList.contains('wrong');
-    if(c||w)lastCheck={question:currentExercise.question,answer:txt(btn),correct:c,feedback:f,at:Date.now()};
-    send();},40);
-  }
- }
- schedule();
-},true);
-document.addEventListener('change',schedule,true);
-document.addEventListener('input',schedule,true);
-document.addEventListener('focusin',schedule,true);
-iframe.addEventListener('load',()=>setTimeout(send,0));
+ if(btn){const q=btn.closest('.qcQuestion');if(q)captureQuestion(q,btn);return;}
+ /* Tab changes do not overwrite the last quiz answer until a new task is touched. */
+ const tab=ev.target.closest?.('[role=tab],.tab,[data-tab]');
+ if(tab)setTimeout(()=>send(),0);
+},false);
+iframe.addEventListener('load',()=>{send();});
 window.addEventListener('message',ev=>{
  if(ev.origin!==location.origin||ev.source!==iframe.contentWindow)return;
- if(ev.data?.source==='webilang-realtime-english'&&ev.data.type==='lesson-context-request')send();
+ if(ev.data?.source!=='webilang-realtime-english'||ev.data.type!=='lesson-context-ack')return;
+ const ack=ev.data;
+ status.textContent=`Kostya ${ack.connected?'AI connected':'window received'}: ${ack.section||'lesson'} · ${ack.question||'no question yet'} · ${ack.answer||'no selected answer yet'}`;
 });
-document.getElementById('wlKostyaFab')?.addEventListener('click',()=>{setTimeout(send,300);setTimeout(send,950)});
-/* The lesson context is sent to the AI only; no internal context labels are displayed. */
+/* Resend on opening; the iframe may still be loading. */
+document.getElementById('wlKostyaFab')?.addEventListener('click',()=>setTimeout(send,350));
 })();
 </script>
 </body>
