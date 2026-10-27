@@ -14961,59 +14961,82 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close()
 })();
 </script>
 <script id="wl-english-kostya-bridge">
-/* English-only bridge. Do not change the native Reading check handlers. */
+/* Context bridge modelled on the working Russian lesson's live DOM observation.
+   This code never changes the lesson's grading functions or UI feedback. */
 (()=>{'use strict';
 const iframe=document.getElementById('wlKostyaFrame');
 const panel=document.getElementById('wlKostyaPanel');
 if(!iframe||!panel)return;
-let currentExercise=null,lastCheck=null,seq=0;
-const status=document.createElement('div');
-status.id='wlKostyaContextStatus';
-status.setAttribute('role','status');
-status.style.cssText='font-size:12px;line-height:1.35;padding:6px 12px;background:#eff6ff;color:#183b61;white-space:normal;';
-status.textContent='Kostya context: choose an answer to share it.';
-iframe.before(status);
-const txt=x=>(x?.textContent||'').trim().replace(/\s+/g,' ').slice(0,700);
-const section=()=>{
- const q=document.querySelector('.qcQuestion:has(.qcOption.selected)');
- if(q&&q.offsetParent!==null)return 'Reading';
- const active=document.querySelector('[role=tab][aria-selected=true],.tab.active,.nav-tab.active,[data-tab].active');
- return txt(active)||'Reading / current lesson';
-};
-function snapshot(){return {source:'webilang-lesson',type:'context',version:1,activeSection:currentExercise?.section||section(),courseLanguage:'English',title:document.title,url:location.href,currentExercise:currentExercise&&{question:currentExercise.question,studentAnswer:currentExercise.studentAnswer,options:currentExercise.options,field:currentExercise.field||''},lastCheck:lastCheck&&{kind:'quiz_check',task:lastCheck.question,studentAnswer:lastCheck.answer,verifiedCorrectness:lastCheck.correct?'correct':'incorrect',visibleFeedbackAfter:[lastCheck.feedback],source:'English Reading Quick Check',at:lastCheck.at}};}
-function send(){if(!iframe.contentWindow||!iframe.getAttribute('src'))return; iframe.contentWindow.postMessage(snapshot(),location.origin);}
-function captureQuestion(q,btn){
- const question=txt(q.querySelector('.qcStem'));
- const answer=txt(btn);
- const options=[...q.querySelectorAll('.qcOption')].map(txt);
- currentExercise={section:'Reading',question,studentAnswer:answer,options};
- /* Let the already-working native checker paint its feedback first. */
- setTimeout(()=>{
-  const feedback=txt(q.querySelector('.qcFeedback'));
-  const correct=btn.classList.contains('correct');
-  const wrong=btn.classList.contains('wrong');
-  lastCheck=(correct||wrong)?{question,answer,correct,feedback,at:Date.now()}:null;
-  seq++;
-  status.textContent=`Kostya context #${seq}: Reading · ${question} · chosen: ${answer} · ${correct?'Correct':wrong?'Not quite':'Not checked'} · sending…`;
-  send();
- },0);
+const text=(node,max=700)=>String(node?.innerText||node?.textContent||'').replace(/\s+/g,' ').trim().slice(0,max);
+const visible=el=>{if(!el||!el.isConnected)return false;const st=getComputedStyle(el);return st.display!=='none'&&st.visibility!=='hidden'&&el.getClientRects().length>0&&!el.closest('[hidden],[aria-hidden="true"],#wlKostyaPanel')};
+const taskSelector='.qcQuestion,.question,.exercise-item,.task-item,[data-question],fieldset,[role="group"],.exercise,.task,.quiz-question,article,.card,section';
+let touched=null,focused=null,selectedPassage='',lastCheck=null,lastSignature='',sendTimer=0,checkTimer=0;
+function section(){
+ const tab=[...document.querySelectorAll('.wlTab[aria-selected="true"],[role="tab"][aria-selected="true"],[aria-current="page"],[data-tab].active')].find(visible);
+ return (tab?.dataset?.tab||text(tab,80)||'current lesson').replace(/[-_]/g,' ');
 }
-document.addEventListener('click',ev=>{
- const btn=ev.target.closest?.('.qcQuestion .qcOption');
- if(btn){const q=btn.closest('.qcQuestion');if(q)captureQuestion(q,btn);return;}
- /* Tab changes do not overwrite the last quiz answer until a new task is touched. */
- const tab=ev.target.closest?.('[role=tab],.tab,[data-tab]');
- if(tab)setTimeout(()=>send(),0);
-},false);
-iframe.addEventListener('load',()=>{send();});
-window.addEventListener('message',ev=>{
- if(ev.origin!==location.origin||ev.source!==iframe.contentWindow)return;
- if(ev.data?.source!=='webilang-realtime-english'||ev.data.type!=='lesson-context-ack')return;
- const ack=ev.data;
- status.textContent=`Kostya ${ack.connected?'AI connected':'window received'}: ${ack.section||'lesson'} · ${ack.question||'no question yet'} · ${ack.answer||'no selected answer yet'}`;
+function currentTask(){
+ if(touched?.isConnected&&visible(touched))return touched.closest(taskSelector)||touched;
+ const el=focused?.isConnected&&visible(focused)?focused:null;
+ if(el)return el.closest(taskSelector)||el.parentElement;
+ return null;
+}
+function selectedQuestion(){
+ const q=currentTask();if(!q||!visible(q))return null;
+ const stem=q.querySelector('.qcStem,legend,.question-text,.prompt,[data-prompt],h3,h4')||q;
+ const control=focused&&q.contains(focused)?focused:null;
+ const chosen=q.querySelector('.qcOption.selected,.qcOption[aria-pressed="true"],input:checked');
+ const answer=chosen?text(chosen,450):control?String(control.type==='password'?'[omitted]':control.value??control.innerText??'').slice(0,450):'';
+ const options=[...q.querySelectorAll('.qcOption,select option,[role="option"]')].slice(0,9).map(x=>text(x,130)).filter(Boolean);
+ return {kind:'current_exercise',question:text(stem,800),studentAnswer:answer,options,field:control?.id||control?.name||control?.tagName?.toLowerCase()||'',at:Date.now()};
+}
+function snapshot(){
+ const main=document.querySelector('main')||document.body,task=currentTask(),active=section();
+ const controls=task?[...task.querySelectorAll('input:not([type="hidden"]),textarea,select,[contenteditable="true"]')].filter(visible).slice(0,8).map(el=>({label:text(el.closest('label')||el.parentElement,100),type:el.type||el.tagName.toLowerCase(),value:el.type==='password'?'[omitted]':el.type==='checkbox'||el.type==='radio'?(el.checked?'selected':'not selected'):String(el.value??el.innerText??'').slice(0,150)})):[];
+ const recentCheck=lastCheck&&Date.now()-lastCheck.at<120000&&lastCheck.section===active?lastCheck:null;
+ return {source:'webilang-lesson',type:'context',version:1,activeSection:active,courseLanguage:'English',title:document.title,url:location.pathname,headings:[...main.querySelectorAll('h1,h2,h3,[role="heading"]')].filter(visible).slice(-9).map(x=>text(x,110)),activeLabels:[...document.querySelectorAll('[aria-selected="true"],[aria-current="page"]')].filter(visible).slice(-6).map(x=>text(x,90)),activeTask:task?text(task,900):'',studentInputs:controls,focusedField:focused?.id||focused?.name||'',focusedPassage:selectedPassage,currentExercise:selectedQuestion(),lastCheck:recentCheck,updatedAt:Date.now()};
+}
+function send(force=false){
+ if(panel.hidden||!iframe.contentWindow||!iframe.getAttribute('src'))return;
+ const ctx=snapshot(),key=JSON.stringify({...ctx,updatedAt:0,currentExercise:ctx.currentExercise?{...ctx.currentExercise,at:0}:null});
+ if(!force&&key===lastSignature)return;
+ lastSignature=key;iframe.contentWindow.postMessage(ctx,location.origin);
+}
+function schedule(){if(panel.hidden)return;clearTimeout(sendTimer);sendTimer=setTimeout(()=>send(),300)}
+function selectedFragment(el){if(!el||typeof el.selectionStart!=='number')return '';const v=String(el.value||'');const a=el.selectionStart,b=el.selectionEnd;if(a!==b)return v.slice(a,b).trim().slice(0,800);const left=v.slice(0,a).split(/[.!?\n]/).pop()||'',right=(v.slice(a).split(/[.!?\n]/)[0]||'');return (left+right).trim().slice(0,800)}
+function noteCheck(q,btn){
+ clearTimeout(checkTimer);checkTimer=setTimeout(()=>{
+  if(!q.isConnected)return;
+  const correct=btn.classList.contains('correct'),wrong=btn.classList.contains('wrong');
+  const stem=text(q.querySelector('.qcStem')||q,650),answer=text(btn,250);
+  const feedback=text(q.querySelector('.qcFeedback'),450);
+  lastCheck={kind:'quiz_check',button:'Check',task:stem,studentAnswer:answer,verifiedCorrectness:correct?'correct':wrong?'incorrect':'unknown',visibleFeedbackAfter:feedback?[feedback]:[],source:'English lesson checker',section:section(),at:Date.now()};
+  send(true);
+ },100);
+}
+document.addEventListener('pointerdown',e=>{
+ const el=e.target;if(!(el instanceof Element)||panel.contains(el))return;
+ const q=el.closest(taskSelector);if(q&&visible(q))touched=q;
+},true);
+document.addEventListener('click',e=>{
+ const el=e.target;if(!(el instanceof Element)||panel.contains(el))return;
+ const opt=el.closest('.qcQuestion .qcOption');if(opt){const q=opt.closest('.qcQuestion');if(q){touched=q;noteCheck(q,opt)}}
+ const tab=el.closest('.wlTab,[role="tab"],[data-tab]');if(tab){touched=null;focused=null;selectedPassage='';lastCheck=null;lastSignature=''}
+ schedule();
+},true);
+document.addEventListener('focusin',e=>{const el=e.target;if(el instanceof Element&&!panel.contains(el)&&el.matches('input:not([type="hidden"]),textarea,select,[contenteditable="true"]')){focused=el;touched=el.closest(taskSelector)||el.parentElement;selectedPassage='';schedule()}},true);
+document.addEventListener('input',schedule,true);
+document.addEventListener('change',schedule,true);
+document.addEventListener('keyup',e=>{if(e.target===focused)selectedPassage=selectedFragment(focused);schedule()},true);
+document.addEventListener('mouseup',e=>{if(e.target===focused)selectedPassage=selectedFragment(focused);schedule()},true);
+window.addEventListener('hashchange',()=>{touched=null;lastCheck=null;lastSignature='';schedule()});
+iframe.addEventListener('load',()=>{lastSignature='';send(true)});
+window.addEventListener('message',e=>{
+ if(e.origin!==location.origin||e.source!==iframe.contentWindow)return;
+ if(e.data?.source==='webilang-realtime-english'&&e.data?.type==='lesson-context-request')send(true);
 });
-/* Resend on opening; the iframe may still be loading. */
-document.getElementById('wlKostyaFab')?.addEventListener('click',()=>setTimeout(send,350));
+new MutationObserver(schedule).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-selected','aria-current']});
+document.getElementById('wlKostyaFab')?.addEventListener('click',()=>setTimeout(()=>send(true),350));
 })();
 </script>
 </body>
