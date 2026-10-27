@@ -4254,10 +4254,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus
 <h1 class="srOnly" id="pageTitle-reading">Reading</h1>
 
 <div class="wlPageResetRow"><button type="button" class="wlPageResetBtn" data-reset-tab="reading">↺ Reset page</button></div>
-<div class="unknownSelectMode readingHighlightGuide" id="readingUnknownMode">
-  <span class="unknownModeLabel">🖍 Highlight a word or phrase directly in the text.</span>
-  <span class="unknownModeHelp">No mode switch: select 1–6 words. Your selection appears in <b>My words</b> under that Reading; save it to My Word Stock when you are ready.</span>
-</div>
+
 
   <div class="readingGrid">
 
@@ -14950,7 +14947,13 @@ try{const saved=JSON.parse(sessionStorage.getItem(sessionKey)||'null');if(saved?
 #wlKostyaFab.wl-active{background:#ea580c}
 
 #wlKostyaPanel{position:fixed;right:18px;bottom:79px;z-index:5991;background:white;width:min(430px,calc(100vw - 25px));height:min(670px,calc(100dvh - 105px));border:2px solid #acc7e6;border-radius:18px;box-shadow:0 16px 50px #183b5c66;display:flex;flex-direction:column;overflow:hidden}
-#wlKostyaPanel header{background:#eaf3ff;padding:10px 13px;display:flex;gap:8px;align-items:center;justify-content:space-between;color:#193d66}
+#wlKostyaPanel header{background:#eaf3ff;padding:8px 10px;display:flex;gap:6px;align-items:center;justify-content:space-between;color:#193d66;flex:0 0 auto;min-width:0}
+#wlKostyaPanel header strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:clamp(12px,2.6vw,16px)}
+#wlKostyaPanel header .wl-head-actions{flex:0 0 auto;gap:4px}
+#wlKostyaPanel header .wl-head-actions button{font-size:12px;padding:6px 7px}
+@media(max-width:520px){#wlKostyaMinimize{font-size:0!important;min-width:35px}#wlKostyaMinimize::after{content:'−';font-size:20px}#wlKostyaClose{font-size:0!important;min-width:35px}#wlKostyaClose::after{content:'✕';font-size:17px}}
+@media(max-height:650px){#wlKostyaPanel{top:6px!important;bottom:auto!important;max-height:calc(100dvh - 12px);height:calc(100dvh - 12px)}#wlKostyaPanel p{font-size:12px;padding:3px 8px}}
+
 #wlKostyaPanel header button{border:1px solid #b0cde9;background:#fff;border-radius:8px;padding:5px 9px;font-weight:800;cursor:pointer}
 #wlKostyaPanel p{font:13px/1.45 system-ui,sans-serif;color:#425975;padding:8px 12px;margin:0}
 #wlKostyaFrame{width:100%;flex:1;border:0;background:#f1f6fc}
@@ -15076,11 +15079,26 @@ fab.addEventListener('click',()=>{
    alert('Finish the other conversation before opening Kostya.');return;
  }
  panel.hidden=false;setMinimized(false);
- panel.style.left='';panel.style.top='';panel.style.right='';panel.style.bottom='';
- frame.src='/avatar-lab/realtime-english.html?pilot=kostya_teacher&character=kostya';
+ panel.style.left='';panel.style.top='';panel.style.right='';panel.style.bottom='';clampKostyaPanel();
+ // The English-specific avatar page must be uploaded along with this index.html.
+ const englishAvatarUrl='/avatar-lab/realtime-english.html?pilot=kostya_teacher&character=kostya';
+ fetch('/avatar-lab/realtime-english.html',{method:'HEAD',cache:'no-store'}).then(r=>{
+   if(panel.hidden)return;
+   if(r.ok){frame.src=englishAvatarUrl;return;}
+   frame.removeAttribute('src');
+   writingStatus.textContent='English Kostya file missing (404): upload avatar-lab/realtime-english.html from the same ZIP to GitHub.';
+ }).catch(()=>{if(!panel.hidden)writingStatus.textContent='Cannot load the English avatar. Check your connection and the /avatar-lab/realtime-english.html deployment.';});
  startSharing();
 });
 // Move the panel by its header; never start dragging from the buttons.
+function clampKostyaPanel(){
+  if(panel.hidden)return;
+  const vw=document.documentElement.clientWidth,vh=document.documentElement.clientHeight;
+  const r=panel.getBoundingClientRect();
+  const left=Math.max(4,Math.min(r.left,Math.max(4,vw-r.width-4)));
+  const top=Math.max(4,Math.min(r.top,Math.max(4,vh-r.height-4)));
+  panel.style.left=left+'px';panel.style.top=top+'px';panel.style.right='auto';panel.style.bottom='auto';
+}
 const dragHandle=document.getElementById('wlKostyaDragHandle');
 let dragState=null;
 dragHandle?.addEventListener('pointerdown',event=>{
@@ -15095,10 +15113,10 @@ dragHandle?.addEventListener('pointermove',event=>{
  const top=Math.min(Math.max(0,dragState.top+event.clientY-dragState.y),Math.max(0,innerHeight-panel.offsetHeight));
  panel.style.left=left+'px';panel.style.top=top+'px';panel.style.right='auto';panel.style.bottom='auto';
 });
-const stopDrag=()=>{dragState=null};
+const stopDrag=()=>{dragState=null;clampKostyaPanel()};
 dragHandle?.addEventListener('pointerup',stopDrag);
 dragHandle?.addEventListener('pointercancel',stopDrag);
-window.addEventListener('resize',()=>{if(panel.hidden)return;const r=panel.getBoundingClientRect();if(panel.style.left){panel.style.left=Math.max(0,Math.min(r.left,innerWidth-r.width))+'px';panel.style.top=Math.max(0,Math.min(r.top,innerHeight-r.height))+'px';}});
+window.addEventListener('resize',clampKostyaPanel);
 // Delivery diagnostics: distinguish data collected from data accepted by English avatar.
 window.addEventListener('message',ev=>{
  if(ev.origin!==location.origin||ev.source!==frame.contentWindow||ev.data?.source!=='webilang-realtime-english'||ev.data.type!=='lesson-context-ack')return;
