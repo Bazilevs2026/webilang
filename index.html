@@ -14970,7 +14970,7 @@ let currentExercise=null,lastCheck=null,seq=0;
 const status=document.createElement('div');
 status.id='wlKostyaContextStatus';
 status.setAttribute('role','status');
-status.style.cssText='font-size:12px;line-height:1.35;padding:6px 12px;background:#eff6ff;color:#183b61;white-space:normal;';
+status.style.cssText='display:none!important';
 status.textContent='Kostya context: choose an answer to share it.';
 iframe.before(status);
 const txt=x=>(x?.textContent||'').trim().replace(/\s+/g,' ').slice(0,700);
@@ -14980,7 +14980,7 @@ const section=()=>{
  const active=document.querySelector('[role=tab][aria-selected=true],.tab.active,.nav-tab.active,[data-tab].active');
  return txt(active)||'Reading / current lesson';
 };
-function snapshot(){return {source:'webilang-lesson',type:'context',version:1,activeSection:currentExercise?.section||section(),courseLanguage:'English',title:document.title,url:location.href,currentExercise:currentExercise&&{question:currentExercise.question,studentAnswer:currentExercise.studentAnswer,options:currentExercise.options,field:currentExercise.field||''},lastCheck:lastCheck&&{kind:'quiz_check',task:lastCheck.question,studentAnswer:lastCheck.answer,verifiedCorrectness:lastCheck.correct?'correct':'incorrect',visibleFeedbackAfter:[lastCheck.feedback],source:'English Reading Quick Check',at:lastCheck.at}};}
+function snapshot(){return {source:'webilang-lesson',type:'context',version:1,activeSection:activeTabName(),courseLanguage:'English',title:document.title,url:location.href,currentExercise:currentExercise&&{question:currentExercise.question,studentAnswer:currentExercise.studentAnswer,options:currentExercise.options,field:currentExercise.field||''},lastCheck:lastCheck&&{kind:'quiz_check',task:lastCheck.question,studentAnswer:lastCheck.answer,verifiedCorrectness:lastCheck.verifiedCorrectness|| (lastCheck.correct?'correct':'incorrect'),visibleFeedbackAfter:[lastCheck.feedback],source:'English Reading Quick Check',at:lastCheck.at}};}
 function send(){if(!iframe.contentWindow||!iframe.getAttribute('src'))return; iframe.contentWindow.postMessage(snapshot(),location.origin);}
 function captureQuestion(q,btn){
  const question=txt(q.querySelector('.qcStem'));
@@ -15012,6 +15012,75 @@ window.addEventListener('message',ev=>{
  const ack=ev.data;
  status.textContent=`Kostya ${ack.connected?'AI connected':'window received'}: ${ack.section||'lesson'} · ${ack.question||'no question yet'} · ${ack.answer||'no selected answer yet'}`;
 });
+
+/* English activity bridge: reuse the Reading context contract for all OTHER tabs.
+   The native graders remain unchanged. Never infer grade without visible feedback. */
+const genericSelector='[data-question],.grammarQuestion,.grammarExercise,.practiceItem,.practiceCard,.exercise,.task,.question,.gapItem,.writingTask,.speakingTask,fieldset,.card,.row';
+const gradeSelector='.qcFeedback,.practiceFeedback,.gapFeedback,.feedback,.result,.wlBabyFeedback,.wlBabyReview,[role="alert"],[aria-live="polite"],[aria-live="assertive"],.choiceCorrect,.choiceWrong';
+let genericTask=null,genericAnswer='',genericSection='',genericSerial=0,genericFeedbackTimer=0;
+function activeTabName(){
+ const tab=[...document.querySelectorAll('.wlTab')].find(b=>b.classList.contains('active')||b.getAttribute('aria-selected')==='true');
+ if(tab)return (tab.dataset.tab||txt(tab)).toLowerCase();
+ const visiblePanel=[...document.querySelectorAll('[id^="tab-"]')].find(p=>p.getBoundingClientRect().height>0 && getComputedStyle(p).display!=='none'&&!p.hidden);
+ return visiblePanel?.id.replace(/^tab-/,'')||'current lesson';
+}
+function genericContainer(el){
+ const tab=el.closest('[id^="tab-"]');
+ let box=el.closest(genericSelector);
+ if(!box||box===tab||box.contains(document.getElementById('wlKostyaPanel')))box=el.closest('label,li,fieldset,article,section')||el.parentElement;
+ if(tab&&!tab.contains(box))box=el.parentElement;
+ return box;
+}
+function genericPrompt(box,el){
+ const q=box?.querySelector('.qcStem,legend,.question-text,.prompt,[data-prompt],h3,h4,h5,label,.exerciseTitle,.grammarPrompt');
+ const short=txt(q||box).slice(0,500);
+ return short||el?.getAttribute('aria-label')||el?.placeholder||'Current exercise';
+}
+function recordGeneric(el){
+ const sectionNow=activeTabName();
+ if(sectionNow==='reading'||!el||panel.contains(el)||el.closest('#wlKostyaPanel'))return;
+ const box=genericContainer(el);if(!box)return;
+ genericTask=box;genericSection=sectionNow;
+ const isInput=el.matches('input,textarea,select,[contenteditable="true"]');
+ const candidate=el.closest('button,[role="option"],[role="radio"],label')||el;
+ const source=isInput?el:candidate;
+ genericAnswer=(isInput?(el.type==='checkbox'||el.type==='radio'?(el.checked?el.value:'not selected'):el.value??el.innerText):txt(source)).toString().slice(0,700);
+ currentExercise={section:sectionNow,question:genericPrompt(box,el),studentAnswer:genericAnswer,options:[...box.querySelectorAll('button,[role="option"]')].slice(0,9).map(txt),field:el.id||el.name||''};
+ lastCheck=null;genericSerial++;
+ send();
+}
+function recordFeedback(){
+ if(!genericTask?.isConnected||genericSection!==activeTabName())return;
+ const after=[...genericTask.querySelectorAll(gradeSelector)].filter(el=>el.getBoundingClientRect().height>0).map(txt).filter(Boolean);
+ const selected=genericTask.querySelector('.choiceCorrect,.choiceWrong,.correct,.wrong');
+ const feedback=(after.join(' | ')||'').slice(0,1000);
+ const grade=selected?.classList.contains('choiceCorrect')||selected?.classList.contains('correct')?'correct':selected?.classList.contains('choiceWrong')||selected?.classList.contains('wrong')?'incorrect':/^\s*(?:✓\s*)?correct\b|^\s*well done\b/i.test(feedback)?'correct':/^\s*not quite\b|^\s*incorrect\b|^\s*try again\b/i.test(feedback)?'incorrect':'unknown';
+ if(!feedback&&grade==='unknown')return;
+ lastCheck={question:currentExercise?.question||genericPrompt(genericTask),answer:genericAnswer,correct:grade==='correct',feedback,at:Date.now(),verifiedCorrectness:grade};
+ send();
+}
+document.addEventListener('click',ev=>{
+ const el=ev.target instanceof Element?ev.target:null;
+ if(!el||panel.contains(el))return;
+ const changedTab=el.closest('.wlTab');
+ if(changedTab){genericTask=null;genericAnswer='';genericSection='';currentExercise=null;lastCheck=null;setTimeout(send,60);return}
+ if(activeTabName()==='reading')return;
+ const actionable=el.closest('button,[role="option"],[role="radio"],input,select,textarea,[contenteditable="true"]');
+ if(!actionable)return;
+ recordGeneric(actionable);
+ clearTimeout(genericFeedbackTimer);genericFeedbackTimer=setTimeout(recordFeedback,260);
+},true);
+for(const type of ['input','change'])document.addEventListener(type,ev=>{
+ const el=ev.target;if(!(el instanceof Element)||!el.matches('input,textarea,select,[contenteditable="true"]'))return;
+ recordGeneric(el);clearTimeout(genericFeedbackTimer);genericFeedbackTimer=setTimeout(recordFeedback,400);
+},true);
+window.addEventListener('webilang:answer-graded',ev=>{
+ const d=ev.detail||{};if(activeTabName()==='reading')return;
+ const grade=['correct','incorrect'].includes(d.status)?d.status:'unknown';
+ lastCheck={question:String(d.task||currentExercise?.question||'').slice(0,500),answer:String(d.studentAnswer??genericAnswer).slice(0,700),correct:grade==='correct',verifiedCorrectness:grade,feedback:String(d.feedback||'').slice(0,1000),at:Date.now()};
+ send();
+});
+
 /* Resend on opening; the iframe may still be loading. */
 document.getElementById('wlKostyaFab')?.addEventListener('click',()=>setTimeout(send,350));
 })();
