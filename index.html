@@ -15008,11 +15008,14 @@ window.addEventListener('webilang:answer-graded',e=>{
  const d=e.detail||{};
  if(!['correct','incorrect'].includes(d.status))return;
  clearTimeout(checkTimer);
- lastCheck={kind:'answer_check',button:'Check',task:String(d.task||'').slice(0,650),
-  studentAnswer:String(d.studentAnswer||exactAnswer?.answer||'').slice(0,450),
+ const gradedAnswer=String(d.studentAnswer??'').trim() || exactAnswer?.answer || '';
+ lastCheck={kind:'answer_check',button:'Check',task:String(d.task||exactAnswer?.question||'').slice(0,650),
+  studentAnswer:String(gradedAnswer).slice(0,450),
   expectedAnswer:String(d.expectedAnswer||'').slice(0,250),
   verifiedCorrectness:d.status,visibleFeedbackAfter:[String(d.feedback||'').slice(0,800)],
   source:String(d.source||'English exercise'),section:section(),at:Date.now()};
+ // Freeze authoritative checked state before UI rerenders. Later DOM scans must not replace it.
+ exactAnswer={task:currentTask(),question:lastCheck.task,answer:lastCheck.studentAnswer,at:Date.now()};
  lastSignature='';send(true);
 });
 // For checker types without an explicit event, record visible feedback after the click.
@@ -15043,9 +15046,12 @@ function section(){
  return (tab?.dataset?.tab||text(tab,80)||'current lesson').replace(/[-_]/g,' ');
 }
 function currentTask(){
+ // Prefer the actual item from the learner's most recent interaction.
  if(touched?.isConnected&&visible(touched))return touched.closest(taskSelector)||touched;
  const el=focused?.isConnected&&visible(focused)?focused:null;
  if(el)return el.closest(taskSelector)||el.parentElement;
+ // After a checker rerenders its choices, retain the question but never invent an answer.
+ if(exactAnswer?.task?.isConnected&&visible(exactAnswer.task))return exactAnswer.task;
  return null;
 }
 function selectedQuestion(){
@@ -15054,7 +15060,9 @@ function selectedQuestion(){
  const control=focused&&q.contains(focused)?focused:null;
  const chosen=q.querySelector('.qcOption.selected,.qcOption[aria-pressed="true"],input:checked');
  const liveAnswer=chosen?text(chosen,450):control?String(control.type==='password'?'[omitted]':control.value??control.innerText??'').slice(0,450):'';
- const answer=(exactAnswer?.task===q && Date.now()-exactAnswer.at<600000 ? exactAnswer.answer : '') || liveAnswer;
+ const saved=(exactAnswer?.task===q && Date.now()-exactAnswer.at<600000 ? exactAnswer.answer : '');
+ const checked=(lastCheck?.section===section() && Date.now()-lastCheck.at<600000 && lastCheck.studentAnswer ? lastCheck.studentAnswer : '');
+ const answer=checked || saved || liveAnswer;
  const options=[...q.querySelectorAll('.qcOption,select option,[role="option"]')].slice(0,9).map(x=>text(x,130)).filter(Boolean);
  return {kind:'current_exercise',question:text(stem,800),studentAnswer:answer,options,field:control?.id||control?.name||control?.tagName?.toLowerCase()||'',at:Date.now()};
 }
@@ -15087,7 +15095,12 @@ function noteCheck(q,btn){
 }
 document.addEventListener('pointerdown',e=>{
  const el=e.target;if(!(el instanceof Element)||panel.contains(el))return;
- const q=el.closest(taskSelector);if(q&&visible(q))touched=q; captureAnswer(el);
+ const q=el.closest(taskSelector); if(q&&visible(q)){
+   const next=q.closest(taskSelector)||q;
+   if(touched && next!==touched && !touched.contains(next)){lastCheck=null;exactAnswer=null;}
+   touched=next;
+ }
+ captureAnswer(el);
 },true);
 document.addEventListener('click',e=>{
  const el=e.target;if(!(el instanceof Element)||panel.contains(el))return;
