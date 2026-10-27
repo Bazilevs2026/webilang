@@ -15022,54 +15022,70 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close()
 const iframe=document.getElementById('wlKostyaFrame');
 const panel=document.getElementById('wlKostyaPanel');
 if(!iframe||!panel)return;
-let currentExercise=null,lastCheck=null,seq=0;
-const status=document.createElement('div');
-status.id='wlKostyaContextStatus';
-status.setAttribute('role','status');
-status.style.cssText='position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;';
-status.textContent='Kostya context: choose an answer to share it.';
-iframe.before(status);
-const txt=x=>(x?.textContent||'').trim().replace(/\s+/g,' ').slice(0,700);
+let currentExercise=null,lastCheck=null;
+const txt=x=>(x?.textContent||x?.value||'').trim().replace(/\s+/g,' ').slice(0,850);
+const visible=el=>!!el&&!!(el.getClientRects().length);
 const section=()=>{
- const q=document.querySelector('.qcQuestion:has(.qcOption.selected)');
- if(q&&q.offsetParent!==null)return 'Reading';
- const active=document.querySelector('[role=tab][aria-selected=true],.tab.active,.nav-tab.active,[data-tab].active');
- return txt(active)||'Reading / current lesson';
+ const tabs=[...document.querySelectorAll('[role="tab"][aria-selected="true"],.tab.active,.nav-tab.active,[data-tab].active')];
+ const active=tabs.find(visible);
+ if(active)return txt(active);
+ const r=document.querySelector('.qcQuestion');
+ return r&&visible(r)?'Reading':'Current lesson';
 };
-function snapshot(){return {source:'webilang-lesson',type:'context',version:1,activeSection:section(),courseLanguage:'English',title:document.title,url:location.href,currentExercise:currentExercise&&{question:currentExercise.question,studentAnswer:currentExercise.studentAnswer,options:currentExercise.options,field:currentExercise.field||''},lastCheck:lastCheck&&{kind:'quiz_check',task:lastCheck.question,studentAnswer:lastCheck.answer,verifiedCorrectness:lastCheck.correct?'correct':'incorrect',visibleFeedbackAfter:[lastCheck.feedback],source:'English Reading Quick Check',at:lastCheck.at}};}
-function send(){if(!iframe.contentWindow||!iframe.getAttribute('src'))return; iframe.contentWindow.postMessage(snapshot(),location.origin);}
-function captureQuestion(q,btn){
+function latestReading(){
+ const questions=[...document.querySelectorAll('.qcQuestion')].filter(visible);
+ const active=document.activeElement?.closest?.('.qcQuestion');
+ const recent=questions.find(q=>q.contains(document.activeElement))||questions.find(q=>q.querySelector('.qcOption.selected,.qcOption.correct,.qcOption.wrong'));
+ const q=active||recent;
+ if(!q)return;
  const question=txt(q.querySelector('.qcStem'));
- const answer=txt(btn);
- const options=[...q.querySelectorAll('.qcOption')].map(txt);
- currentExercise={section:'Reading',question,studentAnswer:answer,options};
- /* Let the already-working native checker paint its feedback first. */
- setTimeout(()=>{
-  const feedback=txt(q.querySelector('.qcFeedback'));
-  const correct=btn.classList.contains('correct');
-  const wrong=btn.classList.contains('wrong');
-  lastCheck=(correct||wrong)?{question,answer,correct,feedback,at:Date.now()}:null;
-  seq++;
-  status.textContent=`Kostya context #${seq}: Reading · ${question} · chosen: ${answer} · ${correct?'Correct':wrong?'Not quite':'Not checked'} · sending…`;
-  send();
- },0);
+ const options=[...q.querySelectorAll('.qcOption')];
+ const selected=options.find(b=>b.classList.contains('selected'))||options.find(b=>b.classList.contains('wrong'))||options.find(b=>b.classList.contains('correct'));
+ if(!selected)return;
+ const answer=txt(selected);
+ currentExercise={section:'Reading',question,studentAnswer:answer,options:options.map(txt)};
+ const feedback=txt(q.querySelector('.qcFeedback'));
+ const correct=selected.classList.contains('correct');
+ const wrong=selected.classList.contains('wrong');
+ if(correct||wrong)lastCheck={question,answer,correct,feedback,at:Date.now()};
 }
+function snapshot(){
+ const activeSection=section();
+ if(/reading/i.test(activeSection)||visible(document.querySelector('.qcQuestion')))latestReading();
+ const field=document.activeElement;
+ const writing=field?.matches?.('textarea,input[type="text"],[contenteditable="true"]')&&visible(field);
+ const focusedPassage=String(window.getSelection?.()?.toString()||'').slice(0,750);
+ const current=writing?{question:txt(field.closest('label')||field.closest('[class*="question"]')||field.getAttribute('aria-label')||''),studentAnswer:txt(field),options:[],field:field.name||field.id||''}:currentExercise;
+ return {source:'webilang-lesson',type:'context',version:1,activeSection,courseLanguage:'English',title:document.title,url:location.href,
+  focusedPassage,focusedField:writing?(field.name||field.id||'writing'): '',
+  currentExercise:current&&{question:current.question,studentAnswer:current.studentAnswer,options:current.options,field:current.field||''},
+  lastCheck:lastCheck&&{kind:'quiz_check',task:lastCheck.question,studentAnswer:lastCheck.answer,verifiedCorrectness:lastCheck.correct?'correct':'incorrect',visibleFeedbackAfter:[lastCheck.feedback],source:'English Reading Quick Check',at:lastCheck.at}};
+}
+function send(){if(iframe.contentWindow&&iframe.getAttribute('src'))iframe.contentWindow.postMessage(snapshot(),location.origin);}
+let scheduled=0;
+function schedule(){clearTimeout(scheduled);scheduled=setTimeout(send,160);}
 document.addEventListener('click',ev=>{
  const btn=ev.target.closest?.('.qcQuestion .qcOption');
- if(btn){const q=btn.closest('.qcQuestion');if(q)captureQuestion(q,btn);return;}
- /* Tab changes do not overwrite the last quiz answer until a new task is touched. */
- const tab=ev.target.closest?.('[role=tab],.tab,[data-tab]');
- if(tab)setTimeout(()=>send(),0);
-},false);
-iframe.addEventListener('load',()=>{send();});
+ if(btn){
+  const q=btn.closest('.qcQuestion');
+  if(q){currentExercise={section:'Reading',question:txt(q.querySelector('.qcStem')),studentAnswer:txt(btn),options:[...q.querySelectorAll('.qcOption')].map(txt)};
+   setTimeout(()=>{const f=txt(q.querySelector('.qcFeedback')); const c=btn.classList.contains('correct'),w=btn.classList.contains('wrong');
+    if(c||w)lastCheck={question:currentExercise.question,answer:txt(btn),correct:c,feedback:f,at:Date.now()};
+    send();},40);
+  }
+ }
+ schedule();
+},true);
+document.addEventListener('change',schedule,true);
+document.addEventListener('input',schedule,true);
+document.addEventListener('focusin',schedule,true);
+iframe.addEventListener('load',()=>setTimeout(send,0));
 window.addEventListener('message',ev=>{
  if(ev.origin!==location.origin||ev.source!==iframe.contentWindow)return;
- if(ev.data?.source!=='webilang-realtime-english'||ev.data.type!=='lesson-context-ack')return;
- const ack=ev.data;
- status.textContent=`Kostya ${ack.connected?'AI connected':'window received'}: ${ack.section||'lesson'} · ${ack.question||'no question yet'} · ${ack.answer||'no selected answer yet'}`;
+ if(ev.data?.source==='webilang-realtime-english'&&ev.data.type==='lesson-context-request')send();
 });
-/* Resend on opening; the iframe may still be loading. */
-document.getElementById('wlKostyaFab')?.addEventListener('click',()=>setTimeout(send,350));
+document.getElementById('wlKostyaFab')?.addEventListener('click',()=>{setTimeout(send,300);setTimeout(send,950)});
+/* The lesson context is sent to the AI only; no internal context labels are displayed. */
 })();
 </script>
 </body>
