@@ -3062,12 +3062,19 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 #wlKostyaBottomDrag{height:30px;flex:0 0 30px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;background:#eaf3ff;border-top:1px solid #b0cde9;color:#315779;font:600 12px system-ui,sans-serif;cursor:grab;user-select:none;touch-action:none;z-index:2}
 #wlKostyaBottomDrag:active{cursor:grabbing}
 #wlKostyaPanel.wl-minimized #wlKostyaBottomDrag{display:none!important}
+
+/* Pointer-safe window dragging over the non-control portion of the avatar.
+   Leaves the lower voice/text controls inside the iframe accessible. */
+#wlKostyaPanel .wl-kostya-avatar-drag{position:absolute;z-index:3;left:0;right:0;top:26%;height:35%;cursor:grab;touch-action:none;background:transparent;user-select:none}
+#wlKostyaPanel .wl-kostya-avatar-drag:active{cursor:grabbing}
+#wlKostyaPanel.wl-minimized .wl-kostya-avatar-drag{display:none!important}
 </style>
 <button id="wlKostyaFab" type="button" aria-controls="wlKostyaPanel" aria-expanded="false">🎓 Спросить Костю</button>
 <aside id="wlKostyaPanel" hidden aria-label="Kostya AI Teacher">
 <header id="wlKostyaDragHandle"><strong>🎓 Костя · AI-преподаватель</strong><span style="flex:1"></span><button id="wlKostyaProactive" type="button" aria-pressed="false" title="Proactive help is off">Подсказки: ВЫКЛ</button><button id="wlKostyaMinimize" type="button" title="Minimize but keep conversation active" aria-label="Minimize Kostya">—</button><button id="wlKostyaClose" type="button" aria-label="Close teacher help">✕ Close</button></header>
 <p>Говорите или пишите Косте. Он получит ваш последний проверенный ответ и текст выбранного задания.</p><div id="wlKostyaContextStatus" role="status" style="font:12px system-ui,sans-serif;color:#526476;padding:3px 12px">Выберите ответ или проверьте упражнение, чтобы уточнить контекст.</div>
 <iframe id="wlKostyaFrame" title="Kostya 3D voice teacher" allow="microphone;autoplay"></iframe>
+<div id="wlKostyaAvatarDrag" class="wl-kostya-avatar-drag" title="Drag Kostya using the avatar area / Перетащить Костю за область аватара" aria-label="Drag Kostya by avatar background"></div>
 <div id="wlKostyaBottomDrag" class="wl-kostya-bottom-grip" title="Drag Kostya window / Перетащить окно Кости" aria-label="Drag Kostya window">⋮⋮ &nbsp; Drag to move / Перетащить &nbsp; ⋮⋮</div>
 </aside>
 <div id="wlKostyaPrompt" role="status" hidden>В этом задании повторяются ошибки. Подсказать?<div><button id="wlKostyaExplain" type="button">Объясни</button><button id="wlKostyaDismiss" type="button">Не сейчас</button></div></div>
@@ -3079,11 +3086,11 @@ const minimizeButton=document.getElementById('wlKostyaMinimize');
 const minimize=on=>{panel.classList.toggle('wl-minimized',on);minimizeButton.textContent=on?'▢':'—';minimizeButton.title=on?'Expand Kostya':'Minimize without ending call';fab.textContent=on?'🎓 Костя · активен':'🎓 Спросить Костю';};
 const close=()=>{document.getElementById('wlKostyaPrompt').hidden=true;frame.removeAttribute('src');panel.hidden=true;panel.classList.remove('wl-minimized');fab.textContent='🎓 Спросить Костю';fab.setAttribute('aria-expanded','false');fab.focus()};
 minimizeButton.addEventListener('click',()=>minimize(!panel.classList.contains('wl-minimized')));
-const dragHandles=[document.getElementById('wlKostyaDragHandle'),document.getElementById('wlKostyaBottomDrag')].filter(Boolean);
+const dragHandles=[document.getElementById('wlKostyaDragHandle'),document.getElementById('wlKostyaBottomDrag'),document.getElementById('wlKostyaAvatarDrag')].filter(Boolean);
 let drag=null;
 for(const handle of dragHandles){
  handle.addEventListener('pointerdown',e=>{
-  if(e.button!==0||e.target.closest('button,a,input,textarea,select')||window.innerWidth<650)return;
+  if(e.button!==0||e.target.closest('button,a,input,textarea,select')||e.pointerType==='touch')return;
   const rect=panel.getBoundingClientRect();drag={id:e.pointerId,x:e.clientX,y:e.clientY,left:rect.left,top:rect.top};
   try{handle.setPointerCapture(e.pointerId)}catch{}e.preventDefault();
  });
