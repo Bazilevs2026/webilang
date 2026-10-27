@@ -4007,6 +4007,23 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus
  .wlMissionField {height:auto;min-height:50px}
 }
 </style>
+<style id="wl-kostya-universal-ui">
+/* Shared Kostya window UI: pedagogical context remains available to the AI, never shown to learners. */
+#wlKostyaPanel > p, #wlKostyaContextStatus { display:none!important; }
+#wlKostyaPanel header { display:flex; align-items:center; gap:7px; min-height:58px; box-sizing:border-box; flex-wrap:nowrap; padding:8px 10px; }
+#wlKostyaPanel header strong { flex:1 1 auto; min-width:0; font-size:clamp(13px,2.4vw,16px); line-height:1.18; overflow-wrap:anywhere; }
+#wlKostyaPanel header .wl-kostya-fill, #wlKostyaPanel header span[style*="flex:1"] { display:none!important; }
+#wlKostyaPanel header button { flex:0 0 auto; white-space:nowrap; font-size:12px; padding:6px 8px; line-height:1.2; }
+#wlKostyaMinimize { min-width:32px; }
+#wlKostyaClose { min-width:42px; }
+#wlKostyaPanel:not([hidden]) { max-height:calc(100dvh - 24px); }
+@media(max-width:560px) {
+ #wlKostyaPanel header { gap:4px; padding:6px; }
+ #wlKostyaPanel header strong {font-size:12px;}
+ #wlKostyaPanel header button {font-size:11px;padding:5px 5px;}
+ #wlKostyaProactive {max-width:95px;white-space:normal!important;}
+}
+</style>
 </head>
 <body>
 <a class="skipLink" href="#main-content">Skip to main content</a>
@@ -15019,7 +15036,7 @@ const section=()=>{
  const active=document.querySelector('[role=tab][aria-selected=true],.tab.active,.nav-tab.active,[data-tab].active');
  return txt(active)||'Reading / current lesson';
 };
-function snapshot(){return {source:'webilang-lesson',type:'context',version:1,activeSection:currentExercise?.section||section(),courseLanguage:'English',title:document.title,url:location.href,currentExercise:currentExercise&&{question:currentExercise.question,studentAnswer:currentExercise.studentAnswer,options:currentExercise.options,field:currentExercise.field||''},lastCheck:lastCheck&&{kind:'quiz_check',task:lastCheck.question,studentAnswer:lastCheck.answer,verifiedCorrectness:lastCheck.correct?'correct':'incorrect',visibleFeedbackAfter:[lastCheck.feedback],source:'English Reading Quick Check',at:lastCheck.at}};}
+function snapshot(){return {source:'webilang-lesson',type:'context',version:1,activeSection:section(),courseLanguage:'English',title:document.title,url:location.href,currentExercise:currentExercise&&{question:currentExercise.question,studentAnswer:currentExercise.studentAnswer,options:currentExercise.options,field:currentExercise.field||''},lastCheck:lastCheck&&{kind:'quiz_check',task:lastCheck.question,studentAnswer:lastCheck.answer,verifiedCorrectness:lastCheck.correct?'correct':'incorrect',visibleFeedbackAfter:[lastCheck.feedback],source:'English Reading Quick Check',at:lastCheck.at}};}
 function send(){if(!iframe.contentWindow||!iframe.getAttribute('src'))return; iframe.contentWindow.postMessage(snapshot(),location.origin);}
 function captureQuestion(q,btn){
  const question=txt(q.querySelector('.qcStem'));
