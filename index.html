@@ -8669,6 +8669,16 @@ function wireQuickCheckQuestion(q,index){
           feedback.style.color="#8a4b42";
         }
       }
+      // The checker is the authoritative source of this grade, exactly as in Russian Kostya.
+      // Never change this exercise's feedback or correctness logic for the AI assistant.
+      window.dispatchEvent(new CustomEvent('webilang:answer-graded', {detail:{
+        source:'english-quick-check',
+        status:btn.dataset.value===correctValue?'correct':'incorrect',
+        studentAnswer:btn.textContent.trim(),
+        expectedAnswer:'', // Don't expose the correct choice on an incorrect attempt.
+        feedback:feedback?.textContent||'',
+        task:(q.querySelector('.qcStem')||q).textContent.trim()
+      }}));
     });
   });
 }
@@ -14971,6 +14981,41 @@ const text=(node,max=700)=>String(node?.innerText||node?.textContent||'').replac
 const visible=el=>{if(!el||!el.isConnected)return false;const st=getComputedStyle(el);return st.display!=='none'&&st.visibility!=='hidden'&&el.getClientRects().length>0&&!el.closest('[hidden],[aria-hidden="true"],#wlKostyaPanel')};
 const taskSelector='.qcQuestion,.question,.exercise-item,.task-item,[data-question],fieldset,[role="group"],.exercise,.task,.quiz-question,article,.card,section';
 let touched=null,focused=null,selectedPassage='',lastCheck=null,lastSignature='',sendTimer=0,checkTimer=0;
+// Same explicit grading event contract as the working Russian module.
+window.addEventListener('webilang:answer-graded',e=>{
+ const d=e.detail||{};
+ if(!['correct','incorrect'].includes(d.status))return;
+ clearTimeout(checkTimer);
+ lastCheck={kind:'answer_check',button:'Check',task:String(d.task||'').slice(0,650),
+  studentAnswer:String(d.studentAnswer||'').slice(0,450),
+  expectedAnswer:String(d.expectedAnswer||'').slice(0,250),
+  verifiedCorrectness:d.status,visibleFeedbackAfter:[String(d.feedback||'').slice(0,800)],
+  source:String(d.source||'English exercise'),section:section(),at:Date.now()};
+ lastSignature='';send(true);
+});
+// For checker types without an explicit event, record visible feedback after the click.
+// Do not infer correct/incorrect unless the displayed feedback states it unmistakably.
+function captureOtherCheck(el){
+ const task=el.closest(taskSelector)||el.parentElement;if(!task)return;
+ const answerEl=task.querySelector('input:not([type="hidden"]),textarea,select,[contenteditable="true"]');
+ const before=[...task.querySelectorAll('.practiceFeedback,.gapFeedback,.feedback,.result,[role="alert"],[aria-live]')].map(x=>text(x,600));
+ setTimeout(()=>{
+  if(!task.isConnected||!visible(task))return;
+  const nodes=[...task.querySelectorAll('.practiceFeedback,.gapFeedback,.feedback,.result,[role="alert"],[aria-live]')].filter(visible);
+  const after=nodes.map(x=>text(x,600)).filter(Boolean);
+  const fresh=after.filter(x=>!before.includes(x));const shown=fresh.length?fresh:after;
+  if(!shown.length)return;
+  const f=shown.join(' ');
+  const ok=/^\s*(?:✓\s*)?correct\b|^\s*well done\b/i.test(f);
+  const wrong=/^\s*not (?:quite|yet)\b|^\s*try again\b|^\s*incorrect\b/i.test(f);
+  lastCheck={kind:'answer_check',button:text(el,70),task:text(task.querySelector('legend,.question-text,.prompt,h3,h4')||task,650),
+    studentAnswer:String(answerEl?.value||answerEl?.innerText||'').slice(0,450),
+    expectedAnswer:'',verifiedCorrectness:ok?'correct':wrong?'incorrect':'unknown',
+    visibleFeedbackAfter:shown,source:'English visible feedback',section:section(),at:Date.now()};
+  lastSignature='';send(true);
+ },180);
+}
+
 function section(){
  const tab=[...document.querySelectorAll('.wlTab[aria-selected="true"],[role="tab"][aria-selected="true"],[aria-current="page"],[data-tab].active')].find(visible);
  return (tab?.dataset?.tab||text(tab,80)||'current lesson').replace(/[-_]/g,' ');
@@ -15020,7 +15065,8 @@ document.addEventListener('pointerdown',e=>{
 },true);
 document.addEventListener('click',e=>{
  const el=e.target;if(!(el instanceof Element)||panel.contains(el))return;
- const opt=el.closest('.qcQuestion .qcOption');if(opt){const q=opt.closest('.qcQuestion');if(q){touched=q;noteCheck(q,opt)}}
+ const opt=el.closest('.qcQuestion .qcOption');if(opt){const q=opt.closest('.qcQuestion');if(q){touched=q}}
+ if(!opt && el.closest('button') && /^(?:check|check answer|submit|verify|проверить)(?:\s|$)/i.test(text(el.closest('button'),70)))captureOtherCheck(el.closest('button'));
  const tab=el.closest('.wlTab,[role="tab"],[data-tab]');if(tab){touched=null;focused=null;selectedPassage='';lastCheck=null;lastSignature=''}
  schedule();
 },true);
