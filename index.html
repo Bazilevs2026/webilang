@@ -15173,6 +15173,48 @@ choose(0);
 
 <!-- English comic responsive panel presentation: retains canonical bubbles and reading coach. -->
 <style id="wlEnglishComicResponsiveFix">
+/* The original overlay positions are relative to the ENTIRE 3x3 image.
+   Render independent panel tiles at every screen size: clipping is now per panel,
+   so no balloon can spill into the next panel. */
+#tab-story #comic{padding:10px !important;overflow:hidden !important;}
+#tab-story #comic > img,
+#tab-story #comic > #layer,
+#tab-story #comic > #wlEnglishPanelHighlight{display:none !important;}
+#tab-story #wlEnglishMobileComic{
+  display:grid !important;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;width:100%;
+}
+#tab-story .wlMobileCell{
+  position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;
+  border:2px solid #dde6f6;border-radius:5px;background:#141a38;
+  isolation:isolate;box-sizing:border-box;min-width:0;cursor:pointer;
+}
+#tab-story .wlMobileCell.wlSelected{
+  border:3px solid #2877e7;
+  box-shadow:inset 0 0 0 1px white;
+}
+#tab-story .wlMobileImage{
+  position:absolute;display:block !important;max-width:none !important;
+  width:300% !important;height:300% !important;object-fit:fill !important;
+  border-radius:0 !important;pointer-events:none;
+}
+#tab-story .wlMobileLayer{position:absolute;inset:0;z-index:2;pointer-events:none}
+#tab-story .wlMobileBubble{
+  position:absolute;box-sizing:border-box;pointer-events:auto;
+  padding:5px 28px 5px 7px;background:rgba(255,255,255,.97);
+  border:1px solid #b7c4ea;border-radius:11px;color:#182949;
+  box-shadow:0 2px 6px rgba(15,27,56,.14);
+  font-size:clamp(10px,1.1vw,14px) !important;line-height:1.13;
+  font-weight:700;overflow-wrap:anywhere;max-width:none !important;min-width:0;
+  cursor:pointer;
+}
+#tab-story .wlMobileBubble .bubbleAudio{right:2px;top:2px;padding:2px 4px;font-size:11px}
+#tab-story .wlMobileBubble .word.chosen,
+#tab-story .wlMobileBubble .word.phraseChosen{background:#ffe99a}
+#tab-story .wlMobileCell:focus-visible{outline:3px solid #2877e7;outline-offset:3px}
+@media (min-width:701px) and (max-width:1100px){
+  #tab-story .wlMobileBubble{font-size:clamp(9px,1.25vw,12px) !important;padding-right:22px}
+}
 /* Desktop selection stays INSIDE the cell and never floats over a neighbor. */
 #tab-story #comic #wlEnglishPanelHighlight{
   border:3px solid #2877e7 !important; outline:none !important;
