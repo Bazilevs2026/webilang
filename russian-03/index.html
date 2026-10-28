@@ -3336,7 +3336,30 @@ document.addEventListener('click',wlKostyaScheduleContext,true);
 document.addEventListener('change',wlKostyaScheduleContext,true);
 document.addEventListener('input',wlKostyaScheduleContext,true);
 window.addEventListener('hashchange',()=>{wlKostyaLastAction=null;wlKostyaScheduleContext()});
-window.addEventListener('webilang:reading-coach-panel-change',()=>wlKostyaSendContext(true));
+// Forward a skipped-panel prompt through Kostya's existing typed-message channel.
+// This is a real user-facing voice request, not merely a passive context update.
+let wlReadSkipRequestId=0;
+window.addEventListener('webilang:reading-coach-panel-change',e=>{
+ wlKostyaSendContext(true);
+ const detail=e.detail||{}, skipped=detail.skipNotice;
+ const requestId=++wlReadSkipRequestId;
+ if(!skipped||panel.hidden)return; // ordinary adjacent moves never produce a question
+ setTimeout(()=>{
+  if(requestId!==wlReadSkipRequestId||panel.hidden)return;
+  const iframeDoc=frame.contentDocument;
+  const field=iframeDoc?.getElementById('wlKostyaQuestion');
+  const send=iframeDoc?.getElementById('wlKostyaSend');
+  if(!field||!send)return;
+  const previous=field.value;
+  const count=Array.isArray(skipped.skipped)?skipped.skipped.length:0;
+  const missed=skipped.skipped?.[0];
+  if(!count)return;
+  field.value='СЛУЖЕБНОЕ СООБЩЕНИЕ ОТ WEBILANG (не речь ученика). Мы читаем комикс. Ученик перешёл с картинки '+skipped.from+' на картинку '+skipped.to+'. '+(count===1?'Пропущена картинка '+missed+'. Спроси ОДИН РАЗ голосом, простым русским: «А картинку '+missed+' пропускаем? Ты так хочешь?»':'Пропущено несколько картинок. Спроси ОДИН РАЗ голосом: «Эти картинки пропускаем? Ты так хочешь?»')+' Не исправляй чтение и не хвали сейчас. После ответа ученика продолжай с выбранной картинки.';
+  send.click();
+  // If no voice session exists, the existing UI reports this; do not silently claim success.
+  if(field.value)field.value=previous;
+ },650);
+});
 const wlKostyaObserver=new MutationObserver(wlKostyaScheduleContext);
 wlKostyaObserver.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-selected','aria-current']});
 document.getElementById('wlKostyaClose')?.addEventListener('click',close);
