@@ -564,7 +564,14 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
 <div class="card softblue"><div class="kicker">Контекст · Eng Hint</div><p>Анна идёт в кафе рядом с университетом. Она хочет встретить Майкла из студенческого чата.</p><div class="hint">Anna is going to a café near the university. She wants to meet Michael from the student chat.</div><div class="row" style="margin-top:9px"><button class="mini-audio" data-say="Анна идёт в кафе рядом с университетом. Она хочет встретить Майкла из студенческого чата." aria-label="Слушать контекст">🔊 Слушать</button></div></div>
 <div class="card softsun"><div class="kicker">Разминка · Warm-up</div><p><b>Кого ищет Анна?</b><br><span class="small muted">Eng Hint: Who is Anna looking for?</span></p><div class="warmopts"><button data-warm="Студента">Студента</button><button data-warm="Преподавателя">Преподавателя</button><button data-warm="Майкла">Майкла</button></div><div id="warmFeedback" class="result" aria-live="polite"></div></div>
 </div>
-<div hidden aria-hidden="true" style="display:none!important"><button id="readAll" type="button"></button><button id="stopAudio" type="button"></button><span id="voiceQuality"></span></div><div id="comicGrid" class="comic-grid"></div><div hidden><textarea id="predict"></textarea><button id="revealEnding"></button><div id="endingStatus"></div><button id="checkReading"></button></div>
+<div hidden aria-hidden="true" style="display:none!important"><button id="readAll" type="button"></button><button id="stopAudio" type="button"></button><span id="voiceQuality"></span></div><div id="comicGrid" class="comic-grid"></div>
+<div id="wlReadingCoach" class="card padded" style="border:2px solid #91b9de;background:#f5faff" aria-label="Reading Coach">
+ <div class="row spread"><h3 style="margin:0;color:#173457">🎙️ Read with Kostya · Читаем с Костей</h3><span class="pill">A1 · 9 панелей</span></div>
+ <p class="small muted" style="margin:8px 0">Выбери панель, открой Костю и прочитай одну-две фразы вслух. Костя сравнит речь с текстом и коротко подскажет, что исправить. Проверка произношения приблизительная.</p>
+ <div class="row" style="margin:10px 0"><label for="wlReadScene"><b>Панель:</b></label><select id="wlReadScene" style="padding:9px 12px;border:1px solid #b9cbdd;border-radius:10px;background:white"></select><button class="btn sm secondary" id="wlReadPrev" type="button">← Назад</button><button class="btn sm secondary" id="wlReadNext" type="button">Дальше →</button></div>
+ <div id="wlReadLines" style="background:#fff;border:1px solid #cfdfef;border-radius:13px;padding:13px;line-height:1.8" aria-live="polite"></div>
+ <div class="row" style="margin-top:12px"><button id="wlReadStart" type="button" class="btn green">🎓 Читать с Костей</button><button id="wlReadStop" type="button" class="btn secondary">Обычный режим Кости</button><span id="wlReadStatus" class="small muted">Режим чтения выключен.</span></div>
+ </div><div hidden><textarea id="predict"></textarea><button id="revealEnding"></button><div id="endingStatus"></div><button id="checkReading"></button></div>
 
 <div class="card padded"><h3 style="margin-top:0">Проверка понимания · Reading comprehension</h3><p class="small muted">Выберите ответ и нажмите Check.</p><div id="readingQuestions"></div><span id="readingResult" class="status" role="status"></span></div>
 <div class="card softmint padded"><h3>🎤 После чтения — говорим! / Speaking</h3><div class="grid2">
@@ -605,14 +612,7 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
 <section id="tab-watching" class="panel">
  <div class="pane-head"><h2>Видео · Watching</h2><p>Смотрите видео, затем ответьте на вопросы. <span class="muted">Watch the video, then answer the questions.</span></p></div>
  <div class="card softblue padded"><a class="btn" target="_blank" rel="noopener noreferrer" href="https://youtu.be/-msXUXgReI4" style="display:inline-block;text-decoration:none">▶ Watch on YouTube ↗</a></div>
- <div class="card padded" id="wlWatchTranscriptCard" style="margin-top:14px;border:1px solid #c9ddf1;background:#f8fbff">
- <details><summary style="cursor:pointer;font-weight:850;color:#173f73">📄 Текст видео для Кости · Video transcript</summary>
- <p class="small muted">Вставьте точный транскрипт видео. Он автоматически сохраняется в этом браузере и передаётся Косте при работе во вкладке Watching. Учебные выдержки из вопросов — не дословный полный транскрипт.</p>
- <textarea id="wlWatchTranscriptText" rows="7" spellcheck="false" placeholder="Вставьте сюда транскрипт видео…" aria-label="Транскрипт видео" style="width:100%;min-height:145px;box-sizing:border-box"></textarea>
- <div id="wlWatchTranscriptStatus" class="small muted" aria-live="polite">Транскрипт пока не добавлен.</div>
- </details>
-</div>
-<div class="card padded"><h3>6 вопросов · Listening comprehension (A1)</h3><p class="small muted">Choose one answer. Press Check for each question. After a wrong answer, you can open the matching dialogue excerpt.</p><div id="watchQuestions"></div></div>
+ <div class="card padded"><h3>6 вопросов · Listening comprehension (A1)</h3><p class="small muted">Choose one answer. Press Check for each question. After a wrong answer, you can open the matching dialogue excerpt.</p><div id="watchQuestions"></div></div>
  <div class="card padded"><h3>Говорение после видео · Speaking</h3><p class="small muted">Speak in Russian in the present tense. Live Transcript is editable before AI Feedback. Recognition mistakes are not automatically saved as grammar errors.</p><div id="watchSpeaking"></div></div>
  </section>
 
@@ -1806,21 +1806,6 @@ document.getElementById("readingCommonAi").onclick=async()=>{
 (function(){
 "use strict";
 const Q=[["На каком курсе Анна?", "Which year is Anna in?", ["На первом", "На втором", "На третьем"], 0, "Майкл: Я на втором курсе. А ты? Анна: Я на первом курсе.", "Я на первом курсе."], ["Что изучает Майкл?", "What does Michael study?", ["Историю и английский язык", "Русский язык и политологию", "Музыку"], 1, "Майкл: Я изучаю русский язык и политологию.", "русский язык и политологию"], ["Где живёт Майкл?", "Where does Michael live?", ["В Москве", "В Арлингтоне", "В Лондоне"], 1, "Майкл: Я живу в Арлингтоне. А ты?", "Я живу в Арлингтоне."], ["На каких языках говорит Майкл?", "Which languages does Michael speak?", ["По-английски и немного по-русски", "Только по-испански", "По-французски"], 0, "Майкл: Я говорю по-английски и немного по-русски.", "по-английски и немного по-русски"], ["Какой спорт любит Майкл?", "Which sports does Michael like?", ["Теннис", "Футбол и баскетбол", "Хоккей"], 1, "Майкл: Я люблю футбол и баскетбол. Я хорошо играю в футбол.", "футбол и баскетбол"], ["На чём играет Анна?", "Which instrument does Anna play?", ["На фортепиано", "На гитаре", "На скрипке"], 1, "Анна: Да, я играю на гитаре.", "играю на гитаре"]];
-// Reference excerpts support the comprehension tasks but are NOT a verified verbatim transcript.
-window.wlWatchReferenceExcerpts=Q.map((q,i)=>({question:q[0],excerpt:q[4]}));
-(function(){
- const field=document.getElementById('wlWatchTranscriptText');
- const status=document.getElementById('wlWatchTranscriptStatus');
- if(!field)return;
- const storageKey='webilang_russian03_video_transcript_-msXUXgReI4';
- try{field.value=localStorage.getItem(storageKey)||'';}catch(_){ }
- const update=()=>{
-   status.textContent=field.value.trim()?'✓ Текст сохранён для Кости в этом браузере.':'Транскрипт пока не добавлен.';
-   if(typeof wlKostyaScheduleContext==='function')wlKostyaScheduleContext();
- };
- field.addEventListener('input',()=>{try{localStorage.setItem(storageKey,field.value)}catch(_){status.textContent='Не удалось сохранить текст в браузере.';return;}update();});
- update();
-})();
 const TASKS=[["Учёба", "Расскажите, где вы учитесь, на каком вы курсе и что изучаете. Задайте один вопрос собеседнику.", "Say where you study, what year you are in, and what subjects you study. Ask one question.", "Я учусь в университете. Я на втором курсе. Я изучаю русский язык."], ["Языки", "Расскажите, на каких языках вы говорите и какой язык изучаете сейчас. Используйте настоящее время.", "Say which languages you speak and which language you are studying now. Use the present tense.", "Я говорю по-английски и немного по-русски."], ["Спорт и музыка", "Расскажите, какой спорт вы любите, во что играете и играете ли вы на музыкальном инструменте. Используйте настоящее время.", "Say which sports you like, what you play, and whether you play a musical instrument. Use the present tense.", "Я люблю футбол. Я играю в теннис и на гитаре."]];
 const escW=v=>String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const qroot=document.getElementById("watchQuestions"),sroot=document.getElementById("watchSpeaking");
@@ -3320,17 +3305,10 @@ function wlKostyaSnapshot(){
   task=candidates.filter(x=>x.querySelector('input,select,textarea,button,[contenteditable]')).slice(-1)[0]||null;
  }
  const controls=task?Array.from(task.querySelectorAll('input:not([type="hidden"]),select,textarea,[contenteditable="true"]')).filter(wlKostyaVisible).slice(0,8).map(el=>({label:wlKostyaText(el.closest('label')||el.parentElement,120),type:el.type||el.tagName.toLowerCase(),value:el.type==='password'?'[omitted]':el.type==='checkbox'||el.type==='radio'?(el.checked?'selected':'not selected'):String(el.value||'').slice(0,90)})):[];
+ const readCoach=window.wlReadingCoachContext?.();
  const chosen=wlKostyaFocusedData();
  if(chosen&&!controls.some(x=>x.value===chosen.value))controls.unshift({label:chosen.label||chosen.field,type:'student-response',value:chosen.value});
- // Only share video material while the Watching tab is active. Never claim the excerpts are a verbatim transcript.
- if(document.getElementById('tab-watching')?.classList.contains('active')){
-   const exact=(document.getElementById('wlWatchTranscriptText')?.value||'').trim();
-   const excerpts=Array.isArray(window.wlWatchReferenceExcerpts)?window.wlWatchReferenceExcerpts:[];
-   const references=excerpts.map((x,i)=>(i+1)+'. '+x.question+' — '+x.excerpt).join('\n');
-   controls.unshift({label:'Watching: reference excerpts for comprehension (NOT verified verbatim video transcript)',type:'video-reference',value:references.slice(0,1800)});
-   controls.unshift({label:exact?'Watching: user-provided video transcript':'Watching: full transcript unavailable',type:'video-transcript',value:exact?exact.slice(0,4500):'[Full verbatim transcript not supplied. Use reference excerpts only; do not claim to have watched the video.]'});
- }
- return {source:'webilang-lesson',type:'context',version:1,activeSection:wlKostyaActiveArea(),focusedPassage:chosen?.passage||'',focusedField:chosen?.field||'',courseLanguage:'Russian',cefrLevel:'A1',title:document.title,url:location.pathname,headings,activeLabels:selected,activeTask:task?wlKostyaText(task,900):'',studentInputs:controls,currentExercise:wlKostyaExactExercise(),lastCheck:wlKostyaActionForContext(),updatedAt:Date.now()};
+ return {source:'webilang-lesson',type:'context',version:1,activeSection:readCoach?.active?'story-reading-coach':wlKostyaActiveArea(),focusedPassage:readCoach?.active?readCoach.reference:(chosen?.passage||''),focusedField:readCoach?.active?'Reading Coach · панель '+readCoach.panel:(chosen?.field||''),courseLanguage:'Russian',cefrLevel:'A1',title:document.title,url:location.pathname,headings,activeLabels:selected,activeTask:readCoach?.active?readCoach.instructions:(task?wlKostyaText(task,900):''),studentInputs:readCoach?.active?[]:controls,currentExercise:readCoach?.active?null:wlKostyaExactExercise(),lastCheck:readCoach?.active?null:wlKostyaActionForContext(),updatedAt:Date.now()};
 }
 function wlKostyaSendContext(force=false){
  if(panel.hidden||!frame.contentWindow)return;
@@ -3355,6 +3333,38 @@ const wlKostyaObserver=new MutationObserver(wlKostyaScheduleContext);
 wlKostyaObserver.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-selected','aria-current']});
 document.getElementById('wlKostyaClose')?.addEventListener('click',close);
 window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close()});
+})();
+</script>
+<script id="wl-reading-coach-v1">
+(()=>{
+ 'use strict';
+ const scenes=window.SCENES_FOR_COACH || null;
+ // Use the source-of-truth dialogue data already embedded in this Russian unit.
+ const SCENE_TEXTS = [
+  ['Я играю на фортепиано и в шахматы. Я буду в жёлтом шарфе.','Отлично! Наконец-то я встречу Майкла!'],
+  ['Мне, пожалуйста, кофе. Меня зовут Майкл.'],
+  ['Вы Майкл?','Да.','Вы играете на фортепиано?','Нет, я играю на гитаре.','Ой!'],
+  ['Майкл!'],
+  ['Вы Майкл?','Да.'],
+  ['Вы играете в шахматы?','Нет, я играю в теннис.'],
+  ['Вы Анна?','Да. А вас как зовут?','Майкл.','О нет!'],
+  ['Вы играете на фортепиано?','Да.','Вы играете в шахматы?','Да.','А почему на вас нет жёлтого шарфа?','Я снял его. Жарко! Извините!'],
+  ['Ну ничего страшного! Наконец-то вы тот Майкл из чата!']
+ ];
+ const names=['Майкл пишет Анне','Заказ кофе','Первый Майкл','Бариста зовёт Майкла','Второй Майкл','Теннис','Третий Майкл','Настоящий Майкл','Шарф в рюкзаке'];
+ const select=document.getElementById('wlReadScene'),lines=document.getElementById('wlReadLines'),status=document.getElementById('wlReadStatus');
+ if(!select||!lines)return;
+ let selected=0,active=false;
+ names.forEach((name,i)=>{const option=document.createElement('option');option.value=String(i);option.textContent=`${i+1}. ${name}`;select.appendChild(option)});
+ function show(){selected=Math.min(8,Math.max(0,selected));select.value=String(selected);lines.replaceChildren();SCENE_TEXTS[selected].forEach((line,i)=>{const div=document.createElement('div');div.style.marginBottom='6px';const b=document.createElement('strong');b.textContent=(i+1)+'. ';div.append(b,document.createTextNode(line));lines.appendChild(div)});status.textContent=active?'Режим чтения включён · панель '+(selected+1):'Режим чтения выключен.';}
+ select.addEventListener('change',()=>{selected=Number(select.value);show()});
+ document.getElementById('wlReadPrev').onclick=()=>{selected=(selected+8)%9;show()};
+ document.getElementById('wlReadNext').onclick=()=>{selected=(selected+1)%9;show()};
+ document.getElementById('wlReadStart').onclick=()=>{active=true;show();const panel=document.getElementById('wlKostyaPanel');if(panel?.hidden)document.getElementById('wlKostyaFab')?.click();};
+ document.getElementById('wlReadStop').onclick=()=>{active=false;show()};
+ // Existing Kostya snapshot reads this synchronously; no changes to the Qwen engine.
+ window.wlReadingCoachContext=()=>({active,panel:selected+1,reference:SCENE_TEXTS[selected].join(' '),instructions:active?`READ WITH KOSTYA / РЕЖИМ ЧТЕНИЯ ВСЛУХ. Ученик читает русские реплики по одной-двум фразам. Перед тобой ЭТАЛОННЫЙ ТЕКСТ ПАНЕЛИ ${selected+1}: ${SCENE_TEXTS[selected].join(' ')}. СЛУШАЙ РЕЧЬ, сопоставляй с эталоном по порядку, не требуй произносить весь текст. Если явно совпадает — коротко и естественно: «Хорошо», «Отлично». Если ясно слышишь существенное несовпадение — назови только ошибочное место и правильный вариант, максимум два коротких предложения. Не повторяй автоматически «ты сказал», не перечисляй номера, не начинай новые упражнения, не задавай вопросов о продолжении. Если слышимость или распознавание ненадёжны, попроси повторить конкретное место, НЕ выдумывай ошибку. Не объявляй точную фонетическую оценку только на основе транскрипции. Не отвлекайся на предыдущие результаты проверки упражнений.`:''});
+ show();
 })();
 </script>
 </body></html>
