@@ -15192,6 +15192,15 @@ choose(0);
  #tab-story .wl-panel-dialogue{padding:12px;gap:8px}
  #tab-story .wl-panel-dialogue .bubble{font-size:clamp(14px,4vw,18px) !important;padding:9px 36px 9px 12px;line-height:1.32}
 }
+
+/* Speaker identity and compact scene-setting caption */
+#tab-story .wl-panel-dialogue .wl-speaker{display:block;margin:0 0 5px;font-size:11px;font-weight:800;letter-spacing:.035em;text-transform:uppercase;color:#375a82;pointer-events:none}
+#tab-story .wl-panel-dialogue .bubble.dia .wl-speaker{color:#784a9b}
+#tab-story .wl-panel-dialogue .bubble.other .wl-speaker{color:#87601e}
+#tab-story .wl-panel-dialogue .bubble.sfx .wl-speaker{color:#617082}
+#tab-story .wl-opening-caption{padding:12px 14px 14px;line-height:1.45;font-size:clamp(13px,1.05vw,16px);color:#223654;background:#f6f9ff;flex:1}
+#tab-story .wl-opening-caption strong{display:block;margin-bottom:4px;color:#173e72;font-size:14px}
+@media(max-width:700px){#tab-story .wl-panel-dialogue .wl-speaker{font-size:12px}#tab-story .wl-opening-caption{font-size:15px}}
 </style>
 <script id="wl-english-comic-panels-v3-script">
 (()=>{
@@ -15216,6 +15225,13 @@ choose(0);
    tile.style.left=(-col*100)+'%';tile.style.top=(-row*100)+'%';art.append(tile);
    const captions=document.createElement('div');captions.className='wl-panel-dialogue';
    card.append(art,captions);layer.append(card);cells.push({card,captions,panelNum});
+   if(i===0){
+     const intro=document.createElement('div');intro.className='wl-opening-caption';
+     const heading=document.createElement('strong');heading.textContent='A Game That Changed Everything';
+     const line=document.createElement('span');line.textContent='One evening, Aidan and Dia log on to play together. Neither expects what happens next.';
+     intro.append(heading,line);card.append(intro);
+     captions.remove();
+   }
    const select=()=>{if(!panelNum)return;selector.value=String(panelNum-1);selector.dispatchEvent(new Event('change',{bubbles:true}));};
    card.addEventListener('click',e=>{if(e.target.closest('button,.bubble'))return;select();});
    card.addEventListener('keydown',e=>{if(e.target===card&&(e.key==='Enter'||e.key===' ')){e.preventDefault();select();}});
@@ -15234,7 +15250,10 @@ choose(0);
      const column=match?.[1]==='a'?0:match?.[1]==='b'?1:2;
      destination=cells[9+column];
    }
-   destination.captions.append(bubble); // MOVES original node: keeps its audio/word listeners intact.
+   const role=bubble.classList.contains('aidan')?'Aidan':bubble.classList.contains('dia')?'Dia':bubble.classList.contains('sfx')?'Sound effect':cls==='p7c'?'Emergency dispatcher':cls==='p8a'||cls==='p8c'?'Paramedic':cls==='p9d'?'Narrator':'Other speaker';
+   const tag=document.createElement('span');tag.className='wl-speaker';tag.textContent=role;
+   bubble.prepend(tag);
+   destination.captions.append(bubble); // Moves original node, preserving its existing listeners.
  }
  const sync=()=>{const panel=Number(selector.value)+1;cells.forEach(({card,panelNum})=>card.classList.toggle('wl-panel-selected',panelNum===panel));};
  selector.addEventListener('change',sync);
