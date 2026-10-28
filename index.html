@@ -15261,5 +15261,23 @@ choose(0);
  sync();
 })();
 </script>
+
+<!-- Kostya visibility fix: keep floating avatar outside the lesson layout -->
+<style id="wl-kostya-float-restore">
+#wlKostyaFab{position:fixed!important;right:18px!important;bottom:18px!important;z-index:2147483000!important;display:block!important;visibility:visible!important;opacity:1!important;transform:none!important;pointer-events:auto!important}
+#wlKostyaPanel:not([hidden]){position:fixed!important;right:18px!important;bottom:79px!important;z-index:2147483001!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+@media(max-width:600px){#wlKostyaFab{right:10px!important;bottom:10px!important}#wlKostyaPanel:not([hidden]){right:7px!important;bottom:69px!important}}
+</style>
+<script id="wl-kostya-float-restore-js">
+(()=>{
+ 'use strict';
+ const fab=document.getElementById('wlKostyaFab');
+ const panel=document.getElementById('wlKostyaPanel');
+ if(!fab||!panel)return;
+ // The lesson container may clip or establish a fixed-position containing block.
+ // Move the original nodes (rather than cloning) to preserve all listeners and reading bridge.
+ document.body.append(fab,panel);
+})();
+</script>
 </body>
 </html>
