@@ -549,7 +549,14 @@ blockquote{border-left:4px solid #87ade0;margin:12px 0;padding:6px 16px;backgrou
  #wlKostyaProactive {max-width:95px;white-space:normal!important;}
 }
 </style>
-<style>#wlKostyaContextStatus{display:none!important}</style></head><body>
+<style>#wlKostyaContextStatus{display:none!important}</style><style id="wl-reading-coach-panel-select-v2">
+/* Highlight the selected comic scene without changing speech-bubble controls. */
+#comicGrid .panel-comic{transition:outline-color .16s ease,box-shadow .16s ease,filter .16s ease;outline:3px solid transparent;outline-offset:1px}
+#comicGrid .panel-comic.wl-reading-selected{outline:4px solid #2386dd;outline-offset:2px;box-shadow:0 0 0 6px rgba(35,134,221,.13),0 9px 22px rgba(20,65,105,.19);background:#edf7ff}
+#comicGrid .panel-comic:focus-within{outline-color:#7ab9ee}
+@media(prefers-reduced-motion:reduce){#comicGrid .panel-comic{transition:none}}
+</style>
+</head><body>
 <header class="header"><div class="header-inner"><div class="brand">◆ WEBILANG <span class="tag">Russian · Unit 3 · A1–A1+</span></div><h1>Знакомства</h1></div><nav class="tabs" aria-label="Разделы урока">
 <button type="button" class="tab active" data-tab="story">📖 История</button><button type="button" class="tab" data-tab="reading">📚 Чтение</button><button type="button" class="tab" data-tab="vocab">🗂 Лексика</button><button type="button" class="tab" data-tab="watching">▶ Видео</button><button type="button" class="tab" data-tab="grammar">🧩 Грамматика</button><button type="button" class="tab" data-tab="speaking">🎭 Диалог с ИИ</button><button type="button" class="tab" data-tab="words">🔖 Мои слова <span id="navWordCount">0</span></button><button type="button" class="tab" data-tab="mygrammar">📗 Моя грамматика</button><button type="button" class="tab" data-tab="roulette">🎙 Говорение</button><button type="button" class="tab" data-tab="writing">✍ Письмо</button><button type="button" class="tab" data-tab="game">🎲 Игра</button>
 </nav></header>
@@ -3329,6 +3336,7 @@ document.addEventListener('click',wlKostyaScheduleContext,true);
 document.addEventListener('change',wlKostyaScheduleContext,true);
 document.addEventListener('input',wlKostyaScheduleContext,true);
 window.addEventListener('hashchange',()=>{wlKostyaLastAction=null;wlKostyaScheduleContext()});
+window.addEventListener('webilang:reading-coach-panel-change',()=>wlKostyaSendContext(true));
 const wlKostyaObserver=new MutationObserver(wlKostyaScheduleContext);
 wlKostyaObserver.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-selected','aria-current']});
 document.getElementById('wlKostyaClose')?.addEventListener('click',close);
@@ -3356,10 +3364,13 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close()
  if(!select||!lines)return;
  let selected=0,active=false;
  names.forEach((name,i)=>{const option=document.createElement('option');option.value=String(i);option.textContent=`${i+1}. ${name}`;select.appendChild(option)});
- function show(){selected=Math.min(8,Math.max(0,selected));select.value=String(selected);lines.replaceChildren();SCENE_TEXTS[selected].forEach((line,i)=>{const div=document.createElement('div');div.style.marginBottom='6px';const b=document.createElement('strong');b.textContent=(i+1)+'. ';div.append(b,document.createTextNode(line));lines.appendChild(div)});status.textContent=active?'Режим чтения включён · панель '+(selected+1):'Режим чтения выключен.';}
- select.addEventListener('change',()=>{selected=Number(select.value);show()});
- document.getElementById('wlReadPrev').onclick=()=>{selected=(selected+8)%9;show()};
- document.getElementById('wlReadNext').onclick=()=>{selected=(selected+1)%9;show()};
+ function show(){selected=Math.min(8,Math.max(0,selected));select.value=String(selected);document.querySelectorAll('#comicGrid .panel-comic').forEach((card,i)=>{card.classList.toggle('wl-reading-selected',i===selected);card.setAttribute('aria-label','Панель '+(i+1)+(i===selected?' — выбрана для чтения':''));});lines.replaceChildren();SCENE_TEXTS[selected].forEach((line,i)=>{const div=document.createElement('div');div.style.marginBottom='6px';const b=document.createElement('strong');b.textContent=(i+1)+'. ';div.append(b,document.createTextNode(line));lines.appendChild(div)});status.textContent=active?'Режим чтения включён · панель '+(selected+1):'Режим чтения выключен.';}
+ function selectPanel(i){if(!Number.isInteger(i)||i<0||i>8)return;selected=i;show();if(active)window.dispatchEvent(new CustomEvent('webilang:reading-coach-panel-change',{detail:{panel:i+1}}));}
+ // A click on the illustrated panel selects it. Original audio/word controls still work.
+ document.getElementById('comicGrid')?.addEventListener('click',e=>{const card=e.target.closest('.panel-comic');if(!card)return;const cards=Array.from(document.querySelectorAll('#comicGrid .panel-comic'));const idx=cards.indexOf(card);if(idx>=0)selectPanel(idx);});
+ select.addEventListener('change',()=>selectPanel(Number(select.value)));
+ document.getElementById('wlReadPrev').onclick=()=>selectPanel((selected+8)%9);
+ document.getElementById('wlReadNext').onclick=()=>selectPanel((selected+1)%9);
  document.getElementById('wlReadStart').onclick=()=>{active=true;show();const panel=document.getElementById('wlKostyaPanel');if(panel?.hidden)document.getElementById('wlKostyaFab')?.click();};
  document.getElementById('wlReadStop').onclick=()=>{active=false;show()};
  // Existing Kostya snapshot reads this synchronously; no changes to the Qwen engine.
