@@ -4098,6 +4098,29 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus
 <div class="bubble aidan p9c" data-text="Video games really saved my life."><span class="word" data-word="video">Video</span> <span class="word" data-word="games">games</span> <span class="word" data-word="really">really</span> <span class="word" data-word="saved">saved</span> <span class="word" data-word="my">my</span> <span class="word" data-word="life">life</span>.</div>
 <div class="bubble other p9d" data-text="Sometimes a game is more than a game."><span class="word" data-word="sometimes">Sometimes</span> <span class="word" data-word="a">a</span> <span class="word" data-word="game">game</span> <span class="word" data-word="is">is</span> <span class="word" data-word="more">more</span> <span class="word" data-word="than">than</span> <span class="word" data-word="a">a</span> <span class="word" data-word="game">game</span>.</div></div>
 </div>
+
+<!-- English Reading Coach: separate from existing lessons and answer checking. -->
+<section id="wlEnglishReadCoach" class="card" style="margin:12px 0 18px;padding:17px;border:2px solid #9dbce5;border-radius:15px;background:#f4f9ff">
+ <h3 style="margin:0 0 8px;color:#173457">🎙️ Read with Kostya · English Reading Coach</h3>
+ <p style="font-size:14px;margin:0 0 12px">Click a comic panel, or select its number below. Read one or two lines aloud. Kostya will give brief, natural feedback.</p>
+ <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+ <label for="wlEnglishReadPanel">Panel:</label>
+ <select id="wlEnglishReadPanel" style="padding:9px;border-radius:9px;border:1px solid #a8bedb"></select>
+ <button id="wlEnglishReadPrev" type="button">← Previous</button>
+ <button id="wlEnglishReadNext" type="button">Next →</button>
+ </div>
+ <div id="wlEnglishReadText" style="margin:13px 0;padding:12px;background:#fff;border:1px solid #dae7f5;border-radius:10px;line-height:1.7"></div>
+ <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+ <button id="wlEnglishReadStart" type="button" style="background:#176f53;color:#fff;border:0;border-radius:10px;padding:11px;font-weight:bold">▶ Read with Kostya</button>
+ <button id="wlEnglishReadStop" type="button">Normal Kostya mode</button>
+ <span id="wlEnglishReadStatus" role="status" style="font-size:13px;color:#426385">Reading mode off.</span>
+ </div>
+</section>
+<style id="wlEnglishReadStyles">
+ #comic{position:relative}#wlEnglishPanelHighlight{position:absolute;border:4px solid #2877e7;box-shadow:inset 0 0 0 3px rgba(255,255,255,.9),0 0 0 3px rgba(40,119,231,.3);background:rgba(70,135,235,.09);border-radius:8px;pointer-events:none;z-index:5;box-sizing:border-box;display:none}
+ #wlEnglishReadCoach button{cursor:pointer;border-radius:9px;border:1px solid #acc8e9;background:white;padding:8px 12px;color:#174a78;font-weight:700}
+ #wlEnglishReadCoach #wlEnglishReadStart{background:#176f53;color:white}
+</style>
 <div class="help" id="help"><b>Word mode:</b> click a word inside a speech bubble.</div>
 
 <div class="localUnknownBox" id="comicLocalUnknownBox">
@@ -14980,8 +15003,13 @@ const section=()=>{
  const active=document.querySelector('[role=tab][aria-selected=true],.tab.active,.nav-tab.active,[data-tab].active');
  return txt(active)||'Reading / current lesson';
 };
-function snapshot(){return {source:'webilang-lesson',type:'context',version:1,activeSection:activeTabName(),courseLanguage:'English',title:document.title,url:location.href,currentExercise:currentExercise&&{question:currentExercise.question,studentAnswer:currentExercise.studentAnswer,options:currentExercise.options,field:currentExercise.field||''},lastCheck:lastCheck&&{kind:'quiz_check',task:lastCheck.question,studentAnswer:lastCheck.answer,verifiedCorrectness:lastCheck.verifiedCorrectness|| (lastCheck.correct?'correct':'incorrect'),visibleFeedbackAfter:[lastCheck.feedback],source:'English Reading Quick Check',at:lastCheck.at}};}
+function snapshot(){
+ const coach=window.wlEnglishReadingCoachContext?.();
+ if(coach?.active)return {source:'webilang-lesson',type:'context',version:1,activeSection:'english-story-reading-coach',courseLanguage:'English',title:document.title,url:location.href,focusedPassage:coach.reference,focusedField:'Panel '+coach.panel,activeTask:coach.instructions,currentExercise:{question:'Read aloud: panel '+coach.panel,studentAnswer:'',options:coach.lines},lastCheck:null};
+ return {source:'webilang-lesson',type:'context',version:1,activeSection:activeTabName(),courseLanguage:'English',title:document.title,url:location.href,currentExercise:currentExercise&&{question:currentExercise.question,studentAnswer:currentExercise.studentAnswer,options:currentExercise.options,field:currentExercise.field||''},lastCheck:lastCheck&&{kind:'quiz_check',task:lastCheck.question,studentAnswer:lastCheck.answer,verifiedCorrectness:lastCheck.verifiedCorrectness|| (lastCheck.correct?'correct':'incorrect'),visibleFeedbackAfter:[lastCheck.feedback],source:'English Reading Quick Check',at:lastCheck.at}};
+}
 function send(){if(!iframe.contentWindow||!iframe.getAttribute('src'))return; iframe.contentWindow.postMessage(snapshot(),location.origin);}
+window.addEventListener('webilang:english-reading-panel-changed',()=>send());
 function captureQuestion(q,btn){
  const question=txt(q.querySelector('.qcStem'));
  const answer=txt(btn);
@@ -15083,6 +15111,62 @@ window.addEventListener('webilang:answer-graded',ev=>{
 
 /* Resend on opening; the iframe may still be loading. */
 document.getElementById('wlKostyaFab')?.addEventListener('click',()=>setTimeout(send,350));
+})();
+</script>
+
+<script id="wlEnglishReadCoachScript">
+(()=>{
+'use strict';
+const root=document.getElementById('comic'),img=root?.querySelector('img'),selector=document.getElementById('wlEnglishReadPanel');
+if(!root||!img||!selector)return;
+const bubbles=[...root.querySelectorAll('.bubble[data-text]')];
+const lines=Array.from({length:9},()=>[]);
+for(const bubble of bubbles){
+ const cls=Array.from(bubble.classList).find(c=>/^p[1-9][a-z]$/.test(c));
+ if(!cls)continue;
+ const n=Number(cls[1])-1;
+ // SFX such as thuds and gasps are not words the learner needs to read.
+ if(bubble.classList.contains('sfx'))continue;
+ lines[n].push(bubble.getAttribute('data-text')||bubble.textContent.trim());
+}
+const highlight=document.createElement('div');highlight.id='wlEnglishPanelHighlight';root.append(highlight);
+const output=document.getElementById('wlEnglishReadText'),status=document.getElementById('wlEnglishReadStatus');
+let selected=0,active=false;
+for(let i=0;i<9;i++){const op=document.createElement('option');op.value=String(i);op.textContent='Panel '+(i+1);selector.append(op)}
+function updateHighlight(){
+ if(!img.getBoundingClientRect().width)return;
+ const width=img.offsetWidth/3,height=img.offsetHeight/3;
+ highlight.style.left=(img.offsetLeft+(selected%3)*width)+'px';
+ highlight.style.top=(img.offsetTop+Math.floor(selected/3)*height)+'px';
+ highlight.style.width=width+'px';highlight.style.height=height+'px';
+ highlight.style.display='block';
+}
+function notify(){window.dispatchEvent(new CustomEvent('webilang:english-reading-panel-changed',{detail:{panel:selected+1,active}}))}
+function choose(i){selected=Math.max(0,Math.min(8,i));selector.value=String(selected);output.replaceChildren();
+ lines[selected].forEach((text,j)=>{const row=document.createElement('div');row.textContent=(j+1)+'. '+text;row.style.marginBottom='5px';output.append(row)});
+ status.textContent=active?'Reading Coach on · panel '+(selected+1):'Reading mode off · panel '+(selected+1)+' selected';
+ updateHighlight();notify();}
+// The comic is one large 3x3 image. Clicked cells map to their respective bubble references.
+root.addEventListener('click',ev=>{
+ if(!(ev.target instanceof Element))return;
+ if(ev.target.closest('button,a,input,select')&&!ev.target.closest('.bubble'))return;
+ const box=img.getBoundingClientRect();const x=ev.clientX-box.left,y=ev.clientY-box.top;
+ if(x<0||y<0||x>=box.width||y>=box.height)return;
+ choose(Math.min(2,Math.floor(y/(box.height/3)))*3+Math.min(2,Math.floor(x/(box.width/3))));
+},true);
+selector.addEventListener('change',()=>choose(Number(selector.value)));
+document.getElementById('wlEnglishReadPrev').addEventListener('click',()=>choose((selected+8)%9));
+document.getElementById('wlEnglishReadNext').addEventListener('click',()=>choose((selected+1)%9));
+document.getElementById('wlEnglishReadStart').addEventListener('click',()=>{
+ active=true;choose(selected);
+ const panel=document.getElementById('wlKostyaPanel');if(panel?.hidden)document.getElementById('wlKostyaFab')?.click();
+ setTimeout(notify,500);
+});
+document.getElementById('wlEnglishReadStop').addEventListener('click',()=>{active=false;choose(selected)});
+window.wlEnglishReadingCoachContext=()=>({active,panel:selected+1,lines:lines[selected].slice(),reference:lines[selected].join(' '),instructions:active?
+ 'READ WITH KOSTYA — English reading coach. The student is reading PANEL '+(selected+1)+' aloud. REFERENCE LINES: '+lines[selected].join(' | ')+'. Compare one or two sentences at a time; do not require the full panel. Briefly praise accurately read chunks using varied natural phrases (Nice! / Good job! / That sounded good! / Well done! / Exactly!). If a meaningful mismatch is CLEAR, name the wrong word or phrase and give the correct example briefly; do not begin every response with "You said". Do not recite technical indices. If uncertain because of accent, ASR, or noise, ask to repeat rather than invent a mistake. Do not claim precise phonetic scores from ASR. Stay in reading mode and use the current selected panel only.': ''});
+window.addEventListener('resize',updateHighlight);img.addEventListener('load',updateHighlight);
+choose(0);
 })();
 </script>
 </body>
