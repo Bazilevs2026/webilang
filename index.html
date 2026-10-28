@@ -15141,7 +15141,6 @@ function updateHighlight(){
  highlight.style.width=width+'px';highlight.style.height=height+'px';
  highlight.style.display='block';
 }
-window.wlEnglishSelectPanel=(i)=>choose(i);
 function notify(){window.dispatchEvent(new CustomEvent('webilang:english-reading-panel-changed',{detail:{panel:selected+1,active}}))}
 function choose(i){selected=Math.max(0,Math.min(8,i));selector.value=String(selected);output.replaceChildren();
  lines[selected].forEach((text,j)=>{const row=document.createElement('div');row.textContent=(j+1)+'. '+text;row.style.marginBottom='5px';output.append(row)});
@@ -15170,131 +15169,78 @@ window.addEventListener('resize',updateHighlight);img.addEventListener('load',up
 choose(0);
 })();
 </script>
-
-<!-- English comic responsive panel presentation: retains canonical bubbles and reading coach. -->
-<style id="wlEnglishComicResponsiveFix">
-/* The original overlay positions are relative to the ENTIRE 3x3 image.
-   Render independent panel tiles at every screen size: clipping is now per panel,
-   so no balloon can spill into the next panel. */
-#tab-story #comic{padding:10px !important;overflow:hidden !important;}
-#tab-story #comic > img,
-#tab-story #comic > #layer,
-#tab-story #comic > #wlEnglishPanelHighlight{display:none !important;}
-#tab-story #wlEnglishMobileComic{
-  display:grid !important;grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:8px;width:100%;
-}
-#tab-story .wlMobileCell{
-  position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;
-  border:2px solid #dde6f6;border-radius:5px;background:#141a38;
-  isolation:isolate;box-sizing:border-box;min-width:0;cursor:pointer;
-}
-#tab-story .wlMobileCell.wlSelected{
-  border:3px solid #2877e7;
-  box-shadow:inset 0 0 0 1px white;
-}
-#tab-story .wlMobileImage{
-  position:absolute;display:block !important;max-width:none !important;
-  width:300% !important;height:300% !important;object-fit:fill !important;
-  border-radius:0 !important;pointer-events:none;
-}
-#tab-story .wlMobileLayer{position:absolute;inset:0;z-index:2;pointer-events:none}
-#tab-story .wlMobileBubble{
-  position:absolute;box-sizing:border-box;pointer-events:auto;
-  padding:5px 28px 5px 7px;background:rgba(255,255,255,.97);
-  border:1px solid #b7c4ea;border-radius:11px;color:#182949;
-  box-shadow:0 2px 6px rgba(15,27,56,.14);
-  font-size:clamp(10px,1.1vw,14px) !important;line-height:1.13;
-  font-weight:700;overflow-wrap:anywhere;max-width:none !important;min-width:0;
-  cursor:pointer;
-}
-#tab-story .wlMobileBubble .bubbleAudio{right:2px;top:2px;padding:2px 4px;font-size:11px}
-#tab-story .wlMobileBubble .word.chosen,
-#tab-story .wlMobileBubble .word.phraseChosen{background:#ffe99a}
-#tab-story .wlMobileCell:focus-visible{outline:3px solid #2877e7;outline-offset:3px}
-@media (min-width:701px) and (max-width:1100px){
-  #tab-story .wlMobileBubble{font-size:clamp(9px,1.25vw,12px) !important;padding-right:22px}
-}
-/* Desktop selection stays INSIDE the cell and never floats over a neighbor. */
-#tab-story #comic #wlEnglishPanelHighlight{
-  border:3px solid #2877e7 !important; outline:none !important;
-  box-shadow:inset 0 0 0 2px #fff !important;
-  background:rgba(40,119,231,.07) !important;
-  border-radius:5px !important;
-  clip-path:inset(4px round 5px);
-}
-#wlEnglishMobileComic{display:none}
+<style id="wl-english-comic-panels-v3">
+/* Isolated panels: original dialogue DOM nodes and listeners are retained. */
+#tab-story #comic{overflow:visible;background:#f4f7ff;border:0;padding:4px}
+#tab-story #comic > img,#tab-story #comic > #wlEnglishPanelHighlight{display:none !important}
+#tab-story #comic > #layer{position:relative;inset:auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;pointer-events:auto}
+#tab-story .wl-panel{min-width:0;position:relative;border:2px solid #d4dff1;border-radius:12px;background:#fff;overflow:hidden;box-shadow:0 3px 12px rgba(22,40,74,.08);cursor:pointer;display:flex;flex-direction:column}
+#tab-story .wl-panel.wl-panel-selected{border-color:#2679eb;box-shadow:0 0 0 2px #2679eb,0 3px 12px rgba(22,40,74,.12)}
+#tab-story .wl-panel-art{position:relative;width:100%;aspect-ratio:3988/3150;overflow:hidden;background:#15213f;flex:none}
+#tab-story .wl-panel-art img{position:absolute;max-width:none !important;width:300% !important;height:400% !important;display:block !important;border-radius:0 !important;pointer-events:none}
+#tab-story .wl-panel-dialogue{display:flex;flex-direction:column;align-items:flex-start;gap:7px;padding:10px;min-height:16px;flex:1}
+#tab-story .wl-panel-dialogue .bubble{position:relative !important;inset:auto !important;left:auto !important;top:auto !important;width:auto !important;max-width:100% !important;box-sizing:border-box;display:block;font-size:clamp(12px,1.0vw,15px);line-height:1.3;padding:8px 32px 8px 10px;margin:0;overflow-wrap:anywhere;box-shadow:none;cursor:pointer}
+#tab-story .wl-panel-dialogue .bubbleAudio{right:5px;top:5px}
+#tab-story .wl-panel-dialogue .bubble.dia{align-self:flex-end}
+#tab-story .wl-panel-dialogue .bubble.aidan{align-self:flex-start}
+#tab-story .wl-panel-dialogue .bubble.other{align-self:center}
+#tab-story .wl-panel-dialogue .bubble.sfx{font-style:italic}
+#tab-story .wl-panel:focus-visible{outline:3px solid #2877e7;outline-offset:2px}
 @media(max-width:700px){
- #tab-story #comic{padding:0 !important;background:transparent !important;border:0 !important;overflow:visible !important;max-width:100% !important;width:100% !important}
- #tab-story #comic > img,#tab-story #comic > #layer,#tab-story #comic > #wlEnglishPanelHighlight{display:none !important}
- #tab-story #wlEnglishMobileComic{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;width:100%;}
- #tab-story .wlMobileCell{position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;border:2px solid #d3dff3;border-radius:16px;background:#141a38;isolation:isolate;box-shadow:0 4px 12px rgba(22,39,75,.10)}
- #tab-story .wlMobileCell.wlSelected{border-color:#2877e7;box-shadow:inset 0 0 0 2px #fff,0 0 0 2px #2877e7}
- #tab-story .wlMobileImage{position:absolute;display:block !important;max-width:none !important;width:300% !important;height:300% !important;object-fit:fill !important;border-radius:0 !important;pointer-events:none}
- #tab-story .wlMobileLayer{position:absolute;inset:0;z-index:2;pointer-events:none}
- #tab-story .wlMobileBubble{position:absolute;box-sizing:border-box;pointer-events:auto;padding:6px 28px 6px 7px;background:rgba(255,255,255,.97);border:1px solid #b7c4ea;border-radius:13px;color:#182949;box-shadow:0 2px 8px rgba(15,27,56,.14);font-size:clamp(11px,3.05vw,14px) !important;line-height:1.16;font-weight:700;overflow-wrap:break-word;max-width:none !important;min-width:0;cursor:pointer}
- #tab-story .wlMobileBubble .bubbleAudio{right:2px;top:2px;padding:2px 4px;font-size:11px}
- #tab-story .wlMobileBubble .word{cursor:pointer}
- #tab-story .wlMobileBubble .word.chosen,#tab-story .wlMobileBubble .word.phraseChosen{background:#ffe99a}
- #tab-story .wlMobileCell:focus-visible{outline:3px solid #2877e7;outline-offset:3px}
+ #tab-story #comic > #layer{grid-template-columns:minmax(0,1fr);gap:16px}
+ #tab-story .wl-panel{border-radius:15px}
+ #tab-story .wl-panel-dialogue{padding:12px;gap:8px}
+ #tab-story .wl-panel-dialogue .bubble{font-size:clamp(14px,4vw,18px) !important;padding:9px 36px 9px 12px;line-height:1.32}
 }
 </style>
-<script id="wlEnglishMobileComicScript">
+<script id="wl-english-comic-panels-v3-script">
 (()=>{
  'use strict';
- const root=document.getElementById('comic'),originalImg=root?.querySelector(':scope > img');
- const originalLayer=document.getElementById('layer');
- if(!root||!originalImg||!originalLayer)return;
- const mobile=document.createElement('div');mobile.id='wlEnglishMobileComic';mobile.setAttribute('aria-label','Comic: nine separate panels');
- const all=[...originalLayer.querySelectorAll('.bubble')];
- const panels=[];
- for(let i=0;i<9;i++){
-   const row=Math.floor(i/3),col=i%3;
-   const cell=document.createElement('div');cell.className='wlMobileCell';cell.dataset.panel=String(i+1);
-   cell.setAttribute('role','button');cell.tabIndex=0;cell.setAttribute('aria-label','Select comic panel '+(i+1));
-   const tile=document.createElement('img');tile.className='wlMobileImage';tile.alt='';tile.setAttribute('aria-hidden','true');tile.src=originalImg.src;
-   tile.style.left=(-col*100)+'%';tile.style.top=(-row*100)+'%';
-   const layer=document.createElement('div');layer.className='wlMobileLayer';
-   for(const original of all){
-     const match=[...original.classList].find(c=>/^p[1-9][a-z]$/.test(c));
-     if(!match||Number(match[1])!==i+1)continue;
-     const positions={"p1a":[35.5,7.6,13.0],"p1b":[54.6,7.4,11.0],"p1c":[49.4,16.6,15.0],"p2a":[82.0,7.2,13.0],"p2b":[77.3,14.9,11.0],"p2c":[75.8,21.0,17.0],"p2d":[89.0,18.8,8.0],"p3a":[1.0,31.0,13.5],"p3b":[1.6,40.8,8.3],"p3c":[15.2,42.0,15.0],"p4a":[34.1,30.1,15.0],"p4b":[33.4,39.0,13.8],"p4c":[54.0,40.5,12.5],"p5a":[81.0,30.0,10.0],"p5b":[80.4,38.2,7.2],"p5c":[74.4,43.7,15.5],"p5d":[84.1,50.6,13.8],"p6a":[1.0,57.0,12.5],"p6b":[1.2,65.4,14.0],"p6c":[13.8,74.2,10.2],"p7a":[33.1,55.0,11.8],"p7b":[32.4,62.1,14.8],"p7c":[51.7,57.0,11.6],"p7d":[47.0,66.0,9.8],"p8a":[79.5,56.0,12.0],"p8b":[73.9,69.3,9.8],"p8c":[84.0,68.0,13.3],"p9a":[5.6,82.5,11.7],"p9b":[39.0,82.5,12.0],"p9c":[68.3,81.6,14.6],"p9d":[82.2,88.1,16.0]};
-     const coords=positions[match];
-     // CSS percent offsets in the original 3x3 artwork are transformed to local panel coordinates.
-     const [left,top,width]=coords;
-     const copy=original.cloneNode(true);
-     copy.classList.remove('bubble');copy.classList.add('wlMobileBubble');
-     copy.style.left=((left-col*100/3)*3)+'%';
-     copy.style.top=((top-row*100/3)*3)+'%';
-     copy.style.width=(width*3)+'%';
-     copy.removeAttribute('id');
-     copy.addEventListener('click',ev=>{
-       window.wlEnglishSelectPanel?.(i);
-       ev.stopPropagation();ev.preventDefault();
-       const audio=ev.target.closest('.bubbleAudio');
-       if(audio){original.querySelector('.bubbleAudio')?.click();return}
-       const word=ev.target.closest('.word');
-       if(word){const words=[...copy.querySelectorAll('.word')];original.querySelectorAll('.word')[words.indexOf(word)]?.click()}
-       else original.click();
-       mobile.querySelectorAll('.wlMobileBubble').forEach(el=>{
-         const source=all.find(b=>b.dataset.text===el.dataset.text);
-         el.classList.toggle('bubbleChosen',!!source?.classList.contains('bubbleChosen'));
-       });
-     });
-     layer.append(copy);
-   }
-   cell.append(tile,layer);
-   const select=()=>window.wlEnglishSelectPanel?.(i);
-   cell.addEventListener('click',select);
-   cell.addEventListener('keydown',ev=>{if(ev.target===cell&&(ev.key==='Enter'||ev.key===' ')){ev.preventDefault();select()}});
-   panels.push(cell);mobile.append(cell);
+ const root=document.getElementById('comic');
+ const layer=document.getElementById('layer');
+ const image=root?.querySelector(':scope > img');
+ const selector=document.getElementById('wlEnglishReadPanel');
+ if(!root||!layer||!image||!selector)return;
+ const bubbles=[...layer.querySelectorAll('.bubble[data-text]')];
+ // Art contains 4 rows x 3 columns. The first cell is an opening skyline;
+ // story panels 1–8 occupy the next eight cells; panel 9 spans the last row.
+ const cells=[];
+ for(let i=0;i<12;i++){
+   const col=i%3,row=Math.floor(i/3);
+   const panelNum=i===0?0:(i<=8?i:9);
+   const card=document.createElement('div');card.className='wl-panel';
+   card.dataset.panel=String(panelNum);card.tabIndex=0;
+   card.setAttribute('role','button');card.setAttribute('aria-label',panelNum?'Select panel '+panelNum:'Opening scene');
+   const art=document.createElement('div');art.className='wl-panel-art';
+   const tile=document.createElement('img');tile.alt='';tile.setAttribute('aria-hidden','true');tile.src=image.src;
+   tile.style.left=(-col*100)+'%';tile.style.top=(-row*100)+'%';art.append(tile);
+   const captions=document.createElement('div');captions.className='wl-panel-dialogue';
+   card.append(art,captions);layer.append(card);cells.push({card,captions,panelNum});
+   const select=()=>{if(!panelNum)return;selector.value=String(panelNum-1);selector.dispatchEvent(new Event('change',{bubbles:true}));};
+   card.addEventListener('click',e=>{if(e.target.closest('button,.bubble'))return;select();});
+   card.addEventListener('keydown',e=>{if(e.target===card&&(e.key==='Enter'||e.key===' ')){e.preventDefault();select();}});
  }
- root.append(mobile);
- const sync=()=>{const selected=Number(document.getElementById('wlEnglishReadPanel')?.value||0);panels.forEach((p,i)=>p.classList.toggle('wlSelected',i===selected));};
+ for(const bubble of bubbles){
+   const cls=[...bubble.classList].find(x=>/^p[1-9][a-z]$/.test(x));
+   if(!cls)continue;
+   const story=Number(cls[1]);
+   let destination;
+   if(story<9){destination=cells[story];}
+   else{
+     // Final panel is three side-by-side illustrations: use the original X position.
+     const x=Number((getComputedStyle(bubble).left||'0').replace('px',''));
+     // Use original CSS position classes to avoid dependence on responsive measurements.
+     const match=cls.match(/^p9([a-z])$/);
+     const column=match?.[1]==='a'?0:match?.[1]==='b'?1:2;
+     destination=cells[9+column];
+   }
+   destination.captions.append(bubble); // MOVES original node: keeps its audio/word listeners intact.
+ }
+ const sync=()=>{const panel=Number(selector.value)+1;cells.forEach(({card,panelNum})=>card.classList.toggle('wl-panel-selected',panelNum===panel));};
+ selector.addEventListener('change',sync);
  window.addEventListener('webilang:english-reading-panel-changed',sync);
  sync();
 })();
 </script>
-
 </body>
 </html>
