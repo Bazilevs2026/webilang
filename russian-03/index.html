@@ -3362,19 +3362,28 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close()
  const names=['Майкл пишет Анне','Заказ кофе','Первый Майкл','Бариста зовёт Майкла','Второй Майкл','Теннис','Третий Майкл','Настоящий Майкл','Шарф в рюкзаке'];
  const select=document.getElementById('wlReadScene'),lines=document.getElementById('wlReadLines'),status=document.getElementById('wlReadStatus');
  if(!select||!lines)return;
- let selected=0,active=false;
+ let selected=0,active=false,skipNotice=null;
  names.forEach((name,i)=>{const option=document.createElement('option');option.value=String(i);option.textContent=`${i+1}. ${name}`;select.appendChild(option)});
  function show(){selected=Math.min(8,Math.max(0,selected));select.value=String(selected);document.querySelectorAll('#comicGrid .panel-comic').forEach((card,i)=>{card.classList.toggle('wl-reading-selected',i===selected);card.setAttribute('aria-label','Панель '+(i+1)+(i===selected?' — выбрана для чтения':''));});lines.replaceChildren();SCENE_TEXTS[selected].forEach((line,i)=>{const div=document.createElement('div');div.style.marginBottom='6px';const b=document.createElement('strong');b.textContent=(i+1)+'. ';div.append(b,document.createTextNode(line));lines.appendChild(div)});status.textContent=active?'Режим чтения включён · панель '+(selected+1):'Режим чтения выключен.';}
- function selectPanel(i){if(!Number.isInteger(i)||i<0||i>8)return;selected=i;show();if(active)window.dispatchEvent(new CustomEvent('webilang:reading-coach-panel-change',{detail:{panel:i+1}}));}
+ function selectPanel(i){
+  if(!Number.isInteger(i)||i<0||i>8)return;
+  if(i===selected)return;
+  const previous=selected;
+  // Only forward jumps over unseen intermediate panels trigger a gentle question.
+  // Ordinary next/previous navigation does not trigger it.
+  skipNotice=active&&i>previous+1?{from:previous+1,to:i+1,skipped:Array.from({length:i-previous-1},(_,k)=>previous+k+2),at:Date.now()}:null;
+  selected=i;show();
+  if(active)window.dispatchEvent(new CustomEvent('webilang:reading-coach-panel-change',{detail:{panel:i+1,skipNotice}}));
+ }
  // A click on the illustrated panel selects it. Original audio/word controls still work.
  document.getElementById('comicGrid')?.addEventListener('click',e=>{const card=e.target.closest('.panel-comic');if(!card)return;const cards=Array.from(document.querySelectorAll('#comicGrid .panel-comic'));const idx=cards.indexOf(card);if(idx>=0)selectPanel(idx);});
  select.addEventListener('change',()=>selectPanel(Number(select.value)));
  document.getElementById('wlReadPrev').onclick=()=>selectPanel((selected+8)%9);
  document.getElementById('wlReadNext').onclick=()=>selectPanel((selected+1)%9);
- document.getElementById('wlReadStart').onclick=()=>{active=true;show();const panel=document.getElementById('wlKostyaPanel');if(panel?.hidden)document.getElementById('wlKostyaFab')?.click();};
- document.getElementById('wlReadStop').onclick=()=>{active=false;show()};
+ document.getElementById('wlReadStart').onclick=()=>{active=true;skipNotice=null;show();const panel=document.getElementById('wlKostyaPanel');if(panel?.hidden)document.getElementById('wlKostyaFab')?.click();};
+ document.getElementById('wlReadStop').onclick=()=>{active=false;skipNotice=null;show()};
  // Existing Kostya snapshot reads this synchronously; no changes to the Qwen engine.
- window.wlReadingCoachContext=()=>({active,panel:selected+1,reference:SCENE_TEXTS[selected].join(' '),instructions:active?`READ WITH KOSTYA / РЕЖИМ ЧТЕНИЯ ВСЛУХ. Ученик читает русские реплики по одной-двум фразам. Перед тобой ЭТАЛОННЫЙ ТЕКСТ ПАНЕЛИ ${selected+1}: ${SCENE_TEXTS[selected].join(' ')}. СЛУШАЙ РЕЧЬ, сопоставляй с эталоном по порядку, не требуй произносить весь текст. Если явно совпадает — коротко и естественно: «Хорошо», «Отлично». Если ясно слышишь существенное несовпадение — назови только ошибочное место и правильный вариант, максимум два коротких предложения. Не повторяй автоматически «ты сказал», не перечисляй номера, не начинай новые упражнения, не задавай вопросов о продолжении. Если слышимость или распознавание ненадёжны, попроси повторить конкретное место, НЕ выдумывай ошибку. Не объявляй точную фонетическую оценку только на основе транскрипции. Не отвлекайся на предыдущие результаты проверки упражнений.`:''});
+ window.wlReadingCoachContext=()=>({active,panel:selected+1,reference:SCENE_TEXTS[selected].join(' '),instructions:active?`READ WITH KOSTYA / РЕЖИМ ЧТЕНИЯ ВСЛУХ. Ученик читает русские реплики по одной-двум фразам. Перед тобой ЭТАЛОННЫЙ ТЕКСТ ПАНЕЛИ ${selected+1}: ${SCENE_TEXTS[selected].join(' ')}. СЛУШАЙ РЕЧЬ, сопоставляй с эталоном по порядку, не требуй произносить весь текст. ${skipNotice ? `УЧЕНИК ТОЛЬКО ЧТО ПЕРЕШЁЛ С ПАНЕЛИ ${skipNotice.from} НА ПАНЕЛЬ ${skipNotice.to}, ПРОПУСТИВ ${skipNotice.skipped.join(', ')}. ОДИН РАЗ, ОЧЕНЬ ПРОСТО И ДОБРОЖЕЛАТЕЛЬНО спроси: «А картинку ${skipNotice.skipped[0]} пропускаем? Ты так хочешь?» (если пропущено несколько — «А эти картинки пропускаем? Ты так хочешь?»). Если ученик подтверждает, сразу продолжай с выбранной панели, больше не возвращайся к этому вопросу. Если хочет вернуться, предложи нажать пропущенную картинку. Не называй это ошибкой чтения.` : 'Если ученик переключил панель обычно, не спрашивай про пропущенные картинки.'} Если явно совпадает — коротко и естественно похвали, меняя фразы: «Хорошо!», «Молодец!», «Верно!», «Очень хорошо!», «Правильно!», «Замечательно!», «Да, так!», «Хорошо получилось!». Не говори каждый раз одно и то же и не преувеличивай похвалу. Если ясно слышишь существенное несовпадение — назови только ошибочное место и правильный вариант, максимум два коротких предложения. Не повторяй автоматически «ты сказал», не перечисляй номера, не начинай новые упражнения, не задавай вопросов о продолжении. Если слышимость или распознавание ненадёжны, попроси повторить конкретное место, НЕ выдумывай ошибку. Не объявляй точную фонетическую оценку только на основе транскрипции. Не отвлекайся на предыдущие результаты проверки упражнений.`:''});
  show();
 })();
 </script>
