@@ -1187,9 +1187,9 @@ drawQuiz($("readingQuestions"),READING,selections);
  const feedback=wrap.querySelector(".result");
  check.onclick=()=>{
    if(selections[i]===undefined){feedback.textContent="Choose an answer first.";feedback.className="result bad";return}
-   const q=READING[i];const good=selections[i]===q.a;window.wlReportKostyaGrade?.("Russian Reading",good?"correct":"incorrect",String(selections[i]),String(q.a),good?q.why:"Try again",q.q||"Reading question");
+   const q=READING[i];const good=selections[i]===q.a;window.wlReportKostyaGrade?.("Russian Reading",good?"correct":"incorrect",String(q.o[selections[i]]??""),String(q.o[q.a]??""),q.why,q.q||"Reading question");
    feedback.className="result "+(good?"good":"bad");
-   feedback.textContent=(good?"✓ Correct! ":"✗ Try again. ")+(good?q.why:"");
+   feedback.textContent=(good?"✓ Correct! ":"✗ Try again. ")+q.why;
  };
  wrap.append(check);
 });
@@ -1703,8 +1703,8 @@ READ_QUESTIONS.forEach((q,i)=>{
  const check=document.createElement("button");check.className="btn sm secondary";check.textContent="Check";
  const result=document.createElement("div");result.className="result";
  check.onclick=()=>{if(readSelections[i]===undefined){result.textContent="Select an answer first.";return}
- const correct=readSelections[i]===q.a;window.wlReportKostyaGrade?.("Russian reading practice",correct?"correct":"incorrect",String(readSelections[i]),String(q.a),correct?q.why:"Try again",q.q||"Reading practice");result.className="result "+(correct?"good":"bad");
- result.textContent=(correct?"✓ Correct! ":"✗ Try again. ")+(correct?q.why:"");
+ const correct=readSelections[i]===q.a;window.wlReportKostyaGrade?.("Russian reading practice",correct?"correct":"incorrect",String(q.o[readSelections[i]]??""),String(q.o[q.a]??""),q.why,q.q||"Reading practice");result.className="result "+(correct?"good":"bad");
+ result.textContent=(correct?"✓ Correct! ":"✗ Try again. ")+q.why;
  };row.append(check,result);readQuiz.append(row);
 });
 let readingRecognition=null,readingFinalBase="";
