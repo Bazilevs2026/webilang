@@ -1461,36 +1461,103 @@ buttons();
 
 <style id="gender-qwen-interviews-style">
 #gender-qwen-card{background:#fff;border:2px solid #bed1e9;border-radius:18px;padding:20px;margin:20px 0}
-#gender-qwen-card .gender-actions{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
-#gender-qwen-card button{border:0;border-radius:10px;background:#285da2;color:white;font:700 16px inherit;padding:12px 16px;cursor:pointer}
+#gender-qwen-card .gender-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+#gender-qwen-card button{border:0;border-radius:10px;background:#285da2;color:#fff;padding:12px 16px;font:700 15px system-ui;cursor:pointer}
+#gender-qwen-card button:disabled{opacity:.55;cursor:not-allowed}
 #gender-qwen-card button.gender-close{background:#9e3c4a}
-#gender-qwen-frame{width:100%;height:550px;border:1px solid #bdd0e4;border-radius:12px;background:#f6f9fc}
+#gender-qwen-frame{display:block;width:100%;height:580px;border:1px solid #bdd0e4;border-radius:12px;background:#f6f9fc}
 #gender-qwen-frame[hidden]{display:none!important}
-@media(max-width:680px){#gender-qwen-frame{height:780px}}
+#gender-qwen-feedback{border-top:1px solid #dde4ef;margin-top:18px;padding-top:14px}
+#gender-qwen-feedback textarea{display:block;width:100%;min-height:140px;border:1px solid #bdcde0;border-radius:9px;padding:10px;font:14px/1.5 system-ui;box-sizing:border-box}
+#gender-qwen-results p{margin:9px 0;line-height:1.5}#gender-qwen-results .correction{padding:9px;background:#f5f7fe;border-radius:8px}
+@media(max-width:680px){#gender-qwen-frame{height:680px}#gender-qwen-card{padding:12px}}
 </style>
 <script id="gender-qwen-interviews">
-(()=>{
- const root=document.querySelector('#panel-roleplays');if(!root)return;
+(()=>{'use strict';
+ const root=document.getElementById('panel-roleplays');if(!root)return;
  const panel=document.createElement('section');panel.id='gender-qwen-card';panel.innerHTML=`
- <h3>🎙️ Qwen Realtime interviews · Nova & Chaz</h3>
- <p>You are the interviewer. Ask fair, professional questions; the avatar is the applicant. Use headphones for best audio quality.</p>
- <div class="gender-actions"><button type="button" data-qwen="gender_engineering">Start Nova · Engineering apprentice</button><button type="button" data-qwen="gender_babysitter">Start Chaz · Babysitter</button><button type="button" class="gender-close" id="gender-qwen-close" hidden>■ Close interview</button></div>
- <p id="gender-qwen-note" role="status">Choose an applicant, then press Start Realtime inside the avatar window to allow microphone access.</p>
- <iframe id="gender-qwen-frame" title="Gender Roles Qwen avatar interview" allow="microphone; autoplay" hidden></iframe>`;
+ <h3>Qwen interviews · Nova & Chaz</h3>
+ <p>Interview the applicant at B2 level. Choose voice-only or the 3D avatar; both use Qwen voice. After the call, check the transcript and request AI feedback.</p>
+ <div class="gender-actions">
+ <button type="button" data-qwen="gender_engineering" data-mode="avatar">👩‍🔧 Nova · 3D avatar</button>
+ <button type="button" data-qwen="gender_engineering" data-mode="voice">🎙 Nova · voice only</button>
+ <button type="button" data-qwen="gender_babysitter" data-mode="avatar">🧑 Chaz · 3D avatar</button>
+ <button type="button" data-qwen="gender_babysitter" data-mode="voice">🎙 Chaz · voice only</button>
+ <button type="button" class="gender-close" id="gender-qwen-close" hidden>■ End / close interview</button>
+ </div>
+ <p id="gender-qwen-note" role="status">Select an applicant, then click Start Realtime inside the interview window.</p>
+ <iframe id="gender-qwen-frame" title="Qwen interview" allow="microphone; autoplay" hidden></iframe>
+ <div id="gender-qwen-feedback" hidden>
+ <h3>Interview transcript & AI feedback</h3>
+ <p>Review the learner's spoken questions below. Correct any recognition mistakes before evaluation. Only learner speech is assessed; avatar replies are excluded.</p>
+ <label for="gender-qwen-student">Student's questions (editable transcript)</label>
+ <textarea id="gender-qwen-student" placeholder="Captured questions appear here. If speech transcription is unavailable, paste or type the questions you asked."></textarea>
+ <p><small id="gender-qwen-count">0 learner turns captured</small></p>
+ <label for="gender-qwen-decision">Hiring decision</label>
+ <select id="gender-qwen-decision"><option value="">Choose…</option><option value="hire">Hire</option><option value="reject">Do not hire</option><option value="undecided">Undecided</option></select>
+ <label for="gender-qwen-reason">Explain your decision using evidence from the interview</label>
+ <textarea id="gender-qwen-reason" style="min-height:72px" placeholder="Explain your reasoning in at least 20 characters."></textarea>
+ <div class="gender-actions"><button type="button" id="gender-qwen-evaluate">Get AI feedback</button><button type="button" id="gender-qwen-save" disabled>Save grammar errors to My Grammar Stock</button></div>
+ <p id="gender-qwen-feedback-status" role="status"></p><div id="gender-qwen-results" aria-live="polite"></div>
+ </div>`;
  root.appendChild(panel);
- const frame=panel.querySelector('iframe');const close=panel.querySelector('#gender-qwen-close');const note=panel.querySelector('#gender-qwen-note');
- function stop(){frame.src='about:blank';frame.hidden=true;close.hidden=true;note.textContent='Interview closed. You can start a new conversation.';}
- panel.querySelectorAll('[data-qwen]').forEach(btn=>btn.addEventListener('click',()=>{
-   // Replacing the iframe explicitly closes any previous WebRTC/microphone session.
-   const scenario=btn.dataset.qwen;stop();
-   frame.src='/avatar-lab/realtime-english.html?pilot='+encodeURIComponent(scenario);
-   frame.hidden=false;close.hidden=false;
-   note.textContent='Connecting to '+(scenario==='gender_engineering'?'Nova':'Chaz')+'. Click Start Interview inside the window.';
-   frame.scrollIntoView({behavior:'smooth',block:'nearest'});
- }));
- close.addEventListener('click',stop);
- document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{if(t.dataset.tab!=='roleplays'&&!frame.hidden)stop()}));
- window.addEventListener('pagehide',stop);
+ const el=id=>panel.querySelector('#'+id),frame=el('gender-qwen-frame'),close=el('gender-qwen-close'),note=el('gender-qwen-note'),feedback=el('gender-qwen-feedback'),student=el('gender-qwen-student'),count=el('gender-qwen-count'),status=el('gender-qwen-feedback-status'),results=el('gender-qwen-results'),evaluate=el('gender-qwen-evaluate'),save=el('gender-qwen-save');
+ let scenario='',lines=[],seen=new Set(),evaluation=null,locked=false;
+ const names={gender_engineering:'Nova · Engineering Apprentice',gender_babysitter:'Chaz · Babysitter'};
+ function finish(){frame.src='about:blank';frame.hidden=true;close.hidden=true;if(scenario){feedback.hidden=false;note.textContent='Interview ended. Review your learner transcript below.';}}
+ function start(which,mode){
+  if(!frame.hidden)finish();
+  document.getElementById('gender-kostya-close')?.click();
+  scenario=which;lines=[];seen=new Set();evaluation=null;save.disabled=true;results.replaceChildren();student.value='';count.textContent='0 learner turns captured';status.textContent='';feedback.hidden=true;
+  frame.src='/avatar-lab/realtime-english.html?pilot='+encodeURIComponent(which)+'&mode='+encodeURIComponent(mode);
+  frame.hidden=false;close.hidden=false;note.textContent=names[which]+' · '+(mode==='voice'?'Voice only':'3D avatar')+'. Click Start Realtime inside the window.';
+  frame.scrollIntoView({behavior:'smooth',block:'nearest'});
+ }
+ panel.querySelectorAll('[data-qwen]').forEach(btn=>btn.addEventListener('click',()=>start(btn.dataset.qwen,btn.dataset.mode)));
+ close.addEventListener('click',finish);
+ window.addEventListener('message',e=>{
+  if(e.origin!==location.origin||e.source!==frame.contentWindow||e.data?.source!=='webilang-gender-qwen'||e.data?.scenario!==scenario)return;
+  const data=e.data;
+  if(data.type==='ended'){feedback.hidden=false;return;}
+  if(data.type!=='transcript'||!String(data.text||'').trim())return;
+  const key=data.speaker+':'+(data.id||data.text);if(seen.has(key))return;seen.add(key);
+  if(data.speaker==='student'){
+   lines.push(data.text);student.value=lines.join('\n');count.textContent=lines.length+' learner turn(s) captured';
+  }
+ });
+ const add=(tag,text,cl)=>{const node=document.createElement(tag);node.textContent=text;if(cl)node.className=cl;results.append(node);return node};
+ evaluate.addEventListener('click',async()=>{
+  if(!frame.hidden){status.textContent='End the interview before requesting feedback.';return}
+  const speech=student.value.trim(),decision=el('gender-qwen-decision').value,reason=el('gender-qwen-reason').value.trim();
+  if(speech.length<45){status.textContent='At least 45 characters of learner speech are required. Check or enter the transcript.';return}
+  if(!decision||reason.length<20){status.textContent='Choose a decision and give an explanation of at least 20 characters.';return}
+  evaluate.disabled=true;save.disabled=true;evaluation=null;results.replaceChildren();status.textContent='Analyzing learner speech…';
+  const task='B2 Gender Roles job interview. The student is the INTERVIEWER assessing '+names[scenario]+'. Evaluate interaction, relevant evidence, fairness, vocabulary, fluency when supported by evidence, and grammar. Do not award or penalize a hiring decision by itself. Decision: '+decision+'. Justification: '+reason+'. Correct ONLY genuine grammar mistakes in the learner transcript. Never attribute candidate speech to the student. Audio fluency cannot be inferred from written transcripts alone.';
+  try{
+   const response=await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'speaking',task,response:speech})});
+   const data=await response.json().catch(()=>({}));if(!response.ok||data.error)throw Error(data.error||'Feedback unavailable');
+   evaluation={data,speech,scenario};
+   add('h4','AI feedback · '+names[scenario]);
+   for(const [name,key] of [['Interaction / task achievement','taskAchievement'],['Evidence & fairness','contentFeedback'],['Organization','organizationFeedback'],['Vocabulary','vocabularyFeedback'],['Grammar','grammarFeedback'],['Next practice task','nextTask']])if(data[key])add('p',name+': '+data[key]);
+   if(Array.isArray(data.corrections)&&data.corrections.length){add('h4','Corrections');data.corrections.forEach(c=>add('p',String(c.original||'')+' → '+String(c.corrected||'')+' — '+String(c.explanation||''),'correction'))}
+   const valid=(data.grammarPatterns||[]).filter(g=>g.original&&speech.includes(g.original)&&g.corrected&&g.corrected!==g.original);
+   save.disabled=!valid.length;status.textContent='Feedback ready. '+valid.length+' verified transcript-based grammar candidate(s) available to save.';
+  }catch(err){status.textContent='Feedback failed: '+err.message}finally{evaluate.disabled=false}
+ });
+ save.addEventListener('click',()=>{
+  if(!evaluation)return;
+  const {data,speech,scenario:which}=evaluation;const KEY='genderRolesAIStocks_v1';let stock;try{stock=JSON.parse(localStorage.getItem(KEY)||'{}')}catch{stock={}}
+  if(!Array.isArray(stock.grammar))stock.grammar=[];let added=0;
+  for(const g of (data.grammarPatterns||[])){
+   if(!g.original||!speech.includes(g.original)||!g.corrected||g.original===g.corrected)continue;
+   if(stock.grammar.some(x=>x.original===g.original&&x.pattern===g.pattern))continue;
+   stock.grammar.push({...g,id:'g'+Date.now()+Math.random().toString(36).slice(2),source:'Gender Roles Qwen · '+names[which],date:new Date().toISOString()});added++;
+  }
+  localStorage.setItem(KEY,JSON.stringify(stock));window.dispatchEvent(new Event('gender-roleplay-stock-updated'));
+  save.disabled=true;status.textContent=added+' grammar error(s) saved to My Grammar Stock.';
+ });
+ document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{if(tab.dataset.tab!=='roleplays'&&!frame.hidden)finish()}));
+ window.addEventListener('pagehide',()=>{if(!frame.hidden)finish()});
 })();
 </script>
 <script id="wl-gender-collector">
