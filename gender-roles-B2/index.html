@@ -1814,4 +1814,62 @@ build.onclick=async()=>{
 };
 })();
 </script>
+<!-- Gender Roles B2: Qwen Kostya teacher, independent of existing roleplays -->
+<style id="gender-kostya-styles">
+#gender-kostya-fab{position:fixed;bottom:18px;right:18px;z-index:2147483000;border:0;border-radius:999px;background:#245b9b;color:white;font:800 15px system-ui;padding:13px 18px;box-shadow:0 9px 28px #142c5266;cursor:pointer}
+#gender-kostya-window[hidden]{display:none!important}
+#gender-kostya-window{position:fixed;right:18px;bottom:78px;z-index:2147483001;width:min(435px,calc(100vw - 24px));height:min(660px,calc(100dvh - 105px));background:white;display:flex;flex-direction:column;border:2px solid #acc7e6;border-radius:16px;overflow:hidden;box-shadow:0 16px 50px #183b5c66}
+#gender-kostya-bar{background:#eaf3ff;display:flex;align-items:center;gap:8px;justify-content:space-between;padding:10px 13px;cursor:move;touch-action:none;user-select:none}
+#gender-kostya-close{border:1px solid #b0cde9;background:white;border-radius:8px;padding:6px 11px;font-weight:750}
+#gender-kostya-context{font:12px/1.35 system-ui;color:#395474;background:#f5f9fd;padding:7px 11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#gender-kostya-frame{width:100%;min-height:0;flex:1;border:0}
+@media(max-width:600px){#gender-kostya-fab{right:10px;bottom:10px}#gender-kostya-window{right:7px;bottom:69px;width:calc(100vw - 14px);height:calc(100dvh - 85px)}}
+</style>
+<button type="button" id="gender-kostya-fab" aria-controls="gender-kostya-window" aria-expanded="false">🎓 Ask Kostya</button>
+<aside id="gender-kostya-window" hidden aria-label="Kostya AI teacher">
+ <div id="gender-kostya-bar"><strong>🎓 Kostya · Gender Roles B2</strong><button type="button" id="gender-kostya-close" aria-label="Close Kostya">✕ Close</button></div>
+ <div id="gender-kostya-context" role="status">Kostya can help with the current exercise.</div>
+ <iframe id="gender-kostya-frame" title="Kostya Qwen voice teacher" allow="microphone;autoplay"></iframe>
+</aside>
+<script id="gender-kostya-controller">
+(()=>{'use strict';
+const fab=document.getElementById('gender-kostya-fab'),panel=document.getElementById('gender-kostya-window'),frame=document.getElementById('gender-kostya-frame'),status=document.getElementById('gender-kostya-context');
+let chosen=null,checked=null,move=null;
+const clean=x=>String(x?.textContent||'').replace(/\s+/g,' ').trim().slice(0,700);
+const active=()=>document.querySelector('.panel.active')||document.querySelector('#panel-story');
+const tab=()=>document.querySelector('.tab.active')?.textContent?.trim()||'Story';
+const visible=x=>!!x&&x.getClientRects().length>0&&!x.closest('[hidden],.hidden');
+function context(){
+ const root=active(),section=tab();
+ const headings=[...root.querySelectorAll('h1,h2,h3')].filter(visible).slice(0,7).map(clean);
+ const fields=[...root.querySelectorAll('input,textarea,select')].filter(visible).filter(x=>!['checkbox','radio','hidden','button'].includes(x.type)).slice(0,7).map(x=>({field:(x.labels?.[0]?.textContent||x.placeholder||x.id||'response').trim().slice(0,100),value:String(x.value||'').slice(0,500)}));
+ const notes=[...root.querySelectorAll('.feedback,.ok,.bad,[role="status"],#rp-status,#rp-feedback')].filter(visible).map(clean).filter(Boolean).slice(-3);
+ const focus=document.activeElement;
+ const task=chosen?.question||clean(focus?.closest?.('.qbox,.grammar-row,.gap-row,.rp-box,.speaking-card')||root.querySelector('h2'));
+ const mostRelevant=chosen&&chosen.section===section?chosen:null;
+ const last=checked&&checked.section===section?checked:null;
+ return {source:'webilang-lesson',type:'context',version:1,activeSection:'Gender Roles B2 · '+section,courseLanguage:'English',title:document.title,url:location.href,headings,activeTask:task,focusedField:focus?.id||'',studentInputs:fields,focusedPassage:section.includes('Reading')?clean(root.querySelector('.reading')):'',currentExercise:mostRelevant?{question:mostRelevant.question,studentAnswer:mostRelevant.answer,options:mostRelevant.options,field:mostRelevant.field}:null,lastCheck:last?{kind:'quiz_check',button:last.button,task:last.question,studentAnswer:last.answer,verifiedCorrectness:last.correctness,visibleFeedbackAfter:last.feedback?[last.feedback]:[],source:'Gender Roles B2',at:last.time}:null};
+}
+function send(){if(panel.hidden||!frame.contentWindow||!frame.getAttribute('src'))return;const c=context();frame.contentWindow.postMessage(c,location.origin);status.textContent='Context: '+c.activeSection+(c.lastCheck?' · last answer checked':c.currentExercise?' · answer selected':'');}
+function close(){frame.removeAttribute('src');panel.hidden=true;fab.setAttribute('aria-expanded','false');panel.style.left='';panel.style.top='';panel.style.right='';panel.style.bottom='';fab.focus();}
+function open(){
+ const rp=document.getElementById('rp-end');const rec=document.getElementById('rp-stop-record');
+ if((rp&&!rp.disabled)||(rec&&!rec.disabled)){alert('End your current interview or recording before opening Kostya. Only one live microphone session should run at a time.');return;}
+ panel.hidden=false;fab.setAttribute('aria-expanded','true');frame.src='/avatar-lab/realtime-english.html?pilot=kostya_teacher&character=kostya';
+}
+fab.addEventListener('click',()=>panel.hidden?open():close());document.getElementById('gender-kostya-close').addEventListener('click',close);
+frame.addEventListener('load',send);window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden)close()});
+document.addEventListener('click',e=>{
+ if(e.target.closest('#gender-kostya-window,#gender-kostya-fab'))return;
+ const b=e.target.closest('button');
+ if(b){const q=b.closest('.qbox,.grammar-row,.gap-row');if(q){const question=clean(q.querySelector('h4,.qstem,.reading,span')||q);const options=[...q.querySelectorAll('button')].map(clean).slice(0,10);chosen={section:tab(),question,answer:clean(b),options,field:q.id||''};setTimeout(()=>{const isCorrect=b.classList.contains('correct'),isWrong=b.classList.contains('wrong');const feedback=clean(q.querySelector('.feedback'));checked=(isCorrect||isWrong)?{...chosen,correctness:isCorrect?'correct':'incorrect',feedback,button:clean(b),time:Date.now()}:null;send()},100);}}
+ if(e.target.closest('.tab,[data-tab]'))setTimeout(send,50);else setTimeout(send,180);
+ },true);
+document.addEventListener('input',()=>setTimeout(send,250),true);
+window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==frame.contentWindow||e.data?.source!=='webilang-realtime-english'||e.data?.type!=='lesson-context-ack')return;status.textContent=e.data.connected?'Kostya connected · '+(e.data.section||tab()):'Kostya received lesson context · '+(e.data.section||tab());});
+const bar=document.getElementById('gender-kostya-bar');bar.addEventListener('pointerdown',e=>{if(e.target.closest('button')||matchMedia('(max-width:600px)').matches)return;move={id:e.pointerId,x:e.clientX,y:e.clientY,left:panel.getBoundingClientRect().left,top:panel.getBoundingClientRect().top};bar.setPointerCapture(e.pointerId)});
+bar.addEventListener('pointermove',e=>{if(!move||e.pointerId!==move.id)return;panel.style.left=Math.max(0,Math.min(innerWidth-panel.offsetWidth,move.left+e.clientX-move.x))+'px';panel.style.top=Math.max(0,Math.min(innerHeight-panel.offsetHeight,move.top+e.clientY-move.y))+'px';panel.style.right='auto';panel.style.bottom='auto'});
+bar.addEventListener('pointerup',()=>move=null);bar.addEventListener('pointercancel',()=>move=null);
+})();
+</script>
 </body></html>
