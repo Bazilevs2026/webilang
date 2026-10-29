@@ -1431,7 +1431,7 @@ $('rp-evaluate').onclick=async()=>{
  const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Feedback service error');
  const result=$('rp-feedback');result.replaceChildren();result.hidden=false;
  const h=document.createElement('h3');h.textContent='AI interview feedback · '+scenarioNames[scenario];result.append(h);
- for(const [name,key] of [['Task achievement','taskAchievement'],['Evidence and fairness','contentFeedback'],['Organization','organizationFeedback'],['Vocabulary','vocabularyFeedback'],['Grammar','grammarFeedback'],['Next practice task','nextTask']]){
+ for(const [name,key] of [['Task achievement','taskAchievement'],['Evidence and fairness','contentFeedback'],['Interview structure','organizationFeedback'],['Vocabulary','vocabularyFeedback'],['Grammar','grammarFeedback'],['Next practice task','nextTask']]){
   if(d[key]){const p=document.createElement('p');const b=document.createElement('strong');b.textContent=name+': ';p.append(b,document.createTextNode(d[key]));result.append(p)}
  }
  if(d.corrections?.length){const h4=document.createElement('h4');h4.textContent='Corrections';result.append(h4);
@@ -1489,7 +1489,8 @@ buttons();
  <iframe id="gender-qwen-frame" title="Qwen interview" allow="microphone; autoplay" hidden></iframe>
  <div id="gender-qwen-feedback" hidden>
  <h3>Interview transcript & AI feedback</h3>
- <p>Review the learner's spoken questions below. Correct any recognition mistakes before evaluation. Only learner speech is assessed; avatar replies are excluded.</p>
+ <p>Review the learner's spoken questions below. The interview context includes the candidate's replies so AI can evaluate relevant follow-up questions. Only learner speech is corrected and saved.</p>
+ <details id="gender-qwen-dialogue-details"><summary>View interview exchange (learner + candidate)</summary><div id="gender-qwen-dialogue" style="white-space:pre-wrap;max-height:260px;overflow:auto;padding:12px;background:#f5f8fd;border-radius:10px"></div></details>
  <label for="gender-qwen-student">Student's questions (editable transcript)</label>
  <textarea id="gender-qwen-student" placeholder="Captured questions appear here. If speech transcription is unavailable, paste or type the questions you asked."></textarea>
  <p><small id="gender-qwen-count">0 learner turns captured</small></p>
@@ -1501,14 +1502,14 @@ buttons();
  <p id="gender-qwen-feedback-status" role="status"></p><div id="gender-qwen-results" aria-live="polite"></div>
  </div>`;
  root.appendChild(panel);
- const el=id=>panel.querySelector('#'+id),frame=el('gender-qwen-frame'),close=el('gender-qwen-close'),note=el('gender-qwen-note'),feedback=el('gender-qwen-feedback'),student=el('gender-qwen-student'),count=el('gender-qwen-count'),status=el('gender-qwen-feedback-status'),results=el('gender-qwen-results'),evaluate=el('gender-qwen-evaluate'),save=el('gender-qwen-save');
- let scenario='',lines=[],seen=new Set(),evaluation=null,locked=false;
+ const el=id=>panel.querySelector('#'+id),frame=el('gender-qwen-frame'),close=el('gender-qwen-close'),note=el('gender-qwen-note'),feedback=el('gender-qwen-feedback'),student=el('gender-qwen-student'),count=el('gender-qwen-count'),dialogue=el('gender-qwen-dialogue'),status=el('gender-qwen-feedback-status'),results=el('gender-qwen-results'),evaluate=el('gender-qwen-evaluate'),save=el('gender-qwen-save');
+ let scenario='',lines=[],turns=[],seen=new Set(),evaluation=null,locked=false;
  const names={gender_engineering:'Nova · Engineering Apprentice',gender_babysitter:'Chaz · Babysitter'};
  function finish(){frame.src='about:blank';frame.hidden=true;close.hidden=true;if(scenario){feedback.hidden=false;note.textContent='Interview ended. Review your learner transcript below.';}}
  function start(which,mode){
   if(!frame.hidden)finish();
   document.getElementById('gender-kostya-close')?.click();
-  scenario=which;lines=[];seen=new Set();evaluation=null;save.disabled=true;results.replaceChildren();student.value='';count.textContent='0 learner turns captured';status.textContent='';feedback.hidden=true;
+  scenario=which;lines=[];turns=[];dialogue.textContent='';seen=new Set();evaluation=null;save.disabled=true;results.replaceChildren();student.value='';count.textContent='0 learner turns captured';status.textContent='';feedback.hidden=true;
   frame.src='/avatar-lab/realtime-english.html?pilot='+encodeURIComponent(which)+'&mode='+encodeURIComponent(mode);
   frame.hidden=false;close.hidden=false;note.textContent=names[which]+' · '+(mode==='voice'?'Voice only':'3D avatar')+'. Click Start Realtime inside the window.';
   frame.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -1521,6 +1522,8 @@ buttons();
   if(data.type==='ended'){feedback.hidden=false;return;}
   if(data.type!=='transcript'||!String(data.text||'').trim())return;
   const key=data.speaker+':'+(data.id||data.text);if(seen.has(key))return;seen.add(key);
+  turns.push({speaker:data.speaker==='student'?'Student':names[scenario].split(' · ')[0],text:data.text});
+  dialogue.textContent=turns.map(t=>t.speaker+': '+t.text).join('\n\n');
   if(data.speaker==='student'){
    lines.push(data.text);student.value=lines.join('\n');count.textContent=lines.length+' learner turn(s) captured';
   }
@@ -1532,16 +1535,18 @@ buttons();
   if(speech.length<45){status.textContent='At least 45 characters of learner speech are required. Check or enter the transcript.';return}
   if(!decision||reason.length<20){status.textContent='Choose a decision and give an explanation of at least 20 characters.';return}
   evaluate.disabled=true;save.disabled=true;evaluation=null;results.replaceChildren();status.textContent='Analyzing learner speech…';
-  const task='B2 Gender Roles job interview. The student is the INTERVIEWER assessing '+names[scenario]+'. Evaluate interaction, relevant evidence, fairness, vocabulary, fluency when supported by evidence, and grammar. Do not award or penalize a hiring decision by itself. Decision: '+decision+'. Justification: '+reason+'. Correct ONLY genuine grammar mistakes in the learner transcript. Never attribute candidate speech to the student. Audio fluency cannot be inferred from written transcripts alone.';
+  const exchange=turns.length?turns.map(t=>t.speaker+': '+t.text).join('\n'):'';
+  const context=exchange.slice(0,800);
+  const task=('B2 Gender Roles job interview. Student is the interviewer, candidate: '+names[scenario]+'. Assess how specific student questions connect with candidate replies; ask whether the student uses relevant follow-ups, professional tone, fair criteria, evidence and gender-neutral reasoning. Student hiring decision: '+decision+'. Reason: '+reason.slice(0,210)+'. INTERVIEW (context only; not student text): '+context+'. Evaluate only STUDENT RESPONSE supplied separately. Quote specific learner wording as positive evidence and in corrections. Never correct candidate speech, invent unseen turns, or assume written transcripts prove pronunciation, speech rate or fluency. Offer one tailored next question.').slice(0,1570);
   try{
    const response=await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'speaking',task,response:speech})});
    const data=await response.json().catch(()=>({}));if(!response.ok||data.error)throw Error(data.error||'Feedback unavailable');
    evaluation={data,speech,scenario};
    add('h4','AI feedback · '+names[scenario]);
-   for(const [name,key] of [['Interaction / task achievement','taskAchievement'],['Evidence & fairness','contentFeedback'],['Organization','organizationFeedback'],['Vocabulary','vocabularyFeedback'],['Grammar','grammarFeedback'],['Next practice task','nextTask']])if(data[key])add('p',name+': '+data[key]);
+   for(const [name,key] of [['Interaction / task achievement','taskAchievement'],['Evidence & fairness','contentFeedback'],['Interview structure','organizationFeedback'],['Vocabulary','vocabularyFeedback'],['Grammar','grammarFeedback'],['Next practice task','nextTask']])if(data[key]){const block=add('section','');block.style.cssText='padding:12px;margin:10px 0;background:#f5f8fd;border:1px solid #dae4f1;border-radius:12px';const head=document.createElement('strong');head.textContent=name;const body=document.createElement('p');body.textContent=data[key];body.style.margin='6px 0 0';block.append(head,body)}
    if(Array.isArray(data.corrections)&&data.corrections.length){add('h4','Corrections');data.corrections.forEach(c=>add('p',String(c.original||'')+' → '+String(c.corrected||'')+' — '+String(c.explanation||''),'correction'))}
    const valid=(data.grammarPatterns||[]).filter(g=>g.original&&speech.includes(g.original)&&g.corrected&&g.corrected!==g.original);
-   save.disabled=!valid.length;status.textContent='Feedback ready. '+valid.length+' verified transcript-based grammar candidate(s) available to save.';
+   save.disabled=!valid.length;status.textContent='Interview-specific feedback ready. '+valid.length+' transcript-verified grammar candidate(s) available to save.';
   }catch(err){status.textContent='Feedback failed: '+err.message}finally{evaluate.disabled=false}
  });
  save.addEventListener('click',()=>{
