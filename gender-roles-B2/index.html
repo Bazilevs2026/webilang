@@ -357,7 +357,28 @@ nav .tab{white-space:normal}
 #gender-qwen-feedback .gf-actionbar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
 #gender-qwen-feedback .gf-actionbar button{border-radius:12px;padding:12px 16px;font-size:14px;font-weight:800}
 @media(max-width:760px){#gender-qwen-feedback .gf-preview{grid-template-columns:1fr}#gender-qwen-feedback .gf-hero{padding:18px}#gender-qwen-results .gf-card{padding:14px !important}}
-</style></head>
+</style><style id="gender-feedback-active-cards">
+#gender-qwen-results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}
+#gender-qwen-results>h4,#gender-qwen-results>.gf-help{grid-column:1/-1}
+#gender-qwen-results .gf-card{border:2px solid;border-radius:16px;padding:20px;min-width:0;box-shadow:0 3px 12px rgba(29,50,80,.05)}
+#gender-qwen-results .gf-interaction{background:#eaf4ff;border-color:#90bff0}
+#gender-qwen-results .gf-vocabulary{background:#f5efff;border-color:#c2a2ec}
+#gender-qwen-results .gf-grammar{background:#fff3e7;border-color:#e9b17f}
+#gender-qwen-results .gf-context{grid-column:span 1;background:#f7f9fc;border-color:#d9e2ef}
+#gender-qwen-results .gf-card h4{font-size:18px;line-height:1.35;margin:0 0 12px;color:#192d4b}
+#gender-qwen-results .gf-card p{white-space:pre-line;line-height:1.6}
+#gender-qwen-results .gf-item{display:flex;align-items:flex-start;gap:10px;background:#fff;border:1px solid #dbe2ee;border-radius:11px;padding:12px;margin:10px 0;cursor:pointer;line-height:1.45}
+#gender-qwen-results .gf-item input{accent-color:#266dba;min-width:18px;width:18px;height:18px;margin:3px 0}
+#gender-qwen-results .gf-original{color:#b0293b;text-decoration:underline;text-decoration-style:wavy;text-underline-offset:3px}
+#gender-qwen-results .gf-corrected{color:#157344;font-weight:700;margin:6px 0}
+#gender-qwen-results .gf-micro-label{display:block;font-size:10px;letter-spacing:.08em;font-weight:800;margin:6px 0 2px;color:#65768d}
+#gender-qwen-results .gf-item small{display:block;color:#4f6075;margin-top:5px}
+#gender-qwen-results button{width:100%;border:0;border-radius:10px;background:#b75d26;color:#fff;font:700 14px system-ui;padding:12px;margin:12px 0 0;cursor:pointer}
+#gender-qwen-results button.gf-purple{background:#7451ac}
+#gender-qwen-results button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:1000px){#gender-qwen-results{grid-template-columns:1fr}#gender-qwen-results .gf-context{grid-column:1}}
+</style>
+</head>
 <body>
 <a class="skip-ai" href="#module-main">Skip to main content</a>
 <header>
@@ -1624,10 +1645,20 @@ buttons();
  </div>`;
  root.appendChild(panel);
  const el=id=>panel.querySelector('#'+id),frame=el('gender-qwen-frame'),close=el('gender-qwen-close'),note=el('gender-qwen-note'),feedback=el('gender-qwen-feedback'),student=el('gender-qwen-student'),count=el('gender-qwen-count'),dialogue=el('gender-qwen-dialogue'),status=el('gender-qwen-feedback-status'),results=el('gender-qwen-results'),evaluate=el('gender-qwen-evaluate'),save=el('gender-qwen-save'),saveWords=el('gender-qwen-save-words'),saveActions=el('gender-qwen-save-actions');
- let scenario='',lines=[],turns=[],seen=new Set(),evaluation=null,locked=false;
+ let scenario='',lines=[],turns=[],seen=new Set(),evaluation=null,locked=false,autoFeedbackTimer=null;
  const names={gender_engineering:'Nova · Engineering Apprentice',gender_babysitter:'Chaz · Babysitter'};
- function finish(){frame.src='about:blank';frame.hidden=true;close.hidden=true;if(scenario){feedback.hidden=false;note.textContent='Interview ended. Review your learner transcript below.';}}
+ function scheduleFeedback(){
+  clearTimeout(autoFeedbackTimer);
+  autoFeedbackTimer=setTimeout(()=>{
+   if(frame.hidden && !evaluation && !evaluate.disabled && student.value.trim().length>=45){
+    status.textContent='Automatically classifying your transcript. You can edit it and regenerate feedback.';
+    evaluate.click();
+   }
+  },1200);
+ }
+ function finish(){frame.src='about:blank';frame.hidden=true;close.hidden=true;if(scenario){feedback.hidden=false;note.textContent='Interview ended. Your transcript is being checked by AI.';scheduleFeedback();}}
  function start(which,mode){
+  clearTimeout(autoFeedbackTimer);
   if(!frame.hidden)finish();
   document.getElementById('gender-kostya-close')?.click();
   scenario=which;lines=[];turns=[];dialogue.textContent='';seen=new Set();evaluation=null;save.disabled=true;saveWords.disabled=true;saveActions.hidden=true;results.replaceChildren();student.value='';count.textContent='0 learner turns captured';status.textContent='';feedback.hidden=true;
@@ -1640,7 +1671,7 @@ buttons();
  window.addEventListener('message',e=>{
   if(e.origin!==location.origin||e.source!==frame.contentWindow||e.data?.source!=='webilang-gender-qwen'||e.data?.scenario!==scenario)return;
   const data=e.data;
-  if(data.type==='ended'){feedback.hidden=false;return;}
+  if(data.type==='ended'){feedback.hidden=false;frame.hidden=true;close.hidden=true;scheduleFeedback();return;}
   if(data.type!=='transcript'||!String(data.text||'').trim())return;
   const key=data.speaker+':'+(data.id||data.text);if(seen.has(key))return;seen.add(key);
   turns.push({speaker:data.speaker==='student'?'Student':names[scenario].split(' · ')[0],text:data.text});
@@ -1654,18 +1685,19 @@ buttons();
   if(!frame.hidden){status.textContent='End the interview before requesting feedback.';return}
   const speech=student.value.trim(),decision=el('gender-qwen-decision').value,reason=el('gender-qwen-reason').value.trim();
   if(speech.length<45){status.textContent='At least 45 characters of learner speech are required. Check or enter the transcript.';return}
-  if(!decision||reason.length<20){status.textContent='Choose a decision and give an explanation of at least 20 characters.';return}
+  // Language feedback is available without a hiring decision. Decision feedback is optional.
+  if(!decision && reason){status.textContent='Choose a hiring decision, or clear the optional explanation.';return}
   evaluate.disabled=true;save.disabled=true;evaluation=null;results.replaceChildren();status.textContent='Analyzing learner speech…';
   const exchange=turns.length?turns.map(t=>t.speaker+': '+t.text).join('\n'):'';
   const context=exchange.slice(0,4200);
-  const task=('B2 Gender Roles job interview. Student is the interviewer, candidate: '+names[scenario]+'. Assess how specific student questions connect with candidate replies; ask whether the student uses relevant follow-ups, professional tone, fair criteria, evidence and gender-neutral reasoning. Student hiring decision: '+decision+'. Reason: '+reason.slice(0,210)+'. INTERVIEW (context only; not student text): '+context+'. Evaluate only STUDENT RESPONSE supplied separately. Quote specific learner wording as positive evidence and in corrections. Never correct candidate speech, invent unseen turns, or assume written transcripts prove pronunciation, speech rate or fluency. Offer one tailored next question.').slice(0,1570);
+  const task=('B2 Gender Roles job interview. Student is the interviewer, candidate: '+names[scenario]+'. Assess how specific student questions connect with candidate replies; ask whether the student uses relevant follow-ups, professional tone, fair criteria, evidence and gender-neutral reasoning. Student hiring decision (optional): '+(decision||'not supplied')+'. Reason (optional): '+reason.slice(0,210)+'. INTERVIEW (context only; not student text): '+context+'. Evaluate only STUDENT RESPONSE supplied separately. Quote specific learner wording as positive evidence and in corrections. Never correct candidate speech, invent unseen turns, or assume written transcripts prove pronunciation, speech rate or fluency. Offer one tailored next question.').slice(0,1570);
   try{
    const response=await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'speaking',task,response:speech})});
    const data=await response.json().catch(()=>({}));if(!response.ok||data.error)throw Error(data.error||'Feedback unavailable');
    evaluation={data,speech,scenario};
    add('h4','Your interview feedback · '+names[scenario]);
    const makeCard=(title,text,category)=>{const section=add('section','','gf-card gf-'+category);const h=document.createElement('h4');h.textContent=title;section.append(h);if(text){const p=document.createElement('p');p.textContent=String(text);section.append(p)}return section};
-   makeCard('💬 Communication & interaction',[data.taskAchievement,data.contentFeedback].filter(Boolean).join('\n\n')||'The analysis did not return communication feedback.','interaction');
+   makeCard('💬 Communication · How you handled the interview',[data.taskAchievement,data.contentFeedback].filter(Boolean).join('\n\n')||'No communication notes returned.','interaction');
    const vbox=makeCard('📚 Vocabulary · choose expressions to practise',data.vocabularyFeedback,'vocabulary');
    const gbox=makeCard('🧩 Grammar · choose corrections to practise',data.grammarFeedback,'grammar');
    const choice=(parent,kind,primary,secondary,details)=>{
@@ -1683,10 +1715,11 @@ buttons();
    if(!grammarItems.length){const msg=document.createElement('p');msg.className='gf-help';msg.textContent='No transcript-verified grammar patterns detected. Nothing is selected for saving.';gbox.append(msg)}
    const vocabItems=[];
    const candidates=Array.isArray(data.vocabularySuggestions)?data.vocabularySuggestions:[];
-   const vocabLines=candidates.length?candidates.map(v=>typeof v==='string'?v:(v.suggested||v.expression||v.corrected||v.phrase||'')):
+   const vocabLines=candidates.length?candidates:
       String(data.vocabularyFeedback||'').split(/\n|[•;]+/).map(x=>x.replace(/^[-*\d.)\s]+/,'').trim());
    for(const raw of vocabLines){
-     const phrase=String(raw).trim().replace(/^['"“”]|['"“”]$/g,'');
+     const item=(raw && typeof raw==='object')?raw:{suggested:String(raw||'')};
+     const phrase=String(item.suggested||item.expression||item.corrected||item.phrase||'').trim().replace(/^['"“”]|['"“”]$/g,'');
      if(!phrase||phrase.length>100||vocabItems.some(v=>v.word.toLowerCase()===phrase.toLowerCase()))continue;
      const cb=choice(vbox,'word',phrase,item.original?('You said: '+item.original):'Suggested B2 expression',item.explanation||'Useful collocation for interview practice.');
      vocabItems.push({cb,word:phrase});if(vocabItems.length>=8)break;
@@ -1696,12 +1729,15 @@ buttons();
    const addWord=document.createElement('button');addWord.type='button';addWord.textContent='＋ Add to choices';
    addWord.onclick=()=>{const word=wordInput.value.trim().replace(/\s+/g,' ');if(!word||word.length>100)return;if(vocabItems.some(v=>v.word.toLowerCase()===word.toLowerCase()))return;const cb=choice(vbox,'word',word,'Save as a vocabulary practice item','Added by learner');cb.checked=true;vocabItems.push({cb,word});wordInput.value='';refresh()};
    manual.append(wordInput,addWord);vbox.append(manual);
-   makeCard('⚖️ Evidence, fairness & decision',data.contentFeedback,'context');
+   // Communication feedback already includes fairness; do not repeat it in another card.
    makeCard('🧭 Interview structure',data.organizationFeedback,'context');
    makeCard('🎯 Your next practice goal',data.nextTask,'context');
    evaluation={data,speech,scenario,grammarItems,vocabItems};
+   gbox.append(save);vbox.append(saveWords);
+   saveActions.hidden=true;
+   const reminder=document.createElement('p');reminder.className='gf-help';reminder.textContent='Select the exact items you want to practise. Saved grammar goes to My Grammar Stock; saved expressions go to My Word Stock.';results.prepend(reminder);
    function refresh(){save.disabled=!grammarItems.some(v=>v.cb.checked);saveWords.disabled=!vocabItems.some(v=>v.cb.checked)}
-   results.addEventListener('change',refresh,{once:false});saveActions.hidden=false;refresh();
+   results.addEventListener('change',refresh);refresh();
    panel.querySelector('.gf-preview')?.setAttribute('hidden','');status.textContent='Analysis complete. Review the blue, purple and orange feedback cards below. Tick individual items before saving.';
   }catch(err){status.textContent='Feedback failed: '+err.message}finally{evaluate.disabled=false}
  });
