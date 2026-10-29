@@ -635,14 +635,19 @@ nav .tab{white-space:normal}
 
 
 <section class="panel" id="panel-wordstock" aria-labelledby="wordStockTitle">
-<div class="section-head"><span class="tag">PERSONAL VOCABULARY</span><h2 id="wordStockTitle">My Word Stock</h2><p>Words and phrases collected from Story, Reading and Listening. Select up to six and practise retrieval, meaning and personal use.</p></div>
+<div class="section-head"><span class="tag">PERSONAL VOCABULARY</span><h2 id="wordStockTitle">My Word Stock</h2><p>Words and phrases collected from lessons and AI interviews. Select up to six and practise retrieval, meaning and personal use.</p></div>
 <div class="card">
 <div class="scorebox"><span class="pill" id="wordCountDisplay">0 items saved</span><button type="button" class="btn pale" id="wordStockSelectAll">Select up to 6</button><button type="button" class="btn pale" id="wordStockDeselect">Clear selection</button></div>
+<p id="wordStockVersion" style="padding:9px 13px;background:#e3f6e9;color:#145d40;border-radius:8px;font-weight:800">WORD STOCK FIX v5 · 29 OCT · If visible, the new file is deployed</p>
 <div class="stock-columns">
 <div><h3>From Story & Reading</h3><div class="stock-list" id="wordReadingList"></div></div>
 <div><h3>From Listening</h3><div class="stock-list" id="wordWatchingList"></div></div>
 </div>
-<button type="button" class="btn green" id="wordStockPractice">Build practice from selected words</button>
+<div class="card" style="margin:12px 0;border:1px solid #c3b2ec;background:#f7f2ff;padding:15px;border-radius:14px">
+<h3 style="margin:0 0 8px;color:#594095">From AI Interviews · Nova & Chaz</h3>
+<div class="stock-list" id="wordInterviewList"></div>
+</div>
+<section id="wl-wordstock-repaired" style="margin:14px 0;padding:16px;border:2px solid #76bf9a;border-radius:16px;background:#f9fbff"><h3>📚 Saved Words & Expressions — all sources</h3><p>Includes Nova / Chaz interviews. Choose up to six expressions.</p><div id="wl-word-items">Loading saved expressions…</div><div class="wl-tools"><button type="button" id="wl-word-practice" class="wl-primary">✨ Build practice from selected words</button><button type="button" id="wl-word-clear">Clear selection</button></div><div id="wl-word-message" role="status" class="wl-status"></div><div id="wl-word-exercises"></div></section><button type="button" class="btn green" id="wordStockPractice">Build practice from selected words</button>
 <div class="ai-task" id="wordPracticePanel" hidden><h3>Personal Word Stock practice</h3><p class="ai-caption">Each selected expression has three tasks: recognition, retrieval and personal use. Answers stay hidden until you attempt each task.</p><div id="wordPracticeItems"></div></div>
 </div>
 </section>
@@ -936,10 +941,11 @@ $('loadWatchTranscript').onclick=()=>{
 };
 if(store.userTranscript){$('watchTranscriptInput').value=store.userTranscript;$('watchExactText').textContent=store.userTranscript}
 function renderWords(){
+ try{const latest=JSON.parse(localStorage.getItem(KEY)||'{}');if(Array.isArray(latest.words))store.words=latest.words;}catch(e){}
  $('wordCountDisplay').textContent=store.words.length+' items saved';
- for(const [source,container] of [['reading','wordReadingList'],['watching','wordWatchingList']]){
+ for(const [source,container] of [['reading','wordReadingList'],['watching','wordWatchingList'],['interview','wordInterviewList']]){
   const root=$(container);root.replaceChildren();
-  const subset=store.words.filter(w=>w.source===source);
+  const subset=store.words.filter(w=>{const origin=String(w.source||'').toLowerCase();const isInterview=origin.includes('gender')||origin.includes('qwen')||origin.includes('interview')||origin.includes('nova')||origin.includes('chaz')||(!['reading','watching','story','listening'].includes(origin));return source==='interview'?isInterview:source==='watching'?origin==='watching'||origin==='listening':!isInterview&&(origin==='reading'||origin==='story');});
   if(!subset.length){const p=document.createElement('p');p.className='ai-caption';p.textContent='No expressions collected yet.';root.append(p)}
   subset.forEach(word=>{
     const line=document.createElement('div');line.className='stock-row';
@@ -947,7 +953,7 @@ function renderWords(){
     const check=document.createElement('input');check.type='checkbox';check.checked=!!word.selected;
     check.setAttribute('aria-label','Select '+word.word+' for practice');
     check.onchange=()=>{word.selected=check.checked;persist()};
-    label.append(check,document.createTextNode(' '+word.word));
+    label.append(check,document.createTextNode(' '+word.word)); if(word.source && word.source!=='reading' && word.source!=='watching'){const origin=document.createElement('small');origin.className='ai-caption';origin.textContent=' · '+word.source;label.append(origin)}
     const buttons=document.createElement('div');buttons.className='mini-actions';
     const speak=document.createElement('button');speak.type='button';speak.className='microbtn';speak.textContent='🔊';speak.setAttribute('aria-label','Listen to '+word.word);
     speak.onclick=()=>{if(!('speechSynthesis'in window))return;const u=new SpeechSynthesisUtterance(word.word);u.lang='en-US';speechSynthesis.speak(u)};
@@ -2020,6 +2026,47 @@ window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==
 const bar=document.getElementById('gender-kostya-bar');bar.addEventListener('pointerdown',e=>{if(e.target.closest('button')||matchMedia('(max-width:600px)').matches)return;move={id:e.pointerId,x:e.clientX,y:e.clientY,left:panel.getBoundingClientRect().left,top:panel.getBoundingClientRect().top};bar.setPointerCapture(e.pointerId)});
 bar.addEventListener('pointermove',e=>{if(!move||e.pointerId!==move.id)return;panel.style.left=Math.max(0,Math.min(innerWidth-panel.offsetWidth,move.left+e.clientX-move.x))+'px';panel.style.top=Math.max(0,Math.min(innerHeight-panel.offsetHeight,move.top+e.clientY-move.y))+'px';panel.style.right='auto';panel.style.bottom='auto'});
 bar.addEventListener('pointerup',()=>move=null);bar.addEventListener('pointercancel',()=>move=null);
+})();
+</script>
+<style id="wl-wordstock-repair-style">
+#wl-wordstock-repaired{margin:15px 0;padding:16px;border:1px solid #d1ddec;border-radius:16px;background:#f9fbff}
+#wl-wordstock-repaired .wl-card{background:#fff;border:1px solid #dbe4ef;border-radius:12px;padding:13px;margin:10px 0}
+#wl-wordstock-repaired .wl-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#wl-wordstock-repaired .wl-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#wl-wordstock-repaired button{cursor:pointer;border-radius:9px;padding:9px 12px;border:1px solid #9dbbb1;background:#e6f3ed;color:#145a43;font-weight:700}
+#wl-wordstock-repaired .wl-primary{background:#27895d;color:white;border-color:#27895d}
+#wl-wordstock-repaired .wl-status{color:#34506b;margin:10px 0;font-size:14px}
+#wl-wordstock-repaired .wl-target{color:#5c398a;font-weight:750}
+#wl-wordstock-repaired textarea,#wl-wordstock-repaired input[type=text]{width:100%;box-sizing:border-box;padding:10px;border:1px solid #bacbe1;border-radius:9px;margin:7px 0}
+#wordReadingList,#wordWatchingList,#wordInterviewList{display:none!important}
+#wordStockPractice{display:none!important}
+#wordPracticePanel{display:none!important}
+</style>
+<script id="wl-wordstock-repair-v4">
+(()=>{'use strict';
+const KEY='genderRolesAIStocks_v1';
+const host=document.getElementById('panel-wordstock');
+if(!host)return;
+
+const $=id=>document.getElementById(id);
+const read=()=>{try{const obj=JSON.parse(localStorage.getItem(KEY)||'{}');return Array.isArray(obj.words)?obj.words:[]}catch{return []}};
+const write=items=>{const obj=JSON.parse(localStorage.getItem(KEY)||'{}');obj.words=items;localStorage.setItem(KEY,JSON.stringify(obj));window.dispatchEvent(new Event('wl-word-items-updated'))};
+const label=(w)=>typeof w==='string'?w:String(w?.word||w?.text||w?.phrase||'').trim();
+const msg=$('wl-word-message'),list=$('wl-word-items'),out=$('wl-word-exercises');
+function render(){const items=read();list.replaceChildren();const counter=document.getElementById('wordCountDisplay');if(counter)counter.textContent=items.length+' items saved';
+ if(!items.length){list.textContent='No saved expressions yet. Select vocabulary from your AI interview feedback.';return}
+ items.forEach((w,i)=>{const word=label(w);if(!word)return;const row=document.createElement('div');row.className='wl-card wl-row';const lab=document.createElement('label');const ch=document.createElement('input');ch.type='checkbox';ch.checked=!!w.selected;ch.onchange=()=>{const all=read();if(all[i])all[i].selected=ch.checked;write(all)};const text=document.createElement('span');text.textContent=' '+word;lab.append(ch,text);const source=document.createElement('small');source.style.color='#64748b';source.textContent=' '+String(w.source||'Saved vocabulary');const tools=document.createElement('div');tools.className='wl-tools';const speak=document.createElement('button');speak.textContent='🔊';speak.type='button';speak.onclick=()=>{if(window.speechSynthesis){const u=new SpeechSynthesisUtterance(word);u.lang='en-US';speechSynthesis.speak(u)}};const remove=document.createElement('button');remove.textContent='Remove';remove.type='button';remove.onclick=()=>{const all=read();all.splice(i,1);write(all);render()};tools.append(speak,remove);row.append(lab,source,tools);list.append(row)})}
+function section(word,stage,description,checkFn){const card=document.createElement('div');card.className='wl-card';const h=document.createElement('h4');h.textContent=stage;const p=document.createElement('p');p.textContent=description;const input=document.createElement('textarea');input.rows=2;input.placeholder='Write your answer';const b=document.createElement('button');b.type='button';b.textContent='Check answer';const response=document.createElement('p');response.className='wl-status';response.setAttribute('role','status');b.onclick=()=>checkFn(input.value.trim(),response,b);card.append(h,p,input,b,response);return card}
+async function aiCheck(word,stage,answer,result,button){if(!answer){result.textContent='Write your answer first.';return}button.disabled=true;result.textContent='Checking…';try{const r=await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'check',word,stage,answer,task:{prompt:stage==='produce'?'Write one B2 sentence using '+word:'Explain the meaning of '+word}})});const d=await r.json();if(!r.ok||d.error)throw Error(d.error||'AI check unavailable');result.textContent=(d.status==='correct'?'✓ ':'')+(d.feedback||d.suggestion||'Your answer was submitted.');}catch(e){result.textContent='AI check is unavailable. Your answer remains here; please review it with your teacher.'}finally{button.disabled=false}}
+function createPractice(){const words=read().filter(w=>w.selected&&label(w));out.replaceChildren();if(!words.length){msg.textContent='Select one or more expressions from the list.';return}if(words.length>6){msg.textContent='Select no more than six expressions.';return}msg.textContent='Practice ready: Recognize → Retrieve → Produce. Each task targets your saved expression.';
+ words.forEach((w,index)=>{const word=label(w);const group=document.createElement('section');group.className='wl-card';const title=document.createElement('h3');title.textContent=(index+1)+'. '+word;group.append(title);
+ group.append(section(word,'1. Recognize','What does this expression mean? Explain it in simple English.',(answer,res,btn)=>aiCheck(word,'recognize',answer,res,btn)));
+ group.append(section(word,'2. Retrieve','Without copying the heading, write the exact saved expression from memory.',(answer,res)=>{if(!answer){res.textContent='Write the expression first.';return}const norm=x=>x.toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();res.textContent=norm(answer)===norm(word)?'✓ Correct.':'Try again. Look at the expression, then hide it and retry.'}));
+ group.append(section(word,'3. Produce','Write an original sentence using this expression naturally.',(answer,res,btn)=>aiCheck(word,'produce',answer,res,btn)));out.append(group)})}
+$('wl-word-practice').addEventListener('click',createPractice);
+$('wl-word-clear').addEventListener('click',()=>{const items=read();items.forEach(w=>w.selected=false);write(items);render();msg.textContent='Selection cleared.'});
+window.addEventListener('gender-roleplay-stock-updated',render);window.addEventListener('storage',e=>{if(e.key===KEY)render()});document.querySelectorAll('[data-tab="wordstock"]').forEach(b=>b.addEventListener('click',()=>setTimeout(render,0)));
+const observer=new MutationObserver(()=>{if(host.classList.contains('active'))render()});observer.observe(host,{attributes:true,attributeFilter:['class']});render();
 })();
 </script>
 </body></html>
