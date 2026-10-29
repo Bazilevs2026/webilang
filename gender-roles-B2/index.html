@@ -638,9 +638,14 @@ nav .tab{white-space:normal}
 <div class="section-head"><span class="tag">PERSONAL VOCABULARY</span><h2 id="wordStockTitle">My Word Stock</h2><p>Words and phrases collected from lessons and AI interviews. Select up to six and practise retrieval, meaning and personal use.</p></div>
 <div class="card">
 <div class="scorebox"><span class="pill" id="wordCountDisplay">0 items saved</span><button type="button" class="btn pale" id="wordStockSelectAll">Select up to 6</button><button type="button" class="btn pale" id="wordStockDeselect">Clear selection</button></div>
+<p class="ai-caption" id="wordStockVersion">Word Stock · Interview sync v3</p>
 <div class="stock-columns">
-<div><h3>From Story, Reading & Interviews</h3><div class="stock-list" id="wordReadingList"></div></div>
+<div><h3>From Story & Reading</h3><div class="stock-list" id="wordReadingList"></div></div>
 <div><h3>From Listening</h3><div class="stock-list" id="wordWatchingList"></div></div>
+</div>
+<div class="card" style="margin:12px 0;border:1px solid #c3b2ec;background:#f7f2ff;padding:15px;border-radius:14px">
+<h3 style="margin:0 0 8px;color:#594095">From AI Interviews · Nova & Chaz</h3>
+<div class="stock-list" id="wordInterviewList"></div>
 </div>
 <button type="button" class="btn green" id="wordStockPractice">Build practice from selected words</button>
 <div class="ai-task" id="wordPracticePanel" hidden><h3>Personal Word Stock practice</h3><p class="ai-caption">Each selected expression has three tasks: recognition, retrieval and personal use. Answers stay hidden until you attempt each task.</p><div id="wordPracticeItems"></div></div>
@@ -936,10 +941,11 @@ $('loadWatchTranscript').onclick=()=>{
 };
 if(store.userTranscript){$('watchTranscriptInput').value=store.userTranscript;$('watchExactText').textContent=store.userTranscript}
 function renderWords(){
+ try{const latest=JSON.parse(localStorage.getItem(KEY)||'{}');if(Array.isArray(latest.words))store.words=latest.words;}catch(e){}
  $('wordCountDisplay').textContent=store.words.length+' items saved';
- for(const [source,container] of [['reading','wordReadingList'],['watching','wordWatchingList']]){
+ for(const [source,container] of [['reading','wordReadingList'],['watching','wordWatchingList'],['interview','wordInterviewList']]){
   const root=$(container);root.replaceChildren();
-  const subset=store.words.filter(w=>source==='reading' ? w.source!=='watching' : w.source==='watching');
+  const subset=store.words.filter(w=>{const origin=String(w.source||'').toLowerCase();const isInterview=origin.includes('gender')||origin.includes('qwen')||origin.includes('interview')||origin.includes('nova')||origin.includes('chaz')||(!['reading','watching','story','listening'].includes(origin));return source==='interview'?isInterview:source==='watching'?origin==='watching'||origin==='listening':!isInterview&&(origin==='reading'||origin==='story');});
   if(!subset.length){const p=document.createElement('p');p.className='ai-caption';p.textContent='No expressions collected yet.';root.append(p)}
   subset.forEach(word=>{
     const line=document.createElement('div');line.className='stock-row';
