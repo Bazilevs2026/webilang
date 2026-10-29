@@ -14920,10 +14920,21 @@ const ready=slots.every(s=>data.players?.[s]);$('battleStart').hidden=!token||sl
 if(data.status==='lobby'){message(`${slots.filter(s=>data.players?.[s]).length}/4 joined. ${slot?'You are '+label(slot):'Choose a position.'}`);return}
 $('battleBlue').textContent='🔵 Blue: '+data.scores.blue+' left';$('battleRed').textContent='🔴 Red: '+data.scores.red+' left';
 $('battleTurn').textContent=data.gameOver?`Game over · ${data.winner?.toUpperCase()} wins!`:`${data.currentTeam.toUpperCase()} turn · ${data.phase==='clue'?'Spymaster gives a clue':'Guesser selects words'} · You: ${label(slot)}`;
-message(data.message||'');const control=$('battleControls');control.replaceChildren();
+message(data.message||'');const control=$('battleControls');
 const myTeam=slot.split('_')[0],myRole=slot.split('_')[1],active=data.status==='playing'&&data.currentTeam===myTeam;
-if(data.phase==='clue'&&active&&myRole==='spymaster'){
- const input=document.createElement('input');input.placeholder='One-word clue';input.id='battleClueInput';const select=document.createElement('select');for(let i=1;i<=9;i++){const op=document.createElement('option');op.value=i;op.textContent=i;select.appendChild(op)}select.value='2';const btn=document.createElement('button');btn.className='battlePrimary';btn.textContent='Give clue';btn.onclick=()=>act('clue',{clue:input.value,number:Number(select.value)});control.append(input,select,btn)
+// Polling runs every two seconds. Preserve the existing clue field (and its keyboard
+// focus, cursor, and unsent text) instead of destroying/recreating it on each poll.
+const editingClue=data.phase==='clue'&&active&&myRole==='spymaster';
+if(!editingClue||!control.querySelector('#battleClueInput'))control.replaceChildren();
+if(editingClue){
+ if(!control.querySelector('#battleClueInput')){
+  const input=document.createElement('input');input.type='text';input.placeholder='One-word clue';input.id='battleClueInput';input.autocomplete='off';input.setAttribute('aria-label','One-word clue');
+  const select=document.createElement('select');select.setAttribute('aria-label','Number of words');for(let i=1;i<=9;i++){const op=document.createElement('option');op.value=i;op.textContent=i;select.appendChild(op)}select.value='2';
+  const btn=document.createElement('button');btn.type='button';btn.className='battlePrimary';btn.textContent='Give clue';
+  const submit=()=>{const clue=input.value.trim();if(!clue){message('Enter a one-word clue first.',true);input.focus();return}act('clue',{clue,number:Number(select.value)})};
+  btn.onclick=submit;input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submit()}});
+  control.append(input,select,btn);
+ }
 }else if(data.phase==='guess'){
  const t=document.createElement('strong');t.textContent=`Clue: ${data.clueWord} · ${data.clueNumber} (${data.guessesLeft} guesses available)`;control.appendChild(t);
  if(active&&myRole==='guesser'){const btn=document.createElement('button');btn.textContent='Pass turn';btn.onclick=()=>act('pass');control.append(' ',btn)}
