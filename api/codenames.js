@@ -108,6 +108,7 @@ function createTeamBattleState(code){
   state.scores={blue:9,red:8}; // Words remaining, not points earned.
   state.winner=null;
   state.board=state.board.map(c=>({...c,role:c.role==="our"?"blue":c.role==="opponent"?"red":c.role}));
+  state.history=[];
   state.message="Room created. Four players can join and choose their roles.";
   state.messageType="";
   delete state.teacherToken;delete state.studentToken;delete state.studentJoined;
@@ -128,7 +129,7 @@ function battlePublicState(state,slot){
     scores:state.scores,currentTeam:state.currentTeam,startingTeam:state.startingTeam,phase:state.phase,
     clueActive:Boolean(state.clueActive),clueWord:state.clueWord||"",clueNumber:state.clueNumber||0,
     guessesLeft:state.guessesLeft||0,gameOver:Boolean(state.gameOver),winner:state.winner,
-    message:state.message||"",messageType:state.messageType||"",updatedAt:state.updatedAt
+    message:state.message||"",messageType:state.messageType||"",history:(state.history||[]).slice(-50),updatedAt:state.updatedAt
   };
 }
 function battleSwitchTurn(state){
@@ -171,7 +172,7 @@ async function battleAction(code,body,res){
       if(state.status!=="lobby")return res.status(409).json({error:"Game already started."});
       if(!TEAM_SLOTS.every(s=>state.players[s]))return res.status(409).json({error:"Wait for all four players."});
       if(slot!==state.hostSlot)return res.status(403).json({error:"Only the room host can start."});
-      state.status="playing";state.message="Team Battle started. Blue Spymaster gives the first clue.";
+      state.status="playing";state.history=[];state.message="Team Battle started. Blue Spymaster gives the first clue.";
       await saveState(state);return battleRespond(res,state,slot,"Game started.");
     }
     if(state.status!=="playing")return res.status(409).json({error:"The game is not active."});
@@ -186,12 +187,14 @@ async function battleAction(code,body,res){
       state.clueWord=checked.word;state.clueNumber=number;
       state.guessesLeft=number+1;state.clueActive=true;state.phase="guess";
       state.message=`${team.toUpperCase()} clue: ${checked.word} · ${number}.`;
+      state.history=(state.history||[]).concat([{type:"clue",team,player:state.players[slot].name,word:checked.word,number,time:Date.now()}]).slice(-50);
     }else if(action==="guess"){
       if(job!=="guesser"||state.phase!=="guess")return res.status(403).json({error:"Only the active Guesser may select a card."});
       const index=Number(body.index);
       if(!Number.isInteger(index)||index<0||index>=state.board.length)return res.status(400).json({error:"Invalid card."});
       const card=state.board[index];if(card.revealed)return res.status(409).json({error:"Card already revealed."});
       card.revealed=true;
+      state.history=(state.history||[]).concat([{type:"guess",team,player:state.players[slot].name,word:card.word,role:card.role,index,time:Date.now()}]).slice(-50);
       if(card.role==="assassin")battleFinish(state,team==="blue"?"red":"blue",`${team.toUpperCase()} revealed the assassin!`);
       else if(card.role==="neutral"){
         battleSwitchTurn(state);state.message="Neutral card. Turn passed to the other team.";
@@ -207,6 +210,7 @@ async function battleAction(code,body,res){
       }
     }else if(action==="pass"){
       if(job!=="guesser"||state.phase!=="guess")return res.status(403).json({error:"Only the active Guesser can pass."});
+      state.history=(state.history||[]).concat([{type:"pass",team,player:state.players[slot].name,time:Date.now()}]).slice(-50);
       battleSwitchTurn(state);state.message="Turn passed to the other team.";
     }else return res.status(400).json({error:"Unknown Team Battle action."});
     await saveState(state);return battleRespond(res,state,slot,"Game updated.");
