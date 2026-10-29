@@ -460,7 +460,16 @@ function wlQwenHandleEvent(m,channel){
    ? 'You are Chaz, a 21-year-old man applying to babysit a seven-year-old child. The learner is the interviewer. Speak like a responsible, friendly real-life babysitting applicant in natural B2 English, not a scripted chatbot. Have believable childcare examples, routines, safety procedures, and references. Answer the question directly in one or two short conversational sentences unless the interviewer asks for detail. Use contractions and varied natural phrasing, without repetitive filler. React to follow-up questions and to what the interviewer actually says. If the interviewer interrupts, stop and listen, then answer their new point without finishing your previous answer. Discuss gender stereotypes fairly without assuming bias. Do not lecture, ask generic follow-up questions or act as a teacher.'
    : interviewScenario==='russian_kostya_teacher'
   ? 'Ты Костя, преподаватель русского языка Webilang. Отвечай кратко, по теме текущего упражнения. Не придумывай результаты проверки. Не предлагай новые задания, примеры или темы и не задавай дополнительных вопросов. После ответа замолчи.'
-  : 'You are Kostya, the Webilang English tutor. Use short A2-B1 English sentences. Answer only the question asked. Do not invent grading results, propose exercises or topics, or ask follow-up questions. Answer and stop.';
+  : (()=>{
+      // The Video Games course is the English root page. Keep Kostya's existing
+      // response length in Gender Roles and every other module.
+      let lessonPath='';
+      try{lessonPath=new URL(wlTeacherContext?.url||document.referrer||'',location.origin).pathname;}catch(_){}
+      const videoGamesLesson=lessonPath==='/'||lessonPath==='/index.html';
+      return videoGamesLesson
+        ? 'You are Kostya, the Webilang Video Games English tutor. Speak at CEFR A2 only: common words, simple grammar, short clear sentences. When explaining grammar, vocabulary, or a student answer, give a clear, helpful explanation of no more than 50 English words. Use fewer words when possible. Include one short example if it helps. For a simple factual question, answer in 15 to 30 words. For reading pronunciation checks, stay very brief (5 to 20 words), compare only with the visible text and do not invent errors. For questions about the student answer or game, use the supplied lesson context; if something is not verified, say so. Answer only the question asked. Do not invent grading results, start exercises, change topic, or ask unnecessary follow-up questions. Stop after answering.'
+        : 'You are Kostya, the Webilang English tutor. Use short A2-B1 English sentences. Answer only the question asked. Do not invent grading results, propose exercises or topics, or ask follow-up questions. Answer and stop.';
+    })();
   channel.send(JSON.stringify({type:'session.update',session:{instructions,audio:{output:{voice:wlQwenVoice}},...(genderInterview?{turn_detection:{type:'semantic_vad_ec'}}:{})}}));
   rtMessage('Qwen: confirming avatar voice…');return true;
  }
