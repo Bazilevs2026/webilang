@@ -266,6 +266,13 @@ nav .tab{white-space:normal}
 .wg-model-sentence{background:#fff;border-radius:10px;padding:12px 14px;margin:12px 0 5px}
 .wg-model-ru{color:#466478;font-size:.98rem;margin:6px 4px}
 .wg-actions{flex-wrap:wrap}
+</style><style id="gender-final-visibility">
+#panel-roleplays .rp-grid,#panel-roleplays #rp-session,#panel-roleplays .rp-voice-session {display:none!important} 
+#gender-qwen-card .gender-interview-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:16px 0}
+#gender-qwen-card .gender-role-card{border:1px solid #d6e2ee;border-radius:15px;padding:18px;background:#f7faff}
+#gender-qwen-card .gender-role-card p{margin:8px 0;line-height:1.55}
+#gender-qwen-card .gender-role-card button{display:block;width:100%;margin-top:15px}
+@media(max-width:760px){#gender-qwen-card .gender-interview-cards{grid-template-columns:1fr}}
 </style></head>
 <body>
 <a class="skip-ai" href="#module-main">Skip to main content</a>
@@ -1537,7 +1544,7 @@ buttons();
   if(!frame.hidden)finish();
   document.getElementById('gender-kostya-close')?.click();
   scenario=which;lines=[];turns=[];dialogue.textContent='';seen=new Set();evaluation=null;save.disabled=true;results.replaceChildren();student.value='';count.textContent='0 learner turns captured';status.textContent='';feedback.hidden=true;
-  frame.src='/avatar-lab/realtime-english.html?pilot='+encodeURIComponent(which)+'&mode=avatar&embed=gender';
+  frame.src='/avatar-lab/realtime-english.html?pilot='+encodeURIComponent(which)+'&mode=avatar&embed=gender&ui=interview-v3';
   frame.hidden=false;close.hidden=false;note.textContent=names[which]+' · 3D avatar interview. Click Start Realtime inside the window; you can speak naturally and interrupt politely.';
   frame.scrollIntoView({behavior:'smooth',block:'nearest'});
  }
