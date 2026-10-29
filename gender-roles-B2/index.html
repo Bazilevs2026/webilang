@@ -1657,7 +1657,7 @@ buttons();
   if(!decision||reason.length<20){status.textContent='Choose a decision and give an explanation of at least 20 characters.';return}
   evaluate.disabled=true;save.disabled=true;evaluation=null;results.replaceChildren();status.textContent='Analyzing learner speech…';
   const exchange=turns.length?turns.map(t=>t.speaker+': '+t.text).join('\n'):'';
-  const context=exchange.slice(0,800);
+  const context=exchange.slice(0,4200);
   const task=('B2 Gender Roles job interview. Student is the interviewer, candidate: '+names[scenario]+'. Assess how specific student questions connect with candidate replies; ask whether the student uses relevant follow-ups, professional tone, fair criteria, evidence and gender-neutral reasoning. Student hiring decision: '+decision+'. Reason: '+reason.slice(0,210)+'. INTERVIEW (context only; not student text): '+context+'. Evaluate only STUDENT RESPONSE supplied separately. Quote specific learner wording as positive evidence and in corrections. Never correct candidate speech, invent unseen turns, or assume written transcripts prove pronunciation, speech rate or fluency. Offer one tailored next question.').slice(0,1570);
   try{
    const response=await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'speaking',task,response:speech})});
@@ -1665,7 +1665,7 @@ buttons();
    evaluation={data,speech,scenario};
    add('h4','Your interview feedback · '+names[scenario]);
    const makeCard=(title,text,category)=>{const section=add('section','','gf-card gf-'+category);const h=document.createElement('h4');h.textContent=title;section.append(h);if(text){const p=document.createElement('p');p.textContent=String(text);section.append(p)}return section};
-   makeCard('💬 Communication & interaction',data.taskAchievement||'Review the quality of your questions, listening, follow-ups and natural interaction.','interaction');
+   makeCard('💬 Communication & interaction',[data.taskAchievement,data.contentFeedback].filter(Boolean).join('\n\n')||'The analysis did not return communication feedback.','interaction');
    const vbox=makeCard('📚 Vocabulary · choose expressions to practise',data.vocabularyFeedback,'vocabulary');
    const gbox=makeCard('🧩 Grammar · choose corrections to practise',data.grammarFeedback,'grammar');
    const choice=(parent,kind,primary,secondary,details)=>{
@@ -1688,7 +1688,7 @@ buttons();
    for(const raw of vocabLines){
      const phrase=String(raw).trim().replace(/^['"“”]|['"“”]$/g,'');
      if(!phrase||phrase.length>100||vocabItems.some(v=>v.word.toLowerCase()===phrase.toLowerCase()))continue;
-     const cb=choice(vbox,'word',phrase,'Save as a vocabulary practice item','Only select useful, accurate expressions.');
+     const cb=choice(vbox,'word',phrase,item.original?('You said: '+item.original):'Suggested B2 expression',item.explanation||'Useful collocation for interview practice.');
      vocabItems.push({cb,word:phrase});if(vocabItems.length>=8)break;
    }
    const manual=document.createElement('div');manual.className='gf-word-tools';
@@ -1702,7 +1702,7 @@ buttons();
    evaluation={data,speech,scenario,grammarItems,vocabItems};
    function refresh(){save.disabled=!grammarItems.some(v=>v.cb.checked);saveWords.disabled=!vocabItems.some(v=>v.cb.checked)}
    results.addEventListener('change',refresh,{once:false});saveActions.hidden=false;refresh();
-   status.textContent='AI feedback ready. Select individual items, then use the appropriate Save button.';
+   panel.querySelector('.gf-preview')?.setAttribute('hidden','');status.textContent='Analysis complete. Review the blue, purple and orange feedback cards below. Tick individual items before saving.';
   }catch(err){status.textContent='Feedback failed: '+err.message}finally{evaluate.disabled=false}
  });
  saveWords.addEventListener('click',()=>{
