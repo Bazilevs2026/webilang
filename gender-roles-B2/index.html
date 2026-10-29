@@ -1629,15 +1629,14 @@ buttons();
  <div id="gender-qwen-feedback" hidden>
  <div class="gf-hero"><span class="gf-step">AFTER THE INTERVIEW</span><h3>✨ Your Personal Interview Coach</h3><p>Review your conversation, then get feedback on <strong>Communication</strong>, <strong>Vocabulary</strong> and <strong>Grammar</strong>. Select the items you want to practise.</p></div>
  <div class="gf-flow"><span>① Review transcript</span><span>② Generate feedback</span><span>③ Tick corrections</span><span>④ Save &amp; practise</span></div>
- <details class="gf-transcript" id="gender-qwen-dialogue-details"><summary>View interview exchange (learner + candidate)</summary><div id="gender-qwen-dialogue" style="white-space:pre-wrap;max-height:260px;overflow:auto;padding:12px;background:#f5f8fd;border-radius:10px"></div></details>
- <label class="gf-fieldtitle" for="gender-qwen-student">✍️ Your spoken English <small>Review or correct transcription errors before analysis</small></label>
- <textarea id="gender-qwen-student" placeholder="Captured questions appear here. If speech transcription is unavailable, paste or type the questions you asked."></textarea>
+ <label class="gf-fieldtitle" for="gender-qwen-student">📝 Interview transcript <small>One editable conversation. Keep the Student: and Nova:/Chaz: labels. Correct recognition errors, then analyze.</small></label>
+ <textarea id="gender-qwen-student" style="min-height:230px" spellcheck="true" placeholder="Student: What experience do you have?&#10;Chaz: I have worked with children for two years."></textarea>
  <p><small id="gender-qwen-count">0 learner turns captured</small></p>
- <div class="gf-decision"><label for="gender-qwen-decision">⚖️ Hiring decision</label>
+ <div class="gf-decision" hidden><label for="gender-qwen-decision">⚖️ Hiring decision</label>
  <select id="gender-qwen-decision"><option value="">Choose…</option><option value="hire">Hire</option><option value="reject">Do not hire</option><option value="undecided">Undecided</option></select>
  <label for="gender-qwen-reason">Explain your decision using evidence from the interview</label>
  <textarea id="gender-qwen-reason" style="min-height:72px" placeholder="Explain your reasoning in at least 20 characters."></textarea></div>
- <div class="gf-actionbar"><button type="button" id="gender-qwen-evaluate">✨ Generate personalized AI feedback</button></div>
+ <div class="gf-actionbar"><button type="button" id="gender-qwen-evaluate">✨ Analyze My Interview</button></div>
 <div class="gf-preview"><div class="gf-preview-item gf-preview-blue">💬 <b>Communication</b><small>Follow-up questions &amp; natural interaction</small></div><div class="gf-preview-item gf-preview-purple">📚 <b>Vocabulary</b><small>Better expressions → My Word Stock</small></div><div class="gf-preview-item gf-preview-orange">🧩 <b>Grammar</b><small>Original → correction → My Grammar Stock</small></div></div><p class="gf-help">After generating feedback, tick only the corrections you want to practise. Save vocabulary and grammar separately.</p>
 <div id="gender-qwen-save-actions" class="gf-actionbar" hidden><button type="button" id="gender-qwen-save" disabled>✓ Save selected grammar to My Grammar Stock</button><button type="button" id="gender-qwen-save-words" class="gf-purple" disabled>✓ Save selected vocabulary to My Word Stock</button></div>
 <p class="gf-help">Saved items appear in the matching Stock tab. Select items there and create AI exercises.</p>
@@ -1649,19 +1648,15 @@ buttons();
  const names={gender_engineering:'Nova · Engineering Apprentice',gender_babysitter:'Chaz · Babysitter'};
  function scheduleFeedback(){
   clearTimeout(autoFeedbackTimer);
-  autoFeedbackTimer=setTimeout(()=>{
-   if(frame.hidden && !evaluation && !evaluate.disabled && student.value.trim().length>=45){
-    status.textContent='Automatically classifying your transcript. You can edit it and regenerate feedback.';
-    evaluate.click();
-   }
-  },1200);
+  // Deliberately manual: the student should correct recognition errors first.
+  status.textContent='Review the transcript, then select Analyze My Interview.';
  }
- function finish(){frame.src='about:blank';frame.hidden=true;close.hidden=true;if(scenario){feedback.hidden=false;note.textContent='Interview ended. Your transcript is being checked by AI.';scheduleFeedback();}}
+ function finish(){frame.src='about:blank';frame.hidden=true;close.hidden=true;if(scenario){feedback.hidden=false;note.textContent='Interview ended. Review the transcript and analyze when ready.';scheduleFeedback();}}
  function start(which,mode){
   clearTimeout(autoFeedbackTimer);
   if(!frame.hidden)finish();
   document.getElementById('gender-kostya-close')?.click();
-  scenario=which;lines=[];turns=[];dialogue.textContent='';seen=new Set();evaluation=null;save.disabled=true;saveWords.disabled=true;saveActions.hidden=true;results.replaceChildren();student.value='';count.textContent='0 learner turns captured';status.textContent='';feedback.hidden=true;
+  scenario=which;window.genderInterviewCoach=null;lines=[];turns=[];dialogue.textContent='';seen=new Set();evaluation=null;save.disabled=true;saveWords.disabled=true;saveActions.hidden=true;results.replaceChildren();student.value='';count.textContent='0 learner turns captured';status.textContent='';feedback.hidden=true;
   frame.src='/avatar-lab/realtime-english.html?pilot='+encodeURIComponent(which)+'&mode=avatar&embed=gender&ui=interview-v3';
   frame.hidden=false;close.hidden=false;note.textContent=names[which]+' · 3D avatar interview. Click Start Realtime inside the window; you can speak naturally and interrupt politely.';
   frame.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -1675,20 +1670,23 @@ buttons();
   if(data.type!=='transcript'||!String(data.text||'').trim())return;
   const key=data.speaker+':'+(data.id||data.text);if(seen.has(key))return;seen.add(key);
   turns.push({speaker:data.speaker==='student'?'Student':names[scenario].split(' · ')[0],text:data.text});
-  dialogue.textContent=turns.map(t=>t.speaker+': '+t.text).join('\n\n');
-  if(data.speaker==='student'){
-   lines.push(data.text);student.value=lines.join('\n');count.textContent=lines.length+' learner turn(s) captured';
-  }
+  if(data.speaker==='student')lines.push(data.text);
+  student.value=turns.map(t=>t.speaker+': '+t.text).join('\n\n');
+  count.textContent=lines.length+' learner turn(s) captured';
  });
  const add=(tag,text,cl)=>{const node=document.createElement(tag);node.textContent=text;if(cl)node.className=cl;results.append(node);return node};
  evaluate.addEventListener('click',async()=>{
   if(!frame.hidden){status.textContent='End the interview before requesting feedback.';return}
-  const speech=student.value.trim(),decision=el('gender-qwen-decision').value,reason=el('gender-qwen-reason').value.trim();
+  const transcript=student.value.trim(),decision='',reason='';
+  const parsed=transcript.split(/\n(?=(?:Student|Learner|Nova|Chaz)\s*:)/i).map(x=>x.trim()).filter(Boolean);
+  const learner=parsed.filter(x=>/^(Student|Learner)\s*:/i.test(x)).map(x=>x.replace(/^(Student|Learner)\s*:/i,'').trim());
+  const speech=learner.join('\n');
+  if(!learner.length){status.textContent='Add Student: labels before your spoken turns so only your English is assessed.';return;}
   if(speech.length<45){status.textContent='At least 45 characters of learner speech are required. Check or enter the transcript.';return}
   // Language feedback is available without a hiring decision. Decision feedback is optional.
   if(!decision && reason){status.textContent='Choose a hiring decision, or clear the optional explanation.';return}
   evaluate.disabled=true;save.disabled=true;evaluation=null;results.replaceChildren();status.textContent='Analyzing learner speech…';
-  const exchange=turns.length?turns.map(t=>t.speaker+': '+t.text).join('\n'):'';
+  const exchange=transcript;
   const context=exchange.slice(0,4200);
   const task=('B2 Gender Roles job interview. Student is the interviewer, candidate: '+names[scenario]+'. Assess how specific student questions connect with candidate replies; ask whether the student uses relevant follow-ups, professional tone, fair criteria, evidence and gender-neutral reasoning. Student hiring decision (optional): '+(decision||'not supplied')+'. Reason (optional): '+reason.slice(0,210)+'. INTERVIEW (context only; not student text): '+context+'. Evaluate only STUDENT RESPONSE supplied separately. Quote specific learner wording as positive evidence and in corrections. Never correct candidate speech, invent unseen turns, or assume written transcripts prove pronunciation, speech rate or fluency. Offer one tailored next question.').slice(0,1570);
   try{
@@ -1733,6 +1731,8 @@ buttons();
    makeCard('🧭 Interview structure',data.organizationFeedback,'context');
    makeCard('🎯 Your next practice goal',data.nextTask,'context');
    evaluation={data,speech,scenario,grammarItems,vocabItems};
+   window.genderInterviewCoach={transcript,studentSpeech:speech,analysis:{communication:[data.taskAchievement,data.contentFeedback].filter(Boolean).join(' '),vocabulary:vocabItems.map(x=>x.word),grammar:grammarItems.map(x=>({original:x.item.original,corrected:x.item.corrected,rule:x.item.rule||x.item.pattern||''}))},candidate:names[scenario],updatedAt:Date.now()};
+   window.dispatchEvent(new Event('gender-interview-coach-updated')); 
    gbox.append(save);vbox.append(saveWords);
    saveActions.hidden=true;
    const reminder=document.createElement('p');reminder.className='gf-help';reminder.textContent='Select the exact items you want to practise. Saved grammar goes to My Grammar Stock; saved expressions go to My Word Stock.';results.prepend(reminder);
@@ -1995,8 +1995,10 @@ function context(){
  const task=chosen?.question||clean(focus?.closest?.('.qbox,.grammar-row,.gap-row,.rp-box,.speaking-card')||root.querySelector('h2'));
  const mostRelevant=chosen&&chosen.section===section?chosen:null;
  const last=checked&&checked.section===section?checked:null;
- return {source:'webilang-lesson',type:'context',version:1,activeSection:'Gender Roles B2 · '+section,courseLanguage:'English',title:document.title,url:location.href,headings,activeTask:task,focusedField:focus?.id||'',studentInputs:fields,focusedPassage:section.includes('Reading')?clean(root.querySelector('.reading')):'',currentExercise:mostRelevant?{question:mostRelevant.question,studentAnswer:mostRelevant.answer,options:mostRelevant.options,field:mostRelevant.field}:null,lastCheck:last?{kind:'quiz_check',button:last.button,task:last.question,studentAnswer:last.answer,verifiedCorrectness:last.correctness,visibleFeedbackAfter:last.feedback?[last.feedback]:[],source:'Gender Roles B2',at:last.time}:null};
+ const interview=window.genderInterviewCoach;
+ return {source:'webilang-lesson',type:'context',version:1,interview:interview?{candidate:interview.candidate,transcript:interview.transcript.slice(0,4500),studentSpeech:interview.studentSpeech.slice(0,2200),analysis:interview.analysis}:null,activeSection:'Gender Roles B2 · '+section,courseLanguage:'English',title:document.title,url:location.href,headings,activeTask:task,focusedField:focus?.id||'',studentInputs:fields,focusedPassage:section.includes('Reading')?clean(root.querySelector('.reading')):'',currentExercise:mostRelevant?{question:mostRelevant.question,studentAnswer:mostRelevant.answer,options:mostRelevant.options,field:mostRelevant.field}:null,lastCheck:last?{kind:'quiz_check',button:last.button,task:last.question,studentAnswer:last.answer,verifiedCorrectness:last.correctness,visibleFeedbackAfter:last.feedback?[last.feedback]:[],source:'Gender Roles B2',at:last.time}:null};
 }
+window.addEventListener('gender-interview-coach-updated',send);
 function send(){if(panel.hidden||!frame.contentWindow||!frame.getAttribute('src'))return;const c=context();frame.contentWindow.postMessage(c,location.origin);status.textContent='Context: '+c.activeSection+(c.lastCheck?' · last answer checked':c.currentExercise?' · answer selected':'');}
 function close(){frame.removeAttribute('src');panel.hidden=true;fab.setAttribute('aria-expanded','false');panel.style.left='';panel.style.top='';panel.style.right='';panel.style.bottom='';fab.focus();}
 function open(){
