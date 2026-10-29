@@ -1682,10 +1682,10 @@ buttons();
   const learner=parsed.filter(x=>/^(Student|Learner)\s*:/i.test(x)).map(x=>x.replace(/^(Student|Learner)\s*:/i,'').trim());
   const speech=learner.join('\n');
   if(!learner.length){status.textContent='Add Student: labels before your spoken turns so only your English is assessed.';return;}
-  if(speech.length<45){status.textContent='At least 45 characters of learner speech are required. Check or enter the transcript.';return}
+  if(speech.length<20){status.textContent='At least 20 characters of learner speech are required. Check the transcript.';return}
   // Language feedback is available without a hiring decision. Decision feedback is optional.
-  if(!decision && reason){status.textContent='Choose a hiring decision, or clear the optional explanation.';return}
-  evaluate.disabled=true;save.disabled=true;evaluation=null;results.replaceChildren();status.textContent='Analyzing learner speech…';
+  
+  evaluate.disabled=true;save.disabled=true;saveWords.disabled=true;evaluation=null;results.replaceChildren();status.textContent='Analyzing learner speech…';
   const exchange=transcript;
   const context=exchange.slice(0,4200);
   const task=('B2 Gender Roles job interview. Student is the interviewer, candidate: '+names[scenario]+'. Assess how specific student questions connect with candidate replies; ask whether the student uses relevant follow-ups, professional tone, fair criteria, evidence and gender-neutral reasoning. Student hiring decision (optional): '+(decision||'not supplied')+'. Reason (optional): '+reason.slice(0,210)+'. INTERVIEW (context only; not student text): '+context+'. Evaluate only STUDENT RESPONSE supplied separately. Quote specific learner wording as positive evidence and in corrections. Never correct candidate speech, invent unseen turns, or assume written transcripts prove pronunciation, speech rate or fluency. Offer one tailored next question.').slice(0,1570);
@@ -1707,14 +1707,14 @@ buttons();
      if(details){const small=document.createElement('small');small.textContent=details;span.append(small)}
      label.append(cb,span);parent.append(label);return cb;
    };
-   const grammar=(Array.isArray(data.grammarPatterns)?data.grammarPatterns:[]).filter(g=>g.original&&g.corrected&&speech.includes(g.original)&&g.original!==g.corrected).slice(0,12);
+   const rawGrammar=Array.isArray(data.grammarPatterns)&&data.grammarPatterns.length?data.grammarPatterns:(Array.isArray(data.corrections)?data.corrections:[]);
+   const grammar=rawGrammar.filter(g=>g&&typeof g.original==='string'&&typeof g.corrected==='string'&&g.original.trim()&&g.corrected.trim()&&speech.includes(g.original)&&g.original!==g.corrected).slice(0,12);
    const grammarItems=[];
    grammar.forEach(g=>{const cb=choice(gbox,'grammar',g.original,g.corrected,g.rule||g.pattern||'');grammarItems.push({cb,item:g})});
    if(!grammarItems.length){const msg=document.createElement('p');msg.className='gf-help';msg.textContent='No transcript-verified grammar patterns detected. Nothing is selected for saving.';gbox.append(msg)}
    const vocabItems=[];
    const candidates=Array.isArray(data.vocabularySuggestions)?data.vocabularySuggestions:[];
-   const vocabLines=candidates.length?candidates:
-      String(data.vocabularyFeedback||'').split(/\n|[•;]+/).map(x=>x.replace(/^[-*\d.)\s]+/,'').trim());
+   const vocabLines=candidates; // Never treat free-form feedback prose as a vocabulary item.
    for(const raw of vocabLines){
      const item=(raw && typeof raw==='object')?raw:{suggested:String(raw||'')};
      const phrase=String(item.suggested||item.expression||item.corrected||item.phrase||'').trim().replace(/^['"“”]|['"“”]$/g,'');
@@ -1722,6 +1722,7 @@ buttons();
      const cb=choice(vbox,'word',phrase,item.original?('You said: '+item.original):'Suggested B2 expression',item.explanation||'Useful collocation for interview practice.');
      vocabItems.push({cb,word:phrase});if(vocabItems.length>=8)break;
    }
+   if(!vocabItems.length){const msg=document.createElement('p');msg.className='gf-help';msg.textContent='No specific vocabulary suggestions returned. You may add a useful expression below.';vbox.append(msg)}
    const manual=document.createElement('div');manual.className='gf-word-tools';
    const wordInput=document.createElement('input');wordInput.placeholder='Add your own collocation, e.g. relevant experience';wordInput.maxLength=100;wordInput.setAttribute('aria-label','Additional vocabulary expression');
    const addWord=document.createElement('button');addWord.type='button';addWord.textContent='＋ Add to choices';
