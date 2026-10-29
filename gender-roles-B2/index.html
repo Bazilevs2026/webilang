@@ -317,6 +317,46 @@ nav .tab{white-space:normal}
 #gender-qwen-card .gender-role-card p{margin:8px 0;line-height:1.55}
 #gender-qwen-card .gender-role-card button{display:block;width:100%;margin-top:15px}
 @media(max-width:760px){#gender-qwen-card .gender-interview-cards{grid-template-columns:1fr}}
+</style><style id="gf-learner-friendly-v2">
+#gender-qwen-feedback{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;color:#1b2b49;max-width:100%}
+#gender-qwen-feedback .gf-hero{background:linear-gradient(115deg,#edf5ff,#f6f2ff 70%,#fff5ed);padding:24px;border:1px solid #cbdcf8;border-radius:20px;margin:18px 0 14px}
+#gender-qwen-feedback .gf-hero h3{font-size:clamp(23px,2.5vw,30px);margin:8px 0;color:#172a52;letter-spacing:-.5px}
+#gender-qwen-feedback .gf-hero p{font-size:15px;line-height:1.65;margin:0;max-width:790px}
+#gender-qwen-feedback .gf-step{display:inline-block;color:#5c56bc;font-size:11px;letter-spacing:1.5px;font-weight:800}
+#gender-qwen-feedback .gf-flow{display:flex;flex-wrap:wrap;gap:9px;margin:15px 0}
+#gender-qwen-feedback .gf-flow span{padding:8px 12px;background:#eff4fa;border:1px solid #dee8f5;border-radius:50px;color:#34516e;font-size:13px;font-weight:700}
+#gender-qwen-feedback .gf-transcript{background:#f7faff;padding:12px 15px;border-radius:13px;border:1px solid #dfe8f7;margin:12px 0 20px}
+#gender-qwen-feedback .gf-transcript summary{font-weight:750;cursor:pointer;color:#25457a}
+#gender-qwen-feedback .gf-fieldtitle{display:block;font-weight:800;margin:16px 0 8px;font-size:17px}
+#gender-qwen-feedback .gf-fieldtitle small{display:block;font-weight:400;font-size:13px;color:#64758c;margin:4px 0}
+#gender-qwen-feedback #gender-qwen-student{width:100%;box-sizing:border-box;min-height:130px;border-radius:13px;border:1px solid #c9d7ec;padding:15px;background:#fff;font:15px/1.7 inherit}
+#gender-qwen-feedback .gf-decision{background:#f5f8fd;border:1px solid #dfe8f6;border-radius:16px;padding:18px;margin:20px 0}
+#gender-qwen-feedback .gf-decision label{font-weight:750;margin-right:9px}
+#gender-qwen-feedback .gf-decision textarea{width:100%;box-sizing:border-box;margin-top:10px;border:1px solid #cad7ea;border-radius:10px;padding:12px;font:inherit}
+#gender-qwen-feedback .gf-preview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 8px}
+#gender-qwen-feedback .gf-preview-item{display:flex;flex-direction:column;gap:4px;padding:16px;border-radius:16px;border:1px solid #d8e3f2;font-size:16px;font-weight:750}
+#gender-qwen-feedback .gf-preview-item small{font-size:12px;font-weight:500;line-height:1.5;color:#48607b}
+#gender-qwen-feedback .gf-preview-blue{background:#ecf5ff;border-color:#b9d8ff}
+#gender-qwen-feedback .gf-preview-purple{background:#f5efff;border-color:#d9c4ff}
+#gender-qwen-feedback .gf-preview-orange{background:#fff3e8;border-color:#f3caa3}
+#gender-qwen-results{margin-top:18px;display:grid;gap:14px}
+#gender-qwen-results > h4{grid-column:1/-1;font-size:25px;margin:4px 0}
+#gender-qwen-results .gf-card{box-shadow:0 5px 18px #203a5c0b;border-radius:17px;padding:22px !important;border-left-width:7px !important}
+#gender-qwen-results .gf-card.gf-interaction{background:#edf6ff !important;border-color:#b8d7fa !important;border-left-color:#347bc8 !important}
+#gender-qwen-results .gf-card.gf-vocabulary{background:#f6f0ff !important;border-color:#ddcbf6 !important;border-left-color:#8652c4 !important}
+#gender-qwen-results .gf-card.gf-grammar{background:#fff4e8 !important;border-color:#efceac !important;border-left-color:#e18e37 !important}
+#gender-qwen-results .gf-card h4{font-size:21px !important;letter-spacing:-.2px}
+#gender-qwen-results .gf-item{align-items:flex-start;background:#fff !important;box-shadow:0 2px 6px #14274708;transition:border-color .15s,background .15s}
+#gender-qwen-results .gf-item:hover{border-color:#8ca8d5}
+#gender-qwen-results .gf-item:has(input:checked){background:#eff8f3 !important;outline:2px solid #3e9e74 !important}
+#gender-qwen-results .gf-item > span{display:flex;flex-direction:column;gap:5px;min-width:0;overflow-wrap:anywhere}
+#gender-qwen-results .gf-original{color:#bb3d44;text-decoration:underline;text-decoration-color:#edabb0;text-decoration-thickness:2px}
+#gender-qwen-results .gf-corrected{font-size:15px;font-weight:800;color:#11774e;display:flex;flex-direction:column;gap:3px}
+#gender-qwen-results .gf-expression{color:#6234a3;font-size:16px}
+#gender-qwen-results .gf-micro-label{font-size:10px;letter-spacing:1.2px;font-weight:850;color:#64748b;margin-top:5px}
+#gender-qwen-feedback .gf-actionbar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+#gender-qwen-feedback .gf-actionbar button{border-radius:12px;padding:12px 16px;font-size:14px;font-weight:800}
+@media(max-width:760px){#gender-qwen-feedback .gf-preview{grid-template-columns:1fr}#gender-qwen-feedback .gf-hero{padding:18px}#gender-qwen-results .gf-card{padding:14px !important}}
 </style></head>
 <body>
 <a class="skip-ai" href="#module-main">Skip to main content</a>
@@ -1566,18 +1606,18 @@ buttons();
  <p id="gender-qwen-note" role="status">Select an applicant, then click Start Realtime inside the interview window.</p>
  <iframe id="gender-qwen-frame" title="Qwen interview" allow="microphone; autoplay" hidden></iframe>
  <div id="gender-qwen-feedback" hidden>
- <h3>Interview transcript & AI feedback</h3>
- <p>Review the learner's spoken questions below. The interview context includes the candidate's replies so AI can evaluate relevant follow-up questions. Only learner speech is corrected and saved.</p>
- <details id="gender-qwen-dialogue-details"><summary>View interview exchange (learner + candidate)</summary><div id="gender-qwen-dialogue" style="white-space:pre-wrap;max-height:260px;overflow:auto;padding:12px;background:#f5f8fd;border-radius:10px"></div></details>
- <label for="gender-qwen-student">Student's questions (editable transcript)</label>
+ <div class="gf-hero"><span class="gf-step">AFTER THE INTERVIEW</span><h3>✨ Your Personal Interview Coach</h3><p>Review your conversation, then get feedback on <strong>Communication</strong>, <strong>Vocabulary</strong> and <strong>Grammar</strong>. Select the items you want to practise.</p></div>
+ <div class="gf-flow"><span>① Review transcript</span><span>② Generate feedback</span><span>③ Tick corrections</span><span>④ Save &amp; practise</span></div>
+ <details class="gf-transcript" id="gender-qwen-dialogue-details"><summary>View interview exchange (learner + candidate)</summary><div id="gender-qwen-dialogue" style="white-space:pre-wrap;max-height:260px;overflow:auto;padding:12px;background:#f5f8fd;border-radius:10px"></div></details>
+ <label class="gf-fieldtitle" for="gender-qwen-student">✍️ Your spoken English <small>Review or correct transcription errors before analysis</small></label>
  <textarea id="gender-qwen-student" placeholder="Captured questions appear here. If speech transcription is unavailable, paste or type the questions you asked."></textarea>
  <p><small id="gender-qwen-count">0 learner turns captured</small></p>
- <label for="gender-qwen-decision">Hiring decision</label>
+ <div class="gf-decision"><label for="gender-qwen-decision">⚖️ Hiring decision</label>
  <select id="gender-qwen-decision"><option value="">Choose…</option><option value="hire">Hire</option><option value="reject">Do not hire</option><option value="undecided">Undecided</option></select>
  <label for="gender-qwen-reason">Explain your decision using evidence from the interview</label>
- <textarea id="gender-qwen-reason" style="min-height:72px" placeholder="Explain your reasoning in at least 20 characters."></textarea>
+ <textarea id="gender-qwen-reason" style="min-height:72px" placeholder="Explain your reasoning in at least 20 characters."></textarea></div>
  <div class="gf-actionbar"><button type="button" id="gender-qwen-evaluate">✨ Generate personalized AI feedback</button></div>
-<p class="gf-help">Review the color-coded feedback. Tick only the corrections and expressions you want to practice; then save each category separately.</p>
+<div class="gf-preview"><div class="gf-preview-item gf-preview-blue">💬 <b>Communication</b><small>Follow-up questions &amp; natural interaction</small></div><div class="gf-preview-item gf-preview-purple">📚 <b>Vocabulary</b><small>Better expressions → My Word Stock</small></div><div class="gf-preview-item gf-preview-orange">🧩 <b>Grammar</b><small>Original → correction → My Grammar Stock</small></div></div><p class="gf-help">After generating feedback, tick only the corrections you want to practise. Save vocabulary and grammar separately.</p>
 <div id="gender-qwen-save-actions" class="gf-actionbar" hidden><button type="button" id="gender-qwen-save" disabled>✓ Save selected grammar to My Grammar Stock</button><button type="button" id="gender-qwen-save-words" class="gf-purple" disabled>✓ Save selected vocabulary to My Word Stock</button></div>
 <p class="gf-help">Saved items appear in the matching Stock tab. Select items there and create AI exercises.</p>
  <p id="gender-qwen-feedback-status" role="status"></p><div id="gender-qwen-results" aria-live="polite"></div>
@@ -1623,7 +1663,7 @@ buttons();
    const response=await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'speaking',task,response:speech})});
    const data=await response.json().catch(()=>({}));if(!response.ok||data.error)throw Error(data.error||'Feedback unavailable');
    evaluation={data,speech,scenario};
-   add('h4','AI feedback · '+names[scenario]);
+   add('h4','Your interview feedback · '+names[scenario]);
    const makeCard=(title,text,category)=>{const section=add('section','','gf-card gf-'+category);const h=document.createElement('h4');h.textContent=title;section.append(h);if(text){const p=document.createElement('p');p.textContent=String(text);section.append(p)}return section};
    makeCard('💬 Communication & interaction',data.taskAchievement||'Review the quality of your questions, listening, follow-ups and natural interaction.','interaction');
    const vbox=makeCard('📚 Vocabulary · choose expressions to practise',data.vocabularyFeedback,'vocabulary');
@@ -1632,14 +1672,14 @@ buttons();
      const label=document.createElement('label');label.className='gf-item';
      const cb=document.createElement('input');cb.type='checkbox';cb.dataset.kind=kind;cb.dataset.index=String(parent.querySelectorAll('input[data-kind="'+kind+'"]').length);
      const span=document.createElement('span');
-     const title=document.createElement('strong');title.textContent=primary;span.append(title);
-     if(secondary){const sub=document.createElement('div');sub.textContent=secondary;span.append(sub)}
+     const title=document.createElement('strong');title.textContent=primary;title.className=kind==='grammar'?'gf-original':'gf-expression'; if(kind==='grammar'){const flag=document.createElement('span');flag.className='gf-micro-label';flag.textContent='YOU SAID';span.append(flag)}span.append(title);
+     if(secondary){const sub=document.createElement('div');sub.className=kind==='grammar'?'gf-corrected':'gf-support';if(kind==='grammar'){const flag=document.createElement('span');flag.className='gf-micro-label';flag.textContent='BETTER';sub.append(flag)}const txt=document.createElement('span');txt.textContent=secondary;sub.append(txt);span.append(sub)}
      if(details){const small=document.createElement('small');small.textContent=details;span.append(small)}
      label.append(cb,span);parent.append(label);return cb;
    };
    const grammar=(Array.isArray(data.grammarPatterns)?data.grammarPatterns:[]).filter(g=>g.original&&g.corrected&&speech.includes(g.original)&&g.original!==g.corrected).slice(0,12);
    const grammarItems=[];
-   grammar.forEach(g=>{const cb=choice(gbox,'grammar','You said: '+g.original,'Better: '+g.corrected,g.rule||g.pattern||'');grammarItems.push({cb,item:g})});
+   grammar.forEach(g=>{const cb=choice(gbox,'grammar',g.original,g.corrected,g.rule||g.pattern||'');grammarItems.push({cb,item:g})});
    if(!grammarItems.length){const msg=document.createElement('p');msg.className='gf-help';msg.textContent='No transcript-verified grammar patterns detected. Nothing is selected for saving.';gbox.append(msg)}
    const vocabItems=[];
    const candidates=Array.isArray(data.vocabularySuggestions)?data.vocabularySuggestions:[];
