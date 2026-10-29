@@ -171,6 +171,32 @@ main{max-width:1280px;margin:auto;padding:22px 18px 100px}
 #gender-qwen-feedback .gf-word-tools input{min-width:230px;max-width:100%;flex:1;border:1px solid #b9c8dd;border-radius:9px;padding:11px;font:inherit}
 #gender-qwen-feedback .gf-word-tools button{background:#674aa9;color:white;border:0;padding:11px 14px;border-radius:9px;font-weight:700;cursor:pointer}
 #gender-qwen-feedback #gender-qwen-save-words{background:#674aa9}
+
+/* Qwen feedback modern review workspace */
+#gender-qwen-feedback{font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;color:#1e304a}
+#gender-qwen-feedback>p,#gender-qwen-feedback>label{line-height:1.55}
+#gender-qwen-feedback textarea,#gender-qwen-feedback select{font:inherit;border:1px solid #ccd8e8;border-radius:12px;padding:13px;max-width:100%}
+#gender-qwen-results{display:grid;gap:16px;margin-top:18px}
+#gender-qwen-results .gf-card{margin:0;padding:19px;border:1px solid #d6e3f0;border-left:6px solid #317bd2;border-radius:17px;background:#f0f7ff;box-shadow:0 5px 15px rgba(20,44,75,.045)}
+#gender-qwen-results .gf-card.gf-vocabulary{background:#f6f1ff;border-color:#e0d5f7;border-left-color:#8050bd}
+#gender-qwen-results .gf-card.gf-grammar{background:#fff5e9;border-color:#f2dfc5;border-left-color:#dd8834}
+#gender-qwen-results .gf-card.gf-context{background:#f3f8f6;border-color:#d9e8e1;border-left-color:#3c9977}
+#gender-qwen-results .gf-card h4{font-size:19px;line-height:1.3;margin:0 0 9px;font-weight:800}
+#gender-qwen-results .gf-card p{font-size:15px;white-space:pre-wrap;line-height:1.65;margin:0;overflow-wrap:anywhere}
+#gender-qwen-results .gf-item{display:flex;align-items:flex-start;gap:12px;margin-top:12px;padding:13px;background:#fff;border:1px solid #dde5ef;border-radius:13px;cursor:pointer;line-height:1.45}
+#gender-qwen-results .gf-item:has(input:checked){outline:2px solid #7f97d0;outline-offset:-2px}
+#gender-qwen-results .gf-item input{width:20px;height:20px;min-width:20px;accent-color:#2769bc;margin:2px 0 0}
+#gender-qwen-results .gf-item strong{font-weight:750}
+#gender-qwen-results .gf-item small{display:block;color:#52637a;margin-top:5px;font-size:13px}
+#gender-qwen-results .gf-bad{color:#b33146;text-decoration:line-through}
+#gender-qwen-results .gf-good{color:#15805d;font-weight:750}
+#gender-qwen-feedback .gf-actionbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:16px 0}
+#gender-qwen-feedback .gf-actionbar button{border:0;border-radius:11px;background:#2769bc;color:white;font-size:15px;font-weight:750;padding:13px 18px;cursor:pointer}
+#gender-qwen-feedback .gf-actionbar button.gf-purple{background:#7652ac}
+#gender-qwen-feedback .gf-actionbar button:disabled{opacity:.45;cursor:not-allowed}
+#gender-qwen-feedback .gf-help{font-size:13px;color:#54657f;margin:6px 0}
+#gender-qwen-feedback #gender-qwen-feedback-status{font-weight:650}
+@media(max-width:700px){#gender-qwen-results .gf-card{padding:14px}#gender-qwen-feedback .gf-actionbar button{width:100%}}
 </style>
 
 <style id="wl-gender-ai-styles">
@@ -1550,18 +1576,21 @@ buttons();
  <select id="gender-qwen-decision"><option value="">Choose…</option><option value="hire">Hire</option><option value="reject">Do not hire</option><option value="undecided">Undecided</option></select>
  <label for="gender-qwen-reason">Explain your decision using evidence from the interview</label>
  <textarea id="gender-qwen-reason" style="min-height:72px" placeholder="Explain your reasoning in at least 20 characters."></textarea>
- <div class="gender-actions"><button type="button" id="gender-qwen-evaluate">Get AI feedback</button><button type="button" id="gender-qwen-save" disabled>Save grammar errors to My Grammar Stock</button></div><div class="gf-word-tools"><label for="gender-qwen-new-word">Useful word / collocation to remember</label><input id="gender-qwen-new-word" placeholder="e.g. demonstrate practical experience" maxlength="100"><button type="button" id="gender-qwen-save-words">＋ Save to My Word Stock</button></div><p class="gf-small">Copy a useful expression from the vocabulary feedback, then save it. Only expressions you choose are added.</p>
+ <div class="gf-actionbar"><button type="button" id="gender-qwen-evaluate">✨ Generate personalized AI feedback</button></div>
+<p class="gf-help">Review the color-coded feedback. Tick only the corrections and expressions you want to practice; then save each category separately.</p>
+<div id="gender-qwen-save-actions" class="gf-actionbar" hidden><button type="button" id="gender-qwen-save" disabled>✓ Save selected grammar to My Grammar Stock</button><button type="button" id="gender-qwen-save-words" class="gf-purple" disabled>✓ Save selected vocabulary to My Word Stock</button></div>
+<p class="gf-help">Saved items appear in the matching Stock tab. Select items there and create AI exercises.</p>
  <p id="gender-qwen-feedback-status" role="status"></p><div id="gender-qwen-results" aria-live="polite"></div>
  </div>`;
  root.appendChild(panel);
- const el=id=>panel.querySelector('#'+id),frame=el('gender-qwen-frame'),close=el('gender-qwen-close'),note=el('gender-qwen-note'),feedback=el('gender-qwen-feedback'),student=el('gender-qwen-student'),count=el('gender-qwen-count'),dialogue=el('gender-qwen-dialogue'),status=el('gender-qwen-feedback-status'),results=el('gender-qwen-results'),evaluate=el('gender-qwen-evaluate'),save=el('gender-qwen-save'),wordInput=el('gender-qwen-new-word'),saveWords=el('gender-qwen-save-words');
+ const el=id=>panel.querySelector('#'+id),frame=el('gender-qwen-frame'),close=el('gender-qwen-close'),note=el('gender-qwen-note'),feedback=el('gender-qwen-feedback'),student=el('gender-qwen-student'),count=el('gender-qwen-count'),dialogue=el('gender-qwen-dialogue'),status=el('gender-qwen-feedback-status'),results=el('gender-qwen-results'),evaluate=el('gender-qwen-evaluate'),save=el('gender-qwen-save'),saveWords=el('gender-qwen-save-words'),saveActions=el('gender-qwen-save-actions');
  let scenario='',lines=[],turns=[],seen=new Set(),evaluation=null,locked=false;
  const names={gender_engineering:'Nova · Engineering Apprentice',gender_babysitter:'Chaz · Babysitter'};
  function finish(){frame.src='about:blank';frame.hidden=true;close.hidden=true;if(scenario){feedback.hidden=false;note.textContent='Interview ended. Review your learner transcript below.';}}
  function start(which,mode){
   if(!frame.hidden)finish();
   document.getElementById('gender-kostya-close')?.click();
-  scenario=which;lines=[];turns=[];dialogue.textContent='';seen=new Set();evaluation=null;save.disabled=true;results.replaceChildren();student.value='';count.textContent='0 learner turns captured';status.textContent='';feedback.hidden=true;
+  scenario=which;lines=[];turns=[];dialogue.textContent='';seen=new Set();evaluation=null;save.disabled=true;saveWords.disabled=true;saveActions.hidden=true;results.replaceChildren();student.value='';count.textContent='0 learner turns captured';status.textContent='';feedback.hidden=true;
   frame.src='/avatar-lab/realtime-english.html?pilot='+encodeURIComponent(which)+'&mode=avatar&embed=gender&ui=interview-v3';
   frame.hidden=false;close.hidden=false;note.textContent=names[which]+' · 3D avatar interview. Click Start Realtime inside the window; you can speak naturally and interrupt politely.';
   frame.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -1595,46 +1624,66 @@ buttons();
    const data=await response.json().catch(()=>({}));if(!response.ok||data.error)throw Error(data.error||'Feedback unavailable');
    evaluation={data,speech,scenario};
    add('h4','AI feedback · '+names[scenario]);
-   const card=(title,text,category)=>{if(!text)return null;const block=add('section','','gf-card gf-'+category);const head=document.createElement('h4');head.textContent=title;const body=document.createElement('p');body.textContent=String(text);block.append(head,body);return block};
-   card('💬 Interaction & follow-up questions',data.taskAchievement,'interaction');
-   card('📚 Vocabulary · stronger B2 expressions',data.vocabularyFeedback,'vocabulary');
-   const gc=card('🧩 Grammar · accuracy and patterns',data.grammarFeedback,'grammar');
-   if(Array.isArray(data.corrections)&&data.corrections.length){
-     const box=gc||card('🧩 Grammar corrections','Review these suggestions against your transcript.','grammar');
-     data.corrections.filter(c=>c.original&&c.corrected&&speech.includes(c.original)).forEach(c=>{
-       const ex=document.createElement('div');ex.className='gf-example';
-       for(const [cls,label,value] of [['gf-wrong','You said: ',c.original],['gf-right','Better: ',c.corrected],['gf-small','Why: ',c.explanation||'']]){const line=document.createElement('div');line.className=cls;line.textContent=label+value;ex.append(line)}
-       box.append(ex);
-     });
+   const makeCard=(title,text,category)=>{const section=add('section','','gf-card gf-'+category);const h=document.createElement('h4');h.textContent=title;section.append(h);if(text){const p=document.createElement('p');p.textContent=String(text);section.append(p)}return section};
+   makeCard('💬 Communication & interaction',data.taskAchievement||'Review the quality of your questions, listening, follow-ups and natural interaction.','interaction');
+   const vbox=makeCard('📚 Vocabulary · choose expressions to practise',data.vocabularyFeedback,'vocabulary');
+   const gbox=makeCard('🧩 Grammar · choose corrections to practise',data.grammarFeedback,'grammar');
+   const choice=(parent,kind,primary,secondary,details)=>{
+     const label=document.createElement('label');label.className='gf-item';
+     const cb=document.createElement('input');cb.type='checkbox';cb.dataset.kind=kind;cb.dataset.index=String(parent.querySelectorAll('input[data-kind="'+kind+'"]').length);
+     const span=document.createElement('span');
+     const title=document.createElement('strong');title.textContent=primary;span.append(title);
+     if(secondary){const sub=document.createElement('div');sub.textContent=secondary;span.append(sub)}
+     if(details){const small=document.createElement('small');small.textContent=details;span.append(small)}
+     label.append(cb,span);parent.append(label);return cb;
+   };
+   const grammar=(Array.isArray(data.grammarPatterns)?data.grammarPatterns:[]).filter(g=>g.original&&g.corrected&&speech.includes(g.original)&&g.original!==g.corrected).slice(0,12);
+   const grammarItems=[];
+   grammar.forEach(g=>{const cb=choice(gbox,'grammar','You said: '+g.original,'Better: '+g.corrected,g.rule||g.pattern||'');grammarItems.push({cb,item:g})});
+   if(!grammarItems.length){const msg=document.createElement('p');msg.className='gf-help';msg.textContent='No transcript-verified grammar patterns detected. Nothing is selected for saving.';gbox.append(msg)}
+   const vocabItems=[];
+   const candidates=Array.isArray(data.vocabularySuggestions)?data.vocabularySuggestions:[];
+   const vocabLines=candidates.length?candidates.map(v=>typeof v==='string'?v:(v.suggested||v.expression||v.corrected||v.phrase||'')):
+      String(data.vocabularyFeedback||'').split(/\n|[•;]+/).map(x=>x.replace(/^[-*\d.)\s]+/,'').trim());
+   for(const raw of vocabLines){
+     const phrase=String(raw).trim().replace(/^['"“”]|['"“”]$/g,'');
+     if(!phrase||phrase.length>100||vocabItems.some(v=>v.word.toLowerCase()===phrase.toLowerCase()))continue;
+     const cb=choice(vbox,'word',phrase,'Save as a vocabulary practice item','Only select useful, accurate expressions.');
+     vocabItems.push({cb,word:phrase});if(vocabItems.length>=8)break;
    }
-   card('⚖️ Evidence & fairness',data.contentFeedback,'context');
-   card('🧭 Interview structure',data.organizationFeedback,'context');
-   card('🎯 Next practice step',data.nextTask,'context');
-   const valid=(data.grammarPatterns||[]).filter(g=>g.original&&speech.includes(g.original)&&g.corrected&&g.corrected!==g.original);
-   save.disabled=!valid.length;status.textContent='Interview-specific feedback ready. '+valid.length+' transcript-verified grammar candidate(s) available to save.';
+   const manual=document.createElement('div');manual.className='gf-word-tools';
+   const wordInput=document.createElement('input');wordInput.placeholder='Add your own collocation, e.g. relevant experience';wordInput.maxLength=100;wordInput.setAttribute('aria-label','Additional vocabulary expression');
+   const addWord=document.createElement('button');addWord.type='button';addWord.textContent='＋ Add to choices';
+   addWord.onclick=()=>{const word=wordInput.value.trim().replace(/\s+/g,' ');if(!word||word.length>100)return;if(vocabItems.some(v=>v.word.toLowerCase()===word.toLowerCase()))return;const cb=choice(vbox,'word',word,'Save as a vocabulary practice item','Added by learner');cb.checked=true;vocabItems.push({cb,word});wordInput.value='';refresh()};
+   manual.append(wordInput,addWord);vbox.append(manual);
+   makeCard('⚖️ Evidence, fairness & decision',data.contentFeedback,'context');
+   makeCard('🧭 Interview structure',data.organizationFeedback,'context');
+   makeCard('🎯 Your next practice goal',data.nextTask,'context');
+   evaluation={data,speech,scenario,grammarItems,vocabItems};
+   function refresh(){save.disabled=!grammarItems.some(v=>v.cb.checked);saveWords.disabled=!vocabItems.some(v=>v.cb.checked)}
+   results.addEventListener('change',refresh,{once:false});saveActions.hidden=false;refresh();
+   status.textContent='AI feedback ready. Select individual items, then use the appropriate Save button.';
   }catch(err){status.textContent='Feedback failed: '+err.message}finally{evaluate.disabled=false}
  });
  saveWords.addEventListener('click',()=>{
-  const word=wordInput.value.trim().replace(/\s+/g,' ');
-  if(!word||word.length>100||!/[a-zA-Z]/.test(word)){status.textContent='Enter one useful word or collocation (up to 100 characters).';return}
-  const KEY='genderRolesAIStocks_v1';let stock;try{stock=JSON.parse(localStorage.getItem(KEY)||'{}')}catch{stock={}}
-  if(!Array.isArray(stock.words))stock.words=[];
-  if(stock.words.some(w=>String(w.word||'').toLowerCase()===word.toLowerCase())){status.textContent='Already saved to My Word Stock: '+word;return}
-  stock.words.push({id:'w'+Date.now()+Math.random().toString(36).slice(2,6),word,source:'Gender Roles Qwen · '+(names[scenario]||'Interview'),selected:true,time:new Date().toISOString()});
+  if(!evaluation)return;
+  const selected=evaluation.vocabItems.filter(x=>x.cb.checked),KEY='genderRolesAIStocks_v1';
+  let stock;try{stock=JSON.parse(localStorage.getItem(KEY)||'{}')}catch{stock={}}
+  if(!Array.isArray(stock.words))stock.words=[];let added=0;
+  for(const {word,cb} of selected){if(stock.words.some(w=>String(w.word||'').toLowerCase()===word.toLowerCase()))continue;
+   stock.words.push({id:'w'+Date.now()+Math.random().toString(36).slice(2,6),word,source:'Gender Roles Qwen · '+names[evaluation.scenario],selected:true,time:new Date().toISOString()});added++;cb.checked=false;cb.closest('label')?.classList.add('gf-saved')}
   localStorage.setItem(KEY,JSON.stringify(stock));window.dispatchEvent(new Event('gender-roleplay-stock-updated'));
-  wordInput.value='';status.textContent='✓ Saved to My Word Stock: '+word;
+  saveWords.disabled=true;status.textContent=added+' vocabulary item(s) saved to My Word Stock. Open My Word Stock to build AI practice.';
  });
  save.addEventListener('click',()=>{
-  if(!evaluation)return;
-  const {data,speech,scenario:which}=evaluation;const KEY='genderRolesAIStocks_v1';let stock;try{stock=JSON.parse(localStorage.getItem(KEY)||'{}')}catch{stock={}}
+  if(!evaluation)return;const KEY='genderRolesAIStocks_v1';let stock;try{stock=JSON.parse(localStorage.getItem(KEY)||'{}')}catch{stock={}}
   if(!Array.isArray(stock.grammar))stock.grammar=[];let added=0;
-  for(const g of (data.grammarPatterns||[])){
-   if(!g.original||!speech.includes(g.original)||!g.corrected||g.original===g.corrected)continue;
+  for(const {cb,item:g} of evaluation.grammarItems.filter(x=>x.cb.checked)){
    if(stock.grammar.some(x=>x.original===g.original&&x.pattern===g.pattern))continue;
-   stock.grammar.push({...g,id:'g'+Date.now()+Math.random().toString(36).slice(2),source:'Gender Roles Qwen · '+names[which],date:new Date().toISOString()});added++;
+   stock.grammar.push({...g,id:'g'+Date.now()+Math.random().toString(36).slice(2),source:'Gender Roles Qwen · '+names[evaluation.scenario],date:new Date().toISOString()});added++;cb.checked=false;
   }
   localStorage.setItem(KEY,JSON.stringify(stock));window.dispatchEvent(new Event('gender-roleplay-stock-updated'));
-  save.disabled=true;status.textContent=added+' grammar error(s) saved to My Grammar Stock.';
+  save.disabled=true;status.textContent=added+' selected grammar pattern(s) saved. Open My Grammar Stock for AI exercises.';
  });
  document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{if(tab.dataset.tab!=='roleplays'&&!frame.hidden)finish()}));
  window.addEventListener('pagehide',()=>{if(!frame.hidden)finish()});
