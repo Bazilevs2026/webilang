@@ -14874,7 +14874,16 @@ check?.addEventListener("click",async()=>{
 #battlePanel .battleSlots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#battlePanel .battleSlot{padding:12px;border-radius:12px;background:#eef3ef}
 #battlePanel .battleBoard{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}#battlePanel .battleCard{min-width:0;min-height:65px;padding:6px 2px;font-size:clamp(10px,1.7vw,15px);overflow-wrap:anywhere;background:#fff}
 #battlePanel .battleCard.blue{background:#5278b2;color:white}#battlePanel .battleCard.red{background:#ba5e58;color:white}#battlePanel .battleCard.neutral{background:#d2cab4}#battlePanel .battleCard.assassin{background:#323335;color:white}
-#battlePanel .battleKey{border:3px solid #efb949}#battlePanel .battleStat{display:flex;justify-content:space-between;font-weight:bold;gap:15px}
+#battlePanel .battleKey{border:3px solid #efb949}
+#battlePanel .battleCard.battleRevealed{position:relative;outline:3px solid #213e30;outline-offset:-5px;box-shadow:inset 0 0 0 2px #fff9,0 2px 6px #0002;opacity:1;filter:none;padding-top:19px}
+#battlePanel .battleCard.battleRevealed::before{content:"✓ REVEALED";position:absolute;top:3px;left:50%;transform:translateX(-50%);font-size:9px;letter-spacing:.04em;font-weight:900;white-space:nowrap;background:#152a23e8;color:white;border-radius:8px;padding:2px 5px}
+#battlePanel .battleCard.battleLastGuess{outline:4px solid #e4a820;outline-offset:-4px;box-shadow:0 0 0 3px #f7d678}
+#battlePanel .battleHistory{margin-top:16px;padding:14px;border:1px solid #c9d7cc;border-radius:12px;background:#f0f5f0}
+#battlePanel .battleHistory h3{margin:0 0 8px;font-size:17px}
+#battlePanel .battleHistory ol{margin:0;padding-left:23px;max-height:230px;overflow:auto}
+#battlePanel .battleHistory li{margin:5px 0;line-height:1.4}
+#battlePanel .battleHistory .blue{color:#245aa7;font-weight:800}#battlePanel .battleHistory .red{color:#ab3939;font-weight:800}
+#battlePanel .battleHistory .neutral{color:#68614b;font-weight:800}#battlePanel .battleHistory .assassin{color:#9c2843;font-weight:800}#battlePanel .battleStat{display:flex;justify-content:space-between;font-weight:bold;gap:15px}
 #battlePanel .battleNote{font-size:13px;color:#56665b}#battlePanel .battleError{color:#ab3535;min-height:20px}#battlePanel .battleControls{margin:14px 0}
 @media(max-width:600px){#battlePanel{padding:10px}#battlePanel .battleCard{min-height:55px;font-size:10px}#battlePanel .battleSlots{grid-template-columns:1fr}}
 </style>
@@ -14894,7 +14903,7 @@ panel.innerHTML=`<div class="battleRow"><h2 style="margin:0">Team Battle · 4 Pl
 <div class="battleSlots" id="battleSlots"></div><div class="battleRow"><button id="battleStart" class="battlePrimary" hidden>Start Game</button></div></div>
 <div id="battleGame" hidden><div class="battleStat"><span id="battleBlue"></span><span id="battleRed"></span></div>
 <p id="battleTurn"></p><div id="battleControls" class="battleControls"></div><div class="battleBoard" id="battleBoard"></div>
-<p class="battleNote">Spymasters see the colored key. Guessers see colors only after cards are revealed. Communicate with your teammates on Zoom or another call.</p></div>
+<p class="battleNote">Spymasters see the colored key. Guessers see colors only after cards are revealed. Revealed cards are marked ✓ on everyone’s board. Updates synchronize automatically. Communicate with your teammates on Zoom or another call.</p><section class="battleHistory" aria-label="Shared move history"><h3>📋 Shared move history</h3><ol id="battleHistoryList" aria-live="polite"></ol></section></div>
 <p id="battleMessage" aria-live="polite"></p><p class="battleError" id="battleError" aria-live="assertive"></p>`;
 start.parentNode.insertBefore(panel,start);
 let code='',token='',slot='',hostToken='',data=null,poll=null,busy=false;
@@ -14939,9 +14948,27 @@ if(editingClue){
  const t=document.createElement('strong');t.textContent=`Clue: ${data.clueWord} · ${data.clueNumber} (${data.guessesLeft} guesses available)`;control.appendChild(t);
  if(active&&myRole==='guesser'){const btn=document.createElement('button');btn.textContent='Pass turn';btn.onclick=()=>act('pass');control.append(' ',btn)}
 }else if(!data.gameOver){control.textContent='Waiting for the active Spymaster.'}
-const board=$('battleBoard');board.replaceChildren();for(const [i,c] of data.board.entries()){
+const history=Array.isArray(data.history)?data.history:[];
+const historyList=$('battleHistoryList');historyList.replaceChildren();
+if(!history.length){const li=document.createElement('li');li.textContent='No clues or guesses yet.';historyList.appendChild(li)}
+for(const entry of history.slice().reverse()){
+ const li=document.createElement('li');const who=document.createElement('strong');who.className=entry.team==='blue'?'blue':'red';who.textContent=(entry.player||((entry.team||'').toUpperCase()+' player'));
+ li.appendChild(who);
+ if(entry.type==='guess'){
+  li.appendChild(document.createTextNode(' selected '));const word=document.createElement('strong');word.textContent=String(entry.word||'').toUpperCase();li.appendChild(word);
+  const kind=document.createElement('span');kind.className=entry.role||'';kind.textContent=' — '+({blue:'Blue card',red:'Red card',neutral:'Neutral card',assassin:'Assassin'}[entry.role]||'revealed card');li.appendChild(kind);
+  if(entry.role==='assassin')li.appendChild(document.createTextNode(' — Game over'));
+  else if(entry.role!==entry.team)li.appendChild(document.createTextNode(' — Turn passed'));
+ }else if(entry.type==='clue')li.appendChild(document.createTextNode(' gave clue '+entry.word+' · '+entry.number));
+ else li.appendChild(document.createTextNode(' passed the turn'));
+ historyList.appendChild(li);
+}
+const lastGuess=[...history].reverse().find(x=>x.type==='guess');
+const board=$('battleBoard');board.replaceChildren();for(const [i,c] of data.board.entries()){ 
 const b=document.createElement('button');b.type='button';b.className='battleCard';b.textContent=c.word;
 if(c.role)b.classList.add(c.role);if(c.role&&!c.revealed&&myRole==='spymaster')b.classList.add('battleKey');
+if(c.revealed){b.classList.add('battleRevealed');b.setAttribute('aria-label',c.word+' — revealed '+(c.role||'card'));if(lastGuess?.index===i)b.classList.add('battleLastGuess')}
+
 b.disabled=!(active&&myRole==='guesser'&&data.phase==='guess'&&!c.revealed);if(!b.disabled)b.onclick=()=>act('guess',{index:i});board.appendChild(b)
 }}
 async function act(action,extra={}){if(busy)return;busy=true;try{const r=await post({action,gameMode:'teamBattle',code,token,...extra});data=r.state;render()}catch(e){message(e.message,true)}finally{busy=false}}
