@@ -489,6 +489,62 @@ function wlMemoryCaptureTurn(event){
  wlMemorySeen.add(dedup);
  wlMemoryTurns.push({speaker:student?'Student':'Kostya',text:value});
 }
+// Stage 4: six learning dimensions, with transcript-only evidence limits.
+function wlStage4SplitFeedback(raw){
+ const text=String(raw||'').replace(/\r/g,'').trim();
+ const result={communication:'',grammar:'',vocabulary:'',fluency:'',corrections:'',nextStep:''};
+ const headings=[
+  [/^COMMUNICATION\s*[:\-–]?\s*/i,'communication'],
+  [/^GRAMMAR\s*[:\-–]?\s*/i,'grammar'],
+  [/^VOCABULARY\s*[:\-–]?\s*/i,'vocabulary'],
+  [/^PRONUNCIATION\s*\/\s*FLUENCY\s*[:\-–]?\s*/i,'fluency'],
+  [/^2\s+USEFUL\s+CORRECTIONS\s*[:\-–]?\s*/i,'corrections'],
+  [/^NEXT\s+STEP\s*[:\-–]?\s*/i,'nextStep']
+ ];
+ let current=null;
+ for(const line of text.split('\n')){
+  const clean=line.trim().replace(/^#{1,4}\s*/,'').replace(/^\*\*/,'');
+  const found=headings.find(([re])=>re.test(clean));
+  if(found){current=found[1];const remainder=clean.replace(found[0],'').replace(/\*\*$/,'').trim();if(remainder)result[current]+=(result[current]?'\n':'')+remainder;}
+  else if(current&&clean)result[current]+=(result[current]?'\n':'')+clean;
+ }
+ return result;
+}
+function wlStage4FluencyFromText(combined){
+ const value=String(combined||'').trim();
+ if(!value)return 'Not enough transcript evidence to assess fluency.';
+ // The existing feedback endpoint combines pronunciation and fluency. Do not
+ // store or repeat its pronunciation speculation as a separate assessment.
+ const fluencyLines=value.split('\n').filter(line=>!/^pronunciation\b/i.test(line.trim()));
+ const withoutPronunciation=fluencyLines.join(' ').replace(/\bpronunciation\s*:\s*[^.;\n]*(?:[.;]|$)/gi,'').trim();
+ return withoutPronunciation||'Text transcript only; speech rate, pauses and pronunciation were not assessed.';
+}
+async function wlStage4AnalyzeAndStore(db,userId,moduleName,studentSpeech){
+ if(!studentSpeech.trim())return 'AI review skipped: no student speech was transcribed.';
+ const profileResult=await db.from('student_profiles').select('english_level').eq('user_id',userId).maybeSingle();
+ const level=profileResult.error?'A2':String(profileResult.data?.english_level||'A2').slice(0,8);
+ const response=await fetch('/api/feedback',{
+  method:'POST',headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({task:'Review this one conversation with Kostya. Assess only the learner wording and support corrections with exact quotations. For Communication describe responsiveness and clarity. For Grammar and Vocabulary distinguish proven errors from suggestions. For Fluency comment only on transcript-observable coherence, repetition and self-correction. Do not infer speech rate, pauses, pronunciation, proficiency improvement or a long-term pattern from one transcript. State one short next practice action.',transcript:studentSpeech.slice(0,4800),level,module:moduleName})
+ });
+ const payload=await response.json().catch(()=>({}));
+ if(!response.ok)throw new Error(payload.error||'AI feedback HTTP '+response.status);
+ const raw=String(payload.feedback||'').trim();
+ if(!raw)throw new Error('AI returned empty feedback');
+ const analysis=wlStage4SplitFeedback(raw);
+ if(!analysis.communication&&!analysis.grammar&&!analysis.vocabulary)throw new Error('AI response missing classification headings');
+ const entries=[
+  {kind:'grammar',text:analysis.grammar||'No specific grammar error established from this transcript.'},
+  {kind:'vocabulary',text:analysis.vocabulary||'No specific vocabulary error established from this transcript.'},
+  {kind:'communication',text:analysis.communication||'Insufficient evidence in transcript.'},
+  {kind:'fluency',text:wlStage4FluencyFromText(analysis.fluency)},
+  {kind:'pronunciation',text:'Not assessed: a text transcript cannot establish pronunciation, stress or intonation.'},
+  {kind:'learning_progress',text:'Session observation only; improvement and recurring patterns require comparison across sessions.\nSuggested next step: '+(analysis.nextStep||'Review a genuine correction from this session.')}
+ ].map(({kind,text})=>({user_id:userId,kind,module:moduleName,content:{text,source:'Kostya AI review',version:4,reviewRequired:true,evidence:'student transcript only',corrections:kind==='grammar'||kind==='vocabulary'?analysis.corrections.slice(0,900):undefined}}));
+ const {error}=await db.from('student_learning_entries').insert(entries);
+ if(error)throw error;
+ return 'Transcript saved. AI review saved (6 learning areas).';
+}
 async function wlMemorySaveConversation(){
  if(!teacherMode)return;
  if(wlMemorySaving){rtMessage('Student Memory: already saving…');return;}
@@ -499,11 +555,20 @@ async function wlMemorySaveConversation(){
   const db=createClient(cfg.SUPABASE_URL,cfg.SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
   const {data:session,error:authError}=await db.auth.getUser();
   if(authError||!session?.user){rtMessage('Student Memory: sign in to save your transcript.');return;}
-  const content=wlMemoryTurns.map(t=>t.speaker+': '+t.text).join('\n').slice(0,11900);
-  const {error}=await db.from('student_learning_entries').insert({user_id:session.user.id,kind:'transcript',module:((wlTeacherContext?.url || document.referrer || '').includes('gender-roles-B2') ? 'Gender Roles B2' : 'Video Games'),content:{text:content,source:'Kostya realtime',version:3}});
+  const moduleName=((wlTeacherContext?.url || document.referrer || '').includes('gender-roles-B2') ? 'Gender Roles B2' : 'Video Games');
+  const snapshot=wlMemoryTurns.slice();
+  const content=snapshot.map(t=>t.speaker+': '+t.text).join('\n').slice(0,11900);
+  const {error}=await db.from('student_learning_entries').insert({user_id:session.user.id,kind:'transcript',module:moduleName,content:{text:content,source:'Kostya realtime',version:3}});
   if(error)throw error;
   wlMemoryTurns=[];wlMemorySeen.clear();
-  rtMessage('Transcript saved in Student Memory (text only).');
+  rtMessage('Transcript saved. AI is reviewing your English…');
+  const studentSpeech=snapshot.filter(t=>t.speaker==='Student').map(t=>t.text).join('\n');
+  try{
+   const result=await wlStage4AnalyzeAndStore(db,session.user.id,moduleName,studentSpeech);
+   rtMessage(result);
+  }catch(analysisError){
+   rtMessage('Transcript saved, but AI analysis failed: '+String(analysisError?.message||analysisError));
+  }
  }catch(error){rtMessage('Student Memory was not saved: '+String(error?.message||error));}
  finally{wlMemorySaving=false;}
 }
