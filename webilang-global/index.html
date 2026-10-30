@@ -5,16 +5,17 @@
 #about-consent,#about-fiction{accent-color:#d9781e}.about-me-field{border-top:1px solid #dfe8f1;margin-top:22px;padding-top:14px}.about-me-field h2{font-size:19px;margin:0}.about-me-field label:has(input[type=checkbox]){font-weight:500;line-height:1.45}.about-me-field label input{vertical-align:middle}</style></head><body>
 <main class="shell"><div class="top"><div class="brand">🌐 Webilang <span>Global</span></div><div class="row"><span class="muted small" id="email-label"></span><button id="sign-out" class="secondary hide">Sign out</button></div></div>
 <section id="loading" class="login panel"><h1>Welcome to Webilang Global</h1><p class="muted">Connecting to your learning space…</p></section>
-<section id="login" class="login panel hide"><span class="chip">Your learning space</span><h1>Learn with Kostya</h1><p class="muted">Enter your email to sign in or create your account. No password needed.</p><form id="login-form"><label for="email">Email address</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com" required><p><button type="submit" id="send-link">Continue with email →</button></p></form><div class="notice" id="login-status" role="status"></div><p class="small muted">We’ll email you a secure sign-in link. Use the same email for future visits.</p></section>
+<section id="login" class="login panel hide"><span class="chip">Your learning space</span><h1>Learn with Kostya</h1><p class="muted">Enter your email to sign in or create your account. Use your password, or choose an email link if needed.</p><form id="login-form"><label for="email">Email address</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com" required><label for="login-password">Password</label><input id="login-password" type="password" autocomplete="current-password" minlength="8" placeholder="Your Webilang password"><p><button type="submit" id="password-login">Sign in with password</button></p></form><button type="button" class="secondary" id="send-link">Send email sign-in link instead</button> <button type="button" class="secondary" id="forgot-password">Forgot password?</button><div class="notice" id="login-status" role="status"></div><p class="small muted">Existing email-link users can sign in once and set a password in their Dashboard. Password login does not send an email.</p></section>
 <section id="onboard" class="profile panel hide"><span class="chip">One-time setup</span><h1>Let's get to know you</h1><p class="muted">A few quick questions to personalize your learning with Kostya, AI Tutor.</p><form id="profile-form"><label for="name">What should Kostya, AI Tutor, call you?</label><input id="name" maxlength="80" placeholder="Emma" required><label for="level">Your English level</label><select id="level"><option>A1</option><option selected>A2</option><option>B1</option><option>B2</option><option>C1</option><option>Not sure</option></select><label for="goals">Your main learning goal</label><textarea id="goals" maxlength="300" placeholder="I want to speak English more confidently."></textarea><div class="about-me-field"><h2>About Me — Optional (Can Be Fictional)</h2><p class="muted small">Tell Kostya, AI Tutor, a little about yourself. You may describe your real life or invent a fictional character for English practice. You can edit or clear this later.</p><label for="about-fiction"><input id="about-fiction" type="checkbox" style="width:auto;margin-right:8px">This is a fictional learning persona</label><label for="about-interests">Hobbies and interests (optional)</label><textarea id="about-interests" maxlength="300" placeholder="Art, tennis, travelling, reading..."></textarea><label for="about-location">City or country (optional)</label><input id="about-location" maxlength="100" placeholder="Berlin, Germany (no street address)"><label for="about-age">Age or age group (optional)</label><input id="about-age" maxlength="40" placeholder="Adult, 25, teenager..."><label for="about-gender">Gender / pronouns (optional)</label><input id="about-gender" maxlength="60" placeholder="She/her, he/him, they/them..."><label for="about-more">Anything else Kostya should know? (optional)</label><textarea id="about-more" maxlength="500" placeholder="I work in IT. I prefer informal conversations."></textarea><label for="about-consent"><input id="about-consent" type="checkbox" style="width:auto;margin-right:8px">Use my About Me details to personalize Kostya conversations (optional; clear them any time).</label><p class="muted small" id="about-status" role="status"></p></div><p><button type="submit" id="save-profile">Start learning →</button></p></form><div class="notice" id="profile-status" role="status"></div></section>
-<section id="dashboard" class="hide"><div class="hero"><span class="chip">MY LEARNING</span><h1 id="greeting">Welcome back!</h1><p id="goal-summary">Your personalized learning space</p><button id="edit-profile" class="secondary">Edit my goals</button></div>
+<section id="password-panel" class="profile panel hide"><h1 id="password-title">Set or change your password</h1><p class="muted">Use at least 10 characters. This password belongs to your Supabase Webilang Global account, not webilang.com/admin.</p><form id="password-form"><label for="new-password">New password</label><input id="new-password" type="password" minlength="10" autocomplete="new-password" required><label for="confirm-password">Confirm password</label><input id="confirm-password" type="password" minlength="10" autocomplete="new-password" required><p><button type="submit" id="save-password">Save password</button> <button type="button" class="secondary" id="cancel-password">Back to Dashboard</button></p></form><div id="password-status" class="notice" role="status"></div></section>
+<section id="dashboard" class="hide"><div class="hero"><span class="chip">MY LEARNING</span><h1 id="greeting">Welcome back!</h1><p id="goal-summary">Your personalized learning space</p><button id="edit-profile" class="secondary">Edit my goals</button> <button id="manage-password" class="secondary" type="button">Set / change password</button></div>
 <div class="grid"><section class="panel section"><h2>🎯 My next step</h2><p id="next-step" class="muted">Complete a conversation with Kostya to receive your first learning suggestion.</p><a href="/gender-roles-B2/" id="practice-link">Open a lesson with Kostya →</a></section><section class="panel section"><h2>📚 My practice</h2><div class="cards"><div class="tile"><strong>Conversations</strong><div class="metric" id="count-conversations">0</div></div><div class="tile"><strong>AI reviews</strong><div class="metric" id="count-reviews">0</div></div><div class="tile"><strong>English level</strong><div class="metric" id="level-value">A2</div></div></div></section><section class="panel section"><h2>✅ My strengths</h2><p id="strengths" class="muted">As you practise, this space will highlight specific skills supported by your learning activities.</p></section><section class="panel section"><h2>🧩 What I'm practising</h2><p id="practice-focus" class="muted">Your next learning target will appear here after your first AI review.</p></section></div>
 <p class="privacy">This dashboard shows a student-friendly summary, not your private transcripts or internal tutor notes. For access to, export of, or deletion of your personal learning data, contact your school or use the existing data-management page provided for the pilot.</p></section></main>
 <script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from '/student-memory/config.js';
 const $=id=>document.getElementById(id);
-const reveal=id=>['loading','login','onboard','dashboard'].forEach(x=>$(x).classList.toggle('hide',x!==id));
+const reveal=id=>['loading','login','onboard','dashboard','password-panel'].forEach(x=>$(x).classList.toggle('hide',x!==id));
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 let user=null,profile=null;
 function safeText(v,max=250){return String(v??'').slice(0,max).trim()}
@@ -53,25 +54,48 @@ async function saveAbout(){if(!user)return;const d=readAbout(),present=Object.va
 async function refresh(){const {data:{user:current},error}=await db.auth.getUser();user=error?null:current;$('sign-out').classList.toggle('hide',!user);$('email-label').textContent=user?.email||'';if(!user){reveal('login');return;}
  const p=await db.from('student_profiles').select('display_name,english_level,goals').eq('user_id',user.id).maybeSingle();if(p.error){reveal('onboard');$('profile-status').textContent='Unable to load profile: '+p.error.message;return;}
  profile=p.data;if(!profile?.display_name){reveal('onboard');await loadAbout();return;}await loadDashboard();}
-// Clear visible status when the student changes the email address.
-$('email').addEventListener('input',()=>{const button=$('send-link');if(button.dataset.sending==='1')return;button.disabled=false;button.textContent='Continue with email →';$('login-status').textContent='';$('login-status').className='notice';});
-$('login-form').addEventListener('submit',async e=>{
- e.preventDefault();const email=$('email').value.trim();if(!$('email').validity.valid)return;
- const button=$('send-link'),notice=$('login-status');if(button.disabled)return;
- button.disabled=true;button.dataset.sending='1';button.textContent='Sending…';
- notice.className='notice';notice.textContent='Sending a secure sign-in link to '+email+'…';
- let sent=false;
- try{
-  const {error}=await db.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+'/webilang-global/',shouldCreateUser:true}});
-  if(error)throw error;
-  sent=true;button.textContent='✓ Email requested';notice.className='notice success';
-  notice.textContent='✓ Request accepted. Check '+email+' for your sign-in link (and check Spam if needed). You can enter a different email to try again.';
- }catch(err){button.textContent='Try sending again';notice.className='notice error';notice.textContent='Could not request the sign-in email: '+String(err?.message||err);}
- finally{delete button.dataset.sending;if(!sent)button.disabled=false;}
+// Password login; email link remains an optional fallback.
+$('login-form').addEventListener('submit',async event=>{
+ event.preventDefault();const email=$('email').value.trim(),password=$('login-password').value;
+ const status=$('login-status'),button=$('password-login');if(!email||!password)return;
+ button.disabled=true;status.className='notice';status.textContent='Signing in…';
+ try{const {error}=await db.auth.signInWithPassword({email,password});if(error)throw error;
+  $('login-password').value='';status.textContent='';await refresh();
+ }catch(error){status.className='notice error';status.textContent='Sign-in failed. Check your password, or use the email-link option.';}
+ finally{button.disabled=false;}
+});
+$('send-link').addEventListener('click',async()=>{
+ const email=$('email').value.trim(),status=$('login-status'),button=$('send-link');
+ if(!$('email').validity.valid){status.textContent='Enter a valid email address first.';return;}
+ button.disabled=true;status.className='notice';status.textContent='Requesting sign-in link…';
+ try{const {error}=await db.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+'/webilang-global/',shouldCreateUser:true}});if(error)throw error;
+ status.className='notice success';status.textContent='If delivery is available, check your email for the sign-in link.';
+ }catch(error){status.className='notice error';status.textContent='Could not send a sign-in link: '+String(error.message||error);}
+ finally{button.disabled=false;}
+});
+$('forgot-password').addEventListener('click',async()=>{
+ const email=$('email').value.trim(),status=$('login-status'),button=$('forgot-password');
+ if(!$('email').validity.valid){status.textContent='Enter your email address first.';return;}
+ button.disabled=true;status.className='notice';status.textContent='Requesting password reset…';
+ try{const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/webilang-global/'});if(error)throw error;
+ status.className='notice success';status.textContent='If this account is eligible, a password-reset email will arrive. Email delivery limits may apply.';
+ }catch(error){status.className='notice error';status.textContent='Could not request reset: '+String(error.message||error);}
+ finally{button.disabled=false;}
+});
+$('manage-password').addEventListener('click',()=>{if(user){$('password-title').textContent='Set or change your password';$('password-status').textContent='';reveal('password-panel');}});
+$('cancel-password').addEventListener('click',()=>{if(user)void loadDashboard();else reveal('login');});
+$('password-form').addEventListener('submit',async event=>{
+ event.preventDefault();const a=$('new-password').value,b=$('confirm-password').value,status=$('password-status'),button=$('save-password');
+ if(a.length<10||a!==b){status.className='notice error';status.textContent='Passwords must match and contain at least 10 characters.';return;}
+ button.disabled=true;status.textContent='Updating password…';
+ try{const {error}=await db.auth.updateUser({password:a});if(error)throw error;
+ $('new-password').value='';$('confirm-password').value='';status.className='notice success';status.textContent='Password updated. Use it next time instead of an email link.';
+ }catch(error){status.className='notice error';status.textContent='Could not set password: '+String(error.message||error);}
+ finally{button.disabled=false;}
 });
 $('profile-form').addEventListener('submit',async e=>{e.preventDefault();if(!user)return;const name=$('name').value.trim();if(!name)return;$('save-profile').disabled=true;try{await saveAbout();const {error}=await db.from('student_profiles').upsert({user_id:user.id,display_name:name,english_level:$('level').value==='Not sure'?'A2':$('level').value,goals:$('goals').value.trim(),updated_at:new Date().toISOString()},{onConflict:'user_id'});if(error)throw error;profile={display_name:name,english_level:$('level').value,goals:$('goals').value.trim()};$('profile-status').textContent='';await loadDashboard();}catch(error){$('profile-status').textContent='Could not save: '+String(error.message||error);}finally{$('save-profile').disabled=false;}});
 $('edit-profile').addEventListener('click',()=>{if(!profile)return;$('name').value=profile.display_name||'';$('level').value=['A1','A2','B1','B2','C1'].includes(profile.english_level)?profile.english_level:'A2';$('goals').value=profile.goals||'';reveal('onboard');void loadAbout();});
 $('sign-out').onclick=async()=>{await db.auth.signOut();user=null;reveal('login');$('email-label').textContent='';$('sign-out').classList.add('hide');};
-db.auth.onAuthStateChange((_event,session)=>{if(_event==='SIGNED_IN'||_event==='SIGNED_OUT')queueMicrotask(()=>refresh());});
+db.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY'){queueMicrotask(()=>{user=session?.user||null;$('password-title').textContent='Choose a new password';$('password-status').textContent='';reveal('password-panel');});}else if(event==='SIGNED_IN'||event==='SIGNED_OUT'){queueMicrotask(()=>refresh());}});
 refresh().catch(e=>{reveal('login');$('login-status').textContent='Sign-in service error: '+e.message});
 </script></body></html>
