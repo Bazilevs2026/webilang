@@ -490,7 +490,9 @@ function wlMemoryCaptureTurn(event){
  wlMemoryTurns.push({speaker:student?'Student':'Kostya',text:value});
 }
 async function wlMemorySaveConversation(){
- if(!teacherMode||wlMemorySaving||!wlMemoryTurns.length)return;
+ if(!teacherMode)return;
+ if(wlMemorySaving){rtMessage('Student Memory: already saving…');return;}
+ if(!wlMemoryTurns.length){rtMessage('Student Memory: transcript not received from Qwen (0 turns). No data saved.');return;}
  wlMemorySaving=true;
  try{
   const [{createClient},cfg]=await Promise.all([import('https://esm.sh/@supabase/supabase-js@2'),import('/student-memory/config.js')]);
@@ -588,7 +590,9 @@ function rtAnimateAudio(){
   active=rms>0.018;
   rtcRAF=requestAnimationFrame(rtAnimateAudio);
 }
-rtEnd.onclick=()=>{if(genderInterview){rtCleanup();rtMessage('Interview ended. You may close this window or start again.');return;}if(document.body.classList.contains('kostya-teacher')){rtEnd.disabled=true;void wlMemorySaveConversation().finally(()=>{rtCleanup();});return;}if(document.body.classList.contains('interview-pilot')&&!genderInterview){window.parent.postMessage({source:'webilang-realtime',type:'end-request'},location.origin);return;}rtCleanup();rtMessage('Session ended. Classic conversation is still available on the main Avatar Lab page.')};
+/* WL_STAGE3_END_DIAGNOSTIC_V1 */
+function wlStage3Status(message){let el=document.getElementById('wlStage3Status');if(!el){el=document.createElement('div');el.id='wlStage3Status';el.setAttribute('role','status');el.style.cssText='position:fixed;z-index:2147483600;left:12px;right:12px;bottom:12px;padding:15px 18px;background:#fff8e7;border:2px solid #e97715;border-radius:12px;box-shadow:0 5px 24px #0003;color:#23334b;font:600 15px/1.5 system-ui';document.body.appendChild(el);}el.textContent=message;}
+rtEnd.onclick=()=>{if(genderInterview){rtCleanup();rtMessage('Interview ended. You may close this window or start again.');return;}if(document.body.classList.contains('kostya-teacher')){rtEnd.disabled=true;void wlMemorySaveConversation().catch(err=>rtMessage('Student Memory error: '+String(err?.message||err))).finally(()=>{const message=rtStatus.textContent;rtCleanup();rtMessage(message);wlStage3Status(message);});return;}if(document.body.classList.contains('interview-pilot')&&!genderInterview){window.parent.postMessage({source:'webilang-realtime',type:'end-request'},location.origin);return;}rtCleanup();rtMessage('Session ended. Classic conversation is still available on the main Avatar Lab page.')};
 rtStart.onclick=async()=>{
  if(rtcBusy)return;rtcBusy=true;const sessionGeneration=++rtcGeneration;rtStart.disabled=true;rtEnd.disabled=false;
  try{
