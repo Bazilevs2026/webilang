@@ -1,175 +1,91 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Webilang Global · Admin</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Webilang Global · My Learning</title>
 <style>
-:root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#243451;background:#f5f7fb}*{box-sizing:border-box}body{margin:0}.wrap{max-width:1100px;margin:auto;padding:28px 18px}header{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:24px}h1{font-size:clamp(27px,4vw,38px);margin:0}h2{margin:0 0 10px;font-size:22px}.muted{color:#5e6e83;line-height:1.55}.card{background:white;border:1px solid #dce4ef;border-radius:20px;padding:24px;margin:16px 0;box-shadow:0 5px 20px #172e4808}a{color:#315d83}button{font:inherit;border:0;border-radius:11px;background:#e87917;color:white;font-weight:700;padding:11px 16px;cursor:pointer}button:disabled{opacity:.6;cursor:default}.secondary{background:#ebf1f7;color:#2b4056}.tag{display:inline-block;padding:5px 11px;border-radius:20px;background:#e8f5ec;color:#1b6d40;font-size:12px;font-weight:750}.error{background:#fff2ec;color:#903d1c;padding:14px;border-radius:10px}.good{background:#eaf6ee;color:#276b3c;padding:14px;border-radius:10px}.hidden{display:none!important}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #e4e9f0;padding:12px 8px;font-size:14px}th{color:#566781;font-weight:750}.scroll{overflow-x:auto}.tiles{display:grid;grid-template-columns:1fr 1fr;gap:15px}.tiles .card{margin:0}@media(max-width:720px){.tiles{grid-template-columns:1fr}}.status{min-height:20px}
-#zoom-import{margin-top:20px}#zoom-import label{display:block;font-weight:700;margin:13px 0 6px}#zoom-import select,#zoom-import textarea,#zoom-import input[type=text],#zoom-import input[type=date],#zoom-import input[type=file]{width:100%;border:1px solid #b8c9dc;border-radius:10px;padding:10px;font:inherit}#zoom-import textarea{min-height:130px;resize:vertical}#imp-details{border:1px solid #dce4ef;border-radius:12px;padding:12px 16px;margin:12px 0}#imp-details summary{cursor:pointer;font-weight:700}#imp-analyze-auto{margin-top:14px}#imp-summary{white-space:pre-wrap;overflow-wrap:anywhere}#zoom-import .import-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}#zoom-import .consent{display:flex;gap:10px;align-items:flex-start;margin:16px 0}#zoom-import .consent input{margin-top:4px}#zoom-import button{margin:6px 8px 6px 0}#zoom-import .success{color:#14603d;font-weight:700}#zoom-import .error{color:#9c2525;font-weight:700}@media(max-width:650px){#zoom-import .import-grid{grid-template-columns:1fr}}
-#personal-profile label{display:block;font-weight:650;margin:14px 0 6px}#personal-profile input[type=url],#personal-profile textarea,#personal-profile select{font:inherit;width:100%;padding:10px;border:1px solid #b8c9dc;border-radius:10px}#personal-profile textarea{min-height:84px;resize:vertical}#personal-profile .profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}#personal-profile .profile-consent{display:flex;gap:10px;align-items:flex-start;margin:16px 0}@media(max-width:650px){#personal-profile .profile-grid{grid-template-columns:1fr}}
-#kp-editor label{display:block;font-weight:700;margin:13px 0 6px}#kp-editor input,#kp-editor textarea,#kp-editor select{font:inherit;border:1px solid #b8c9dc;border-radius:10px;width:100%;padding:10px}#kp-editor textarea{min-height:82px;resize:vertical}#kp-editor .kp-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}#kp-editor .kp-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:15px}#kp-editor button{max-width:100%}@media(max-width:650px){#kp-editor .kp-grid{grid-template-columns:1fr}}
-</style></head>
-<body><main class="wrap"><header><div><div class="muted">WEBILANG GLOBAL · INTERNAL</div><h1>Admin Dashboard</h1></div><a href="/webilang-global/">← My Learning</a></header>
-<section id="loading" class="card">Checking administrator permissions…</section>
-<section id="signed-out" class="card hidden"><h2>Sign in required</h2><p class="muted">Use your administrator account in Webilang Global, then return to this page.</p><a href="/webilang-global/">Open Webilang Global sign-in</a></section>
-<section id="denied" class="card hidden"><h2>Access denied</h2><p class="muted">This account is not authorized to manage Webilang student records.</p><a href="/webilang-global/">Return to My Learning</a></section>
-<section id="admin" class="hidden"><div class="card"><span class="tag">Verified administrator</span><p id="admin-email" class="muted"></p><p class="muted">Private AI notes and raw Zoom transcripts are not exposed through this page. Student data operations require separate, server-enforced permissions.</p></div>
-<div class="tiles"><section class="card"><h2>Student Records</h2><p class="muted">See registered learners. Next phase: consent-checked Zoom transcript import, speaker review, AI analysis preview and explicit approval before saving.</p></section><section class="card"><h2>Kostya Profile</h2><p class="muted">Edit the AI teacher’s identity, interests and teaching style. Save a draft, then explicitly publish it. Voice, 3D avatar and lesson logic are unaffected.</p><a href="#kp-editor">Open character editor ↓</a></section></div>
-<section id="kp-editor" class="card"><h2>Kostya · AI Teacher Profile Editor</h2><p class="muted">Only administrators can edit and publish. Published versions guide English Kostya; drafts do not affect live lessons. Changes take effect in newly opened Kostya conversations.</p>
-<div class="kp-grid"><div><label for="kp-name">Character name</label><input id="kp-name" maxlength="80" value="Kostya"></div><div><label for="kp-role">Role / professional background</label><input id="kp-role" maxlength="240" placeholder="AI English tutor at Webilang"></div></div>
-<label for="kp-bio">Character biography (fictional or clearly described)</label><textarea id="kp-bio" maxlength="1200" placeholder="Kostya is a fictional AI language teacher... "></textarea>
-<div class="kp-grid"><div><label for="kp-expertise">Teaching specialties</label><textarea id="kp-expertise" maxlength="1200" placeholder="Speaking, grammar, vocabulary, IELTS..."></textarea></div><div><label for="kp-interests">Personal interests</label><textarea id="kp-interests" maxlength="1200" placeholder="History, science, literature, travel..."></textarea></div></div>
-<div class="kp-grid"><div><label for="kp-personality">Personality</label><textarea id="kp-personality" maxlength="1200" placeholder="Curious, warm, patient, witty..."></textarea></div><div><label for="kp-style">Conversation style</label><textarea id="kp-style" maxlength="1200" placeholder="Natural, concise, no repetitive greetings..."></textarea></div></div>
-<label for="kp-method">Teaching approach and correction philosophy</label><textarea id="kp-method" maxlength="1600" placeholder="Offer hints before solutions; distinguish verified mistakes from suggestions..."></textarea>
-<label for="kp-history">Saved versions (select to preview / restore as new draft)</label><select id="kp-history"><option value="">No versions loaded</option></select>
-<p id="kp-state" class="muted" role="status" aria-live="polite">Loading profile versions…</p>
-<div class="kp-actions"><button id="kp-save" type="button" class="secondary">Save Draft</button><button id="kp-publish" type="button">Publish to English Kostya</button><button id="kp-restore" type="button" class="secondary">Restore Selected Version as Draft</button><button id="kp-reload" type="button" class="secondary">Refresh Versions</button></div></section>
-<section class="card"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><h2>Registered learners</h2><button id="reload" class="secondary" type="button">Refresh list</button></div><p class="muted">This list is available only after the administrator-only database function has been installed. Students cannot call it to read other students.</p><p id="list-status" class="status" aria-live="polite"></p><div class="scroll"><table><thead><tr><th>Email</th><th>Name</th><th>English level</th><th>Goals</th></tr></thead><tbody id="students"></tbody></table></div></section>
-<section id="zoom-import" class="card"><h2>Import Zoom lesson transcript</h2>
-<p class="muted">Administrator only. The learner's account must exist. Review all speaker labels. Transcripts and feedback are private learning records, not shown in My Learning.</p>
-<div class="import-grid"><div><label for="imp-student">Student account</label><select id="imp-student"><option value="">Select a registered student…</option></select></div>
-<div><label for="imp-date">Lesson date</label><input type="date" id="imp-date"></div></div>
-<label for="imp-file">Zoom transcript (.vtt or .txt, up to 300 KB)</label><input type="file" id="imp-file" accept=".vtt,.txt,text/plain,text/vtt">
-<label for="imp-speaker">Student's name in Zoom transcript (speaker label)</label><input id="imp-speaker" type="text" placeholder="e.g. Kate, Speaker 2, Екатерина" autocomplete="off" maxlength="100"><p class="muted">Enter the exact speaker label from Zoom, not the student's registered name. Select the Webilang account above. Only lines with this label will be extracted; check the result carefully.</p>
-<button id="imp-analyze-auto" type="button">Analyze Transcript</button>
-<p id="imp-summary" class="muted" aria-live="polite">Upload a transcript, enter the student's exact Zoom name, and click Analyze Transcript.</p>
-<details id="imp-details"><summary>Review extracted student speech and AI notes (optional)</summary>
-<label for="imp-raw">Full transcript and speaker names (editable)</label><textarea id="imp-raw" placeholder="Teacher: ...&#10;Student: ..."></textarea>
-<p class="muted">For group lessons, remove or anonymize other students’ speech where appropriate. Zoom labels can differ from registered names. Never attribute teacher speech to the learner.</p>
-<label for="imp-speech">Student speech only — review before analysis (editable)</label><textarea id="imp-speech" placeholder="Student: I visited ..."></textarea>
-<button id="imp-extract" type="button" class="secondary">Re-extract speaker lines</button>
-<button id="imp-analyze" type="button" class="secondary">Regenerate AI review</button>
-<label for="imp-review">AI review — edit and approve</label><textarea id="imp-review" placeholder="Review AI suggestions; remove any unverified claim or error."></textarea>
-</details>
-<label class="consent"><input id="imp-consent" type="checkbox"><span>I confirm that appropriate permission was obtained for this lesson transcript and AI analysis, and that speaker attribution and the selected student have been checked.</span></label>
-<button id="imp-save" type="button" disabled>Approve &amp; Save to Student Memory</button><p id="imp-status" class="muted" role="status" aria-live="polite"></p>
-</section>
-</section><section id="personal-profile" class="card"><h2>Student Personal Learning Profile</h2><p class="muted">Use only information the student has expressly authorized for AI-assisted learning. Social links are stored as references; no social media content is automatically fetched. Exclude sensitive information and other people's details.</p><div class="profile-grid"><div><label for="profile-student">Student account</label><select id="profile-student"><option value="">Select a registered student…</option></select></div><div><label for="profile-source">Source</label><select id="profile-source"><option>Student self-report</option><option>Instagram (permission granted)</option><option>LinkedIn (permission granted)</option><option>Other authorized source</option></select></div></div><label for="profile-url">Social profile URL (optional)</label><input type="url" id="profile-url" maxlength="500" placeholder="https://www.instagram.com/example/"><label for="profile-interests">Approved interests — comma separated</label><textarea id="profile-interests" maxlength="1000" placeholder="Photography, hiking, travel"></textarea><label for="profile-topics">Approved conversation topics — optional, one per line</label><textarea id="profile-topics" maxlength="1500" placeholder="Describe a memorable journey"></textarea><label for="profile-guidance">Teacher-approved personalization instructions for Kostya — optional</label><textarea id="profile-guidance" maxlength="2000" placeholder="Use photography and travel topics occasionally; do not assume an interest is current."></textarea><label class="profile-consent"><input id="profile-consent" type="checkbox"><span>I confirm the learner explicitly permitted using these details for AI-assisted lessons, and I reviewed them for accuracy and privacy.</span></label><button id="profile-save" type="button">Approve &amp; Save Personal Profile</button><button id="profile-delete" class="secondary" type="button">Delete Personal Profile</button><p class="muted" id="profile-status" role="status" aria-live="polite"></p></section></main>
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;color:#203149;background:#f6f8fb}*{box-sizing:border-box}body{margin:0}button,input,textarea,select{font:inherit}button{cursor:pointer;border:0;border-radius:12px;background:#e87821;color:#fff;font-weight:750;padding:12px 20px}button:disabled{opacity:.6;cursor:default}.secondary{background:#ecf1f6;color:#31465d}a{color:#276a8d}.shell{max-width:1050px;margin:auto;padding:28px 22px 70px}.top{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap}.brand{font-weight:850;font-size:22px;letter-spacing:-.04em}.brand span{color:#dc711e}.muted{color:#617184}.small{font-size:13px}.panel{background:#fff;border:1px solid #dfe8f1;border-radius:21px;box-shadow:0 5px 24px #19355509;padding:26px}.login{max-width:470px;margin:60px auto}.login h1{font-size:30px;margin:5px 0 12px}.login label,.profile label{display:block;font-weight:700;font-size:14px;margin:17px 0 7px}input,select,textarea{width:100%;border-radius:10px;padding:12px;border:1px solid #bdcbd9;background:white;color:#203149}textarea{min-height:75px;resize:vertical}.notice{margin-top:13px;color:#385771;font-size:14px;min-height:20px}.notice:not(:empty){padding:13px 15px;border:1px solid #afcbdc;background:#edf6fc;border-radius:12px;font-weight:700;line-height:1.45}.notice.success:not(:empty){background:#e9f7ed;border-color:#a3d8b0;color:#175e35}.notice.error:not(:empty){background:#fff0ed;border-color:#e6a99e;color:#963c30}#send-link:disabled{opacity:.62;cursor:default;filter:saturate(.65)}.hero{background:linear-gradient(120deg,#eaf4ef,#edf4fb);border-radius:19px;padding:25px;margin:23px 0}.hero h1{font-size:clamp(25px,4vw,35px);margin:0 0 10px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.section{margin:18px 0}.section h2{font-size:19px;margin:0 0 12px}.metric{font-size:34px;font-weight:800;margin:6px 0}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}.tile{padding:17px;border-radius:15px;background:#f7fafc;border:1px solid #e4edf3}.tile strong{display:block;margin-bottom:8px}.tile p{font-size:14px;line-height:1.5;margin:0}.full{grid-column:1/-1}.chip{display:inline-block;padding:5px 9px;background:#fff0dc;color:#8b4c16;border-radius:30px;font-size:12px;font-weight:700}.profile{max-width:570px;margin:25px auto}.hide{display:none!important}.row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}ul{padding-left:20px;line-height:1.8}li{margin-bottom:3px}.course-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.course{display:block;text-decoration:none;padding:17px;border:1px solid #dfe8f1;background:#f7fafc;border-radius:14px;color:#203149}.course:hover{border-color:#dc711e;background:#fff8f2}.course strong{display:block;margin-bottom:7px}.course span{font-size:13px;color:#617184}.feedback-row{margin:9px 0;padding:12px 14px;border-radius:12px;background:#f7fafc;border:1px solid #e4edf3;line-height:1.45;overflow-wrap:anywhere}.feedback-row strong{display:block;color:#385771;font-size:13px;margin-bottom:5px}.small-note{font-size:12px;color:#617184;line-height:1.5}.privacy{font-size:12px;margin-top:26px;color:#66758a}@media(max-width:720px){.shell{padding:16px}.grid,.cards,.course-list{grid-template-columns:1fr}.panel{padding:19px}.login{margin:36px auto}}
+</style></head><body>
+<main class="shell"><div class="top"><div class="brand">🌐 Webilang <span>Global</span></div><div class="row"><span class="muted small" id="email-label"></span><button id="sign-out" class="secondary hide">Sign out</button></div></div>
+<section id="loading" class="login panel"><h1>Welcome to Webilang Global</h1><p class="muted">Connecting to your learning space…</p></section>
+<section id="login" class="login panel hide"><span class="chip">Your learning space</span><h1>Learn with Kostya</h1><p class="muted">Enter your email to sign in or create your account. No password needed.</p><form id="login-form"><label for="email">Email address</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com" required><p><button type="submit" id="send-link">Continue with email →</button></p></form><div class="notice" id="login-status" role="status"></div><p class="small muted">We’ll email you a secure sign-in link. Use the same email for future visits.</p></section>
+<section id="onboard" class="profile panel hide"><span class="chip">One-time setup</span><h1>Let's get to know you</h1><p class="muted">Three quick questions to personalize your learning.</p><form id="profile-form"><label for="name">What should Kostya call you?</label><input id="name" maxlength="80" placeholder="Emma" required><label for="level">Your English level</label><select id="level"><option>A1</option><option selected>A2</option><option>B1</option><option>B2</option><option>C1</option><option>Not sure</option></select><label for="goals">Your main learning goal</label><textarea id="goals" maxlength="300" placeholder="I want to speak English more confidently."></textarea><p><button type="submit" id="save-profile">Start learning →</button></p></form><div class="notice" id="profile-status" role="status"></div></section>
+<section id="dashboard" class="hide"><div class="hero"><span class="chip">MY LEARNING</span><h1 id="greeting">Welcome back!</h1><p id="goal-summary">Your personalized learning space</p><button id="edit-profile" class="secondary">Edit my goals</button></div>
+<div class="grid"><section class="panel section"><h2>🎯 My next step</h2><p id="next-step" class="muted">Complete a conversation with Kostya to receive your first learning suggestion.</p><a href="/gender-roles-B2/" id="practice-link">Explore Gender Roles B2 →</a><p class="small-note" id="match-note">Suggested module, where available</p></section><section class="panel section"><h2>📚 My practice</h2><div class="cards"><div class="tile"><strong>Conversations</strong><div class="metric" id="count-conversations">0</div></div><div class="tile"><strong>Learning reviews</strong><div class="metric" id="count-reviews">0</div></div><div class="tile"><strong>English level</strong><div class="metric" id="level-value">A2</div></div></div></section><section class="panel section"><h2>✅ My strengths</h2><div id="strengths" class="muted">Evidence-based feedback will appear here after an AI review.</div></section><section class="panel section"><h2>🧩 What I'm practising</h2><div id="practice-focus" class="muted">Your next learning target will appear here after your first AI review.</div></section></div>
+<section class="panel section"><h2>📚 My Courses</h2><p class="muted">Choose a lesson whenever you want. Your sign-in is shared on this Preview website.</p><div class="course-list"><a class="course" href="/"><strong>🎮 Video Games</strong><span>English speaking, vocabulary and games · A2</span></a><a class="course" href="/gender-roles-B2/"><strong>💬 Gender Roles</strong><span>Discussion, stories and communication · B2</span></a></div></section>
+<p class="privacy">This dashboard shows a student-friendly summary, not your private transcripts or internal tutor notes. For access to, export of, or deletion of your personal learning data, contact your school or use the existing data-management page provided for the pilot.</p></section></main>
 <script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from '/student-memory/config.js';
+const $=id=>document.getElementById(id);
+const reveal=id=>['loading','login','onboard','dashboard'].forEach(x=>$(x).classList.toggle('hide',x!==id));
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-const el=id=>document.getElementById(id);const show=id=>{for(const x of ['loading','signed-out','denied','admin'])el(x).classList.toggle('hidden',x!==id)};
-async function learners(){const button=el('reload');button.disabled=true;el('list-status').textContent='Loading student list…';el('students').replaceChildren();try{const {data,error}=await db.rpc('webilang_admin_list_students');if(error)throw error;const rows=Array.isArray(data)?data:[];for(const item of rows){const tr=document.createElement('tr');for(const key of ['email','display_name','english_level','goals']){const td=document.createElement('td');td.textContent=String(item[key]??'—').slice(0,300);tr.append(td)}el('students').append(tr)}el('list-status').textContent=rows.length+' registered account(s).';const select=el('imp-student');const last=select.value;select.replaceChildren(new Option('Select a registered student…',''));for(const item of rows){select.add(new Option((item.display_name||item.email||'Student')+' — '+(item.email||''),item.user_id));}if([...select.options].some(o=>o.value===last))select.value=last;const psel=el('profile-student'),prev=psel.value;psel.replaceChildren(new Option('Select a registered student…',''));for(const item of rows)psel.add(new Option((item.display_name||item.email||'Student')+' — '+(item.email||''),item.user_id));if([...psel.options].some(o=>o.value===prev))psel.value=prev;}catch(e){el('list-status').textContent='Student list unavailable: '+(e?.message||e)+'. Run the supplied SQL setup in Supabase.'}finally{button.disabled=false}}
-async function init(){try{const {data:{user},error}=await db.auth.getUser();if(error||!user){show('signed-out');return}const {data,error:permissionError}=await db.from('webilang_admins').select('user_id').eq('user_id',user.id).maybeSingle();if(permissionError||!data){show('denied');return}show('admin');el('admin-email').textContent='Signed in as '+user.email;await learners();await kpRefresh()}catch(e){el('loading').textContent='Could not check admin access: '+(e?.message||e)}}
-
-// Zoom transcript import. All writes go through the admin-checked Supabase RPC.
-const importStatus=(message,isError=false)=>{const box=el('imp-status');box.textContent=message;box.className=isError?'error':'success'};
-el('imp-file').addEventListener('change',async()=>{
- const file=el('imp-file').files?.[0];if(!file)return;
- if(!/\.(vtt|txt)$/i.test(file.name)||file.size>300000){importStatus('Use a .vtt or .txt file smaller than 300 KB.',true);return;}
- let content=await file.text();
- // Keep WebVTT voice labels (<v Name>...) before removing other markup.
- content=content.replace(/\r/g,'').replace(/^WEBVTT[^\n]*\n/i,'')
-   .replace(/<v(?:\.[^ >]+)?\s+([^>]+)>/gi,(_,speaker)=>speaker.trim()+': ')
-   .replace(/<\/v>/gi,'')
-   .replace(/^\s*\d+\s*$/gm,'').replace(/^.*-->.*$/gm,'')
-   .replace(/<[^>]+>/g,'').replace(/\n{3,}/g,'\n\n').trim();
- el('imp-raw').value=content;el('imp-speech').value='';el('imp-review').value='';el('imp-save').disabled=true;el('imp-summary').textContent='Transcript loaded. Confirm the Zoom speaker label, then click Analyze Transcript.';
- importStatus('Transcript loaded. Enter the Zoom speaker label, then extract and verify student speech.');
-});
-function extractSpeakerLines(){
- const label=el('imp-speaker').value.trim().replace(/:$/,'');
- if(!label){importStatus('Enter the student’s exact Zoom speaker label (e.g. Kate or Speaker 2).',true);return false;}
- const text=el('imp-raw').value;
- if(!text.trim()){importStatus('Upload or paste a transcript first.',true);return false;}
- const escapeRegExp=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
- const speakerLine=new RegExp('^\\s*(?:\\[)?'+escapeRegExp(label)+'(?:\\])?\\s*[:：]\\s*(.*)$','i');
- const anyOtherSpeaker=/^\s*(?:[^:\n]{1,90}|\[[^\]\n]{1,90}\])\s*[:：]\s*/;
- const lines=text.split('\n'),selected=[];
- let capturing=false;
- for(const line of lines){
-  const match=line.match(speakerLine);
-  if(match){capturing=true;if(match[1].trim())selected.push(match[1].trim());continue;}
-  if(anyOtherSpeaker.test(line)||!line.trim()){capturing=false;continue;}
-  // Continuation lines only when the immediately previous speaker was selected.
-  if(capturing)selected.push(line.trim());
- }
- el('imp-speech').value=selected.map(v=>'Student: '+v).join('\n');
- el('imp-review').value='';
- importStatus(selected.length?selected.length+' matching lines extracted for '+label+'. Check every line before analyzing and saving.':'No matching speaker lines. Check the exact Zoom label or manually paste student speech.',!selected.length);
- return selected.length>0;
+let user=null,profile=null;
+function safeText(v,max=250){return String(v??'').slice(0,max).trim()}
+function plainEntry(e){return safeText(e?.content?.text,650)}
+function onlyReview(e){return e?.content?.source==='Kostya AI review'}
+function isEmptyFinding(t){return /^(?:no specific |insufficient evidence|not assessed|no (?:clear|confirmed|verified)|none\b|nothing\b|n\/a\b|not enough evidence)/i.test(t.trim())}
+function displayDate(e){const d=new Date(e.created_at);return Number.isNaN(+d)?'':d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}
+function addFinding(el,label,text,date){const item=document.createElement('div');item.className='feedback-row';const title=document.createElement('strong');title.textContent=label+(date?' · '+date:'');const p=document.createElement('div');p.textContent=safeText(text,380);item.append(title,p);el.append(item)}
+function findArea(entries,area){return entries.find(e=>onlyReview(e)&&String(e.content?.area||'').toLowerCase()===area.toLowerCase()&&!isEmptyFinding(plainEntry(e)))}
+function moduleChoice(text){
+ const t=String(text||'').toLowerCase();
+ // Only select existing course URLs. If feedback isn't an obvious match, don't pretend a lesson is targeted.
+ if(/gender|stereotype|equality|societ|follow.up question|linking phrase|conversation flow|discussion|debate|argument|interview/.test(t))return {name:'Gender Roles B2',url:'/gender-roles-B2/',note:'Topic-related lesson; the exact exercise is not selected automatically.'};
+ if(/video game|gaming|codenames|code names|game vocabulary|game related/.test(t))return {name:'Video Games',url:'/',note:'Topic-related lesson; the exact exercise is not selected automatically.'};
+ return null;
 }
-el('imp-extract').addEventListener('click',()=>{extractSpeakerLines();el('imp-save').disabled=true;el('imp-summary').textContent='Speaker lines changed. Run AI analysis again.';});
-
-async function analyzeSpeech(){
- const speech=el('imp-speech').value.trim(),student=el('imp-student').value;
- if(!student||!speech){importStatus('Select a student and confirm their speech first.',true);return false;}
- if(speech.length<20){importStatus('Student speech is too short for a useful review.',true);return false;}
- const b=el('imp-analyze');b.disabled=true;importStatus('Generating feedback…');
- try{
-  const resp=await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task:'Assess only the verified learner utterances from a Zoom lesson. Distinguish demonstrated grammar errors from optional improvements. Identify useful vocabulary, communication strengths, limitations of a text-only transcript and one practical next step. Do not invent recurring patterns or pronunciation judgments.',transcript:speech.slice(0,4800),level:'A2',module:'Zoom lesson (teacher-reviewed)'})});
-  const result=await resp.json().catch(()=>({}));if(!resp.ok)throw Error(result.error||'AI review failed: '+resp.status);
-  el('imp-review').value=String(result.feedback||'').trim();if(!el('imp-review').value)throw Error('Empty AI review');
-  importStatus('AI review generated. Check the summary, then approve saving.');
-  return true;
- }catch(e){importStatus(String(e.message||e),true);return false}finally{b.disabled=false;}
+async function loadDashboard(){
+ reveal('dashboard');$('greeting').textContent='Hi, '+safeText(profile.display_name,80)+'! 👋';$('goal-summary').textContent=profile.goals||'Make progress with personalized English practice.';$('level-value').textContent=profile.english_level||'A2';
+ const {data,error}=await db.from('student_learning_entries').select('kind,module,content,created_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(100);
+ if(error){$('next-step').textContent='Your learning history is temporarily unavailable.';$('practice-link').hidden=true;$('match-note').textContent='Could not load learning records.';return;}
+ const entries=data||[];
+ $('count-conversations').textContent=String(entries.filter(e=>e.kind==='transcript').length);
+ // Stage 4 creates one progress item per completed review and multiple other items.
+ const reviews=entries.filter(e=>e.kind==='progress'&&onlyReview(e));
+ $('count-reviews').textContent=String(reviews.length);
+ const latest=reviews[0]||entries.find(e=>e.kind==='progress');
+ const lastText=plainEntry(latest);
+ const next=lastText.match(/(?:Suggested next step|NEXT STEP):\s*([^\n]+)/i);
+ const suggestion=next?safeText(next[1],230):'Complete a conversation with Kostya to receive a specific learning recommendation.';
+ $('next-step').textContent=suggestion;
+ const match=next?moduleChoice(suggestion):null;
+ const link=$('practice-link');link.hidden=!match;
+ if(match){link.href=match.url;link.textContent='Practice in '+match.name+' →';$('match-note').textContent=match.note;}
+ else {$('match-note').textContent=next?'No exact course match yet. Choose from My Courses below, or ask Kostya for a targeted exercise.':'Choose a lesson from My Courses to get started.';}
+ const strengths=$('strengths');strengths.replaceChildren();
+ // Review notes are qualitative evidence, not numerical scores or proof of mastery.
+ const evidence=entries.filter(e=>onlyReview(e)&&e.kind==='memory_note'&&['Communication','Fluency'].includes(e.content?.area)&&!isEmptyFinding(plainEntry(e)));
+ if(evidence.length){for(const e of evidence.slice(0,3))addFinding(strengths,e.content.area+' · AI observation',plainEntry(e),displayDate(e));
+ const n=document.createElement('p');n.className='small-note';n.textContent='These are recent AI observations, not verified strengths or proficiency scores.';strengths.append(n);
+ }else{strengths.textContent='No specific positive strengths have been verified yet. Complete comparable learning activities to build evidence.';}
+ const practice=$('practice-focus');practice.replaceChildren();
+ const grammar=findArea(entries,'Grammar'),vocab=findArea(entries,'Vocabulary');
+ const useful=[grammar,vocab].filter(Boolean);
+ if(useful.length){for(const e of useful)addFinding(practice,e.content.area+' · Suggested review',plainEntry(e),displayDate(e));}
+ else{practice.textContent=next?suggestion:'No specific errors recorded in the latest available AI reviews.';}
+ const note=document.createElement('p');note.className='small-note';note.textContent='Based on up to 100 recent saved entries. AI feedback can be incomplete; these are not examination scores.';practice.append(note);
 }
-el('imp-analyze').addEventListener('click',async()=>{el('imp-save').disabled=true;const ok=await analyzeSpeech();if(ok){el('imp-save').disabled=false;el('imp-summary').textContent=el('imp-review').value;} });
-el('imp-analyze-auto').addEventListener('click',async()=>{
- const btn=el('imp-analyze-auto');if(!el('imp-student').value){importStatus('Select the Webilang student first.',true);return;}
- el('imp-save').disabled=true;btn.disabled=true;el('imp-summary').textContent='Identifying speaker and analyzing learner speech…';
- try{if(!extractSpeakerLines()){el('imp-summary').textContent='No lines matched this speaker. Open Review details to check speaker labels.';return;}
- const ok=await analyzeSpeech();if(ok){el('imp-save').disabled=false;el('imp-summary').textContent='Student speech extracted and analyzed. Review the feedback below, then approve saving.\n\n'+el('imp-review').value;}else{el('imp-summary').textContent='AI review could not be completed. Check the status and use Review details if needed.';}
- }finally{btn.disabled=false;}
-});
-el('imp-save').addEventListener('click',async()=>{
- const student=el('imp-student').value,raw=el('imp-raw').value.trim(),speech=el('imp-speech').value.trim(),review=el('imp-review').value.trim();
- if(!student||!raw||!speech||!review){importStatus('Select a student, review their transcript, and generate or enter a reviewed summary.',true);return;}
- if(!el('imp-consent').checked){importStatus('Confirm consent and speaker attribution first.',true);return;}
- if(!confirm('Save this private Zoom lesson for the selected student?'))return;
- const b=el('imp-save');b.disabled=true;importStatus('Saving approved records…');
+
+async function refresh(){const {data:{user:current},error}=await db.auth.getUser();user=error?null:current;$('sign-out').classList.toggle('hide',!user);$('email-label').textContent=user?.email||'';if(!user){reveal('login');return;}
+ const p=await db.from('student_profiles').select('display_name,english_level,goals').eq('user_id',user.id).maybeSingle();if(p.error){reveal('onboard');$('profile-status').textContent='Unable to load profile: '+p.error.message;return;}
+ profile=p.data;if(!profile?.display_name){reveal('onboard');return;}await loadDashboard();}
+// Clear visible status when the student changes the email address.
+$('email').addEventListener('input',()=>{const button=$('send-link');if(button.dataset.sending==='1')return;button.disabled=false;button.textContent='Continue with email →';$('login-status').textContent='';$('login-status').className='notice';});
+$('login-form').addEventListener('submit',async e=>{
+ e.preventDefault();const email=$('email').value.trim();if(!$('email').validity.valid)return;
+ const button=$('send-link'),notice=$('login-status');if(button.disabled)return;
+ button.disabled=true;button.dataset.sending='1';button.textContent='Sending…';
+ notice.className='notice';notice.textContent='Sending a secure sign-in link to '+email+'…';
+ let sent=false;
  try{
-  const {data,error}=await db.rpc('webilang_admin_import_zoom',{p_student_id:student,p_transcript:raw,p_student_speech:speech,p_review:review,p_lesson_date:el('imp-date').value||null,p_consent_confirmed:true});
+  const {error}=await db.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+'/webilang-global/',shouldCreateUser:true}});
   if(error)throw error;
-  importStatus('Saved private transcript and approved AI review to Student Memory.');el('imp-save').disabled=true;
-  el('imp-consent').checked=false;
- }catch(e){importStatus('Save failed: '+String(e.message||e)+'. Install the supplied Supabase SQL function if needed.',true)}
- finally{b.disabled=false;}
+  sent=true;button.textContent='✓ Email requested';notice.className='notice success';
+  notice.textContent='✓ Request accepted. Check '+email+' for your sign-in link (and check Spam if needed). You can enter a different email to try again.';
+ }catch(err){button.textContent='Try sending again';notice.className='notice error';notice.textContent='Could not request the sign-in email: '+String(err?.message||err);}
+ finally{delete button.dataset.sending;if(!sent)button.disabled=false;}
 });
-
-el('imp-student').addEventListener('change',()=>{el('imp-save').disabled=true;el('imp-summary').textContent='Student changed. Run Analyze Transcript again.';el('imp-consent').checked=false;el('imp-review').value='';importStatus('Student changed. Verify speaker mapping and generate a new review.');});
-
-for(const id of ['imp-speaker','imp-date'])el(id).addEventListener('input',()=>{el('imp-save').disabled=true;el('imp-summary').textContent='Selection changed. Run Analyze Transcript again.';});
-el('imp-review').addEventListener('input',()=>{el('imp-summary').textContent='AI notes edited. Review changes before approving.\n\n'+el('imp-review').value;});
-const prof=id=>el('profile-'+id);
-const profileMsg=(msg,err=false)=>{prof('status').textContent=msg;prof('status').style.color=err?'#a32929':'#276749'};
-async function loadProfile(){for(const x of ['url','interests','topics','guidance'])prof(x).value='';prof('consent').checked=false;
- if(!prof('student').value){profileMsg('Select a student.');return;}
- const {data,error}=await db.rpc('webilang_admin_get_personal_profile',{p_student_id:prof('student').value});
- if(error){profileMsg('Could not load profile: '+error.message,true);return;}
- if(data){prof('url').value=data.source_url||'';prof('interests').value=(data.interests||[]).join(', ');prof('topics').value=(data.topics||[]).join('\n');prof('guidance').value=data.teacher_guidance||'';prof('source').value=data.source_type||'Student self-report';profileMsg('Approved profile loaded; reconfirm permission before editing.');}
- else profileMsg('No profile saved for this student.');
-}
-prof('student').addEventListener('change',loadProfile);
-prof('save').addEventListener('click',async()=>{
- const id=prof('student').value,url=prof('url').value.trim(),interests=prof('interests').value.split(/[,\n;]/).map(x=>x.trim()).filter(Boolean),topics=prof('topics').value.split(/\n|;/).map(x=>x.trim()).filter(Boolean),guidance=prof('guidance').value.trim();
- if(!id||!prof('consent').checked){profileMsg('Select a student and confirm their specific permission.',true);return;}
- if(!interests.length){profileMsg('Enter at least one approved interest.',true);return;}
- if(url&&!/^https:\/\//i.test(url)){profileMsg('URL must start with https://',true);return;}
- if(!confirm('Save this approved personal profile for the selected student?'))return;
- const button=prof('save');button.disabled=true;
- try{const {error}=await db.rpc('webilang_admin_save_personal_profile',{p_student_id:id,p_source_type:prof('source').value,p_source_url:url||null,p_interests:interests,p_topics:topics,p_teacher_guidance:guidance,p_consent_confirmed:true});if(error)throw error;prof('consent').checked=false;profileMsg('Saved privately to Supabase. Kostya integration is a separate step.');}
- catch(e){profileMsg('Save failed: '+(e.message||e),true)}finally{button.disabled=false;}
-});
-prof('delete').addEventListener('click',async()=>{if(!prof('student').value){profileMsg('Select a student.',true);return;}if(!confirm('Delete this student personal profile?'))return;try{const {error}=await db.rpc('webilang_admin_delete_personal_profile',{p_student_id:prof('student').value});if(error)throw error;await loadProfile();profileMsg('Personal profile deleted.');}catch(e){profileMsg('Delete failed: '+(e.message||e),true)}});
-
-
-// Kostya character profile — server-authorized versioning, drafts and publishing.
-const kpKeys=['name','role','bio','expertise','interests','personality','style','method'];
-const kpNode=k=>el('kp-'+k);let kpVersions=[];let kpDraftId=null;
-function kpMessage(message,bad=false){kpNode('state').textContent=message;kpNode('state').style.color=bad?'#a22c2c':'#315c4a'}
-function kpData(){return Object.fromEntries(kpKeys.map(k=>[k,kpNode(k).value.trim()]))}
-function kpFill(o={}){for(const k of kpKeys)kpNode(k).value=String(o[k]??(k==='name'?'Kostya':''));}
-async function kpRefresh(){const {data,error}=await db.rpc('webilang_admin_list_kostya_versions');if(error){kpMessage('Profile editor unavailable: '+error.message+'. Run the supplied SQL in Supabase.',true);return;}
- kpVersions=Array.isArray(data)?data:[];let previous=kpNode('history').value;kpNode('history').replaceChildren(new Option('Choose a saved version…',''));for(const v of kpVersions)kpNode('history').add(new Option('v'+v.version+' · '+(v.is_published?'PUBLISHED':'draft')+' · '+String(v.created_at||'').slice(0,16),String(v.id)));
- const draft=kpVersions.find(v=>!v.is_published);const live=kpVersions.find(v=>v.is_published);kpDraftId=draft?.id||null;
- if(draft){kpNode('history').value=draft.id;kpFill(draft.profile)}
- else if([...kpNode('history').options].some(o=>o.value===previous)&&previous)kpNode('history').value=previous;
- else if(draft){kpNode('history').value=draft.id;kpFill(draft.profile)}else if(live){kpNode('history').value=live.id;kpFill(live.profile)}
- kpMessage('Published: '+(live?'version '+live.version:'none')+' · Latest draft: '+(draft?'version '+draft.version:'none')+'. Saving a draft does not change Kostya.');}
-kpNode('history').addEventListener('change',()=>{const v=kpVersions.find(x=>String(x.id)===kpNode('history').value);if(v){kpFill(v.profile);kpMessage('Previewing version '+v.version+(v.is_published?' (published)':' (draft)')+'. Editing these fields does not change the saved version until you save.');}});
-kpNode('save').addEventListener('click',async()=>{const p=kpData();if(!p.name||!p.role){kpMessage('Provide a name and role.',true);return;}try{const {error}=await db.rpc('webilang_admin_save_kostya_draft',{p_profile:p});if(error)throw error;await kpRefresh();kpMessage('Draft saved. English Kostya has not changed.');}catch(err){kpMessage('Save failed: '+err.message,true)}});
-kpNode('publish').addEventListener('click',async()=>{const selected=kpVersions.find(x=>String(x.id)===kpNode('history').value);if(!selected||selected.is_published){kpMessage('Save a new draft and select it before publishing.',true);return;}if(JSON.stringify(kpData())!==JSON.stringify(Object.fromEntries(kpKeys.map(k=>[k,String(selected.profile?.[k]??'')])))){kpMessage('You have unsaved changes. Save Draft first, then Publish.',true);return;}if(!confirm('Publish this character profile to NEW English Kostya conversations?'))return;try{const {error}=await db.rpc('webilang_admin_publish_kostya_profile',{p_version_id:selected.id});if(error)throw error;await kpRefresh();kpMessage('Published successfully. New English Kostya conversations will use this version.');}catch(err){kpMessage('Publish failed: '+err.message,true)}});
-kpNode('restore').addEventListener('click',async()=>{const v=kpVersions.find(x=>String(x.id)===kpNode('history').value);if(!v){kpMessage('Choose an earlier version first.',true);return;}if(!confirm('Create a new draft from this saved version?'))return;try{const {error}=await db.rpc('webilang_admin_save_kostya_draft',{p_profile:v.profile});if(error)throw error;await kpRefresh();kpMessage('Restored as new draft. Publish separately to activate.');}catch(err){kpMessage('Restore failed: '+err.message,true)}});
-kpNode('reload').addEventListener('click',kpRefresh);
-
-el('reload').addEventListener('click',learners);init();
+$('profile-form').addEventListener('submit',async e=>{e.preventDefault();if(!user)return;const name=$('name').value.trim();if(!name)return;$('save-profile').disabled=true;const {error}=await db.from('student_profiles').upsert({user_id:user.id,display_name:name,english_level:$('level').value==='Not sure'?'A2':$('level').value,goals:$('goals').value.trim(),updated_at:new Date().toISOString()},{onConflict:'user_id'});$('save-profile').disabled=false;if(error){$('profile-status').textContent=error.message;return;}profile={display_name:name,english_level:$('level').value,goals:$('goals').value.trim()};await loadDashboard();});
+$('edit-profile').addEventListener('click',()=>{if(!profile)return;$('name').value=profile.display_name||'';$('level').value=['A1','A2','B1','B2','C1'].includes(profile.english_level)?profile.english_level:'A2';$('goals').value=profile.goals||'';reveal('onboard');});
+$('sign-out').onclick=async()=>{await db.auth.signOut();user=null;reveal('login');$('email-label').textContent='';$('sign-out').classList.add('hide');};
+db.auth.onAuthStateChange((_event,session)=>{if(_event==='SIGNED_IN'||_event==='SIGNED_OUT')queueMicrotask(()=>refresh());});
+refresh().catch(e=>{reveal('login');$('login-status').textContent='Sign-in service error: '+e.message});
 </script></body></html>
