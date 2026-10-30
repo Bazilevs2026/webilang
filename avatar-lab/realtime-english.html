@@ -474,7 +474,40 @@ function wlGenderForwardTranscript(m){
  if(!(student||avatar)||!String(m.transcript||'').trim())return;
  window.parent.postMessage({source:'webilang-gender-qwen',type:'transcript',scenario:interviewScenario,speaker:student?'student':'avatar',id:m.item_id||m.response_id||'',text:String(m.transcript).trim()},location.origin);
 }
+/* Student Memory Stage 3: text-only, user-scoped Kostya transcript capture. */
+let wlMemoryTurns=[],wlMemorySeen=new Set(),wlMemorySaving=false;
+function wlMemoryCaptureTurn(event){
+ if(!teacherMode||!wlQwenReady)return;
+ const student=event.type==='conversation.item.input_audio_transcription.completed';
+ const assistant=['response.audio_transcript.done','response.output_audio_transcript.done','response.output_audio_transcript.completed'].includes(event.type);
+ if(!student&&!assistant)return;
+ const value=String(event.transcript||'').trim().slice(0,2000);
+ if(!value)return;
+ const id=String(event.item_id||event.response_id||'');
+ const dedup=id?((student?'S':'K')+id):((student?'S':'K')+value);
+ if(wlMemorySeen.has(dedup))return;
+ wlMemorySeen.add(dedup);
+ wlMemoryTurns.push({speaker:student?'Student':'Kostya',text:value});
+}
+async function wlMemorySaveConversation(){
+ if(!teacherMode||wlMemorySaving||!wlMemoryTurns.length)return;
+ wlMemorySaving=true;
+ try{
+  const [{createClient},cfg]=await Promise.all([import('https://esm.sh/@supabase/supabase-js@2'),import('/student-memory/config.js')]);
+  const db=createClient(cfg.SUPABASE_URL,cfg.SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+  const {data:session,error:authError}=await db.auth.getUser();
+  if(authError||!session?.user){rtMessage('Student Memory: sign in to save your transcript.');return;}
+  const content=wlMemoryTurns.map(t=>t.speaker+': '+t.text).join('\n').slice(0,11900);
+  const {error}=await db.from('student_learning_entries').insert({user_id:session.user.id,kind:'transcript',module:videoGamesLesson?'Video Games':'Gender Roles B2',content:{text:content,source:'Kostya realtime',version:3}});
+  if(error)throw error;
+  wlMemoryTurns=[];wlMemorySeen.clear();
+  rtMessage('Transcript saved in Student Memory (text only).');
+ }catch(error){rtMessage('Student Memory was not saved: '+String(error?.message||error));}
+ finally{wlMemorySaving=false;}
+}
+
 function wlQwenHandleEvent(m,channel){
+ wlMemoryCaptureTurn(m);
  wlGenderForwardTranscript(m);
  if(!qwenMode)return false;
  if(m.type==='session.created'&&!wlQwenConfigured){
@@ -555,7 +588,7 @@ function rtAnimateAudio(){
   active=rms>0.018;
   rtcRAF=requestAnimationFrame(rtAnimateAudio);
 }
-rtEnd.onclick=()=>{if(genderInterview){rtCleanup();rtMessage('Interview ended. You may close this window or start again.');return;}if(document.body.classList.contains('kostya-teacher')){rtCleanup();rtMessage('Разговор с Kostya завершён. Можно начать снова или закрыть окно.');return;}if(document.body.classList.contains('interview-pilot')&&!genderInterview){window.parent.postMessage({source:'webilang-realtime',type:'end-request'},location.origin);return;}rtCleanup();rtMessage('Session ended. Classic conversation is still available on the main Avatar Lab page.')};
+rtEnd.onclick=()=>{if(genderInterview){rtCleanup();rtMessage('Interview ended. You may close this window or start again.');return;}if(document.body.classList.contains('kostya-teacher')){rtEnd.disabled=true;void wlMemorySaveConversation().finally(()=>{rtCleanup();});return;}if(document.body.classList.contains('interview-pilot')&&!genderInterview){window.parent.postMessage({source:'webilang-realtime',type:'end-request'},location.origin);return;}rtCleanup();rtMessage('Session ended. Classic conversation is still available on the main Avatar Lab page.')};
 rtStart.onclick=async()=>{
  if(rtcBusy)return;rtcBusy=true;const sessionGeneration=++rtcGeneration;rtStart.disabled=true;rtEnd.disabled=false;
  try{
