@@ -500,7 +500,7 @@ async function wlMemorySaveConversation(){
   const {data:session,error:authError}=await db.auth.getUser();
   if(authError||!session?.user){rtMessage('Student Memory: sign in to save your transcript.');return;}
   const content=wlMemoryTurns.map(t=>t.speaker+': '+t.text).join('\n').slice(0,11900);
-  const {error}=await db.from('student_learning_entries').insert({user_id:session.user.id,kind:'transcript',module:videoGamesLesson?'Video Games':'Gender Roles B2',content:{text:content,source:'Kostya realtime',version:3}});
+  const {error}=await db.from('student_learning_entries').insert({user_id:session.user.id,kind:'transcript',module:((wlTeacherContext?.url || document.referrer || '').includes('gender-roles-B2') ? 'Gender Roles B2' : 'Video Games'),content:{text:content,source:'Kostya realtime',version:3}});
   if(error)throw error;
   wlMemoryTurns=[];wlMemorySeen.clear();
   rtMessage('Transcript saved in Student Memory (text only).');
