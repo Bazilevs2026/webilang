@@ -1,20 +1,80 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Webilang Global · Admin</title>
 <style>
-:root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#243451;background:#f5f7fb}*{box-sizing:border-box}body{margin:0}.wrap{max-width:1100px;margin:auto;padding:28px 18px}header{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:24px}h1{font-size:clamp(27px,4vw,38px);margin:0}h2{margin:0 0 10px;font-size:22px}.muted{color:#5e6e83;line-height:1.55}.card{background:white;border:1px solid #dce4ef;border-radius:20px;padding:24px;margin:16px 0;box-shadow:0 5px 20px #172e4808}a{color:#315d83}button{font:inherit;border:0;border-radius:11px;background:#e87917;color:white;font-weight:700;padding:11px 16px;cursor:pointer}button:disabled{opacity:.6;cursor:default}.secondary{background:#ebf1f7;color:#2b4056}.tag{display:inline-block;padding:5px 11px;border-radius:20px;background:#e8f5ec;color:#1b6d40;font-size:12px;font-weight:750}.error{background:#fff2ec;color:#903d1c;padding:14px;border-radius:10px}.good{background:#eaf6ee;color:#276b3c;padding:14px;border-radius:10px}.hidden{display:none!important}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #e4e9f0;padding:12px 8px;font-size:14px}th{color:#566781;font-weight:750}.scroll{overflow-x:auto}.tiles{display:grid;grid-template-columns:1fr 1fr;gap:15px}.tiles .card{margin:0}@media(max-width:720px){.tiles{grid-template-columns:1fr}}.status{min-height:20px}</style></head>
+:root{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#243451;background:#f5f7fb}*{box-sizing:border-box}body{margin:0}.wrap{max-width:1100px;margin:auto;padding:28px 18px}header{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:24px}h1{font-size:clamp(27px,4vw,38px);margin:0}h2{margin:0 0 10px;font-size:22px}.muted{color:#5e6e83;line-height:1.55}.card{background:white;border:1px solid #dce4ef;border-radius:20px;padding:24px;margin:16px 0;box-shadow:0 5px 20px #172e4808}a{color:#315d83}button{font:inherit;border:0;border-radius:11px;background:#e87917;color:white;font-weight:700;padding:11px 16px;cursor:pointer}button:disabled{opacity:.6;cursor:default}.secondary{background:#ebf1f7;color:#2b4056}.tag{display:inline-block;padding:5px 11px;border-radius:20px;background:#e8f5ec;color:#1b6d40;font-size:12px;font-weight:750}.error{background:#fff2ec;color:#903d1c;padding:14px;border-radius:10px}.good{background:#eaf6ee;color:#276b3c;padding:14px;border-radius:10px}.hidden{display:none!important}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #e4e9f0;padding:12px 8px;font-size:14px}th{color:#566781;font-weight:750}.scroll{overflow-x:auto}.tiles{display:grid;grid-template-columns:1fr 1fr;gap:15px}.tiles .card{margin:0}@media(max-width:720px){.tiles{grid-template-columns:1fr}}.status{min-height:20px}
+#zoom-import{margin-top:20px}#zoom-import label{display:block;font-weight:700;margin:13px 0 6px}#zoom-import select,#zoom-import textarea,#zoom-import input[type=date],#zoom-import input[type=file]{width:100%;border:1px solid #b8c9dc;border-radius:10px;padding:10px;font:inherit}#zoom-import textarea{min-height:180px;resize:vertical}#zoom-import .import-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}#zoom-import .consent{display:flex;gap:10px;align-items:flex-start;margin:16px 0}#zoom-import .consent input{margin-top:4px}#zoom-import button{margin:6px 8px 6px 0}#zoom-import .success{color:#14603d;font-weight:700}#zoom-import .error{color:#9c2525;font-weight:700}@media(max-width:650px){#zoom-import .import-grid{grid-template-columns:1fr}}
+</style></head>
 <body><main class="wrap"><header><div><div class="muted">WEBILANG GLOBAL · INTERNAL</div><h1>Admin Dashboard</h1></div><a href="/webilang-global/">← My Learning</a></header>
 <section id="loading" class="card">Checking administrator permissions…</section>
 <section id="signed-out" class="card hidden"><h2>Sign in required</h2><p class="muted">Use your administrator account in Webilang Global, then return to this page.</p><a href="/webilang-global/">Open Webilang Global sign-in</a></section>
 <section id="denied" class="card hidden"><h2>Access denied</h2><p class="muted">This account is not authorized to manage Webilang student records.</p><a href="/webilang-global/">Return to My Learning</a></section>
 <section id="admin" class="hidden"><div class="card"><span class="tag">Verified administrator</span><p id="admin-email" class="muted"></p><p class="muted">Private AI notes and raw Zoom transcripts are not exposed through this page. Student data operations require separate, server-enforced permissions.</p></div>
 <div class="tiles"><section class="card"><h2>Student Records</h2><p class="muted">See registered learners. Next phase: consent-checked Zoom transcript import, speaker review, AI analysis preview and explicit approval before saving.</p></section><section class="card"><h2>Kostya Profile</h2><p class="muted">Next phase: a versioned AI character profile with teaching specialties, interests and natural conversational rules. This will not change Kostya until explicitly published.</p></section></div>
-<section class="card"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><h2>Registered learners</h2><button id="reload" class="secondary" type="button">Refresh list</button></div><p class="muted">This list is available only after the administrator-only database function has been installed. Students cannot call it to read other students.</p><p id="list-status" class="status" aria-live="polite"></p><div class="scroll"><table><thead><tr><th>Email</th><th>Name</th><th>English level</th><th>Goals</th></tr></thead><tbody id="students"></tbody></table></div></section></section></main>
+<section class="card"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap"><h2>Registered learners</h2><button id="reload" class="secondary" type="button">Refresh list</button></div><p class="muted">This list is available only after the administrator-only database function has been installed. Students cannot call it to read other students.</p><p id="list-status" class="status" aria-live="polite"></p><div class="scroll"><table><thead><tr><th>Email</th><th>Name</th><th>English level</th><th>Goals</th></tr></thead><tbody id="students"></tbody></table></div></section>
+<section id="zoom-import" class="card"><h2>Import Zoom lesson transcript</h2>
+<p class="muted">Administrator only. The learner's account must exist. Review all speaker labels. Transcripts and feedback are private learning records, not shown in My Learning.</p>
+<div class="import-grid"><div><label for="imp-student">Student account</label><select id="imp-student"><option value="">Select a registered student…</option></select></div>
+<div><label for="imp-date">Lesson date</label><input type="date" id="imp-date"></div></div>
+<label for="imp-file">Zoom transcript (.vtt or .txt, up to 300 KB)</label><input type="file" id="imp-file" accept=".vtt,.txt,text/plain,text/vtt">
+<label for="imp-raw">Review transcript and speaker names (editable)</label><textarea id="imp-raw" placeholder="Teacher: ...&#10;Student: ..."></textarea>
+<p class="muted">For group lessons, delete speech from other students or anonymize it. Identify the selected student's lines with <b>Student:</b>. Never attribute teacher speech to the learner.</p>
+<label for="imp-speech">Student speech only — review before analysis (editable)</label><textarea id="imp-speech" placeholder="Student: I visited ..."></textarea>
+<button id="imp-extract" type="button" class="secondary">Extract Student: lines</button>
+<button id="imp-analyze" type="button" class="secondary">Generate AI review</button>
+<label for="imp-review">AI review — edit and approve</label><textarea id="imp-review" placeholder="Review AI suggestions; remove any unverified claim or error."></textarea>
+<label class="consent"><input id="imp-consent" type="checkbox"><span>I confirm that appropriate permission was obtained for this lesson transcript and AI analysis, and that speaker attribution and the selected student have been checked.</span></label>
+<button id="imp-save" type="button">Approve &amp; Save to Student Memory</button><p id="imp-status" class="muted" role="status" aria-live="polite"></p>
+</section>
+</section></main>
 <script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from '/student-memory/config.js';
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const el=id=>document.getElementById(id);const show=id=>{for(const x of ['loading','signed-out','denied','admin'])el(x).classList.toggle('hidden',x!==id)};
-async function learners(){const button=el('reload');button.disabled=true;el('list-status').textContent='Loading student list…';el('students').replaceChildren();try{const {data,error}=await db.rpc('webilang_admin_list_students');if(error)throw error;const rows=Array.isArray(data)?data:[];for(const item of rows){const tr=document.createElement('tr');for(const key of ['email','display_name','english_level','goals']){const td=document.createElement('td');td.textContent=String(item[key]??'—').slice(0,300);tr.append(td)}el('students').append(tr)}el('list-status').textContent=rows.length+' registered account(s).';}catch(e){el('list-status').textContent='Student list unavailable: '+(e?.message||e)+'. Run the supplied SQL setup in Supabase.'}finally{button.disabled=false}}
+async function learners(){const button=el('reload');button.disabled=true;el('list-status').textContent='Loading student list…';el('students').replaceChildren();try{const {data,error}=await db.rpc('webilang_admin_list_students');if(error)throw error;const rows=Array.isArray(data)?data:[];for(const item of rows){const tr=document.createElement('tr');for(const key of ['email','display_name','english_level','goals']){const td=document.createElement('td');td.textContent=String(item[key]??'—').slice(0,300);tr.append(td)}el('students').append(tr)}el('list-status').textContent=rows.length+' registered account(s).';const select=el('imp-student');const last=select.value;select.replaceChildren(new Option('Select a registered student…',''));for(const item of rows){select.add(new Option((item.display_name||item.email||'Student')+' — '+(item.email||''),item.user_id));}if([...select.options].some(o=>o.value===last))select.value=last;}catch(e){el('list-status').textContent='Student list unavailable: '+(e?.message||e)+'. Run the supplied SQL setup in Supabase.'}finally{button.disabled=false}}
 async function init(){try{const {data:{user},error}=await db.auth.getUser();if(error||!user){show('signed-out');return}const {data,error:permissionError}=await db.from('webilang_admins').select('user_id').eq('user_id',user.id).maybeSingle();if(permissionError||!data){show('denied');return}show('admin');el('admin-email').textContent='Signed in as '+user.email;await learners()}catch(e){el('loading').textContent='Could not check admin access: '+(e?.message||e)}}
+
+// Zoom transcript import. All writes go through the admin-checked Supabase RPC.
+const importStatus=(message,isError=false)=>{const box=el('imp-status');box.textContent=message;box.className=isError?'error':'success'};
+el('imp-file').addEventListener('change',async()=>{
+ const file=el('imp-file').files?.[0];if(!file)return;
+ if(!/\.(vtt|txt)$/i.test(file.name)||file.size>300000){importStatus('Use a .vtt or .txt file smaller than 300 KB.',true);return;}
+ let content=await file.text();content=content.replace(/\r/g,'').replace(/^WEBVTT[^\n]*\n/i,'').replace(/^\s*\d+\s*$/gm,'').replace(/^.*-->.*$/gm,'').replace(/<[^>]+>/g,'').replace(/\n{3,}/g,'\n\n').trim();
+ el('imp-raw').value=content;el('imp-speech').value='';el('imp-review').value='';importStatus('Transcript loaded. Check speaker labels and extract student lines.');
+});
+el('imp-extract').addEventListener('click',()=>{
+ const lines=el('imp-raw').value.split('\n');
+ // Conservative: extract only explicitly marked Student lines, no guessing.
+ const selected=lines.filter(line=>/^\s*(?:Student|Learner)\s*:/i.test(line)).map(line=>line.trim());
+ el('imp-speech').value=selected.join('\n');
+ importStatus(selected.length?selected.length+' explicitly labelled student lines extracted. Please review.':'No Student: lines found. Mark the correct learner lines manually before analysis.',!selected.length);
+});
+el('imp-analyze').addEventListener('click',async()=>{
+ const speech=el('imp-speech').value.trim(),student=el('imp-student').value;
+ if(!student||!speech){importStatus('Select a student and confirm their speech first.',true);return;}
+ if(speech.length<20){importStatus('Student speech is too short for a useful review.',true);return;}
+ const b=el('imp-analyze');b.disabled=true;importStatus('Generating feedback…');
+ try{
+  const resp=await fetch('/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task:'Assess only the verified learner utterances from a Zoom lesson. Distinguish demonstrated grammar errors from optional improvements. Identify useful vocabulary, communication strengths, limitations of a text-only transcript and one practical next step. Do not invent recurring patterns or pronunciation judgments.',transcript:speech.slice(0,4800),level:'A2',module:'Zoom lesson (teacher-reviewed)'})});
+  const result=await resp.json().catch(()=>({}));if(!resp.ok)throw Error(result.error||'AI review failed: '+resp.status);
+  el('imp-review').value=String(result.feedback||'').trim();if(!el('imp-review').value)throw Error('Empty AI review');
+  importStatus('AI review generated. Please verify and edit it before saving.');
+ }catch(e){importStatus(String(e.message||e),true)}finally{b.disabled=false;}
+});
+el('imp-save').addEventListener('click',async()=>{
+ const student=el('imp-student').value,raw=el('imp-raw').value.trim(),speech=el('imp-speech').value.trim(),review=el('imp-review').value.trim();
+ if(!student||!raw||!speech||!review){importStatus('Select a student, review their transcript, and generate or enter a reviewed summary.',true);return;}
+ if(!el('imp-consent').checked){importStatus('Confirm consent and speaker attribution first.',true);return;}
+ if(!confirm('Save this private Zoom lesson for the selected student?'))return;
+ const b=el('imp-save');b.disabled=true;importStatus('Saving approved records…');
+ try{
+  const {data,error}=await db.rpc('webilang_admin_import_zoom',{p_student_id:student,p_transcript:raw,p_student_speech:speech,p_review:review,p_lesson_date:el('imp-date').value||null,p_consent_confirmed:true});
+  if(error)throw error;
+  importStatus('Saved private transcript and approved AI review to Student Memory.');
+  el('imp-consent').checked=false;
+ }catch(e){importStatus('Save failed: '+String(e.message||e)+'. Install the supplied Supabase SQL function if needed.',true)}
+ finally{b.disabled=false;}
+});
+
 el('reload').addEventListener('click',learners);init();
 </script></body></html>
