@@ -71,7 +71,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
 const host=document.querySelector('#scene'),status=document.querySelector('#status');let active=false, audio=null, utterance=null, mouthTarget=0,blinking=0,stopAt=0; let currentVrm=null, modelLoading=false; const defaultCamera={position:new THREE.Vector3(0,1.22,5.7),target:new THREE.Vector3(0,.95,0)};
 const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(34,1,.1,100);camera.position.set(0,1.22,5.7);camera.lookAt(0,.95,0);
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.03;host.appendChild(renderer.domElement);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(document.body.classList.contains('kostya-teacher')?1:Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.03;host.appendChild(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xffffff,0xc6cfb6,2.5));const sun=new THREE.DirectionalLight(0xffffff,2.4);sun.position.set(-3,5,5);scene.add(sun);
 const skin=new THREE.MeshStandardMaterial({color:0xf3be9e,roughness:.85}),hair=new THREE.MeshStandardMaterial({color:0x604337,roughness:.9}),shirt=new THREE.MeshStandardMaterial({color:0x668268,roughness:.84}),white=new THREE.MeshStandardMaterial({color:0xffffff}),iris=new THREE.MeshStandardMaterial({color:0x395e55}),lips=new THREE.MeshStandardMaterial({color:0x9d5351});
 const character=new THREE.Group();scene.add(character);
@@ -196,6 +196,9 @@ vrmFile.addEventListener('change',async()=>{
 });
 useMode();
 const clock=new THREE.Clock();
+// Kostya-only performance budget: fewer GPU pixels and capped animation frequency.
+let wlKostyaPerformanceSet=false,wlLastFrameAt=0;
+
 function resize(){
  const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);
  renderer.setSize(w,h,false);camera.aspect=w/h;
@@ -206,6 +209,12 @@ new ResizeObserver(resize).observe(host);resize();
 let nextBlink=2.5,blinkStart=-1;
 function frame(){
  requestAnimationFrame(frame);
+ const isKostya=document.body.classList.contains('kostya-teacher');
+ if(isKostya&&!wlKostyaPerformanceSet){renderer.setPixelRatio(1);wlKostyaPerformanceSet=true;resize();}
+ const frameNow=performance.now();
+ if(document.hidden)return;
+ if(isKostya && frameNow-wlLastFrameAt<40)return; // at most 25 frames/second
+ wlLastFrameAt=frameNow;
  const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;
  if(t>=nextBlink){blinkStart=t;nextBlink=t+2.5+Math.random()*3.6;}
  const blinkProgress=blinkStart>=0?(t-blinkStart)/.19:2;
