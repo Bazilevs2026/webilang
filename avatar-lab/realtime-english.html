@@ -21,6 +21,9 @@ body.interview-pilot #rtLog{display:none}body.kostya-teacher #wlKostyaTypedChat{
 body.interview-pilot #rtStart{padding:10px 15px}
 body.interview-pilot #rtEnd{display:none!important}
 body.interview-pilot.kostya-teacher #rtEnd{display:inline-flex!important;align-items:center;justify-content:center;background:#a73e3e;color:#fff}
+/* Disabled End is idle, not processing; avoid the spinning wait cursor. */
+body.kostya-teacher #rtEnd:disabled{cursor:default!important}
+
 body.interview-pilot #rtStatus{margin-top:8px;padding:9px;min-height:0;font-size:13px}
 /* Kostya: keep operational status available to screen readers, not as technical UI. */
 body.kostya-teacher #rtStatus{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:0!important;border:0!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important}
