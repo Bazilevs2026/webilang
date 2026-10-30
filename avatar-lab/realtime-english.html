@@ -675,16 +675,12 @@ function wlQwenHandleEvent(m,channel){
   if(selected!==wlQwenVoice){rtMessage('Qwen voice mismatch: '+(selected||'(missing)'));return true;}
   wlQwenReady=true;
    if(teacherMode){wlTeacherContextSent='';wlMemorySent=false;wlCharacterSent=false;}
-   if(teacherMode&&interviewScenario==='kostya_teacher'){
-    void (async()=>{
-     await wlSendKostyaCharacter();
-     if(!wlQwenReady||!rtcChannel||rtcChannel.readyState!=='open')return;
-     wlSendTeacherContext();void wlSendStudentMemory();
-     if(wlQwenSender&&rtcStream)wlQwenSender.replaceTrack(rtcStream.getAudioTracks()[0]).catch(e=>rtMessage('Microphone: '+e.message));
-    })();
-   }else{
-    if(wlQwenSender&&rtcStream)wlQwenSender.replaceTrack(rtcStream.getAudioTracks()[0]).catch(e=>rtMessage('Microphone: '+e.message));
-    if(teacherMode){wlSendTeacherContext();void wlSendStudentMemory();}
+   // Do not make audio depend on Supabase profile or Student Memory requests.
+   if(wlQwenSender&&rtcStream)wlQwenSender.replaceTrack(rtcStream.getAudioTracks()[0]).catch(e=>rtMessage('Microphone: '+e.message));
+   if(teacherMode){
+     wlSendTeacherContext();
+     void wlSendStudentMemory();
+     if(interviewScenario==='kostya_teacher')void wlSendKostyaCharacter();
    }
   rtMessage(genderInterview?'Qwen '+avatarName()+' ready · Ask your first interview question.':'Qwen Kostya ready · Speak when ready.');return true;
  }
