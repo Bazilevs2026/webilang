@@ -520,30 +520,33 @@ function wlStage4FluencyFromText(combined){
  return withoutPronunciation||'Text transcript only; speech rate, pauses and pronunciation were not assessed.';
 }
 async function wlStage4AnalyzeAndStore(db,userId,moduleName,studentSpeech){
- if(!studentSpeech.trim())return 'AI review skipped: no student speech was transcribed.';
+ if(!studentSpeech.trim())return 'Transcript saved. AI review skipped: no student speech was transcribed.';
  const profileResult=await db.from('student_profiles').select('english_level').eq('user_id',userId).maybeSingle();
  const level=profileResult.error?'A2':String(profileResult.data?.english_level||'A2').slice(0,8);
  const response=await fetch('/api/feedback',{
   method:'POST',headers:{'Content-Type':'application/json'},
-  body:JSON.stringify({task:'Review this one conversation with Kostya. Assess only the learner wording and support corrections with exact quotations. For Communication describe responsiveness and clarity. For Grammar and Vocabulary distinguish proven errors from suggestions. For Fluency comment only on transcript-observable coherence, repetition and self-correction. Do not infer speech rate, pauses, pronunciation, proficiency improvement or a long-term pattern from one transcript. State one short next practice action.',transcript:studentSpeech.slice(0,4800),level,module:moduleName})
+  body:JSON.stringify({task:'Assess ONLY this learner transcript, not Kostya. Quote the learner exactly before suggesting a correction; do not invent mistakes. Assess Communication, Grammar, Vocabulary and only text-observable Fluency (coherence/repetition/self-correction). Pronunciation cannot be assessed. Next Step must be one actionable practice item. Do not infer improvement or recurring errors from a single session.',transcript:studentSpeech.slice(0,4800),level,module:moduleName})
  });
  const payload=await response.json().catch(()=>({}));
- if(!response.ok)throw new Error(payload.error||'AI feedback HTTP '+response.status);
+ if(!response.ok)throw new Error('AI feedback '+response.status+': '+String(payload.error||response.statusText||'Unknown API error').slice(0,240));
  const raw=String(payload.feedback||'').trim();
- if(!raw)throw new Error('AI returned empty feedback');
+ if(!raw)throw new Error('AI feedback returned no text');
  const analysis=wlStage4SplitFeedback(raw);
- if(!analysis.communication&&!analysis.grammar&&!analysis.vocabulary)throw new Error('AI response missing classification headings');
- const entries=[
-  {kind:'grammar',text:analysis.grammar||'No specific grammar error established from this transcript.'},
-  {kind:'vocabulary',text:analysis.vocabulary||'No specific vocabulary error established from this transcript.'},
-  {kind:'communication',text:analysis.communication||'Insufficient evidence in transcript.'},
-  {kind:'fluency',text:wlStage4FluencyFromText(analysis.fluency)},
-  {kind:'pronunciation',text:'Not assessed: a text transcript cannot establish pronunciation, stress or intonation.'},
-  {kind:'learning_progress',text:'Session observation only; improvement and recurring patterns require comparison across sessions.\nSuggested next step: '+(analysis.nextStep||'Review a genuine correction from this session.')}
- ].map(({kind,text})=>({user_id:userId,kind,module:moduleName,content:{text,source:'Kostya AI review',version:4,reviewRequired:true,evidence:'student transcript only',corrections:kind==='grammar'||kind==='vocabulary'?analysis.corrections.slice(0,900):undefined}}));
- const {error}=await db.from('student_learning_entries').insert(entries);
- if(error)throw error;
- return 'Transcript saved. AI review saved (6 learning areas).';
+ if(!analysis.communication&&!analysis.grammar&&!analysis.vocabulary)throw new Error('AI feedback has no recognized sections; no invented assessment was saved');
+ const areas=[
+  ['grammar',analysis.grammar||'No verifiable grammar error established from this transcript.'],
+  ['vocabulary',analysis.vocabulary||'No verifiable vocabulary error established from this transcript.'],
+  ['communication',analysis.communication||'Insufficient transcript evidence.'],
+  ['fluency',wlStage4FluencyFromText(analysis.fluency)],
+  ['pronunciation','Not assessed: pronunciation and intonation require audio evidence.'],
+  ['learning_progress','Session snapshot, not proof of improvement. Next practice step: '+(analysis.nextStep||'Review the examples from this session.')]
+ ];
+ // One bulk request; report the real Supabase error, never a false success.
+ const records=areas.map(([kind,text])=>({user_id:userId,kind,module:moduleName,content:{text,source:'Kostya AI review',version:4,reviewRequired:true,evidence:'student transcript only',corrections:['grammar','vocabulary'].includes(kind)?analysis.corrections.slice(0,900):undefined}}));
+ const {data,error}=await db.from('student_learning_entries').insert(records).select('id');
+ if(error)throw new Error('Supabase AI review: '+error.message+(error.code?' ['+error.code+']':''));
+ if(!Array.isArray(data)||data.length!==6)throw new Error('Supabase did not confirm all six AI records');
+ return 'Transcript saved. Stage 4: six learning areas saved in Student Memory.';
 }
 async function wlMemorySaveConversation(){
  if(!teacherMode)return;
@@ -561,13 +564,13 @@ async function wlMemorySaveConversation(){
   const {error}=await db.from('student_learning_entries').insert({user_id:session.user.id,kind:'transcript',module:moduleName,content:{text:content,source:'Kostya realtime',version:3}});
   if(error)throw error;
   wlMemoryTurns=[];wlMemorySeen.clear();
-  rtMessage('Transcript saved. AI is reviewing your English…');
+  rtMessage('Transcript saved. Stage 4 AI review in progress…');wlStage3Status('Transcript saved. Stage 4 AI review in progress…');
   const studentSpeech=snapshot.filter(t=>t.speaker==='Student').map(t=>t.text).join('\n');
   try{
    const result=await wlStage4AnalyzeAndStore(db,session.user.id,moduleName,studentSpeech);
-   rtMessage(result);
+   rtMessage(result);wlStage3Status(result);
   }catch(analysisError){
-   rtMessage('Transcript saved, but AI analysis failed: '+String(analysisError?.message||analysisError));
+   const reason='Transcript saved, but Stage 4 analysis failed: '+String(analysisError?.message||analysisError);console.error('[Webilang Stage 4]',analysisError);rtMessage(reason);wlStage3Status(reason);
   }
  }catch(error){rtMessage('Student Memory was not saved: '+String(error?.message||error));}
  finally{wlMemorySaving=false;}
