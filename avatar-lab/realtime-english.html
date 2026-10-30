@@ -22,6 +22,8 @@ body.interview-pilot #rtStart{padding:10px 15px}
 body.interview-pilot #rtEnd{display:none!important}
 body.interview-pilot.kostya-teacher #rtEnd{display:inline-flex!important;align-items:center;justify-content:center;background:#a73e3e;color:#fff}
 body.interview-pilot #rtStatus{margin-top:8px;padding:9px;min-height:0;font-size:13px}
+/* Kostya: keep operational status available to screen readers, not as technical UI. */
+body.kostya-teacher #rtStatus{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:0!important;border:0!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important}
 body.interview-pilot #rtEnableSound{padding:8px 12px;font-size:13px}
 body.interview-pilot #rtAudioStatus{font-size:12px}
 @media(max-width:740px){body.interview-pilot .stage{height:min(58vh,420px);min-height:230px}}
@@ -685,8 +687,7 @@ function rtAnimateAudio(){
   rtcRAF=requestAnimationFrame(rtAnimateAudio);
 }
 /* WL_STAGE3_END_DIAGNOSTIC_V1 */
-function wlStage3Status(message){let el=document.getElementById('wlStage3Status');if(!el){el=document.createElement('div');el.id='wlStage3Status';el.setAttribute('role','status');el.style.cssText='position:fixed;z-index:2147483600;left:12px;right:12px;bottom:12px;padding:15px 18px;background:#fff8e7;border:2px solid #e97715;border-radius:12px;box-shadow:0 5px 24px #0003;color:#23334b;font:600 15px/1.5 system-ui';document.body.appendChild(el);}el.textContent=message;}
-rtEnd.onclick=()=>{if(genderInterview){rtCleanup();rtMessage('Interview ended. You may close this window or start again.');return;}if(document.body.classList.contains('kostya-teacher')){rtEnd.disabled=true;void wlMemorySaveConversation().catch(err=>rtMessage('Student Memory error: '+String(err?.message||err))).finally(()=>{const message=rtStatus.textContent;rtCleanup();rtMessage(message);wlStage3Status(message);});return;}if(document.body.classList.contains('interview-pilot')&&!genderInterview){window.parent.postMessage({source:'webilang-realtime',type:'end-request'},location.origin);return;}rtCleanup();rtMessage('Session ended. Classic conversation is still available on the main Avatar Lab page.')};
+rtEnd.onclick=()=>{if(genderInterview){rtCleanup();rtMessage('Interview ended. You may close this window or start again.');return;}if(document.body.classList.contains('kostya-teacher')){rtEnd.disabled=true;void wlMemorySaveConversation().catch(err=>rtMessage('Student Memory error: '+String(err?.message||err))).finally(()=>{const message=rtStatus.textContent;rtCleanup();rtMessage(message);if(/failed|error|not saved|sign in|not received/i.test(message))console.warn("Kostya Student Memory:",message);});return;}if(document.body.classList.contains('interview-pilot')&&!genderInterview){window.parent.postMessage({source:'webilang-realtime',type:'end-request'},location.origin);return;}rtCleanup();rtMessage('Session ended. Classic conversation is still available on the main Avatar Lab page.')};
 rtStart.onclick=async()=>{
  if(rtcBusy)return;rtcBusy=true;const sessionGeneration=++rtcGeneration;rtStart.disabled=true;rtEnd.disabled=false;
  try{
