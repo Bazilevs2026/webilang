@@ -37,10 +37,13 @@ async function loadDashboard(){
 }
 
 const assignCatalog={'gender-roles-b2':['Gender Roles B2','/gender-roles-B2/'],'video-games-a2':['Video Games · A2','/'],'russian-a1':['Russian A1 · Café','/russian-03/']};
+let assignedLoadSequence=0;
 async function loadAssignedLessons(){
+ const sequence=++assignedLoadSequence;
  const out=$('assigned-list'),msg=$('assigned-message');out.replaceChildren();
  if(!user){msg.textContent='Sign in to view your lessons.';return;}
  const {data,error}=await db.from('webilang_lesson_assignments').select('id,lesson_id,status,notes').eq('student_id',user.id).order('assigned_at',{ascending:false});
+ if(sequence!==assignedLoadSequence)return;
  if(error){msg.textContent='Lessons unavailable. The teacher needs to install the Supabase lesson setup.';console.warn(error);return;}
  if(!data?.length){msg.textContent='Your teacher has not assigned any lessons yet.';return;}
  msg.textContent=data.length+' assigned lesson(s).';
