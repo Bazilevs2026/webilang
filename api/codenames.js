@@ -73,12 +73,12 @@ function shuf(a,r){
   return a;
 }
 
-function createState(code){
-  const r=rng(hashString(code));
+function createState(code,seed=code){
+  const r=rng(hashString(seed));
   const words=shuf([...new Set(WORDS)],r).slice(0,25);
   const roles=shuf([...Array(9).fill("our"),...Array(8).fill("opponent"),...Array(7).fill("neutral"),"assassin"],r);
   const board=words.map((word,i)=>({word,role:roles[i],revealed:false}));
-  const rr=rng(hashString(code+"|opponent-order"));
+  const rr=rng(hashString(seed+"|opponent-order"));
   const opponentOrder=shuf(board.map((c,i)=>({c,i})).filter(x=>x.c.role==="opponent").map(x=>x.i),rr);
   return {
     code,version:1,board,opponentOrder,ourLeft:9,opponentLeft:8,
@@ -95,8 +95,8 @@ function isTeamSlot(slot){return TEAM_SLOTS.includes(slot);}
 function teamOf(slot){return slot.split("_")[0];}
 function roleOf(slot){return slot.split("_")[1];}
 function cleanName(input){return String(input||"").trim().slice(0,40).replace(/[<>]/g,"");}
-function createTeamBattleState(code){
-  const state=createState(code);
+function createTeamBattleState(code,seed=code){
+  const state=createState(code,seed);
   // Deterministic Co-op board shuffling is reused; the virtual opponent is not.
   state.gameMode="teamBattle";
   state.status="lobby";
@@ -114,6 +114,33 @@ function createTeamBattleState(code){
   delete state.teacherToken;delete state.studentToken;delete state.studentJoined;
   delete state.opponentOrder;
   return state;
+}
+// A restart creates fresh words and a fresh role key, but retains the room and
+// every authenticated player's token. The existing polling carries it to all devices.
+function resetState(state,by){
+  const seed=state.code+"|reset|"+randomBytes(16).toString("hex");
+  const isBattle=state.gameMode==="teamBattle";
+  const fresh=isBattle?createTeamBattleState(state.code,seed):createState(state.code,seed);
+  fresh.version=state.version;
+  fresh.createdAt=state.createdAt;
+  fresh.resetCount=(Number(state.resetCount)||0)+1;
+  fresh.lastResetAt=Date.now();
+  if(isBattle){
+    fresh.players=state.players;
+    fresh.hostToken=state.hostToken;
+    if(state.hostSlot)fresh.hostSlot=state.hostSlot;
+    // A completed or active match restarts immediately with all four players.
+    fresh.status=TEAM_SLOTS.every(s=>state.players[s])?"playing":"lobby";
+    fresh.message=fresh.status==="playing"
+      ?`${by} restarted Code Names. New board ready — Blue Spymaster starts.`
+      :`${by} restarted Code Names. Waiting for remaining players.`;
+  }else{
+    fresh.teacherToken=state.teacherToken;
+    fresh.studentToken=state.studentToken;
+    fresh.studentJoined=state.studentJoined;
+    fresh.message=`${by} restarted Code Names. New board ready on every device.`;
+  }
+  return fresh;
 }
 function playerForToken(state,token){
   if(!token||state.gameMode!=="teamBattle")return null;
@@ -168,6 +195,11 @@ async function battleAction(code,body,res){
     }
     const slot=playerForToken(state,token);
     if(!slot)return res.status(403).json({error:"Unauthorized player session."});
+    if(action==="resetGame"){
+      const fresh=resetState(state,state.players[slot].name||"A player");
+      await saveState(fresh);
+      return battleRespond(res,fresh,slot,"Game restarted for all players.");
+    }
     if(action==="startTeamBattle"){
       if(state.status!=="lobby")return res.status(409).json({error:"Game already started."});
       if(!TEAM_SLOTS.every(s=>state.players[s]))return res.status(409).json({error:"Wait for all four players."});
@@ -323,7 +355,7 @@ export default async function handler(req,res){
     const code=normCode(body.code);
     if(!code)return res.status(400).json({error:"Invalid Game Code."});
 
-    if(["joinTeamBattle","startTeamBattle","clue","guess","pass"].includes(action) && body.gameMode==="teamBattle")return battleAction(code,body,res);
+    if(["joinTeamBattle","startTeamBattle","clue","guess","pass","resetGame"].includes(action) && body.gameMode==="teamBattle")return battleAction(code,body,res);
 
     if(action==="join"){
       return await withLock(code,async()=>{
@@ -347,6 +379,11 @@ export default async function handler(req,res){
       if(!state)return res.status(404).json({error:"This live room was not found or has expired."});
       if(state.gameMode==="teamBattle")return res.status(409).json({error:"Use Team Battle actions and credentials."});
       if(!auth(state,role,t))return res.status(403).json({error:"This room session is not authorized."});
+      if(action==="resetGame"){
+        const fresh=resetState(state,role==="teacher"?"Teacher":"Student");
+        await saveState(fresh);
+        return res.status(200).json({ok:true,message:"Game restarted for both players.",state:publicState(fresh,role)});
+      }
       if(state.gameOver)return res.status(409).json({error:"The game is already over."});
 
       if(action==="clue"){
