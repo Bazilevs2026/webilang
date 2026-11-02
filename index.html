@@ -5150,13 +5150,15 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus
 
 <section class="wlPane" id="tab-game">
 <h1 class="srOnly" id="pageTitle-game">Game</h1>
-  <div class="wlPageResetRow">
-    <button type="button" class="wlPageResetBtn" data-reset-tab="game">↺ Reset page</button>
+  <div class="wlPageResetRow codeRoomActions" aria-label="Game controls">
+    <button type="button" class="wlPageResetBtn" data-reset-tab="game">↻ New round · Same code</button>
+    <button type="button" class="wlPageResetBtn codeEndGameBtn" id="codeEndAndNew">🏁 End game · New code</button>
   </div>
+  <p class="codeNewGameNotice" id="codeNewGameNotice" role="status" aria-live="polite" hidden></p>
 
   <div class="codeGamePage">
     <div class="codeGameHero">
-      <div class="watchEyebrow">GAME · CODENAMES · CO-OP</div>
+      <div class="watchEyebrow">GAME · CODENAMES</div>
       <h2>Code Names · Teacher + Student</h2>
       <p>Play together against a virtual Opponent. One Game Code connects both screens live.</p>
     </div>
@@ -5258,7 +5260,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus
     <div class="codeLobby" id="codeTeacherLobby" hidden>
       <div class="codeLobbyTitle">Teacher setup / Настройка учителя</div>
       <div class="codeLobbyText">
-        <b>EN:</b> Create a live Game Code and send it to the student. Their moves appear on your screen automatically. Only your computer can open the key.<br>
+        <b>EN:</b> Create a Game Code and send it to the student. You will both see the same board. Only your screen can open the secret key.<br>
         <b>RU:</b> Создайте Game Code и отправьте его ученику. Ходы ученика появятся у вас автоматически. Только ваш экран может открыть секретный ключ.
       </div>
 
@@ -5274,8 +5276,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus
     <div class="codeLobby" id="codeStudentLobby" hidden>
       <div class="codeLobbyTitle">Student setup / Настройка ученика</div>
       <div class="codeLobbyText">
-        <b>EN:</b> Ask the teacher for the Game Code, enter it below and click <b>Join live game</b>. You are the Guesser. Teacher's clues and all moves sync automatically.<br>
-        <b>RU:</b> Получите Game Code у учителя, введите его ниже и нажмите <b>Join live game</b>. Вы — Guesser. Подсказки и ходы синхронизируются автоматически.
+        <b>EN:</b> Ask the teacher for the Game Code, enter it below and click <b>Join game</b>. You are the Guesser.<br>
+        <b>RU:</b> Получите Game Code у учителя, введите его ниже и нажмите <b>Join game</b>. Вы — Guesser.
       </div>
 
       <div class="codeShareStudent">
@@ -5283,7 +5285,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus
           <span>Game Code / Код игры</span>
           <input type="text" id="codeJoinInput" maxlength="11" autocomplete="off" spellcheck="false" placeholder="GAME-K7P4Q2">
         </label>
-        <button type="button" class="codeBtn primary" id="codeJoinBtn">Join live game</button>
+        <button type="button" class="codeBtn primary" id="codeJoinBtn">Join game</button>
       </div>
 
       <div class="codeShareFeedback" id="codeShareFeedback"></div>
@@ -5327,15 +5329,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus
         <div class="codeTurn" id="codeTurn">Teacher gives the clue</div>
         <div class="codeScore opponent" id="codeOpponentScore">Opponent: 8 left</div>
       </div>
-      <div class="codeLiveBar" id="codeLiveBar">
-        <span class="codeLiveDot"></span>
-        <b id="codeLiveStatus">Live sync not connected</b>
-        <span id="codePeerStatus">Choose Teacher or Student to begin.</span>
-      </div>
+
 
       <div class="codeRoundPanel">
         <div class="codeRoleLine" id="codeRoleLine"><b>Teacher = Spymaster.</b> Student = Guesser for the whole game.</div>
-        <div class="codeDeviceInstruction" id="codeDeviceInstruction"></div>
+
 
         <div class="codeClueEntry" id="codeClueEntry">
           <label class="codeClueField">
@@ -10988,7 +10986,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeT();});
 function resetCurrentWebilangPage(tabName){
   const pane=document.getElementById("tab-"+tabName);
   if(!pane)return;
-  // Code Names is one shared multiplayer room, never a local-only form reset.
+  // Same-code round restart is intentionally distinct from ending a room.
   if(tabName==="game"){
     if(typeof window.WebilangGameReset==="function")return window.WebilangGameReset();
     return;
@@ -12548,11 +12546,14 @@ if(storyResetButton){
     stopPolling();
   }
 
-  function liveStatus(kind,title,detail=""){
-    const bar=$("#codeLiveBar");if(!bar)return;
-    bar.className="codeLiveBar "+(kind||"");
-    $("#codeLiveStatus").textContent=title||"";
-    $("#codePeerStatus").textContent=detail||"";
+  // Technical connection telemetry is intentionally hidden from learners.
+  function liveStatus(){}
+  function gameNotice(text="",isError=false){
+    const notice=$("#codeNewGameNotice");
+    if(!notice)return;
+    notice.textContent=text;
+    notice.hidden=!text;
+    notice.classList.toggle("error",isError);
   }
 
   async function apiPost(payload){
@@ -12567,7 +12568,7 @@ if(storyResetButton){
     const url=`${API}?code=${encodeURIComponent(currentCode)}&role=${encodeURIComponent(localRole)}&token=${encodeURIComponent(roomToken)}`;
     const r=await fetch(url,{cache:"no-store"});
     const data=await r.json().catch(()=>({}));
-    if(!r.ok)throw new Error(data?.error||`Sync error (${r.status})`);
+    if(!r.ok){const error=new Error(data?.error||`Room unavailable (${r.status})`);error.status=r.status;throw error;}
     return data;
   }
 
@@ -12575,12 +12576,19 @@ if(storyResetButton){
     stopPolling();
     const tick=async()=>{
       if(syncing||!currentCode||!roomToken)return;
+      const requestCode=currentCode,requestToken=roomToken;
       syncing=true;
       try{
         const data=await fetchState();
+        if(requestCode!==currentCode||requestToken!==roomToken)return;
         if(data?.state && (!state || Number(data.state.version)>=Number(state.version||0))){state=data.state;render();}
       }catch(err){
-        liveStatus("error","Sync problem",err?.message||"Could not reach the live room.");
+        if(requestCode!==currentCode||requestToken!==roomToken)return;
+        if(err.status===404||err.status===410){
+          changeRole();
+          gameNotice("This game has ended. Choose Teacher to create a new code, or Student to join.");
+        }
+        // Network failures are retried automatically without disturbing the board.
       }finally{syncing=false;}
     };
     tick();
@@ -12610,6 +12618,7 @@ if(storyResetButton){
 
   function roleScreen(role){
     localRole=role;
+    gameNotice();
     $("#codeStartScreen").hidden=true;
     $("#codeTeacherLobby").hidden=role!=="teacher";
     $("#codeStudentLobby").hidden=role!=="student";
@@ -12626,6 +12635,7 @@ if(storyResetButton){
   }
 
   async function createRoom(){
+    gameNotice();
     roleScreen("teacher");
     $("#codeGameCode").textContent="Creating…";
     $("#codeTeacherEnterGame").disabled=true;
@@ -12654,7 +12664,7 @@ if(storyResetButton){
       localRole="student";currentCode=data.code;roomToken=data.token;state=data.state;
       $("#codeJoinInput").value=currentCode;
       $("#codeStudentEnterGame").hidden=false;
-      setShareFeedback(`✓ Joined ${currentCode}. Live synchronization is on.`,true);
+      setShareFeedback(`✓ Joined ${currentCode}.`,true);
       saveSession();render();startPolling();
     }catch(err){
       setShareFeedback(err?.message||"Could not join this room.",false);
@@ -12689,7 +12699,7 @@ if(storyResetButton){
   function updateRoleUI(){
     if(!state)return;
     $("#codeLocalRole").textContent=localRole==="teacher"?"Teacher · Spymaster":"Student · Guesser";
-    $("#codeRoleLine").innerHTML="<b>Teacher = Spymaster.</b> Student = Guesser. One action updates both screens.";
+    $("#codeRoleLine").innerHTML="<b>Teacher = Spymaster.</b> Student = Guesser.";
     $("#codeOurScore").textContent=`Our team: ${state.ourLeft} left`;
     $("#codeOpponentScore").textContent=`Opponent: ${state.opponentLeft} left`;
     $("#codeTurn").textContent=state.gameOver?"Game over":state.clueActive?(state.mustPass?"Turn must end":"Student is guessing"):"Teacher gives the clue";
@@ -12697,10 +12707,6 @@ if(storyResetButton){
     $("#codeKeyTitle").textContent="Spymaster key — Teacher only";
     $("#codeRevealKey").hidden=!(localRole==="teacher"&&!state.gameOver);
     if(localRole!=="teacher")hideKey();
-
-    $("#codeDeviceInstruction").innerHTML=localRole==="teacher"
-      ? `<b>LIVE:</b> Open the key privately and send one clue + number. Student receives it automatically. Their guesses appear here automatically.`
-      : `<b>LIVE:</b> Wait for Teacher's clue. It appears here automatically. Click your guesses once; Teacher sees them immediately.`;
 
     $("#codeClueEntry").hidden=localRole!=="teacher"||state.clueActive||state.gameOver;
     $("#codeReceiveClue").hidden=true;
@@ -12752,6 +12758,7 @@ if(storyResetButton){
 
   function changeRole(){
     clearSession();
+    gameNotice();
     $("#codePlayArea").hidden=true;
     $("#codeTeacherLobby").hidden=true;
     $("#codeStudentLobby").hidden=true;
@@ -12824,7 +12831,7 @@ if(storyResetButton){
       hideKey();
       $("#codeClueInput").value="";
       $("#codeClueNumber").value="2";
-      $("#codeClueFeedback").textContent="Game restarted on both devices.";
+      $("#codeClueFeedback").textContent="Fresh round ready for everyone.";
       $("#codeClueFeedback").className="codeClueFeedback ok";
       enterPlay();startPolling();
     }catch(err){
@@ -12839,6 +12846,29 @@ if(storyResetButton){
     if(battle&&!battle.hidden&&typeof window.WebilangBattleReset==='function')return window.WebilangBattleReset();
     return resetSharedCoop();
   };
+  async function endCoopAndNew(){
+    if(actionBusy)return;
+    if(!currentCode||!roomToken){changeRole();return;}
+    if(!window.confirm("End this game for ALL players? The old Game Code will stop working. You can create a fresh room and share a new code."))return;
+    actionBusy=true;
+    const btn=$("#codeEndAndNew");if(btn)btn.disabled=true;
+    try{
+      await apiPost({action:"endRoom",code:currentCode,role:localRole,token:roomToken});
+      changeRole();
+      gameNotice("Game finished. Choose Teacher to create a new Game Code, or Student to join.");
+      window.WebilangBattleClearLocal?.();
+    }catch(err){
+      gameNotice("Unable to end the game: "+(err?.message||"Try again."),true);
+    }finally{actionBusy=false;if(btn)btn.disabled=false;}
+  }
+  // Leaving without a server action is only for switching mode or discarding stale credentials.
+  window.WebilangCoopClearLocal=clearSession;
+  window.WebilangGameEndAndNew=()=>{
+    const battle=document.getElementById("battlePanel");
+    if(battle&&!battle.hidden&&typeof window.WebilangBattleEndAndNew==="function")return window.WebilangBattleEndAndNew();
+    return endCoopAndNew();
+  };
+  $("#codeEndAndNew").onclick=()=>window.WebilangGameEndAndNew();
 
   liveStatus("","Live sync not connected","Choose Teacher or Student to begin.");
   $("#codeStartScreen").hidden=false;
@@ -14921,6 +14951,11 @@ check?.addEventListener("click",async()=>{
 #battlePanel .battleSync.bad{color:#ab3535}
 #battlePanel .battleSync button{font-size:12px;padding:5px 10px}
 
+#tab-game .codeRoomActions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+#tab-game .codeEndGameBtn{background:#fff1ec;border:1px solid #cb8273;color:#9a3024;font-weight:800}
+#tab-game .codeEndGameBtn:hover{background:#ffe0d9}
+#tab-game .codeNewGameNotice{margin:8px 0 12px;padding:12px 16px;border-radius:12px;background:#e9f2e9;color:#264e36;font-weight:700}
+#tab-game .codeNewGameNotice.error{background:#fff1ec;color:#a33428}
 #battlePanel .battleRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}#battlePanel input,#battlePanel select{padding:10px;border:1px solid #aab9ae;border-radius:9px;min-width:120px;max-width:100%}
 #battlePanel .battleSlots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#battlePanel .battleSlot{padding:12px;border-radius:12px;background:#eef3ef}
 #battlePanel .battleBoard{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}#battlePanel .battleCard{min-width:0;min-height:65px;padding:6px 2px;font-size:clamp(10px,1.7vw,15px);overflow-wrap:anywhere;background:#fff}
@@ -14946,7 +14981,7 @@ panel.innerHTML=`<div class="battleRow"><h2 style="margin:0">Team Battle · 4 Pl
 <div id="battleGame" hidden><div class="battleStat"><span id="battleBlue"></span><span id="battleRed"></span></div>
 <p id="battleTurn"></p><div id="battleControls" class="battleControls"></div><div class="battleBoard" id="battleBoard"></div>
 <p class="battleNote">Spymasters see the colored key. Guessers see colors only after cards are revealed. Communicate with your teammates on Zoom or another call.</p></div>
-<div id="battleSync" class="battleSync" role="status" aria-live="polite"><span id="battleSyncText">Waiting for live connection…</span><button type="button" id="battleSyncNow">↻ Sync now</button></div>
+
 <p id="battleMessage" aria-live="polite"></p><p class="battleError" id="battleError" aria-live="assertive"></p>`;
 start.parentNode.insertBefore(panel,start);
 let code='',token='',slot='',hostToken='',data=null,poll=null,busy=false,pollBusy=false;
@@ -14968,9 +15003,16 @@ async function post(payload){
 async function get(signal,room,authToken){
  const url=`${API}?code=${encodeURIComponent(room)}&token=${encodeURIComponent(authToken)}&role=student&_=${Date.now()}`;
  const r=await fetch(url,{cache:'no-store',headers:{'Accept':'application/json'},signal});
- const x=await r.json().catch(()=>({}));if(!r.ok)throw Error(x.error||'Room not available');return x.state;
+ const x=await r.json().catch(()=>({}));if(!r.ok){const error=new Error(x.error||'Room not available');error.status=r.status;throw error;}return x.state;
 }
 function persist(){const value=JSON.stringify({code,token,slot,hostToken});try{sessionStorage.setItem(sessionKey,value)}catch{}try{localStorage.setItem(sessionKey,value)}catch{}}
+function clearBattleLocal(){
+ stop();code='';token='';slot='';hostToken='';data=null;
+ try{sessionStorage.removeItem(sessionKey)}catch{}
+ try{localStorage.removeItem(sessionKey)}catch{}
+ $('battleCode').value='';$('battleError').textContent='';
+}
+window.WebilangBattleClearLocal=clearBattleLocal;
 function stop(){
  if(poll){clearInterval(poll);poll=null}
  syncEpoch++; // Ignore a response from an older room, generation or Safari session.
@@ -15000,9 +15042,13 @@ async function syncBattle(){
   status('✓ Live · synced '+new Date().toLocaleTimeString()+' · game v'+next.version);
  }catch(e){
   if(generation!==syncEpoch)return;
-  const detail=e.name==='AbortError'?'Request timed out':e.message;
-  status('⚠ Sync interrupted · '+detail,true);
-  message('Connection interrupted: '+detail+'. Your role is saved; reconnecting automatically.',true);
+  if(e.status===404||e.status===410){
+   clearBattleLocal();render();
+   message('This game has ended. Create a new room or join with a new Game Code.');
+   return;
+  }
+  // Keep connection diagnostics out of the game interface; retry automatically.
+  status('Connection interrupted',true);
  }finally{
   clearTimeout(deadline);
   if(syncController===controller){syncController=null;pollBusy=false}
@@ -15066,13 +15112,31 @@ async function resetSharedBattle(){
  if(btn)btn.disabled=true;
  try{
   const r=await post({action:'resetGame',gameMode:'teamBattle',code,token});
-  data=r.state;show();render();message('New board synchronized for all four players.');loop();
+  data=r.state;show();render();message('New round ready.');loop();
  }catch(e){message('Unable to restart Team Battle: '+e.message,true)}
  finally{busy=false;if(btn)btn.disabled=false}
 }
 window.WebilangBattleReset=resetSharedBattle;
-$('battleSyncNow').onclick=()=>{if(token)loop();else message('Join a position to enable live sync.',true)};
-open.onclick=()=>{show();if(token)loop()};$('battleExit').onclick=hide;
+async function endBattleAndNew(){
+ if(busy)return;
+ // If still choosing a room, just clear the local draft and show new-room options.
+ if(!code||(!token&&!hostToken)){
+  clearBattleLocal();show();return;
+ }
+ if(!window.confirm('End this Team Battle for ALL players? The old Game Code will stop working. You can create a new room.'))return;
+ busy=true;
+ const btn=$('codeEndAndNew');if(btn)btn.disabled=true;
+ try{
+  await post({action:'endRoom',gameMode:'teamBattle',code,token,hostToken});
+  clearBattleLocal();window.WebilangCoopClearLocal?.();show();
+  message('Game finished. Create a new room or enter a new Game Code.');
+ }catch(e){message('Could not end game: '+e.message,true)}
+ finally{busy=false;if(btn)btn.disabled=false}
+}
+window.WebilangBattleEndAndNew=endBattleAndNew;
+
+
+open.onclick=()=>{window.WebilangCoopClearLocal?.();show();if(token)loop()};$('battleExit').onclick=()=>{clearBattleLocal();hide()};
 $('battleCreate').onclick=async()=>{try{const r=await post({action:'create',gameMode:'teamBattle'});code=r.code;hostToken=r.hostToken;token='';slot='';data=r.state;persist();show();message('Created. Enter your name and claim your position first.')}catch(e){message(e.message,true)}};
 $('battleUseCode').onclick=()=>{const c=norm($('battleCode').value);if(!c)return message('Enter a valid six-character Game Code.',true);code=c;hostToken='';token='';slot='';data={status:'lobby',players:{}};persist();show();message('Choose a position and join this room. If a position is taken, select another.')};
 $('battleJoin').onclick=async()=>{const name=$('battleName').value.trim(),s=$('battleSlot').value;if(!name||!s)return message('Enter a name and select a position.',true);
