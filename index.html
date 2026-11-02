@@ -10988,6 +10988,11 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeT();});
 function resetCurrentWebilangPage(tabName){
   const pane=document.getElementById("tab-"+tabName);
   if(!pane)return;
+  // Code Names is one shared multiplayer room, never a local-only form reset.
+  if(tabName==="game"){
+    if(typeof window.WebilangGameReset==="function")return window.WebilangGameReset();
+    return;
+  }
 
   // Inputs / textareas
   pane.querySelectorAll('input').forEach(el=>{
@@ -11028,11 +11033,6 @@ function resetCurrentWebilangPage(tabName){
   if(tabName==="reading"){
     document.querySelectorAll('#tab-reading .qcTextClue').forEach(x=>x.classList.remove('qcTextClue'));
   }
-
-  if(tabName==="game"){
-    try{window.WebilangGameReset?.();}catch(e){}
-  }
-
 
   if(tabName==="writing"){
     try{window.WebilangWritingReset?.();}catch(e){}
@@ -12578,7 +12578,7 @@ if(storyResetButton){
       syncing=true;
       try{
         const data=await fetchState();
-        if(data?.state){state=data.state;render();}
+        if(data?.state && (!state || Number(data.state.version)>=Number(state.version||0))){state=data.state;render();}
       }catch(err){
         liveStatus("error","Sync problem",err?.message||"Could not reach the live room.");
       }finally{syncing=false;}
@@ -12668,7 +12668,7 @@ if(storyResetButton){
     $("#codePlayArea")?.classList.add("codeOnlineBusy");
     try{
       const data=await apiPost({action,code:currentCode,role:localRole,token:roomToken,...payload});
-      if(data?.state)state=data.state;
+      if(data?.state && (!state || Number(data.state.version)>=Number(state.version||0)))state=data.state;
       if(action==="clue"){
         $("#codeClueInput").value="";
         $("#codeClueNumber").value="2";
@@ -12811,7 +12811,34 @@ if(storyResetButton){
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)resumeCoop();});
   window.addEventListener("pageshow",resumeCoop);
   window.addEventListener("online",resumeCoop);
-  window.WebilangGameReset=()=>changeRole();
+  async function resetSharedCoop(){
+    if(!currentCode||!roomToken||!localRole){changeRole();return;}
+    if(actionBusy)return;
+    if(!window.confirm("Restart Code Names for BOTH devices? All revealed cards, clues and scores will be cleared. Players keep their Game Code and roles."))return;
+    actionBusy=true;
+    const btn=document.querySelector('#tab-game [data-reset-tab="game"]');
+    if(btn)btn.disabled=true;
+    try{
+      const data=await apiPost({action:"resetGame",code:currentCode,role:localRole,token:roomToken});
+      if(data?.state)state=data.state;
+      hideKey();
+      $("#codeClueInput").value="";
+      $("#codeClueNumber").value="2";
+      $("#codeClueFeedback").textContent="Game restarted on both devices.";
+      $("#codeClueFeedback").className="codeClueFeedback ok";
+      enterPlay();startPolling();
+    }catch(err){
+      const feedback=$("#codeClueFeedback");
+      feedback.textContent="Could not restart the shared game: "+(err?.message||"Connection failed");
+      feedback.className="codeClueFeedback bad";
+      liveStatus("error","Reset failed",err?.message||"Check your connection.");
+    }finally{actionBusy=false;if(btn)btn.disabled=false;}
+  }
+  window.WebilangGameReset=()=>{
+    const battle=document.getElementById('battlePanel');
+    if(battle&&!battle.hidden&&typeof window.WebilangBattleReset==='function')return window.WebilangBattleReset();
+    return resetSharedCoop();
+  };
 
   liveStatus("","Live sync not connected","Choose Teacher or Student to begin.");
   $("#codeStartScreen").hidden=false;
@@ -14883,6 +14910,17 @@ check?.addEventListener("click",async()=>{
 #battlePanel[hidden]{display:none!important}#battlePanel{margin:18px 0;padding:18px;border:1px solid #b6c6bb;border-radius:18px;background:#fafbf8;color:#24352b}
 #battlePanel button,#battleOpen{cursor:pointer}#battlePanel button{border:1px solid #9daea4;border-radius:10px;padding:10px 14px;background:#fff;color:#24352b;font-weight:700}
 #battlePanel button:disabled{opacity:.45;cursor:not-allowed}#battlePanel .battlePrimary{background:#315b45;color:white}
+/* The Spymaster can see every color even BEFORE a guess. A revealed card
+   must therefore have a distinct visual state on all four screens. */
+#battlePanel .battleCard:disabled{opacity:1}
+#battlePanel .battleCard{position:relative}
+#battlePanel .battleCard.battleRevealed{outline:3px solid #263c4c;outline-offset:-5px;box-shadow:inset 0 0 0 2px #fff8;font-weight:900}
+#battlePanel .battleCard.battleRevealed::after{content:"✓";position:absolute;right:3px;top:3px;display:grid;place-items:center;width:19px;height:19px;border-radius:100%;background:#fff;color:#173047;font:900 14px/1 system-ui,sans-serif;box-shadow:0 1px 4px #0005}
+#battlePanel .battleCard.battleKey{border:3px solid #efb949;opacity:.88}
+#battlePanel .battleSync{font-size:12px;color:#4d6c58;margin:8px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#battlePanel .battleSync.bad{color:#ab3535}
+#battlePanel .battleSync button{font-size:12px;padding:5px 10px}
+
 #battlePanel .battleRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}#battlePanel input,#battlePanel select{padding:10px;border:1px solid #aab9ae;border-radius:9px;min-width:120px;max-width:100%}
 #battlePanel .battleSlots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#battlePanel .battleSlot{padding:12px;border-radius:12px;background:#eef3ef}
 #battlePanel .battleBoard{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}#battlePanel .battleCard{min-width:0;min-height:65px;padding:6px 2px;font-size:clamp(10px,1.7vw,15px);overflow-wrap:anywhere;background:#fff}
@@ -14908,29 +14946,69 @@ panel.innerHTML=`<div class="battleRow"><h2 style="margin:0">Team Battle · 4 Pl
 <div id="battleGame" hidden><div class="battleStat"><span id="battleBlue"></span><span id="battleRed"></span></div>
 <p id="battleTurn"></p><div id="battleControls" class="battleControls"></div><div class="battleBoard" id="battleBoard"></div>
 <p class="battleNote">Spymasters see the colored key. Guessers see colors only after cards are revealed. Communicate with your teammates on Zoom or another call.</p></div>
+<div id="battleSync" class="battleSync" role="status" aria-live="polite"><span id="battleSyncText">Waiting for live connection…</span><button type="button" id="battleSyncNow">↻ Sync now</button></div>
 <p id="battleMessage" aria-live="polite"></p><p class="battleError" id="battleError" aria-live="assertive"></p>`;
 start.parentNode.insertBefore(panel,start);
 let code='',token='',slot='',hostToken='',data=null,poll=null,busy=false,pollBusy=false;
+let syncController=null, syncEpoch=0;
 const sessionKey='webilang_codenames_battle_v1';
 const slots=['blue_spymaster','blue_guesser','red_spymaster','red_guesser'];
 const label=s=>s.replace('_',' · ').replace(/^./,c=>c.toUpperCase());
 const norm=v=>{let s=String(v||'').trim().toUpperCase().replace(/^GAME-/,'').replace(/[^A-Z0-9]/g,'');return s.length===6?'GAME-'+s:''};
 const visible=()=>!panel.hidden;
 function message(s,error=false){$(error?'battleError':'battleMessage').textContent=s||'';if(!error)$('battleError').textContent=''}
-async function post(payload){const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const x=await r.json().catch(()=>({}));if(!r.ok)throw Error(x.error||'Request failed');return x}
-async function get(){const r=await fetch(`${API}?code=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}&role=student`,{cache:'no-store'});const x=await r.json().catch(()=>({}));if(!r.ok)throw Error(x.error||'Room not available');return x.state}
+async function post(payload){
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
+ try{
+  const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store',signal:controller.signal,body:JSON.stringify(payload)});
+  const x=await r.json().catch(()=>({}));if(!r.ok)throw Error(x.error||'Request failed');return x;
+ }catch(e){if(e.name==='AbortError')throw Error('Connection timed out. Checking the shared room before trying again.');throw e}
+ finally{clearTimeout(timer)}
+}
+async function get(signal,room,authToken){
+ const url=`${API}?code=${encodeURIComponent(room)}&token=${encodeURIComponent(authToken)}&role=student&_=${Date.now()}`;
+ const r=await fetch(url,{cache:'no-store',headers:{'Accept':'application/json'},signal});
+ const x=await r.json().catch(()=>({}));if(!r.ok)throw Error(x.error||'Room not available');return x.state;
+}
 function persist(){const value=JSON.stringify({code,token,slot,hostToken});try{sessionStorage.setItem(sessionKey,value)}catch{}try{localStorage.setItem(sessionKey,value)}catch{}}
-function stop(){if(poll){clearInterval(poll);poll=null}}
+function stop(){
+ if(poll){clearInterval(poll);poll=null}
+ syncEpoch++; // Ignore a response from an older room, generation or Safari session.
+ if(syncController){syncController.abort();syncController=null}
+ pollBusy=false;
+}
 function show(){start.hidden=true;$('codeTeacherLobby').hidden=true;$('codeStudentLobby').hidden=true;$('codePlayArea').hidden=true;panel.hidden=false;render()}
 function hide(){stop();panel.hidden=true;start.hidden=false}
+function status(text,error=false){
+ const bar=$('battleSync'),label=$('battleSyncText');
+ if(bar)bar.classList.toggle('bad',error);
+ if(label)label.textContent=text;
+}
 async function syncBattle(){
  if(!token||busy||pollBusy||!visible()||document.hidden)return;
  pollBusy=true;
- try{data=await get();render();$('battleError').textContent=''}
- catch(e){message('Connection interrupted: '+e.message+'. Your position is saved.',true)}
- finally{pollBusy=false}
+ const controller=new AbortController(),generation=syncEpoch,room=code,authToken=token;
+ syncController=controller;
+ const deadline=setTimeout(()=>controller.abort(),8000);
+ try{
+  const next=await get(controller.signal,room,authToken);
+  if(generation!==syncEpoch||code!==room||token!==authToken)return;
+  // Late GET responses must never undo a successful guess, clue or reset.
+  const changed=!data||Number(next.version)>Number(data.version||0);
+  if(changed){data=next;render()}
+  $('battleError').textContent='';
+  status('✓ Live · synced '+new Date().toLocaleTimeString()+' · game v'+next.version);
+ }catch(e){
+  if(generation!==syncEpoch)return;
+  const detail=e.name==='AbortError'?'Request timed out':e.message;
+  status('⚠ Sync interrupted · '+detail,true);
+  message('Connection interrupted: '+detail+'. Your role is saved; reconnecting automatically.',true);
+ }finally{
+  clearTimeout(deadline);
+  if(syncController===controller){syncController=null;pollBusy=false}
+ }
 }
-function loop(){stop();syncBattle();poll=setInterval(syncBattle,2000)}
+function loop(){stop();status('Connecting to shared room…');syncBattle();poll=setInterval(syncBattle,2000)}
 function render(){if(!visible())return;$('battleSetup').hidden=!!code;$('battleLobby').hidden=!code||data?.status==='finished';$('battleGame').hidden=!data||data.status==='lobby';$('battleRoomCode').textContent=code;
 if(!data)return;
 $('battleSlots').replaceChildren();for(const s of slots){const el=document.createElement('div');el.className='battleSlot';const p=data.players?.[s];el.textContent=label(s)+' — '+(p?.name||'Available');$('battleSlots').appendChild(el)}
@@ -14961,10 +15039,39 @@ if(editingClue){
 }else if(!data.gameOver){control.textContent='Waiting for the active Spymaster.'}
 const board=$('battleBoard');board.replaceChildren();for(const [i,c] of data.board.entries()){
 const b=document.createElement('button');b.type='button';b.className='battleCard';b.textContent=c.word;
-if(c.role)b.classList.add(c.role);if(c.role&&!c.revealed&&myRole==='spymaster')b.classList.add('battleKey');
-b.disabled=!(active&&myRole==='guesser'&&data.phase==='guess'&&!c.revealed);if(!b.disabled)b.onclick=()=>act('guess',{index:i});board.appendChild(b)
+if(c.role)b.classList.add(c.role);
+ if(c.revealed){b.classList.add('battleRevealed');b.setAttribute('aria-label',c.word+' — revealed '+(c.role||'')+' card')}
+ else if(c.role&&myRole==='spymaster')b.classList.add('battleKey');
+ b.disabled=!(active&&myRole==='guesser'&&data.phase==='guess'&&!c.revealed);
+ if(!b.disabled)b.onclick=()=>act('guess',{index:i});board.appendChild(b)
 }}
-async function act(action,extra={}){if(busy)return;busy=true;try{const r=await post({action,gameMode:'teamBattle',code,token,...extra});data=r.state;render()}catch(e){message(e.message,true)}finally{busy=false}}
+async function act(action,extra={}){
+ if(busy)return;
+ busy=true;
+ const requestRoom=code,requestToken=token;
+ try{
+  const r=await post({action,gameMode:'teamBattle',code,token,...extra});
+  if(code===requestRoom&&token===requestToken&&(!data||Number(r.state.version)>=Number(data.version||0))){
+   data=r.state;render();
+  }
+ }catch(e){message('Move could not be confirmed: '+e.message,true)}
+ finally{busy=false;syncBattle()}
+}
+async function resetSharedBattle(){
+ if(!code||!token){message('Join a Team Battle position before restarting the shared game.',true);return;}
+ if(busy)return;
+ if(!window.confirm('Restart Team Battle on ALL devices? A fresh board and scores will appear. The four players keep their roles and Game Code.'))return;
+ busy=true;
+ const btn=document.querySelector('#tab-game [data-reset-tab="game"]');
+ if(btn)btn.disabled=true;
+ try{
+  const r=await post({action:'resetGame',gameMode:'teamBattle',code,token});
+  data=r.state;show();render();message('New board synchronized for all four players.');loop();
+ }catch(e){message('Unable to restart Team Battle: '+e.message,true)}
+ finally{busy=false;if(btn)btn.disabled=false}
+}
+window.WebilangBattleReset=resetSharedBattle;
+$('battleSyncNow').onclick=()=>{if(token)loop();else message('Join a position to enable live sync.',true)};
 open.onclick=()=>{show();if(token)loop()};$('battleExit').onclick=hide;
 $('battleCreate').onclick=async()=>{try{const r=await post({action:'create',gameMode:'teamBattle'});code=r.code;hostToken=r.hostToken;token='';slot='';data=r.state;persist();show();message('Created. Enter your name and claim your position first.')}catch(e){message(e.message,true)}};
 $('battleUseCode').onclick=()=>{const c=norm($('battleCode').value);if(!c)return message('Enter a valid six-character Game Code.',true);code=c;hostToken='';token='';slot='';data={status:'lobby',players:{}};persist();show();message('Choose a position and join this room. If a position is taken, select another.')};
@@ -14982,9 +15089,10 @@ try{
   code=saved.code;hostToken=saved.hostToken||'';data={status:'lobby',players:{}};show();
  }
 }catch{}
-const resumeBattle=()=>{if(token&&visible())loop()};
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)resumeBattle()});
+const resumeBattle=()=>{if(token&&visible()&&!document.hidden)loop()};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();else resumeBattle()});
 window.addEventListener('pageshow',resumeBattle);
+window.addEventListener('focus',resumeBattle);
 window.addEventListener('online',resumeBattle);
 })();
 </script>
