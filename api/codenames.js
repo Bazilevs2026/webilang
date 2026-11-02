@@ -194,7 +194,15 @@ async function battleAction(code,body,res){
       return res.status(200).json({ok:true,code,token:playerToken,slot,state:battlePublicState(state,slot)});
     }
     const slot=playerForToken(state,token);
+    if(action==="endRoom"&&!slot&&body.hostToken&&body.hostToken===state.hostToken){
+      await redis(["DEL",key(code)]);
+      return res.status(200).json({ok:true,ended:true,message:"Game finished."});
+    }
     if(!slot)return res.status(403).json({error:"Unauthorized player session."});
+    if(action==="endRoom"){
+      await redis(["DEL",key(code)]);
+      return res.status(200).json({ok:true,ended:true,message:"Game finished."});
+    }
     if(action==="resetGame"){
       const fresh=resetState(state,state.players[slot].name||"A player");
       await saveState(fresh);
@@ -355,7 +363,7 @@ export default async function handler(req,res){
     const code=normCode(body.code);
     if(!code)return res.status(400).json({error:"Invalid Game Code."});
 
-    if(["joinTeamBattle","startTeamBattle","clue","guess","pass","resetGame"].includes(action) && body.gameMode==="teamBattle")return battleAction(code,body,res);
+    if(["joinTeamBattle","startTeamBattle","clue","guess","pass","resetGame","endRoom"].includes(action) && body.gameMode==="teamBattle")return battleAction(code,body,res);
 
     if(action==="join"){
       return await withLock(code,async()=>{
@@ -379,6 +387,10 @@ export default async function handler(req,res){
       if(!state)return res.status(404).json({error:"This live room was not found or has expired."});
       if(state.gameMode==="teamBattle")return res.status(409).json({error:"Use Team Battle actions and credentials."});
       if(!auth(state,role,t))return res.status(403).json({error:"This room session is not authorized."});
+      if(action==="endRoom"){
+        await redis(["DEL",key(code)]);
+        return res.status(200).json({ok:true,ended:true,message:"Game finished."});
+      }
       if(action==="resetGame"){
         const fresh=resetState(state,role==="teacher"?"Teacher":"Student");
         await saveState(fresh);
