@@ -15024,6 +15024,8 @@ check?.addEventListener("click",async()=>{
 #battlePanel .battleSlot.taken{background:#edf0f3;border-color:#b1bac1;color:#334452;cursor:default}
 #battlePanel .battleSlot.mine{background:#e7ecfa;border-color:#435fb5;color:#253e73}
 #battlePanel .battleSlot:disabled{opacity:1;cursor:default}
+#battlePanel .battleMyRole{margin:12px 0;padding:14px 16px;border:2px solid #3269b6;border-radius:13px;background:#e6efff;color:#143a75;font-weight:850;font-size:clamp(17px,2.8vw,22px);line-height:1.35}
+#battlePanel .battleMyRole[hidden],#battlePanel .battleRoleForm[hidden]{display:none!important}
 #battlePanel .battleRoleForm{align-items:flex-end}
 #battlePanel .battleRoleForm label{display:flex;flex-direction:column;gap:5px;flex:1 1 190px;font-weight:750}
 #battlePanel .battleRoleForm input,#battlePanel .battleRoleForm select{width:100%;min-height:47px;font-size:16px}
@@ -15054,12 +15056,37 @@ check?.addEventListener("click",async()=>{
 }
 
 @media(max-width:600px){#battlePanel{padding:10px}#battlePanel .battleCard{min-height:55px;font-size:10px}#battlePanel .battleSlots{grid-template-columns:1fr}}
+/* Mobile navigation must not cover Code Names availability on iPhone.
+   Only applies while Game is active; other Webilang modules are unaffected. */
+@media(max-width:700px){
+ body.wlGameCompactMobile .wlHeaderInner{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto!important;gap:3px!important;padding:5px 8px!important}
+ body.wlGameCompactMobile .wlTabs{grid-column:1!important;grid-row:1!important;display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important;max-height:60px!important;scrollbar-gutter:auto!important;min-width:0!important;padding:0 0 5px!important}
+ body.wlGameCompactMobile .wlTab{flex:0 0 auto!important;font-size:13px!important;padding:8px 10px!important;white-space:nowrap!important}
+ body.wlGameCompactMobile .wlMic{grid-column:1!important;grid-row:2!important;justify-self:start!important;max-width:100%!important}
+ body.wlGameCompactMobile #globalMicBtn{font-size:11px!important;padding:5px 9px!important}
+ #battlePanel #battleJoinStatus{scroll-margin-top:112px!important}
+}
 </style>
 <script>
 /* TEAM BATTLE · separate interface, independent of the legacy two-player game */
 (()=>{
 const $=id=>document.getElementById(id), API=window.WEBILANG_CODENAMES_ENDPOINT||'/api/codenames';
 const start=$('codeStartScreen'), page=$('tab-game');if(!start||!page)return;
+// Scope the compact mobile header to the Game tab, including tab switches.
+const updateGameHeader=()=>{
+ const active=page.classList.contains('active');
+ document.body.classList.toggle('wlGameCompactMobile',active);
+ if(active&&window.matchMedia('(max-width:700px)').matches){
+  // Make the active Game tab visible in the compact horizontal header.
+  requestAnimationFrame(()=>{
+   const tabs=document.querySelector('.wlTabs');const gameButton=tabs?.querySelector('[data-tab="game"]');
+   if(!tabs||!gameButton)return;
+   const navRect=tabs.getBoundingClientRect(),btnRect=gameButton.getBoundingClientRect();
+   tabs.scrollLeft+=btnRect.left-navRect.left-(navRect.width-btnRect.width)/2;
+  });
+ }
+};
+new MutationObserver(updateGameHeader).observe(page,{attributes:true,attributeFilter:['class']});updateGameHeader();
 const coopTab=$('codeModeCoop'),teamTab=$('codeModeTeam');
 const MODE_KEY='webilang_codenames_selected_mode_v1';
 const panel=document.createElement('section');panel.id='battlePanel';panel.hidden=true;
@@ -15068,9 +15095,10 @@ panel.innerHTML=`<div class="battleRow"><h2 style="margin:0">Team Battle · 4 Pl
 <div class="battleRow"><button class="battlePrimary" id="battleCreate">Create 4-player room</button><span>or join:</span><input id="battleCode" placeholder="GAME-XXXXXX" maxlength="11"><button id="battleUseCode">Use Game Code</button></div></div>
 <div id="battleLobby" hidden><p><b>Game Code:</b> <strong id="battleRoomCode"></strong> <button id="battleCopy">Copy</button></p>
 <p id="battleJoinStatus" class="battleJoinStatus" role="status" aria-live="polite">Checking available roles…</p>
-<p class="battleJoinInstruction">Tap a green AVAILABLE role below. Grey TAKEN roles cannot be selected.</p>
+<div id="battleMyRole" class="battleMyRole" role="status" aria-live="polite" hidden></div>
+<p class="battleJoinInstruction" id="battleJoinInstruction">Tap a green AVAILABLE role to choose it. Grey TAKEN roles are occupied.</p>
 <div class="battleSlots" id="battleSlots" role="group" aria-label="Team Battle positions: available and taken"></div>
-<div class="battleRow battleRoleForm"><label>Your name <input id="battleName" maxlength="40" placeholder="Your name" autocomplete="name"></label>
+<div class="battleRow battleRoleForm" id="battleRoleForm"><label>Your name <input id="battleName" maxlength="40" placeholder="Your name" autocomplete="name"></label>
 <label>Selected free position <select id="battleSlot" aria-label="Selected free position"></select></label><button class="battlePrimary" id="battleJoin">Claim position</button></div>
 <p id="battleJoinError" class="battleActionError" role="alert" aria-live="assertive" hidden></p>
 <div class="battleRow"><button id="battleStart" class="battlePrimary" hidden>Start Game</button></div>
@@ -15081,7 +15109,7 @@ panel.innerHTML=`<div class="battleRow"><h2 style="margin:0">Team Battle · 4 Pl
 <p class="battleNote">Spymasters see the colored key. Guessers see colors only after cards are revealed. Communicate with your teammates on Zoom or another call.</p></div>
 <p id="battleSetupMessage" class="battleLobbyMessage" aria-live="polite"></p><p class="battleError" id="battleError" aria-live="assertive"></p>`;
 start.parentNode.insertBefore(panel,start);
-let code='',token='',slot='',hostToken='',data=null,poll=null,busy=false,pollBusy=false;
+let code='',token='',slot='',hostToken='',data=null,poll=null,busy=false,pollBusy=false,joining=false;
 let syncController=null, syncEpoch=0;
 const sessionKey='webilang_codenames_battle_v1';
 const slots=['blue_spymaster','blue_guesser','red_spymaster','red_guesser'];
@@ -15193,7 +15221,7 @@ function updateSlotSelection(){
  $('battleSlots').querySelectorAll('.battleSlot.available').forEach(el=>{
   el.setAttribute('aria-pressed',String(el.dataset.slot===selected));
  });
- $('battleJoin').disabled=!!token||data?.status!=='lobby'||!selected;
+ $('battleJoin').disabled=joining||!!token||data?.status!=='lobby'||!selected;
 }
 $('battleSlot').addEventListener('change',updateSlotSelection);
 function render(){
@@ -15214,42 +15242,64 @@ function render(){
  const joined=slots.filter(s=>data.players?.[s]).length;
  const available=slots.length-joined;
  $('battleJoinStatus').textContent=checking?'Checking which roles are available…':
-  data.status==='lobby'?`${available} of 4 roles available · ${joined} taken`:
+  data.status==='lobby'?`${joined} of 4 joined · ${available} ${available===1?'role':'roles'} available`:
   data.status==='playing'?'Game already in progress — ask for a new code.':'This room is closed.';
+ // After claiming a role, show it as confirmed and hide the join form. Previously the
+ // form remained on screen with a disabled empty selector and stale error messages.
+ const inLobby=data.status==='lobby';
+ const hasRole=!!token&&!!slot;
+ const myName=data.players?.[slot]?.name||'';
+ const ownRoleNotice=$('battleMyRole');
+ ownRoleNotice.hidden=!hasRole||!inLobby;
+ if(!ownRoleNotice.hidden)ownRoleNotice.textContent=`✓ You're ${label(slot)}${myName?' · '+myName:''}. Waiting for ${available} ${available===1?'player':'players'} to join.`;
+ $('battleRoleForm').hidden=hasRole||checking||!inLobby;
+ $('battleJoinInstruction').textContent=hasRole
+  ? 'Your role is confirmed. Green cards are open for other players; grey cards are occupied.'
+  : checking?'Checking which roles are available…':inLobby
+    ? 'Tap a green AVAILABLE role to select it. Grey TAKEN roles are occupied.'
+    : 'This game has already started; choose a new Game Code.';
+ if(hasRole){
+  // A successful join must never leave an old "Enter a name" error visible.
+  $('battleJoinError').textContent='';$('battleJoinError').hidden=true;
+  $('battleError').textContent='';
+ }
  const oldSelection=$('battleSlot').value;
  $('battleSlot').replaceChildren();
  const blank=document.createElement('option');blank.value='';blank.textContent='Select a free role';$('battleSlot').append(blank);
  for(const s of slots){
-  if(!data.players?.[s]&&!checking&&data.status==='lobby'){
+  if(!data.players?.[s]&&!checking&&inLobby){
    const o=document.createElement('option');o.value=s;o.textContent=label(s)+' — AVAILABLE';$('battleSlot').appendChild(o);
   }
  }
- $('battleSlot').value=!checking&&data.status==='lobby'&&!data.players?.[oldSelection]?oldSelection:'';
+ $('battleSlot').value=!checking&&inLobby&&!data.players?.[oldSelection]?oldSelection:'';
  const chosen=()=>$('battleSlot').value;
  $('battleSlots').replaceChildren();
  for(const s of slots){
   const p=data.players?.[s];
-  const isMine=!!token&&s===slot;
-  const canClaim=!checking&&!token&&data.status==='lobby'&&!p;
-  const el=document.createElement('button');el.type='button';el.className='battleSlot '+s.split('_')[0]+' '+(isMine?'mine':p?'taken':canClaim?'available':'taken');
+  const isMine=hasRole&&s===slot;
+  const vacant=!checking&&inLobby&&!p;
+  const canClaim=vacant&&!hasRole;
+  const el=document.createElement('button');el.type='button';el.className='battleSlot '+s.split('_')[0]+' '+(isMine?'mine':p?'taken':vacant?'available':'taken');
   el.dataset.slot=s;el.disabled=!canClaim;
   el.setAttribute('aria-pressed',String(chosen()===s&&canClaim));
   const title=document.createElement('span');title.className='battleRoleName';title.textContent=label(s);
   const stateLabel=document.createElement('span');stateLabel.className='battleAvailability';
-  stateLabel.textContent=checking?'Checking…':isMine?'✓ YOUR ROLE':p?'🔒 TAKEN · '+p.name:canClaim?'✓ AVAILABLE — tap to select':'Not available';
+  stateLabel.textContent=checking?'Checking…':isMine?'✓ YOUR ROLE · '+(p?.name||'confirmed'):p?'🔒 TAKEN · '+p.name:
+    vacant?(hasRole?'✓ AVAILABLE · waiting for another player':'✓ AVAILABLE — tap to select'):'Not available';
   el.append(title,stateLabel);
-  if(canClaim)el.onclick=()=>{$('battleSlot').value=s;updateSlotSelection()};
+  if(canClaim)el.onclick=()=>{$('battleSlot').value=s;clearBattleError();updateSlotSelection()};
   $('battleSlots').appendChild(el);
  }
- $('battleJoin').hidden=!!token;
- $('battleName').disabled=!!token;
- $('battleSlot').disabled=!!token||checking||data.status!=='lobby';
+ $('battleJoin').hidden=hasRole;
+ $('battleName').disabled=hasRole;
+ $('battleSlot').disabled=hasRole||checking||!inLobby;
  updateSlotSelection();
  const ready=slots.every(s=>data.players?.[s]);
  $('battleStart').hidden=!token||slot!==data.slot||hostToken===''||!ready||data.status!=='lobby';
  if(data.status==='lobby'||!Array.isArray(data.board)){
   message(checking?'Checking live roles…':data.status!=='lobby'?'This game has already started. Ask the host for a new Game Code.':
-    `${joined}/4 joined. ${slot?'You are '+label(slot):available?'Select a green available position.':'All roles are taken.'}`);
+    hasRole?(ready?(slot===data.slot&&hostToken?'All four players have joined. Press Start Game.':'All four players have joined. Waiting for the host to start.'):''):
+    `${joined}/4 joined. ${available?'Select a green AVAILABLE position.':'All roles are taken.'}`);
   return;
  }
 $('battleBlue').textContent='🔵 Blue: '+data.scores.blue+' left';$('battleRed').textContent='🔴 Red: '+data.scores.red+' left';
@@ -15356,10 +15406,19 @@ teamTab.onclick=()=>{show();if(code)loop()};
 coopTab.onclick=hide;
 $('battleExit').textContent='← Co-op · Teacher + Student';
 $('battleExit').onclick=hide;
-$('battleCreate').onclick=async()=>{try{const r=await post({action:'create',gameMode:'teamBattle'});code=r.code;hostToken=r.hostToken;token='';slot='';data=r.state;persist();show();loop();showMobileRolePicker();message('Created. Enter your name and claim your position first.')}catch(e){message(e.message,true)}};
-$('battleUseCode').onclick=()=>{const c=norm($('battleCode').value);if(!c)return message('Enter a valid six-character Game Code.',true);code=c;hostToken='';token='';slot='';data={status:'loading',players:{}};persist();show();loop();showMobileRolePicker();message('Checking live roles in this room…')};
-$('battleJoin').onclick=async()=>{const name=$('battleName').value.trim(),s=$('battleSlot').value;if(!name||!s)return message('Enter a name and select a position.',true);
-try{const r=await post({action:'joinTeamBattle',gameMode:'teamBattle',code,hostToken,name,slot:s});token=r.token;slot=r.slot;data=r.state;persist();render();loop()}catch(e){message(e.message,true);syncBattle()}};
+$('battleCreate').onclick=async()=>{clearBattleError();try{const r=await post({action:'create',gameMode:'teamBattle'});code=r.code;hostToken=r.hostToken;token='';slot='';data=r.state;persist();show();loop();showMobileRolePicker();message('Created. Enter your name and claim your position first.')}catch(e){message(e.message,true)}};
+$('battleUseCode').onclick=()=>{clearBattleError();const c=norm($('battleCode').value);if(!c)return message('Enter a valid six-character Game Code.',true);code=c;hostToken='';token='';slot='';data={status:'loading',players:{}};persist();show();loop();showMobileRolePicker();message('Checking live roles in this room…')};
+$('battleJoin').onclick=async()=>{
+ if(joining||token)return;
+ const name=$('battleName').value.trim(),s=$('battleSlot').value;
+ if(!name||!s){message('Enter a name and select an AVAILABLE position.',true);return;}
+ clearBattleError();joining=true;updateSlotSelection();
+ try{
+  const r=await post({action:'joinTeamBattle',gameMode:'teamBattle',code,hostToken,name,slot:s});
+  token=r.token;slot=r.slot;data=r.state;persist();clearBattleError();render();loop();
+ }catch(e){message('Unable to join: '+e.message,true);syncBattle()}
+ finally{joining=false;updateSlotSelection()}
+};
 $('battleStart').onclick=()=>act('startTeamBattle');
 $('battleCopy').onclick=async()=>{try{await navigator.clipboard.writeText(code);message('Game Code copied.')}catch{message('Copy the Game Code displayed above.')}};
 try{
