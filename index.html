@@ -14962,6 +14962,59 @@ check?.addEventListener("click",async()=>{
 #battlePanel .battleCard.blue{background:#5278b2;color:white}#battlePanel .battleCard.red{background:#ba5e58;color:white}#battlePanel .battleCard.neutral{background:#d2cab4}#battlePanel .battleCard.assassin{background:#323335;color:white}
 #battlePanel .battleKey{border:3px solid #efb949}#battlePanel .battleStat{display:flex;justify-content:space-between;font-weight:bold;gap:15px}
 #battlePanel .battleNote{font-size:13px;color:#56665b}#battlePanel .battleError{color:#ab3535;min-height:20px}#battlePanel .battleControls{margin:14px 0}
+#battlePanel .battleClueHelp{display:block;margin:6px 0 0;color:#607368;font-size:12px}
+#battlePanel .battleActionError{color:#842c23;background:#fff1ed;border:1px solid #e6b3aa;border-radius:10px;padding:10px 12px;margin:4px 0 12px;font-size:14px;font-weight:700;line-height:1.35}
+#battlePanel .battleActionError[hidden]{display:none!important}
+/* Clear mobile-first lobby role availability and prominent match announcements. */
+#battlePanel .battleInGamePlayers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:5px 0 17px}
+#battlePanel .battlePlayerTag{background:#eaf0f6;color:#20364d;border-radius:11px;padding:10px 13px;font-weight:650;font-size:clamp(14px,1.7vw,17px);overflow-wrap:anywhere}
+#battlePanel .battlePlayerTag.blue{border-left:5px solid #3269b6}
+#battlePanel .battlePlayerTag.red{border-left:5px solid #c34e4e}
+#battlePanel #battleJoinStatus{scroll-margin-top:14px}
+@media(max-width:600px){#battlePanel #battleJoinStatus{scroll-margin-top:240px}}
+@media(max-width:600px){#battlePanel .battleInGamePlayers{gap:5px}#battlePanel .battlePlayerTag{font-size:13px;padding:8px 9px}}
+
+#battlePanel .battleJoinStatus{margin:12px 0 14px;padding:13px 15px;border-radius:12px;background:#e6f1fa;border:1px solid #b4d3e9;color:#173b57;font-size:clamp(16px,2.6vw,20px);font-weight:800;line-height:1.4}
+#battlePanel .battleSlots{gap:12px;margin:13px 0}
+#battlePanel .battleSlot{display:flex;flex-direction:column;align-items:stretch;text-align:left;gap:6px;padding:14px 16px;min-height:98px;border-radius:14px;border:2px solid #8fa3b1;background:#f1f4f6;color:#263744;white-space:normal;font:inherit;line-height:1.25;opacity:1}
+#battlePanel .battleSlot .battleRoleName{font-weight:900;font-size:clamp(17px,2.6vw,22px)}
+#battlePanel .battleSlot .battleAvailability{font-size:clamp(15px,2.3vw,18px);font-weight:800;overflow-wrap:anywhere}
+#battlePanel .battleSlot.blue{border-left:8px solid #2963ba}#battlePanel .battleSlot.red{border-left:8px solid #c84645}
+#battlePanel .battleSlot.available{background:#e5f6eb;border-color:#3b9d67;color:#154a2a;cursor:pointer}
+#battlePanel .battleSlot.available:hover,#battlePanel .battleSlot.available:focus-visible{background:#d5f1df;outline:3px solid #237849;outline-offset:2px}
+#battlePanel .battleSlot.available[aria-pressed="true"]{background:#c5ebd6;box-shadow:0 0 0 3px #1d7f4c inset;border-color:#1d7f4c}
+#battlePanel .battleSlot.taken{background:#edf0f3;border-color:#b1bac1;color:#334452;cursor:default}
+#battlePanel .battleSlot.mine{background:#e7ecfa;border-color:#435fb5;color:#253e73}
+#battlePanel .battleSlot:disabled{opacity:1;cursor:default}
+#battlePanel .battleRoleForm{align-items:flex-end}
+#battlePanel .battleRoleForm label{display:flex;flex-direction:column;gap:5px;flex:1 1 190px;font-weight:750}
+#battlePanel .battleRoleForm input,#battlePanel .battleRoleForm select{width:100%;min-height:47px;font-size:16px}
+#battlePanel #battleJoin{min-height:47px;min-width:150px;font-size:16px}
+#battlePanel .battleJoinInstruction{margin:10px 0;font-weight:700}
+#battlePanel .battleLiveAnnouncement{margin:16px 0;padding:16px 20px;border:3px solid #9bbfd7;border-left-width:10px;border-radius:16px;background:#e9f3fb;box-shadow:0 3px 12px #152e4914}
+#battlePanel .battleLiveAnnouncement #battleTurn{margin:0;font-size:clamp(21px,3.4vw,33px);line-height:1.22;font-weight:900;letter-spacing:.01em}
+#battlePanel .battleLiveAnnouncement .battleEvent{margin:12px 0 0;font-size:clamp(18px,2.8vw,26px);font-weight:850;line-height:1.34;overflow-wrap:anywhere}
+#battlePanel .battleLiveAnnouncement.isBlue{background:#e4efff;border-color:#396dc2;color:#143e87}
+#battlePanel .battleLiveAnnouncement.isRed{background:#fff0ed;border-color:#c34b46;color:#8b2420}
+#battlePanel .battleLiveAnnouncement.isPass{background:#fff1ce;border-color:#dc9620;color:#663f06}
+#battlePanel .battleLiveAnnouncement.isSuccess{background:#e3f7ea;border-color:#288753;color:#185734}
+#battlePanel .battleLiveAnnouncement.isDanger{background:#ffe6e4;border-color:#b92f2d;color:#85201e}
+#battlePanel .battleLiveAnnouncement.isWinBlue{background:#cadffd;border-color:#2458ad;color:#15366d}
+#battlePanel .battleLiveAnnouncement.isWinRed{background:#ffd1cb;border-color:#b12b31;color:#761d24}
+#battlePanel .battleLiveAnnouncement.isWinBlue #battleTurn,#battlePanel .battleLiveAnnouncement.isWinRed #battleTurn{font-size:clamp(26px,4.5vw,43px)}
+#battlePanel .battleLobbyMessage{font-weight:750;color:#314c60;margin:12px 0;line-height:1.4}
+@media(max-width:600px){
+ #battlePanel .battleSlots{grid-template-columns:1fr;gap:10px}
+ #battlePanel .battleSlot{min-height:80px;padding:12px 14px;gap:4px}
+ #battlePanel .battleRoleForm{display:flex;flex-direction:column;align-items:stretch}
+ #battlePanel .battleRoleForm label,#battlePanel .battleRoleForm select,#battlePanel .battleRoleForm input{width:100%;flex:auto}
+ #battlePanel #battleJoin{width:100%;min-height:52px;font-size:19px}
+ #battlePanel .battleJoinStatus{font-size:18px}
+ #battlePanel .battleLiveAnnouncement{padding:16px 13px;border-left-width:8px}
+ #battlePanel .battleLiveAnnouncement #battleTurn{font-size:clamp(23px,6vw,30px)}
+ #battlePanel .battleLiveAnnouncement .battleEvent{font-size:clamp(19px,5.2vw,25px)}
+}
+
 @media(max-width:600px){#battlePanel{padding:10px}#battlePanel .battleCard{min-height:55px;font-size:10px}#battlePanel .battleSlots{grid-template-columns:1fr}}
 </style>
 <script>
@@ -14975,14 +15028,19 @@ panel.innerHTML=`<div class="battleRow"><h2 style="margin:0">Team Battle · 4 Pl
 <div id="battleSetup"><p>Four players · two teams · one Game Code. The creator must claim a slot first to become host.</p>
 <div class="battleRow"><button class="battlePrimary" id="battleCreate">Create 4-player room</button><span>or join:</span><input id="battleCode" placeholder="GAME-XXXXXX" maxlength="11"><button id="battleUseCode">Use Game Code</button></div></div>
 <div id="battleLobby" hidden><p><b>Game Code:</b> <strong id="battleRoomCode"></strong> <button id="battleCopy">Copy</button></p>
-<div class="battleRow"><label>Your name <input id="battleName" maxlength="40" placeholder="Your name"></label>
-<label>Choose a free position <select id="battleSlot"></select></label><button class="battlePrimary" id="battleJoin">Claim position</button></div>
-<div class="battleSlots" id="battleSlots"></div><div class="battleRow"><button id="battleStart" class="battlePrimary" hidden>Start Game</button></div></div>
-<div id="battleGame" hidden><div class="battleStat"><span id="battleBlue"></span><span id="battleRed"></span></div>
-<p id="battleTurn"></p><div id="battleControls" class="battleControls"></div><div class="battleBoard" id="battleBoard"></div>
+<p id="battleJoinStatus" class="battleJoinStatus" role="status" aria-live="polite">Checking available roles…</p>
+<p class="battleJoinInstruction">Tap a green AVAILABLE role below. Grey TAKEN roles cannot be selected.</p>
+<div class="battleSlots" id="battleSlots" role="group" aria-label="Team Battle positions: available and taken"></div>
+<div class="battleRow battleRoleForm"><label>Your name <input id="battleName" maxlength="40" placeholder="Your name" autocomplete="name"></label>
+<label>Selected free position <select id="battleSlot" aria-label="Selected free position"></select></label><button class="battlePrimary" id="battleJoin">Claim position</button></div>
+<p id="battleJoinError" class="battleActionError" role="alert" aria-live="assertive" hidden></p>
+<div class="battleRow"><button id="battleStart" class="battlePrimary" hidden>Start Game</button></div>
+<p id="battleLobbyMessage" class="battleLobbyMessage" aria-live="polite"></p></div>
+<div id="battleGame" hidden><div id="battlePlayersInGame" class="battleInGamePlayers" aria-label="Players in this match"></div><div class="battleStat"><span id="battleBlue"></span><span id="battleRed"></span></div>
+<div id="battleAnnouncement" class="battleLiveAnnouncement" role="status" aria-live="polite" aria-atomic="true"><p id="battleTurn"></p><p id="battleMessage" class="battleEvent"></p></div>
+<div id="battleControls" class="battleControls"></div><p id="battleActionError" class="battleActionError" role="alert" aria-live="assertive" hidden></p><div class="battleBoard" id="battleBoard"></div>
 <p class="battleNote">Spymasters see the colored key. Guessers see colors only after cards are revealed. Communicate with your teammates on Zoom or another call.</p></div>
-
-<p id="battleMessage" aria-live="polite"></p><p class="battleError" id="battleError" aria-live="assertive"></p>`;
+<p id="battleSetupMessage" class="battleLobbyMessage" aria-live="polite"></p><p class="battleError" id="battleError" aria-live="assertive"></p>`;
 start.parentNode.insertBefore(panel,start);
 let code='',token='',slot='',hostToken='',data=null,poll=null,busy=false,pollBusy=false;
 let syncController=null, syncEpoch=0;
@@ -14991,7 +15049,19 @@ const slots=['blue_spymaster','blue_guesser','red_spymaster','red_guesser'];
 const label=s=>s.replace('_',' · ').replace(/^./,c=>c.toUpperCase());
 const norm=v=>{let s=String(v||'').trim().toUpperCase().replace(/^GAME-/,'').replace(/[^A-Z0-9]/g,'');return s.length===6?'GAME-'+s:''};
 const visible=()=>!panel.hidden;
-function message(s,error=false){$(error?'battleError':'battleMessage').textContent=s||'';if(!error)$('battleError').textContent=''}
+function clearBattleError(){
+ $('battleError').textContent='';
+ const near=$('battleActionError');if(near){near.textContent='';near.hidden=true;}
+ const lobbyError=$('battleJoinError');if(lobbyError){lobbyError.textContent='';lobbyError.hidden=true;}
+}
+function message(s,error=false){
+ if(error){
+  $('battleError').textContent=s||'';
+  const near=$('battleActionError');
+  if(near&&!$('battleGame').hidden){near.textContent=s||'';near.hidden=!s;}
+  const joinError=$('battleJoinError');if(joinError&&!$('battleLobby').hidden){joinError.textContent=s||'';joinError.hidden=!s;}
+ }else { $('battleMessage').textContent=s||''; $('battleLobbyMessage').textContent=s||''; $('battleSetupMessage').textContent=code?'':(s||''); }
+}
 async function post(payload){
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
  try{
@@ -15001,7 +15071,9 @@ async function post(payload){
  finally{clearTimeout(timer)}
 }
 async function get(signal,room,authToken){
- const url=`${API}?code=${encodeURIComponent(room)}&token=${encodeURIComponent(authToken)}&role=student&_=${Date.now()}`;
+ const url=authToken
+   ? `${API}?code=${encodeURIComponent(room)}&token=${encodeURIComponent(authToken)}&role=student&_=${Date.now()}`
+   : `${API}?code=${encodeURIComponent(room)}&lobby=1&_=${Date.now()}`;
  const r=await fetch(url,{cache:'no-store',headers:{'Accept':'application/json'},signal});
  const x=await r.json().catch(()=>({}));if(!r.ok){const error=new Error(x.error||'Room not available');error.status=r.status;throw error;}return x.state;
 }
@@ -15010,7 +15082,7 @@ function clearBattleLocal(){
  stop();code='';token='';slot='';hostToken='';data=null;
  try{sessionStorage.removeItem(sessionKey)}catch{}
  try{localStorage.removeItem(sessionKey)}catch{}
- $('battleCode').value='';$('battleError').textContent='';
+ $('battleCode').value='';clearBattleError();
 }
 window.WebilangBattleClearLocal=clearBattleLocal;
 function stop(){
@@ -15027,7 +15099,7 @@ function status(text,error=false){
  if(label)label.textContent=text;
 }
 async function syncBattle(){
- if(!token||busy||pollBusy||!visible()||document.hidden)return;
+ if(!code||busy||pollBusy||!visible()||document.hidden)return;
  pollBusy=true;
  const controller=new AbortController(),generation=syncEpoch,room=code,authToken=token;
  syncController=controller;
@@ -15038,7 +15110,7 @@ async function syncBattle(){
   // Late GET responses must never undo a successful guess, clue or reset.
   const changed=!data||Number(next.version)>Number(data.version||0);
   if(changed){data=next;render()}
-  $('battleError').textContent='';
+  // Do not erase a rejected-clue error on every background poll.
   status('✓ Live · synced '+new Date().toLocaleTimeString()+' · game v'+next.version);
  }catch(e){
   if(generation!==syncEpoch)return;
@@ -15055,29 +15127,116 @@ async function syncBattle(){
  }
 }
 function loop(){stop();status('Connecting to shared room…');syncBattle();poll=setInterval(syncBattle,2000)}
-function render(){if(!visible())return;$('battleSetup').hidden=!!code;$('battleLobby').hidden=!code||data?.status==='finished';$('battleGame').hidden=!data||data.status==='lobby';$('battleRoomCode').textContent=code;
-if(!data)return;
-$('battleSlots').replaceChildren();for(const s of slots){const el=document.createElement('div');el.className='battleSlot';const p=data.players?.[s];el.textContent=label(s)+' — '+(p?.name||'Available');$('battleSlots').appendChild(el)}
-$('battleSlot').replaceChildren();for(const s of slots){if(data.players?.[s])continue;const o=document.createElement('option');o.value=s;o.textContent=label(s);$('battleSlot').appendChild(o)}
-$('battleJoin').hidden=!!token;$('battleName').disabled=!!token;$('battleSlot').disabled=!!token;
-const ready=slots.every(s=>data.players?.[s]);$('battleStart').hidden=!token||slot!==data.slot||hostToken===''||!ready||data.status!=='lobby';
-if(data.status==='lobby'){message(`${slots.filter(s=>data.players?.[s]).length}/4 joined. ${slot?'You are '+label(slot):'Choose a position.'}`);return}
+function showMobileRolePicker(){
+ if(window.matchMedia('(max-width:600px)').matches){
+  requestAnimationFrame(()=>$('battleJoinStatus').scrollIntoView({block:'start',behavior:'auto'}));
+ }
+}
+function updateSlotSelection(){
+ const selected=$('battleSlot').value;
+ $('battleSlots').querySelectorAll('.battleSlot.available').forEach(el=>{
+  el.setAttribute('aria-pressed',String(el.dataset.slot===selected));
+ });
+ $('battleJoin').disabled=!!token||data?.status!=='lobby'||!selected;
+}
+$('battleSlot').addEventListener('change',updateSlotSelection);
+function render(){
+ if(!visible())return;
+ $('battleSetup').hidden=!!code;
+ $('battleLobby').hidden=!code||data?.status==='finished'||(!!token&&data?.status!=='lobby');
+ $('battleGame').hidden=!data||!Array.isArray(data.board)||data.status==='lobby';
+ $('battleRoomCode').textContent=code;
+ if(!data)return;
+ const checking=data.status==='loading';
+ const roster=$('battlePlayersInGame');
+ roster.replaceChildren();
+ for(const id of slots){
+  const item=document.createElement('div');item.className='battlePlayerTag '+id.split('_')[0];
+  item.textContent=label(id)+' · '+(data.players?.[id]?.name||'Waiting');
+  roster.appendChild(item);
+ }
+ const joined=slots.filter(s=>data.players?.[s]).length;
+ const available=slots.length-joined;
+ $('battleJoinStatus').textContent=checking?'Checking which roles are available…':
+  data.status==='lobby'?`${available} of 4 roles available · ${joined} taken`:
+  data.status==='playing'?'Game already in progress — ask for a new code.':'This room is closed.';
+ const oldSelection=$('battleSlot').value;
+ $('battleSlot').replaceChildren();
+ const blank=document.createElement('option');blank.value='';blank.textContent='Select a free role';$('battleSlot').append(blank);
+ for(const s of slots){
+  if(!data.players?.[s]&&!checking&&data.status==='lobby'){
+   const o=document.createElement('option');o.value=s;o.textContent=label(s)+' — AVAILABLE';$('battleSlot').appendChild(o);
+  }
+ }
+ $('battleSlot').value=!checking&&data.status==='lobby'&&!data.players?.[oldSelection]?oldSelection:'';
+ const chosen=()=>$('battleSlot').value;
+ $('battleSlots').replaceChildren();
+ for(const s of slots){
+  const p=data.players?.[s];
+  const isMine=!!token&&s===slot;
+  const canClaim=!checking&&!token&&data.status==='lobby'&&!p;
+  const el=document.createElement('button');el.type='button';el.className='battleSlot '+s.split('_')[0]+' '+(isMine?'mine':p?'taken':canClaim?'available':'taken');
+  el.dataset.slot=s;el.disabled=!canClaim;
+  el.setAttribute('aria-pressed',String(chosen()===s&&canClaim));
+  const title=document.createElement('span');title.className='battleRoleName';title.textContent=label(s);
+  const stateLabel=document.createElement('span');stateLabel.className='battleAvailability';
+  stateLabel.textContent=checking?'Checking…':isMine?'✓ YOUR ROLE':p?'🔒 TAKEN · '+p.name:canClaim?'✓ AVAILABLE — tap to select':'Not available';
+  el.append(title,stateLabel);
+  if(canClaim)el.onclick=()=>{$('battleSlot').value=s;updateSlotSelection()};
+  $('battleSlots').appendChild(el);
+ }
+ $('battleJoin').hidden=!!token;
+ $('battleName').disabled=!!token;
+ $('battleSlot').disabled=!!token||checking||data.status!=='lobby';
+ updateSlotSelection();
+ const ready=slots.every(s=>data.players?.[s]);
+ $('battleStart').hidden=!token||slot!==data.slot||hostToken===''||!ready||data.status!=='lobby';
+ if(data.status==='lobby'||!Array.isArray(data.board)){
+  message(checking?'Checking live roles…':data.status!=='lobby'?'This game has already started. Ask the host for a new Game Code.':
+    `${joined}/4 joined. ${slot?'You are '+label(slot):available?'Select a green available position.':'All roles are taken.'}`);
+  return;
+ }
 $('battleBlue').textContent='🔵 Blue: '+data.scores.blue+' left';$('battleRed').textContent='🔴 Red: '+data.scores.red+' left';
-$('battleTurn').textContent=data.gameOver?`Game over · ${data.winner?.toUpperCase()} wins!`:`${data.currentTeam.toUpperCase()} turn · ${data.phase==='clue'?'Spymaster gives a clue':'Guesser selects words'} · You: ${label(slot)}`;
-message(data.message||'');const control=$('battleControls');
+$('battleTurn').textContent=data.gameOver?`🏆 GAME OVER · ${data.winner?.toUpperCase()} WINS!`:`${data.currentTeam.toUpperCase()} TURN · ${data.phase==='clue'?'Spymaster gives a clue':'Guesser selects words'} · You: ${label(slot)}`;
+message(data.message||'');
+const ev=String(data.message||'');
+const notice=$('battleAnnouncement');
+notice.className='battleLiveAnnouncement '+(data.gameOver?('isWin'+(data.winner==='red'?'Red':'Blue')):
+ /assassin|danger|loses|lost/i.test(ev)?'isDanger':
+ /pass|neutral|other team|turn ended|limit reached/i.test(ev)?'isPass':
+ /correct|found all|good guess/i.test(ev)?'isSuccess':
+ (data.currentTeam==='red'?'isRed':'isBlue'));
+const control=$('battleControls');
 const myTeam=slot.split('_')[0],myRole=slot.split('_')[1],active=data.status==='playing'&&data.currentTeam===myTeam;
 // Polling runs every two seconds. Preserve the existing clue field (and its keyboard
 // focus, cursor, and unsent text) instead of destroying/recreating it on each poll.
 const editingClue=data.phase==='clue'&&active&&myRole==='spymaster';
+if(!editingClue)clearBattleError();
 if(!editingClue||!control.querySelector('#battleClueInput'))control.replaceChildren();
 if(editingClue){
  if(!control.querySelector('#battleClueInput')){
-  const input=document.createElement('input');input.type='text';input.placeholder='One-word clue';input.id='battleClueInput';input.autocomplete='off';input.setAttribute('aria-label','One-word clue');
+  const input=document.createElement('input');input.type='text';input.placeholder='One-word clue';input.id='battleClueInput';input.autocomplete='off';input.autocapitalize='off';input.spellcheck=false;input.setAttribute('aria-label','One-word clue');
   const select=document.createElement('select');select.setAttribute('aria-label','Number of words');for(let i=1;i<=9;i++){const op=document.createElement('option');op.value=i;op.textContent=i;select.appendChild(op)}select.value='2';
   const btn=document.createElement('button');btn.type='button';btn.className='battlePrimary';btn.textContent='Give clue';
-  const submit=()=>{const clue=input.value.trim();if(!clue){message('Enter a one-word clue first.',true);input.focus();return}act('clue',{clue,number:Number(select.value)})};
-  btn.onclick=submit;input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submit()}});
-  control.append(input,select,btn);
+   const hint=document.createElement('small');hint.className='battleClueHelp';hint.textContent='Use one English word only — no spaces.';
+   const submit=async()=>{
+    if(btn.disabled)return;
+    clearBattleError();
+    const clue=input.value.trim();
+    if(!clue){message('Enter one English clue word.',true);input.focus();return;}
+    if(!/^[a-z][a-z'-]*$/i.test(clue)){
+      message(/\s/.test(clue)?'Only one word is allowed. For example, use “Mega” or “Omsk”, not “Mega Omsk”.':'Use one English word containing letters, apostrophes or hyphens only.',true);
+      input.focus();return;
+    }
+    if(busy){message('Previous move is still processing. Please try again.',true);return;}
+    btn.disabled=true;btn.textContent='Sending…';
+    try{await act('clue',{clue,number:Number(select.value)});}
+    finally{if(btn.isConnected){btn.disabled=false;btn.textContent='Give clue';}}
+   };
+   btn.onclick=submit;
+   input.addEventListener('input',clearBattleError);
+   input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submit();}});
+   control.append(input,select,btn,hint);
  }
 }else if(data.phase==='guess'){
  const t=document.createElement('strong');t.textContent=`Clue: ${data.clueWord} · ${data.clueNumber} (${data.guessesLeft} guesses available)`;control.appendChild(t);
@@ -15092,7 +15251,8 @@ if(c.role)b.classList.add(c.role);
  if(!b.disabled)b.onclick=()=>act('guess',{index:i});board.appendChild(b)
 }}
 async function act(action,extra={}){
- if(busy)return;
+  if(busy){message('A move is still being processed. Please try again.',true);return;}
+  clearBattleError();
  busy=true;
  const requestRoom=code,requestToken=token;
  try{
@@ -15137,10 +15297,10 @@ window.WebilangBattleEndAndNew=endBattleAndNew;
 
 
 open.onclick=()=>{window.WebilangCoopClearLocal?.();show();if(token)loop()};$('battleExit').onclick=()=>{clearBattleLocal();hide()};
-$('battleCreate').onclick=async()=>{try{const r=await post({action:'create',gameMode:'teamBattle'});code=r.code;hostToken=r.hostToken;token='';slot='';data=r.state;persist();show();message('Created. Enter your name and claim your position first.')}catch(e){message(e.message,true)}};
-$('battleUseCode').onclick=()=>{const c=norm($('battleCode').value);if(!c)return message('Enter a valid six-character Game Code.',true);code=c;hostToken='';token='';slot='';data={status:'lobby',players:{}};persist();show();message('Choose a position and join this room. If a position is taken, select another.')};
+$('battleCreate').onclick=async()=>{try{const r=await post({action:'create',gameMode:'teamBattle'});code=r.code;hostToken=r.hostToken;token='';slot='';data=r.state;persist();show();loop();showMobileRolePicker();message('Created. Enter your name and claim your position first.')}catch(e){message(e.message,true)}};
+$('battleUseCode').onclick=()=>{const c=norm($('battleCode').value);if(!c)return message('Enter a valid six-character Game Code.',true);code=c;hostToken='';token='';slot='';data={status:'loading',players:{}};persist();show();loop();showMobileRolePicker();message('Checking live roles in this room…')};
 $('battleJoin').onclick=async()=>{const name=$('battleName').value.trim(),s=$('battleSlot').value;if(!name||!s)return message('Enter a name and select a position.',true);
-try{const r=await post({action:'joinTeamBattle',gameMode:'teamBattle',code,hostToken,name,slot:s});token=r.token;slot=r.slot;data=r.state;persist();render();loop()}catch(e){message(e.message,true)}};
+try{const r=await post({action:'joinTeamBattle',gameMode:'teamBattle',code,hostToken,name,slot:s});token=r.token;slot=r.slot;data=r.state;persist();render();loop()}catch(e){message(e.message,true);syncBattle()}};
 $('battleStart').onclick=()=>act('startTeamBattle');
 $('battleCopy').onclick=async()=>{try{await navigator.clipboard.writeText(code);message('Game Code copied.')}catch{message('Copy the Game Code displayed above.')}};
 try{
@@ -15150,10 +15310,10 @@ try{
   show();persist();loop();
  }else if(saved?.code){
   // Recover a room creator who has not yet selected a position.
-  code=saved.code;hostToken=saved.hostToken||'';data={status:'lobby',players:{}};show();
+  code=saved.code;hostToken=saved.hostToken||'';data={status:'loading',players:{}};show();loop();
  }
 }catch{}
-const resumeBattle=()=>{if(token&&visible()&&!document.hidden)loop()};
+const resumeBattle=()=>{if(code&&visible()&&!document.hidden)loop()};
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();else resumeBattle()});
 window.addEventListener('pageshow',resumeBattle);
 window.addEventListener('focus',resumeBattle);
