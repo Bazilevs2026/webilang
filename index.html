@@ -12534,14 +12534,17 @@ if(storyResetButton){
   function saveSession(){
     try{
       if(localRole&&currentCode&&roomToken){
-        sessionStorage.setItem(SESSION_KEY,JSON.stringify({role:localRole,code:currentCode,token:roomToken}));
-      }else sessionStorage.removeItem(SESSION_KEY);
+        const saved=JSON.stringify({role:localRole,code:currentCode,token:roomToken});
+        sessionStorage.setItem(SESSION_KEY,saved);
+        try{localStorage.setItem(SESSION_KEY,saved);}catch(e){}
+      }else {sessionStorage.removeItem(SESSION_KEY);try{localStorage.removeItem(SESSION_KEY);}catch(e){}}
     }catch(e){}
   }
 
   function clearSession(){
     localRole="";currentCode="";roomToken="";state=null;
     try{sessionStorage.removeItem(SESSION_KEY);}catch(e){}
+    try{localStorage.removeItem(SESSION_KEY);}catch(e){}
     stopPolling();
   }
 
@@ -12762,7 +12765,7 @@ if(storyResetButton){
 
   async function restoreSession(){
     let saved=null;
-    try{saved=JSON.parse(sessionStorage.getItem(SESSION_KEY)||"null");}catch(e){}
+    try{saved=JSON.parse(sessionStorage.getItem(SESSION_KEY)||localStorage.getItem(SESSION_KEY)||"null");}catch(e){}
     if(!saved?.role||!saved?.code||!saved?.token)return false;
     localRole=saved.role;currentCode=saved.code;roomToken=saved.token;
     try{
@@ -12775,8 +12778,13 @@ if(storyResetButton){
         $("#codeJoinInput").value=currentCode;
         $("#codeStudentEnterGame").hidden=false;
       }
-      enterPlay();startPolling();return true;
-    }catch(e){clearSession();return false;}
+      saveSession();enterPlay();startPolling();return true;
+    }catch(e){
+      // A temporary offline request is not proof that the stored session is invalid.
+      if(/not found|expired|not authorized|unauthorized/i.test(String(e?.message||"")))clearSession();
+      else liveStatus("error","Connection interrupted","Your Game Code is saved. Reopen this page when online.");
+      return false;
+    }
   }
 
   $("#codeChooseTeacher").onclick=createRoom;
@@ -12798,6 +12806,11 @@ if(storyResetButton){
   $("#codeStartGuessing").onclick=()=>{};
   $("#codeReceivedClueInput").addEventListener("keydown",()=>{});
 
+  // Mobile Safari suspends timers in background tabs; synchronize as soon as it resumes.
+  const resumeCoop=()=>{if(currentCode&&roomToken&&localRole){if(!state)restoreSession();else startPolling();}};
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)resumeCoop();});
+  window.addEventListener("pageshow",resumeCoop);
+  window.addEventListener("online",resumeCoop);
   window.WebilangGameReset=()=>changeRole();
 
   liveStatus("","Live sync not connected","Choose Teacher or Student to begin.");
@@ -14897,7 +14910,7 @@ panel.innerHTML=`<div class="battleRow"><h2 style="margin:0">Team Battle · 4 Pl
 <p class="battleNote">Spymasters see the colored key. Guessers see colors only after cards are revealed. Communicate with your teammates on Zoom or another call.</p></div>
 <p id="battleMessage" aria-live="polite"></p><p class="battleError" id="battleError" aria-live="assertive"></p>`;
 start.parentNode.insertBefore(panel,start);
-let code='',token='',slot='',hostToken='',data=null,poll=null,busy=false;
+let code='',token='',slot='',hostToken='',data=null,poll=null,busy=false,pollBusy=false;
 const sessionKey='webilang_codenames_battle_v1';
 const slots=['blue_spymaster','blue_guesser','red_spymaster','red_guesser'];
 const label=s=>s.replace('_',' · ').replace(/^./,c=>c.toUpperCase());
@@ -14906,11 +14919,18 @@ const visible=()=>!panel.hidden;
 function message(s,error=false){$(error?'battleError':'battleMessage').textContent=s||'';if(!error)$('battleError').textContent=''}
 async function post(payload){const r=await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const x=await r.json().catch(()=>({}));if(!r.ok)throw Error(x.error||'Request failed');return x}
 async function get(){const r=await fetch(`${API}?code=${encodeURIComponent(code)}&token=${encodeURIComponent(token)}&role=student`,{cache:'no-store'});const x=await r.json().catch(()=>({}));if(!r.ok)throw Error(x.error||'Room not available');return x.state}
-function persist(){try{sessionStorage.setItem(sessionKey,JSON.stringify({code,token,slot,hostToken}))}catch{}}
+function persist(){const value=JSON.stringify({code,token,slot,hostToken});try{sessionStorage.setItem(sessionKey,value)}catch{}try{localStorage.setItem(sessionKey,value)}catch{}}
 function stop(){if(poll){clearInterval(poll);poll=null}}
 function show(){start.hidden=true;$('codeTeacherLobby').hidden=true;$('codeStudentLobby').hidden=true;$('codePlayArea').hidden=true;panel.hidden=false;render()}
 function hide(){stop();panel.hidden=true;start.hidden=false}
-function loop(){stop();poll=setInterval(async()=>{if(!token||busy||!visible())return;try{data=await get();render()}catch(e){message(e.message,true)}},2000)}
+async function syncBattle(){
+ if(!token||busy||pollBusy||!visible()||document.hidden)return;
+ pollBusy=true;
+ try{data=await get();render();$('battleError').textContent=''}
+ catch(e){message('Connection interrupted: '+e.message+'. Your position is saved.',true)}
+ finally{pollBusy=false}
+}
+function loop(){stop();syncBattle();poll=setInterval(syncBattle,2000)}
 function render(){if(!visible())return;$('battleSetup').hidden=!!code;$('battleLobby').hidden=!code||data?.status==='finished';$('battleGame').hidden=!data||data.status==='lobby';$('battleRoomCode').textContent=code;
 if(!data)return;
 $('battleSlots').replaceChildren();for(const s of slots){const el=document.createElement('div');el.className='battleSlot';const p=data.players?.[s];el.textContent=label(s)+' — '+(p?.name||'Available');$('battleSlots').appendChild(el)}
@@ -14947,12 +14967,25 @@ b.disabled=!(active&&myRole==='guesser'&&data.phase==='guess'&&!c.revealed);if(!
 async function act(action,extra={}){if(busy)return;busy=true;try{const r=await post({action,gameMode:'teamBattle',code,token,...extra});data=r.state;render()}catch(e){message(e.message,true)}finally{busy=false}}
 open.onclick=()=>{show();if(token)loop()};$('battleExit').onclick=hide;
 $('battleCreate').onclick=async()=>{try{const r=await post({action:'create',gameMode:'teamBattle'});code=r.code;hostToken=r.hostToken;token='';slot='';data=r.state;persist();show();message('Created. Enter your name and claim your position first.')}catch(e){message(e.message,true)}};
-$('battleUseCode').onclick=()=>{const c=norm($('battleCode').value);if(!c)return message('Enter a valid six-character Game Code.',true);code=c;hostToken='';token='';slot='';data={status:'lobby',players:{}};persist();show();message('Choose a position and join this room.')};
+$('battleUseCode').onclick=()=>{const c=norm($('battleCode').value);if(!c)return message('Enter a valid six-character Game Code.',true);code=c;hostToken='';token='';slot='';data={status:'lobby',players:{}};persist();show();message('Choose a position and join this room. If a position is taken, select another.')};
 $('battleJoin').onclick=async()=>{const name=$('battleName').value.trim(),s=$('battleSlot').value;if(!name||!s)return message('Enter a name and select a position.',true);
 try{const r=await post({action:'joinTeamBattle',gameMode:'teamBattle',code,hostToken,name,slot:s});token=r.token;slot=r.slot;data=r.state;persist();render();loop()}catch(e){message(e.message,true)}};
 $('battleStart').onclick=()=>act('startTeamBattle');
 $('battleCopy').onclick=async()=>{try{await navigator.clipboard.writeText(code);message('Game Code copied.')}catch{message('Copy the Game Code displayed above.')}};
-try{const saved=JSON.parse(sessionStorage.getItem(sessionKey)||'null');if(saved?.code&&saved?.token){code=saved.code;token=saved.token;slot=saved.slot;hostToken=saved.hostToken||'';get().then(s=>{data=s;show();loop()}).catch(()=>{})}}catch{}
+try{
+ const saved=JSON.parse(sessionStorage.getItem(sessionKey)||localStorage.getItem(sessionKey)||'null');
+ if(saved?.code&&saved?.token){
+  code=saved.code;token=saved.token;slot=saved.slot;hostToken=saved.hostToken||'';
+  show();persist();loop();
+ }else if(saved?.code){
+  // Recover a room creator who has not yet selected a position.
+  code=saved.code;hostToken=saved.hostToken||'';data={status:'lobby',players:{}};show();
+ }
+}catch{}
+const resumeBattle=()=>{if(token&&visible())loop()};
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)resumeBattle()});
+window.addEventListener('pageshow',resumeBattle);
+window.addEventListener('online',resumeBattle);
 })();
 </script>
 
