@@ -340,6 +340,16 @@ export default async function handler(req,res){
       const state=await getState(code);
       if(!state)return res.status(404).json({error:"This live room was not found or has expired."});
       if(state.gameMode==="teamBattle"){
+        // Lobby preview: role occupancy only. Never return the board, private tokens or host token.
+        if(String(req.query?.lobby||"")==="1"){
+          const players=Object.fromEntries(TEAM_SLOTS.map(slot=>[
+            slot,state.players[slot]?{name:state.players[slot].name,joined:true}:null
+          ]));
+          return res.status(200).json({state:{
+            gameMode:"teamBattle",code:state.code,version:state.version,status:state.status,
+            players,updatedAt:state.updatedAt
+          }});
+        }
         const slot=playerForToken(state,t);
         if(!slot)return res.status(403).json({error:"This player session is not authorized."});
         return res.status(200).json({state:battlePublicState(state,slot)});
