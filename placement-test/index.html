@@ -142,7 +142,20 @@ body.nova-theater #novaGame .game-input #handsFreeLabel{color:#e7f7fc}
  body.nova-theater #novaGame .stage-controls{bottom:4px;padding:3px}
  body.nova-theater #novaGame .stage-controls button{padding:4px;font-size:10px}
 }
-</style></head>
+</style>
+<style id="placement-realtime-style">
+#novaGame > .nova-stage,#novaGame > .quest-track,#novaGame > .chat,#novaGame > .game-input,
+#novaGame > #novaEvaluateBtn,#novaGame > .npc-immersive-close{display:none!important}
+#novaGame .game-head .game-badge{display:none}
+#novaGame .placement-realtime-shell{display:block}
+.placement-realtime-shell{background:#fff;border:1px solid #ccdeed;border-radius:16px;padding:12px;margin-top:14px}
+.placement-realtime-shell iframe{width:100%;height:690px;border:0;border-radius:14px;background:#f4f6f1;display:block}
+.placement-realtime-shell .realtime-score{padding:12px;margin-top:10px;background:#eef6ff;border-radius:12px}
+.placement-realtime-shell .realtime-score button{margin:8px 0}
+.placement-realtime-shell .realtime-turns{max-height:130px;overflow:auto;font-size:13px;line-height:1.6}
+@media(max-width:700px){.placement-realtime-shell iframe{height:760px}.placement-realtime-shell{padding:4px}}
+</style>
+</head>
 <body><header><div class="eyebrow">WEBILANG INSPIRED · PLACEMENT QUEST</div><h1>🎮 LEVEL QUEST <span style="color:var(--cyan)">A1 → A2 → B1</span></h1><p style="max-width:800px">Six skill missions • real listening audio • 2-minute speaking challenge • conversation with Nova • individual CEFR profile</p><div class="row"><span class="tag">45–60 minutes</span><span class="tag">A2 target + B1 stretch</span><span class="tag">Unofficial CEFR-aligned diagnostic</span></div></header>
 <div class="shell"><aside class="sidebar"><div class="eyebrow">MISSION SELECT</div><div class="nav" id="nav"></div><p class="small">Progress</p><div class="progress"><div id="progressFill" class="fill"></div></div><p id="progressLabel" class="small">0 / 6 completed</p><p class="small">Answer independently. You can move between missions. Press “Check” to save a skill score.</p><input id="studentName" type="text" placeholder="Student name (optional)" autocomplete="name" style="font-size:13px"><p class="small">🔒 No audio leaves your device unless you use a connected AI service. Speech recognition may use your browser's provider.</p></aside>
 <main>
@@ -168,7 +181,19 @@ body.nova-theater #novaGame .game-input #handsFreeLabel{color:#e7f7fc}
 <div class="quest-track"><div class="quest-track-title">QUEST LOG <span id="turnCounter">0 / 6 turns</span></div><div id="novaSteps" class="quest-steps"></div></div>
 <div class="chat" id="chat" aria-live="polite"></div>
 <div class="game-input"><div class="row"><button class="primary" id="startQuestBtn" onclick="startDialogue()">▶ Start / Restart quest</button><button id="talkBtn" onclick="toggleDialogueMic()">🎙 Talk to Nova</button><button id="novaHintBtn" onclick="showNovaPrompt()">💡 Conversation support</button></div><div class="row"><label id="handsFreeLabel"><input type="checkbox" id="novaAutoSend"> Auto-send after microphone stops (hands-free turns)</label><span class="npc-hotkeys">Enter: send · Esc: leave game</span></div><textarea id="dialogueInput" style="min-height:95px" placeholder="Speak into your microphone or type your own answer to Nova…"></textarea><div class="row spread"><span class="small" id="novaMicStatus">🎙 Microphone ready on supported browsers · Enter to send, Shift+Enter for new line</span><button id="novaSendBtn" class="primary" onclick="sendDialogue()">Send answer ➜</button></div><p class="small" id="novaProgressNote">Unassisted speaking gives the clearest placement evidence. Optional hints are recorded in the report.</p></div>
-<button id="novaEvaluateBtn" onclick="checkDialogue()" style="margin-top:12px">✨ Evaluate my conversation</button><div class="feedback hide" id="dialogueFeedback"></div></div><div class="section-actions"><button onclick="go(4)">← Writing</button><button class="primary" onclick="go(6)">See assessment →</button></div></section>
+<button id="novaEvaluateBtn" onclick="checkDialogue()" style="margin-top:12px">✨ Evaluate my conversation</button><div class="feedback hide" id="dialogueFeedback"></div>
+<div class="placement-realtime-shell">
+ <div style="font-weight:800;font-size:20px;color:#20395a;margin:4px 8px 10px">🎮 Nova — Live Qwen Realtime (WebRTC)</div>
+ <p class="small" style="margin:0 8px 12px">The original Webilang real-time voice engine. Click <b>Start live talk with Nova</b> inside the scene, allow your microphone, and speak naturally. Nova listens and responds without a Send button.</p>
+ <iframe id="placementNovaRealtime" title="Live 3D Nova conversation" src="/placement-test/nova-realtime.html?pilot=placement_nova&mode=avatar&embed=gender" allow="microphone; autoplay; fullscreen"></iframe>
+ <div class="realtime-score">
+  <strong id="placementRealtimeTurns">0 learner turns recorded</strong>
+  <div id="placementRealtimeTranscript" class="realtime-turns" aria-live="polite"></div>
+  <button class="primary" type="button" id="placementRealtimeEvaluate">✨ Evaluate my live conversation</button>
+  <p class="small">Assessment uses speech transcripts; pronunciation and fluency need a separate audio assessment. Use at least 5–6 turns for a more reliable estimate.</p>
+  <div id="placementRealtimeStatus" class="small"></div>
+ </div>
+</div></div><div class="section-actions"><button onclick="go(4)">← Writing</button><button class="primary" onclick="go(6)">See assessment →</button></div></section>
 <section class="panel" id="s6"><span class="quest">Final Boss / Individual profile</span><h2>🏆 Your CEFR placement profile</h2><p>Skills are scored separately. An A2 student can have A1 speaking and B1 reading; don't collapse that information into one label.</p><div class="result-grid" id="resultGrid"></div><div class="box"><h3>Skill breakdown</h3><div id="skillBars"></div></div><div class="box" id="overall"></div><div class="row"><button class="primary" onclick="renderFinal()">↻ Refresh assessment</button><button onclick="downloadReport()">⬇ Download teacher report (.txt)</button><button onclick="window.print()">🖨 Print</button><button onclick="resetAll()">↺ Start over</button></div><p class="small">Method: proficiency bands loosely aligned to CEFR descriptors, with progressive A1/A2/B1 items and task-based rubrics inspired by adaptive proficiency assessments. This is NOT an official Avant test or a validated certified CEFR exam. Text-based evaluations cannot reliably measure pronunciation; browser transcription may mishear speech.</p><div class="section-actions"><button onclick="go(5)">← Speaking</button><span></span></div></section>
 </main></div><footer>Designed for one A2 learner being screened across A1–B1. AI evaluation is available when deployed with the optional secure /api/placement-evaluate and /api/placement-nova endpoints. Offline analysis is heuristic and marked as such.</footer>
 <script>
@@ -580,5 +605,43 @@ try{
    renderer.render(scene,camera);
  }frame();
 }catch(e){label.textContent='3D renderer unavailable: '+e.message;console.error(e)}
+</script>
+
+<script id="placement-realtime-bridge">
+(function(){
+ const seen=new Set();
+ const log=[];
+ const turns=[];
+ const frame=document.getElementById('placementNovaRealtime');
+ const transcript=document.getElementById('placementRealtimeTranscript');
+ const label=document.getElementById('placementRealtimeTurns');
+ const status=document.getElementById('placementRealtimeStatus');
+ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ window.addEventListener('message',ev=>{
+  if(ev.origin!==location.origin||ev.source!==frame.contentWindow)return;
+  const d=ev.data;
+  if(d?.source!=='webilang-gender-qwen'||d.scenario!=='placement_nova')return;
+  if(d.type==='ended'){status.textContent='Session ended. You can evaluate the recorded transcript.';return;}
+  if(d.type!=='transcript'||!d.text||!['student','avatar'].includes(d.speaker))return;
+  const key=d.speaker+':'+(d.id||d.text);
+  if(seen.has(key))return;
+  seen.add(key);
+  log.push({role:d.speaker==='student'?'user':'assistant',content:d.text});
+  if(d.speaker==='student')turns.push(d.text);
+  transcript.innerHTML=log.map(x=>'<div><b>'+(x.role==='user'?'YOU':'NOVA')+':</b> '+esc(x.content)+'</div>').join('');
+  transcript.scrollTop=transcript.scrollHeight;
+  label.textContent=turns.length+' learner turn'+(turns.length===1?'':'s')+' recorded';
+ });
+ document.getElementById('placementRealtimeEvaluate').addEventListener('click',()=>{
+  if(!turns.length){status.textContent='Please complete a spoken exchange first.';return;}
+  status.textContent='Evaluating your realtime conversation…';
+  if(typeof evaluate==='function'){
+   evaluate('dialogue',turns.join(' '),'dialogueFeedback','dialogue',{history:log,turns:turns.length,supportUsed:false});
+   const f=document.getElementById('dialogueFeedback');
+   if(f){f.classList.remove('hide');f.style.display='block';document.querySelector('.placement-realtime-shell .realtime-score').appendChild(f);}
+   status.textContent='AI assessment requested. Your spoken turns have been included.';
+  } else status.textContent='Could not locate the assessment function.';
+ });
+})();
 </script>
 </body></html>
