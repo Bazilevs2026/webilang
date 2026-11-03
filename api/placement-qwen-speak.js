@@ -22,9 +22,12 @@ export default async function handler(req,res){
     if(!response.ok||data.code)throw Error(data.message||data.code||('Qwen HTTP '+response.status));
     const output=data.output||{};
     const url=output.audio?.url||output.audio_url||output.audio?.audio_url;
-    if(!url||!/^https:\/\//.test(url))throw Error('Qwen returned no downloadable audio URL');
+    if(!url)throw Error('Qwen returned no downloadable audio URL');
     const parsed=new URL(url);
-    if(!/(^|\.)aliyuncs\.com$|(^|\.)alibabacloud\.com$/.test(parsed.hostname))throw Error('Unexpected audio host');
+    // Qwen's signed OSS URLs can legitimately use HTTP; download server-side only.
+    if(!['http:','https:'].includes(parsed.protocol) ||
+       !/(^|\.)aliyuncs\.com$|(^|\.)alibabacloud\.com$/.test(parsed.hostname))
+      throw Error('Unexpected audio host');
     const audio=await fetch(url);
     if(!audio.ok)throw Error('Could not retrieve Qwen audio '+audio.status);
     const bytes=Buffer.from(await audio.arrayBuffer());

@@ -12,6 +12,7 @@ export default async function handler(req,res){
   const d=await r.json();if(!r.ok||d.code)throw Error(d.message||('Qwen '+r.status));
   const url=d.output?.audio?.url||d.output?.audio_url||d.output?.audio?.audio_url;
   if(!url)throw Error('No Qwen audio URL');
+  if(!['http:','https:'].includes(new URL(url).protocol))throw Error('Unexpected audio protocol');
   if(!/(^|\.)aliyuncs\.com$|(^|\.)alibabacloud\.com$/.test(new URL(url).hostname))throw Error('Unexpected audio host');
   const a=await fetch(url);if(!a.ok)throw Error('Audio download failed');
   const bytes=Buffer.from(await a.arrayBuffer());
