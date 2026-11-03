@@ -142,7 +142,7 @@ body.nova-theater #novaGame .game-input #handsFreeLabel{color:#e7f7fc}
  body.nova-theater #novaGame .stage-controls{bottom:4px;padding:3px}
  body.nova-theater #novaGame .stage-controls button{padding:4px;font-size:10px}
 }
-</style>
+.placement-timer-strip{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 16px;margin:0 0 12px;border:1px solid #c8dced;border-radius:12px;background:#f6fbff;color:#284563;font-weight:700}.placement-timer-strip #placementClock{font-size:23px}@media(max-width:650px){.placement-timer-strip{flex-wrap:wrap}}</style>
 <style id="placement-realtime-style">
 #novaGame > .nova-stage,#novaGame > .quest-track,#novaGame > .chat,#novaGame > .game-input,
 #novaGame > #novaEvaluateBtn,#novaGame > .npc-immersive-close{display:none!important}
@@ -192,16 +192,7 @@ body.nova-theater #novaGame .game-input #handsFreeLabel{color:#e7f7fc}
 <div class="game-input"><div class="row"><button class="primary" id="startQuestBtn" onclick="startDialogue()">▶ Start / Restart quest</button><button id="talkBtn" onclick="toggleDialogueMic()">🎙 Talk to Nova</button><button id="novaHintBtn" onclick="showNovaPrompt()">💡 Conversation support</button></div><div class="row"><label id="handsFreeLabel"><input type="checkbox" id="novaAutoSend"> Auto-send after microphone stops (hands-free turns)</label><span class="npc-hotkeys">Enter: send · Esc: leave game</span></div><textarea id="dialogueInput" style="min-height:95px" placeholder="Speak into your microphone or type your own answer to Nova…"></textarea><div class="row spread"><span class="small" id="novaMicStatus">🎙 Microphone ready on supported browsers · Enter to send, Shift+Enter for new line</span><button id="novaSendBtn" class="primary" onclick="sendDialogue()">Send answer ➜</button></div><p class="small" id="novaProgressNote">Unassisted speaking gives the clearest placement evidence. Optional hints are recorded in the report.</p></div>
 <button id="novaEvaluateBtn" onclick="checkDialogue()" style="margin-top:12px">✨ Evaluate my conversation</button><div class="feedback hide" id="dialogueFeedback"></div>
 <div class="placement-realtime-shell">
- <div class="nova-test-task">
-   <div class="task-top"><strong>🎮 SPEAKING MISSION: BRIGHTON WEEKEND</strong><span id="placementClock" aria-live="polite">05:00</span></div>
-   <p>You have <b>5 minutes</b> to plan a <b>two-day trip to Brighton</b> with a <b>£180 total budget</b>. Talk to Nova naturally; she works at the visitor centre.</p>
-   <div class="nova-task-grid">
-      <div>① Tell Nova your travel dates and duration</div><div>② Ask about accommodation and choose one</div>
-      <div>③ Find transport and decide how to travel</div><div>④ Ask about an activity and choose one</div>
-      <div>⑤ Make a special request (e.g. quiet room) and say why</div><div>⑥ Explain your final plan and its total cost</div>
-   </div>
-   <p class="small">Don't read a prepared script. Ask follow-up questions and make decisions yourself. The timer begins when the realtime connection is ready.</p>
- </div>
+ <div class="placement-timer-strip"><span>⏱ Speaking countdown</span><strong id="placementClock" aria-live="polite">05:00</strong></div>
  <iframe id="placementNovaRealtime" title="Live 3D Nova conversation" src="/placement-test/nova-realtime.html?pilot=placement_nova&mode=avatar&embed=gender" allow="microphone; autoplay; fullscreen"></iframe>
   <div class="realtime-score">
    <strong id="placementRealtimeTurns">0 learner turns recorded</strong>
