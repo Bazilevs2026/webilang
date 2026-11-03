@@ -678,7 +678,8 @@ function wlQwenHandleEvent(m,channel){
  if(m.type==='session.created'&&!wlQwenConfigured){
   wlQwenConfigured=true;
   const instructions=interviewScenario==='placement_nova'
-   ? 'You are Nova, a friendly female travel adviser in a city visitor centre. This is a spoken English CEFR A1–B1 placement assessment, aimed at A2 with optional B1 stretch. Talk with the learner as a believable video-game NPC, not as a teacher. Speak naturally in clear short A2 English, usually one or two sentences. First greet the learner and ask where they would like to go and for how many days. Gradually ask about accommodation, budget, transport, activities, a realistic travel problem, and their final plan. Adapt each reply to what the learner actually says; never follow a fixed script if their answer changes the situation. Ask only one focused question at a time. Do not correct grammar, grade, or supply example answers while assessing. Let the learner finish and respond to interruptions. Keep voice natural, warm, and age-neutral. After roughly six meaningful learner turns, end the travel task politely and wait silently.'
+    ? `You are NOVA, a friendly FEMALE visitor-centre assistant in Brighton, UK. Your voice identity is NOVA, not Kostya. This is a LIVE CEFR A1-B1 speaking assessment; the learner must accomplish a real travel task in five minutes. The learner plans a TWO-DAY trip to Brighton with a TOTAL budget of £180, including accommodation, local transport and one activity. Privately use these scenario facts consistently: budget hostel £48 per night, basic hotel £72 per night, day bus ticket £5, aquarium £22, museum free, bicycle rental £14/day. At an appropriate point introduce a realistic complication: the first hotel chosen has no rooms on Saturday, and offer an alternative. The learner should (1) state destination and trip duration, (2) ask about and choose accommodation, (3) enquire about transport and choose an option, (4) enquire about activities and choose one, (5) respond to the booking problem, (6) state an achievable final itinerary with approximate total cost. Do not supply a complete itinerary unsolicited. Ask short natural questions, adapt to answers, clarify unclear statements. Let learner initiate decisions and ask questions. Speak clear A2-level English with occasional B1 stretch; no grammar correction or linguistic feedback during assessment. Keep replies to one or two natural sentences, one question at a time. Never claim to be Kostya or an English teacher. If the learner runs out of time, finish politely.`
+
    : interviewScenario==='gender_engineering'
    ? 'You are Nova, a 19-year-old woman applying for an engineering apprenticeship. The learner is the interviewer. Speak like a real, friendly job applicant in natural B2 English, not a scripted chatbot. Have specific believable engineering projects and teamwork experience. Respond directly to the exact question, usually in one or two short conversational sentences; expand only when asked. Use contractions and occasional natural hesitation, but avoid repetitive filler. Listen to follow-up questions, adjust to what the interviewer just said, and acknowledge corrections naturally. If the interviewer interrupts, stop and listen, then address their new point instead of finishing your previous answer. Discuss stereotypes fairly without assuming bias. Never lecture, ask generic follow-up questions or act as a teacher.'
    : interviewScenario==='gender_babysitter'
@@ -714,10 +715,42 @@ function wlQwenHandleEvent(m,channel){
      void wlSendStudentMemory();
      if(interviewScenario==='kostya_teacher')void wlSendKostyaCharacter();
    }
-  rtMessage(placementInterview?'Nova ready · Speak naturally about your trip.':genderInterview?'Qwen '+avatarName()+' ready · Ask your first interview question.':'Qwen Kostya ready · Speak when ready.');return true;
+  if(placementInterview)placementRealtimeReady();
+   rtMessage(placementInterview?'Nova ready · Complete your Brighton travel mission.':genderInterview?'Qwen '+avatarName()+' ready · Ask your first interview question.':'Qwen Kostya ready · Speak when ready.');return true;
  }
  return false;
 }
+ 
+ let placementClock=null, placementEndsAt=0, placementHasStarted=false;
+ function placementNotify(type,extra={}){
+   if(placementInterview&&window.parent!==window){
+     window.parent.postMessage({source:'webilang-gender-qwen',scenario:'placement_nova',type,...extra},location.origin);
+   }
+ }
+ function placementRealtimeReady(){
+   if(!placementInterview||placementHasStarted)return;
+   placementHasStarted=true;
+   placementEndsAt=Date.now()+300000;
+   placementNotify('started',{durationSeconds:300});
+   clearInterval(placementClock);
+   placementClock=setInterval(()=>{
+     const remaining=Math.max(0,Math.ceil((placementEndsAt-Date.now())/1000));
+     placementNotify('tick',{remaining});
+     if(remaining===0){
+       clearInterval(placementClock);
+       rtCleanup();
+       rtMessage('Five minutes complete. Your conversation is ready for assessment.');
+     }
+   },1000);
+ }
+ window.addEventListener('message',ev=>{
+   if(ev.origin!==location.origin||ev.source!==window.parent)return;
+   if(ev.data?.source==='placement-control'&&ev.data?.type==='end'){
+     clearInterval(placementClock);
+     if(rtcPeer||rtcStream)rtCleanup();
+     rtMessage('Session finished. Return to the assessment.');
+   }
+ });
 const rtStatus=document.getElementById('rtStatus'),rtStart=document.getElementById('rtStart'),rtEnd=document.getElementById('rtEnd'),rtAudio=document.getElementById('rtAudio'),rtLog=document.getElementById('rtLog');
 const rtEnableSound=document.getElementById('rtEnableSound'),rtAudioStatus=document.getElementById('rtAudioStatus');
 
@@ -743,6 +776,7 @@ rtAudio.addEventListener('error',()=>soundStatus('playback error · tap Enable i
 
 const rtMessage=s=>{rtStatus.textContent=s};
 function rtCleanup(){
+  if(placementInterview){clearInterval(placementClock);placementClock=null;placementHasStarted=false;placementEndsAt=0;}
  if(genderInterview&&window.parent!==window)window.parent.postMessage({source:"webilang-gender-qwen",type:"ended",scenario:interviewScenario},location.origin);
   ++rtcGeneration;
   active=false;
@@ -813,7 +847,7 @@ rtStart.onclick=async()=>{
      }catch(err){console.warn(err)}};
    const offer=await rtcPeer.createOffer();await rtcPeer.setLocalDescription(offer);
    rtMessage('Establishing secure Realtime connection…');
-   if(qwenMode){const cr=await fetch('/api/qwen-voice-session',{cache:'no-store'});if(!cr.ok)throw Error('Qwen config HTTP '+cr.status);const config=await cr.json();wlQwenVoice=interviewScenario==='russian_kostya_teacher'?config.voices?.ru:interviewScenario==='gender_engineering'?(config.voices?.nova||'Jennifer'):interviewScenario==='gender_babysitter'?(config.voices?.chaz||'Aiden'):config.voices?.en;if(!wlQwenVoice)throw Error('Missing '+(interviewScenario==='russian_kostya_teacher'?'RU':'EN')+' Qwen Voice ID');}
+   if(qwenMode){const cr=await fetch('/api/qwen-voice-session',{cache:'no-store'});if(!cr.ok)throw Error('Qwen config HTTP '+cr.status);const config=await cr.json();wlQwenVoice=interviewScenario==='russian_kostya_teacher'?config.voices?.ru:interviewScenario==='gender_engineering'?(config.voices?.nova||'Jennifer'):interviewScenario==='gender_babysitter'?(config.voices?.chaz||'Aiden'):placementInterview?(config.voices?.nova||'Tina'):config.voices?.en;if(!wlQwenVoice)throw Error('Missing '+(interviewScenario==='russian_kostya_teacher'?'RU':'EN')+' Qwen Voice ID');}
    const r=await fetch((qwenMode?'/api/qwen-voice-session':'/api/realtime-session?character='+encodeURIComponent(modelMode.value)+'&language='+encodeURIComponent(lang.value)+'&level='+encodeURIComponent(document.getElementById('level').value)+'&topic='+encodeURIComponent(document.getElementById('topic').value)+'&pilot='+encodeURIComponent(interviewScenario||'')),{method:'POST',headers:{'Content-Type':qwenMode?'application/sdp':'application/json'},body:qwenMode?(rtcPeer.localDescription?.sdp||offer.sdp):JSON.stringify({sdp:rtcPeer.localDescription?.sdp||offer.sdp})});
    if(!r.ok){let info=await r.text();try{info=JSON.parse(info).error||info}catch(e){}throw Error('Session HTTP '+r.status+': '+String(info).slice(0,220))}
    if(sessionGeneration!==rtcGeneration)return;
