@@ -22,6 +22,10 @@ body.embedded .video-box{height:clamp(400px,52vh,650px);min-height:380px}
 body.embedded .privacy{margin:15px 3px 0}
 @media(max-width:660px){body.embedded .layout{padding:8px 5px 24px}body.embedded .video-box{height:53dvh;min-height:330px}body.embedded .card{padding:13px}}
 </style>
+<script type="module">
+import { defineCustomElements } from 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit-ui@latest/loader/index.es2017.js';
+defineCustomElements();
+</script>
 </head>
 <body>
 <main class="layout">
@@ -38,11 +42,12 @@ body.embedded .privacy{margin:15px 3px 0}
     <div class="divider"></div>
     <label>Video provider</label>
     <div class="stack" style="gap:9px">
-      <div id="jitsi-card" class="provider-card selected"><label><input type="radio" name="provider" value="jitsi" checked/> Instant test · Jitsi</label><p class="hint" style="margin:8px 0 0">No API key. The first person may have to sign in to Jitsi to start the meeting. Testing only—not a production provider.</p></div>
+      <div id="rtk-card" class="provider-card selected"><label><input type="radio" name="provider" value="rtk" checked/> ☁️ Cloudflare RealtimeKit · Webilang Video</label><p class="hint" style="margin:8px 0 9px">Recommended. The organizer uses a private access code; invited guests only need the link. Works within Webilang on desktop and mobile.</p><label for="rtk-host-code" style="font-size:12px">Organizer access code (for creating a new room only)</label><input id="rtk-host-code" type="password" autocomplete="off" maxlength="180" placeholder="Enter your private organizer code"/><p class="hint" style="margin:8px 0 0">For the pilot, only the organizer needs this code. Never put Cloudflare API tokens here.</p></div>
+      <div id="jitsi-card" class="provider-card"><label><input type="radio" name="provider" value="jitsi"/> Instant test · Jitsi</label><p class="hint" style="margin:8px 0 0">No API key. The first person may have to sign in to Jitsi to start the meeting. Testing only—not a production provider.</p></div>
       <div id="daily-card" class="provider-card"><label><input type="radio" name="provider" value="daily"/> Daily Prebuilt · managed video</label><p class="hint" style="margin:8px 0 9px">Create a free room in <a href="https://dashboard.daily.co/" target="_blank" rel="noopener">Daily Dashboard</a> once, then paste its room URL.</p><input id="daily-url" aria-label="Daily room URL" placeholder="https://yourteam.daily.co/roomname" inputmode="url"/></div>
     </div>
     <div class="actions" style="margin-top:16px"><button id="create">Create room</button><button id="join-existing" class="secondary hide">Join invited room</button></div>
-    <p class="hint" style="margin:12px 0 0">Test rooms are joined through a link. They do not yet have Webilang student authorization or persistent team chat; send invites only to trusted test partners.</p>
+    <p class="hint" style="margin:12px 0 0">RealtimeKit invitations are signed and expire after 24 hours. The pilot does not yet use Student Dashboard login or persistent chat. Invite trusted partners only.</p>
     <div id="setup-status" class="status hide" role="status"></div>
   </section>
   <section class="card">
@@ -69,7 +74,7 @@ body.embedded .privacy{margin:15px 3px 0}
     </aside>
   </div>
 </section>
-<p class="privacy">Pilot warning: video is provided by Jitsi or Daily, not stored by Webilang. No automatic recording or transcription by this page. Jitsi public testing may require organizer sign-in. Anyone with a test room link could potentially join; do not use it for confidential meetings or unsupervised minors.</p>
+<p class="privacy">Pilot warning: Cloudflare RealtimeKit provides the video connection; this Webilang page does not record or transcribe calls. Anyone with a valid invitation link can join for 24 hours. Use only with trusted test partners; do not use unsupervised with minors. Jitsi/Daily remain optional fallback providers.</p>
 </main>
 <script>
 (function(){'use strict';
@@ -84,29 +89,58 @@ const DATA={
  business:{title:'Start a Business',goal:'Invent a small business together and pitch it to a future customer.',steps:'1. Choose a product.  2. Discuss who needs it and how much it costs.  3. Give your two-minute pitch.',a:'Your role: Think about the product and its design.',b:'Your role: Think about customers, price and promotion.',ruGoal:'Придумайте совместный бизнес и представьте свою идею.',phrasesEn:['Our idea is…','Who would buy it?','It should cost…','What do you think?'],phrasesRu:['Наша идея — это…','Кто это купит?','Это должно стоить…','Что ты думаешь?']},
  chat:{title:'Just Chat',goal:'Get to know each other. Talk freely, or choose one of the prompts below.',steps:'Try: Something surprising this week · Your favourite place · What made you laugh recently · One thing you want to try.',a:'Your invitation: Ask your partner about something they enjoyed recently.',b:'Your invitation: Ask your partner to describe a place they love.',ruGoal:'Познакомьтесь и поговорите свободно на интересную вам тему.',phrasesEn:['What have you been up to?','Tell me more!','What do you mean?','That reminds me of…'],phrasesRu:['Как у тебя дела?','Расскажи подробнее!','Что ты имеешь в виду?','Это мне напоминает…']}
 };
-let provider='jitsi',room='',side='A',api=null,active=false,roomUrl='',phase='en';
+let provider='rtk',room='',side='A',api=null,active=false,roomUrl='',phase='en',invite='',rtkToken='';
 function safeName(s){return /^[A-Za-z0-9_-]{12,90}$/.test(s||'')?s:''}
 function safeDaily(s){try{const u=new URL(s);return u.protocol==='https:'&&/^[a-z0-9-]+\.daily\.co$/i.test(u.hostname)&&/^\/[a-zA-Z0-9_-]+\/?$/.test(u.pathname)&&!u.username&&!u.password?u.origin+u.pathname.replace(/\/$/,''):''}catch(_){return ''}}
 function randomRoom(){const a=new Uint8Array(16);crypto.getRandomValues(a);return 'WebilangPilot'+Array.from(a,x=>x.toString(16).padStart(2,'0')).join('')}
 function myName(){const n=$('name').value.trim();return n.slice(0,42)||'Webilang Student'}
 function status(msg,type){$('setup-status').textContent=msg;$('setup-status').className='status '+(type||'')}
-function setSelected(){provider=document.querySelector('input[name="provider"]:checked').value;$('jitsi-card').classList.toggle('selected',provider==='jitsi');$('daily-card').classList.toggle('selected',provider==='daily')}
-function urlFor(s){const u=new URL(location.href);u.search='';u.hash='';u.searchParams.set('p',provider);if(provider==='jitsi')u.searchParams.set('r',room);else u.searchParams.set('d',roomUrl);u.searchParams.set('a',$('activity').value);u.searchParams.set('l',$('language').value);u.searchParams.set('level',$('level').value);u.searchParams.set('side',s);return u.toString()}
+function setSelected(){provider=document.querySelector('input[name="provider"]:checked').value;$('rtk-card').classList.toggle('selected',provider==='rtk');$('jitsi-card').classList.toggle('selected',provider==='jitsi');$('daily-card').classList.toggle('selected',provider==='daily')}
+function urlFor(s){const u=new URL(location.href);u.search='';u.hash='';u.searchParams.set('p',provider);if(provider==='rtk')u.searchParams.set('invite',invite);else if(provider==='jitsi')u.searchParams.set('r',room);else u.searchParams.set('d',roomUrl);u.searchParams.set('a',$('activity').value);u.searchParams.set('l',$('language').value);u.searchParams.set('level',$('level').value);u.searchParams.set('side',s);return u.toString()}
 function showInvite(){const partner=side==='A'?'B':'A';$('invite-url').value=urlFor(partner);$('live-invite-url').value=urlFor(partner);$('invite-empty').classList.add('hide');$('invite-ready').classList.remove('hide')}
 function setIntro(){const item=DATA[$('activity').value];const lang=$('language').value;$('live-title').textContent=item.title;$('live-level').textContent=$('level').value+' · '+(lang==='both'?'English + Russian':lang==='ru'?'Russian':'English')+' · '+(side==='A'?'Partner A':'Partner B');$('mission-goal').textContent=lang==='ru'?item.ruGoal:item.goal;$('mission-steps').textContent=item.steps;$('secret-clue').textContent=side==='A'?item.a:item.b;$('role-label').textContent='Partner '+side;phase=lang==='ru'?'ru':'en';updateRound()}
 function updateRound(){$('lang-label').textContent=phase==='ru'?'Russian':'English';$('round-description').textContent=$('language').value==='both'?'Current round: '+(phase==='ru'?'Russian':'English')+'. Switch when you agree with your partner.':'Optional switch for phrase suggestions.';$('magic-output').textContent='Click for a hint.'}
-function setProviderRooms(){if(provider==='daily')$('direct-link').href=roomUrl;else $('direct-link').href='https://meet.jit.si/'+encodeURIComponent(room)}
-function prepare(invited=false){setSelected();if(provider==='jitsi'){
- if(!room)room=randomRoom();
- }else{roomUrl=safeDaily($('daily-url').value);if(!roomUrl){status('Please enter a valid Daily room URL, e.g. https://yourteam.daily.co/test-room. Create the room in your Daily Dashboard first.','warn');return false}}
- if(location.protocol==='file:'){status('Upload meet.html to your Webilang Vercel site before sharing invitations. File:// links cannot be used by your partner.','warn');return false}
- $('setup').classList.add('hide');$('live').classList.remove('hide');$('provider-label').textContent=provider==='jitsi'?'Jitsi public test':'Daily Prebuilt';showInvite();setIntro();setProviderRooms();active=true;reportActive(true);
+function setProviderRooms(){if(provider==='rtk'){$('direct-link').href=urlFor(side);$('direct-link').textContent='Open Webilang room in a new tab ↗'}else if(provider==='daily')$('direct-link').href=roomUrl;else $('direct-link').href='https://meet.jit.si/'+encodeURIComponent(room)}
+async function prepare(invited=false){
+ setSelected();
+ if(location.protocol==='file:'){status('Upload this file to the Webilang Vercel site before joining; a local file cannot call the secure video API.','warn');return false}
+ if(provider==='rtk'){
+   try{
+     const data={action:invited?'join':'create',name:myName()};
+     if(invited){if(!invite){status('Invalid invitation. Ask the organizer for a new link.','warn');return false}data.invite=invite}
+     else{const hostCode=$('rtk-host-code').value.trim();if(!hostCode){status('Enter the organizer access code to create a Cloudflare room.','warn');return false}data.hostCode=hostCode;data.activity=$('activity').value}
+     status('Connecting to Cloudflare RealtimeKit…');$('create').disabled=true;$('join-existing').disabled=true;
+     const response=await fetch('/api/webilang-rtk',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',cache:'no-store',body:JSON.stringify(data)});
+     const result=await response.json().catch(()=>({}));
+     if(!response.ok||!result.authToken)throw new Error(result.error||'Cloudflare could not create the video session.');
+     rtkToken=result.authToken;
+     if(!invited){invite=result.invite; if(!invite)throw new Error('No invitation was returned by the server.')}
+   }catch(e){status(e.message||'Unable to connect to video.','error');return false}
+   finally{$('create').disabled=false;$('join-existing').disabled=false}
+ }else if(provider==='jitsi'){
+   if(!room)room=randomRoom();
+ }else{
+   roomUrl=safeDaily($('daily-url').value);
+   if(!roomUrl){status('Please enter a valid Daily room URL.','warn');return false}
+ }
+ $('setup').classList.add('hide');$('live').classList.remove('hide');
+ $('provider-label').textContent=provider==='rtk'?'Cloudflare RealtimeKit':provider==='jitsi'?'Jitsi public test':'Daily Prebuilt';
+ showInvite();setIntro();setProviderRooms();active=true;reportActive(true);
  const url=urlFor(side);history.replaceState(null,'',url);loadVideo();return true;
 }
 function addScript(url,check){return new Promise((resolve,reject)=>{if(check())return resolve();const s=document.createElement('script');s.src=url;s.async=true;s.onload=()=>check()?resolve():reject(Error('Video API missing after load'));s.onerror=()=>reject(Error('Could not load the video provider'));document.head.appendChild(s)})}
 function msg(s,error){$('video-status').textContent=s;$('live-status').textContent=s;if(error)$('live-status').style.color='#d97779';else $('live-status').style.color=''}
-async function loadVideo(){msg('Loading '+(provider==='jitsi'?'Jitsi test room':'Daily video')+'…');const container=$('video-frame');container.textContent='';try{
- if(provider==='jitsi'){
+async function loadVideo(){msg('Loading '+(provider==='rtk'?'Cloudflare RealtimeKit':provider==='jitsi'?'Jitsi test room':'Daily video')+'…');const container=$('video-frame');container.textContent='';try{
+ if(provider==='rtk'){
+   await addScript('https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit@latest/dist/browser.js',()=>typeof window.RealtimeKitClient?.init==='function');
+   if(!active)return;
+   if(!customElements.get('rtk-meeting'))await Promise.race([customElements.whenDefined('rtk-meeting'),new Promise((_,reject)=>setTimeout(()=>reject(Error('RealtimeKit UI did not load')),20000))]);
+   if(!active)return;
+   api=await window.RealtimeKitClient.init({authToken:rtkToken});
+   if(!active){if(api.leave)await api.leave();return}
+   const el=document.createElement('rtk-meeting');el.setAttribute('show-setup-screen','true');el.style.cssText='display:block;position:absolute;inset:0;width:100%;height:100%';el.meeting=api;container.appendChild(el);
+   msg('Room ready. Use the meeting setup screen to join with your camera or microphone.');
+ }else if(provider==='jitsi'){
  await addScript('https://meet.jit.si/external_api.js',()=>typeof window.JitsiMeetExternalAPI==='function');if(!active)return;
  api=new window.JitsiMeetExternalAPI('meet.jit.si',{roomName:room,width:'100%',height:'100%',parentNode:container,userInfo:{displayName:myName()},configOverwrite:{prejoinConfig:{enabled:true},startWithAudioMuted:false,startWithVideoMuted:false},interfaceConfigOverwrite:{SHOW_JITSI_WATERMARK:true}});
  api.addListener('videoConferenceJoined',()=>{msg('Connected. Your partner can join using the invitation link.');$('video-placeholder').classList.add('hide')});
@@ -122,9 +156,9 @@ async function loadVideo(){msg('Loading '+(provider==='jitsi'?'Jitsi test room':
  $('video-placeholder').classList.add('hide');msg('Room loaded. If asked, allow camera and microphone access.');
  }catch(e){console.error('Webilang video room:',e);$('video-placeholder').classList.remove('hide');msg('Embedded video could not start: '+(e.message||e)+'. Use “Open video directly” below.',true)}
 }
-async function leave(){active=false;reportActive(false);if(api){try{if(provider==='jitsi'&&typeof api.dispose==='function')api.dispose();else if(api.destroy)await api.destroy()}catch(e){console.warn(e)}api=null} $('video-frame').textContent='';$('live').classList.add('hide');$('setup').classList.remove('hide');$('video-placeholder').classList.remove('hide');$('notes').value=$('notes').value||'';history.replaceState(null,'',location.pathname);status('Call closed. You can create a new meeting or rejoin the same room.','success')}
+async function leave(){active=false;reportActive(false);if(api){try{if(provider==='rtk'&&typeof api.leave==='function')await api.leave();else if(provider==='jitsi'&&typeof api.dispose==='function')api.dispose();else if(api.destroy)await api.destroy()}catch(e){console.warn(e)}api=null} $('video-frame').textContent='';$('live').classList.add('hide');$('setup').classList.remove('hide');$('video-placeholder').classList.remove('hide');$('notes').value=$('notes').value||'';history.replaceState(null,'',location.pathname);status('Call closed. You can create a new meeting or rejoin the same room.','success')}
 async function copy(s,output){try{await navigator.clipboard.writeText(s);if(output)output.textContent='Copied!'}catch(e){if(output)output.textContent='Copy manually from the invitation field.';try{if($('invite-url').value){$('invite-url').focus();$('invite-url').select()}}catch(_){}}}
-$('create').addEventListener('click',()=>{setSelected();side='A';if(provider==='jitsi')room=randomRoom();else room='';prepare()});
+$('create').addEventListener('click',()=>{setSelected();side='A';invite='';rtkToken='';if(provider==='jitsi')room=randomRoom();else room='';prepare(false)});
 $('join-existing').addEventListener('click',()=>prepare(true));
 document.querySelectorAll('input[name="provider"]').forEach(el=>el.addEventListener('change',setSelected));
 $('activity').addEventListener('change',()=>{if(active){setIntro();showInvite()}});
@@ -137,7 +171,7 @@ $('switch-language').addEventListener('click',()=>{phase=phase==='en'?'ru':'en';
 $('copy-notes').addEventListener('click',()=>copy($('notes').value,$('live-status')));
 $('leave').addEventListener('click',leave);
 window.addEventListener('beforeunload',()=>{try{if(api&&api.dispose)api.dispose()}catch(e){}});
-(function initFromLink(){const p=qs.get('p');const r=safeName(qs.get('r'));const d=safeDaily(qs.get('d'));const a=qs.get('a');const l=qs.get('l');const lv=qs.get('level');side=qs.get('side')==='B'?'B':'A';if(DATA[a])$('activity').value=a;if(['en','ru','both'].includes(l))$('language').value=l;if(['A2','B1'].includes(lv))$('level').value=lv;if(p==='jitsi'&&r){room=r;provider='jitsi'}else if(p==='daily'&&d){provider='daily';roomUrl=d;$('daily-url').value=d}else return;document.querySelector('input[name="provider"][value="'+provider+'"]').checked=true;setSelected();$('join-existing').classList.remove('hide');$('create').textContent='Create different room';status('You received a Webilang invitation. Enter your name and click “Join invited room”.','success');})();
+(function initFromLink(){const p=qs.get('p');const r=safeName(qs.get('r'));const d=safeDaily(qs.get('d'));const a=qs.get('a');const l=qs.get('l');const lv=qs.get('level');side=qs.get('side')==='B'?'B':'A';if(DATA[a])$('activity').value=a;if(['en','ru','both'].includes(l))$('language').value=l;if(['A2','B1'].includes(lv))$('level').value=lv;if(p==='rtk'&&qs.get('invite')&&qs.get('invite').length<1000){provider='rtk';invite=qs.get('invite')}else if(p==='jitsi'&&r){room=r;provider='jitsi'}else if(p==='daily'&&d){provider='daily';roomUrl=d;$('daily-url').value=d}else return;document.querySelector('input[name="provider"][value="'+provider+'"]').checked=true;setSelected();$('join-existing').classList.remove('hide');$('create').textContent='Create different room';status('You received a Webilang invitation. Enter your name and click “Join invited room”.','success');})();
 })();
 </script>
 </body></html>
