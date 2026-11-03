@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#16283d"><title>Webilang Missions · Meet & Speak</title>
+<style>
+:root{--ink:#1b2e43;--sub:#62758a;--line:#dfe7ef;--soft:#f5f8fb;--orange:#e87723;--navy:#16283d;--green:#267153;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:#f5f7fa}
+*{box-sizing:border-box}body{margin:0;min-height:100vh}button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;border-radius:11px;background:var(--orange);color:white;font-weight:760;padding:12px 16px}button:hover:not(:disabled){filter:brightness(.97)}button:disabled{opacity:.48;cursor:not-allowed}.secondary{background:#e9eef4;color:var(--ink)}.outline{background:white;border:1px solid #cdd9e6;color:var(--ink)}.danger{background:#ae3541}.tiny{font-size:12px}.muted{color:var(--sub)}.hide{display:none!important}a{color:#1b698b}a:hover{text-decoration:underline}h1,h2,h3,p{margin-top:0}h1{font-size:clamp(25px,3vw,34px);margin-bottom:7px;letter-spacing:-.04em}h2{font-size:19px;margin:0 0 12px}h3{font-size:16px;margin:0 0 8px}p{line-height:1.52}.layout{max-width:1440px;margin:0 auto;padding:20px 22px 55px}.topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:3px 0 19px}.brand{font-weight:900;font-size:20px;letter-spacing:-.04em;text-decoration:none;color:var(--ink)}.brand span{color:var(--orange)}.topnav{display:flex;gap:9px;align-items:center}.tag{display:inline-flex;gap:5px;align-items:center;padding:5px 10px;background:#fef0dd;color:#905117;font-weight:800;font-size:11px;border-radius:30px;letter-spacing:.02em}.card{background:white;border:1px solid var(--line);border-radius:19px;padding:21px;box-shadow:0 7px 25px #182b4207}.hero{background:linear-gradient(110deg,#e8f5ef,#edf5fc);border:1px solid #d7e9e4;border-radius:19px;padding:23px 26px;margin-bottom:18px}.hero p{margin-bottom:0}.controls{display:grid;grid-template-columns:1fr 1fr;gap:15px}.stack{display:grid;gap:13px}label{display:block;font-size:13px;font-weight:780;margin:0 0 7px}input,select,textarea{display:block;width:100%;padding:11px 12px;background:white;color:var(--ink);border-radius:11px;border:1px solid #bdcbd9;outline-offset:2px}textarea{min-height:85px;resize:vertical}.field{margin-bottom:12px}.actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center}.hint{font-size:12px;color:var(--sub);line-height:1.55}.switcher{display:flex;gap:7px;flex-wrap:wrap}.tab{background:#eef2f6;color:#516579;font-size:13px;padding:9px 12px}.tab.active{color:white;background:#273f55}.status{font-size:13px;padding:12px 13px;border-radius:10px;background:#edf5fa;color:#365d78;margin-top:13px;line-height:1.5}.status.warn{background:#fff6e8;color:#885614}.status.success{background:#e8f5eb;color:#24633d}.status.error{background:#fff0ef;color:#8b2d2d}.intro{margin-bottom:12px}.room-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(275px,.65fr);gap:15px;margin-top:15px}.video-box{min-height:480px;height:clamp(480px,60vh,790px);background:#122438;position:relative;border-radius:15px;overflow:hidden;color:white;display:grid;place-items:center}.video-placeholder{text-align:center;padding:30px;max-width:430px}.video-placeholder .symbol{font-size:45px;margin-bottom:12px}.video-placeholder h2{color:#fff}.video-placeholder p{color:#c5d4e2}.video-frame{position:absolute;inset:0;width:100%;height:100%}.video-placeholder{position:relative;z-index:2;pointer-events:none}.video-frame iframe{display:block!important;width:100%!important;height:100%!important;border:0}.room-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:13px;flex-wrap:wrap}.room-top h2{margin:0}.side-stack{display:flex;flex-direction:column;gap:12px;min-width:0}.side-stack .card{padding:17px}.goal{border-left:4px solid var(--orange);background:#fff8ee;border-radius:9px;padding:12px 13px;font-size:14px;margin:10px 0}.note{border:1px dashed #c4d5e0;border-radius:10px;padding:11px;background:#f7fafc;font-size:14px}.phrase{padding:9px 12px;background:#f3f6f9;border-radius:9px;border:1px solid #e5ebf1;font-size:13px;margin-top:7px}.role{font-size:12px;font-weight:800;color:#27684e;margin:8px 0}.rooms-back{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:15px}.privacy{margin-top:17px;font-size:12px;color:#708195;line-height:1.5}.suggestion{background:#f1f8f4;border:1px solid #c6e1d2;border-radius:11px;padding:11px;font-size:13px;margin:10px 0}.rowline{display:flex;align-items:center;justify-content:space-between;gap:9px}.pill{padding:4px 9px;border-radius:99px;font-weight:750;font-size:11px;background:#e9f4ea;color:#28654b}.provider-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:#f9fbfd}.provider-card.selected{border-color:#9ab9ca;background:#f0f7fa}.provider-card label{display:flex;align-items:center;gap:10px;cursor:pointer;margin:0;font-size:14px}.provider-card input{width:auto;accent-color:#e87723}.divider{height:1px;background:#e1e8ef;margin:13px 0}.mobile-sub{display:none}.story-list{margin:0;padding-left:18px;font-size:13px;line-height:1.5}.story-list li{margin:7px 0}.copy-note{border-radius:10px;padding:12px;background:#f7f9fb;border:1px solid #dce5ed;overflow-wrap:anywhere;font-size:12px}.app-link{display:inline-flex;text-decoration:none;border:1px solid #d3dde6;background:#f8fafc;padding:9px 12px;border-radius:9px;font-weight:750;font-size:12px;color:#304b61}.app-link:hover{text-decoration:none;background:#edf2f5}@media(max-width:940px){.room-grid{grid-template-columns:1fr}.video-box{height:52vh;min-height:400px}.side-stack{display:grid;grid-template-columns:1fr 1fr;align-items:start}}@media(max-width:660px){.layout{padding:13px 12px 45px}.controls{grid-template-columns:1fr}.topbar{padding-bottom:13px}.hero{padding:19px}.card{padding:16px}.room-grid{gap:10px}.video-box{height:52dvh;min-height:335px}.side-stack{display:flex}.topnav .smallhide{display:none}.room-top h2{font-size:17px}.room-top .actions button{padding:9px;font-size:12px}.mobile-sub{display:block}.desktop-sub{display:none}.actions button{font-size:13px}}
+
+
+/* Visual alignment with Webilang Missions. */
+:root{--ink:#18343c;--sub:#748791;--line:#e4ebe9;--soft:#f5f8f7;--orange:#ed803d;--navy:#163f49;--green:#1c746b;background:#f5f8f7}
+.card{border-radius:20px;box-shadow:0 7px 26px rgba(20,64,71,.055)}
+.hero{background:linear-gradient(110deg,#e7f4ed,#f1f7fb)}
+.tag{background:#e5f4ee;color:#1c746b}
+.pill{background:#e5f4ee;color:#1c746b}
+body.embedded{background:#fff}
+body.embedded .layout{padding:14px 12px 20px;max-width:none}
+body.embedded .topbar,body.embedded .hero{display:none}
+body.embedded .card{box-shadow:none}
+body.embedded .video-box{height:clamp(400px,52vh,650px);min-height:380px}
+body.embedded .privacy{margin:15px 3px 0}
+@media(max-width:660px){body.embedded .layout{padding:8px 5px 24px}body.embedded .video-box{height:53dvh;min-height:330px}body.embedded .card{padding:13px}}
+</style>
+</head>
+<body>
+<main class="layout">
+<header class="topbar"><a class="brand" href="./webilang-missions.html">✦ webilang <span>MISSIONS</span></a><nav class="topnav"><span class="tag">MEET & SPEAK · PILOT</span><a class="app-link smallhide" href="./webilang-missions.html">← Webilang Missions</a></nav></header>
+<section class="hero"><h1>Speak together. Learn together.</h1><p class="muted">Meet a language partner, work on a shared challenge, or just have a conversation. Video and audio stay inside this Webilang page.</p></section>
+<section id="setup" class="controls">
+  <section class="card">
+    <h2>1 · Start or join a room</h2>
+    <div class="field"><label for="name">Your display name</label><input id="name" maxlength="42" placeholder="e.g. Konstantin" autocomplete="nickname"/></div>
+    <div class="field"><label for="activity">Conversation mission</label><select id="activity">
+      <option value="secret">🍽️ The Secret Restaurant · Investigation</option><option value="hometown">🏙️ My Hometown · Exchange</option><option value="weekend">🎒 Plan a Weekend · Team Decision</option><option value="wallet">⚖️ The Lost Wallet · Dilemma</option><option value="business">💡 Start a Business · Create Together</option><option value="chat">☕ Just Chat · Free Conversation</option>
+    </select></div>
+    <div class="controls" style="gap:10px"><div class="field" style="margin:0"><label for="level">Your level</label><select id="level"><option>A2</option><option>B1</option></select></div><div class="field" style="margin:0"><label for="language">Main conversation language</label><select id="language"><option value="en">English</option><option value="ru">Russian</option><option value="both">English + Russian exchange</option></select></div></div>
+    <div class="divider"></div>
+    <label>Video provider</label>
+    <div class="stack" style="gap:9px">
+      <div id="jitsi-card" class="provider-card selected"><label><input type="radio" name="provider" value="jitsi" checked/> Instant test · Jitsi</label><p class="hint" style="margin:8px 0 0">No API key. The first person may have to sign in to Jitsi to start the meeting. Testing only—not a production provider.</p></div>
+      <div id="daily-card" class="provider-card"><label><input type="radio" name="provider" value="daily"/> Daily Prebuilt · managed video</label><p class="hint" style="margin:8px 0 9px">Create a free room in <a href="https://dashboard.daily.co/" target="_blank" rel="noopener">Daily Dashboard</a> once, then paste its room URL.</p><input id="daily-url" aria-label="Daily room URL" placeholder="https://yourteam.daily.co/roomname" inputmode="url"/></div>
+    </div>
+    <div class="actions" style="margin-top:16px"><button id="create">Create room</button><button id="join-existing" class="secondary hide">Join invited room</button></div>
+    <p class="hint" style="margin:12px 0 0">Test rooms are joined through a link. They do not yet have Webilang student authorization or persistent team chat; send invites only to trusted test partners.</p>
+    <div id="setup-status" class="status hide" role="status"></div>
+  </section>
+  <section class="card">
+    <h2>2 · Share an invitation</h2>
+    <p class="muted" style="font-size:14px">Create a room, then send your partner the Webilang invitation link. You both see the same activity and join the same video room.</p>
+    <div id="invite-empty" class="note">Your invitation link will appear here after you create a room.</div>
+    <div id="invite-ready" class="hide"><div class="field"><label for="invite-url">Partner invitation link</label><input id="invite-url" readonly/></div><div class="actions"><button id="copy-invite">Copy invitation</button><button id="share-invite" class="secondary">Share…</button></div><p id="copy-message" class="hint" role="status" style="margin-top:9px"></p></div>
+    <div class="divider"></div><h3>How it works</h3>
+    <ol class="story-list"><li>Create a room and copy the invitation.</li><li>Share the link with one or more partners.</li><li>Join your room and allow microphone/camera access.</li><li>Talk, solve a problem, or practise English and Russian.</li></ol>
+    <div class="suggestion">✨ Tip: In a bilingual exchange, agree to speak English first and Russian second. Try 10 minutes per language.</div>
+  </section>
+</section>
+<section id="live" class="hide">
+  <div class="rooms-back"><div><span class="tag">LIVE SESSION</span> <span class="muted tiny" id="provider-label"></span></div><a class="app-link" href="./webilang-missions.html">Webilang Missions</a></div>
+  <div class="room-top"><div><h2 id="live-title">Your conversation</h2><span id="live-level" class="muted tiny"></span></div><div class="actions"><button id="copy-live" class="secondary">🔗 Copy invite</button><button id="leave" class="danger">Leave room</button></div></div>
+  <div class="field" style="max-width:780px"><label for="live-invite-url">Partner invitation link — share this to enter the same meeting</label><input id="live-invite-url" readonly style="font-size:12px;background:#f6f9fc"/></div>
+  <div class="room-grid">
+    <section class="card" style="padding:12px;min-width:0"><div class="video-box"><div id="video-placeholder" class="video-placeholder"><div class="symbol">🎥</div><h2>Connecting to your room…</h2><p id="video-status">Video will load here. Your browser may ask for camera and microphone permission.</p></div><div id="video-frame" class="video-frame"></div></div><div class="rowline" style="flex-wrap:wrap;gap:10px;padding:11px 2px 0"><span id="live-status" class="tiny muted" role="status">Preparing room…</span><a id="direct-link" href="#" target="_blank" rel="noopener noreferrer" class="app-link">Open video directly ↗</a></div></section>
+    <aside class="side-stack">
+      <section class="card"><div class="rowline"><h3 style="margin:0">🎯 Shared Mission</h3><span id="role-label" class="pill">Partner A</span></div><div id="mission-goal" class="goal"></div><div id="mission-steps" class="muted" style="font-size:13px;line-height:1.55"></div><div id="secret-clue" class="note" style="margin-top:11px"></div><p class="hint" style="margin:10px 0 0">Your clue is personal. Tell your partner about it using your target language.</p></section>
+      <section class="card"><div class="rowline"><h3 style="margin:0">✨ Magic Box</h3><span id="lang-label" class="muted tiny">English</span></div><p class="hint" style="margin:8px 0">Help when you need it. These are prepared phrases, not live AI feedback yet.</p><div class="actions"><button id="phrase-help" class="secondary">Useful phrases</button><button id="listening-help" class="secondary">Listening help</button></div><div id="magic-output" class="phrase">Click for a hint.</div></section>
+      <section class="card"><h3>📝 My Notes</h3><textarea id="notes" placeholder="Your clues, questions, useful phrases… (not saved after the page closes)"></textarea><div class="actions" style="margin-top:9px"><button id="copy-notes" class="secondary">Copy notes</button><button id="switch-language" class="outline">Switch language</button></div><p class="hint" id="round-description" style="margin:8px 0 0"></p></section>
+      <section class="card"><h3>After the meeting</h3><p class="muted" style="font-size:13px;margin:0">Tell Kostya what was difficult, choose language for My Word / Grammar Stock and practise before your next conversation. Automatic analysis of partner calls is not enabled in this pilot.</p></section>
+    </aside>
+  </div>
+</section>
+<p class="privacy">Pilot warning: video is provided by Jitsi or Daily, not stored by Webilang. No automatic recording or transcription by this page. Jitsi public testing may require organizer sign-in. Anyone with a test room link could potentially join; do not use it for confidential meetings or unsupervised minors.</p>
+</main>
+<script>
+(function(){'use strict';
+const $=id=>document.getElementById(id);const qs=new URLSearchParams(location.search);
+const embedded=qs.get('embedded')==='1';if(embedded)document.body.classList.add('embedded');
+function reportActive(active){if(embedded&&window.parent!==window)window.parent.postMessage({type:'webilang-meet-status',active},location.origin)}
+const DATA={
+ secret:{title:'The Secret Restaurant',goal:'Find out what is in the mysterious dish. Decide whether to order it.',steps:'1. Exchange the information you have.  2. Ask follow-up questions.  3. Agree on what the secret dish might contain.',a:'Your clue: The waiter says that Midnight Special is served only after 8 PM.',b:'Your clue: A guest saw something golden and crunchy on the secret plate.',ruGoal:'Узнайте, из чего приготовлено загадочное блюдо, и решите, заказывать ли его.',phrasesEn:['What did you find out?','Could you repeat that, please?','What is it made of?','I think it might be…'],phrasesRu:['Что ты узнал(а)?','Повтори, пожалуйста.','Из чего это сделано?','Я думаю, это может быть…']},
+ hometown:{title:'My Hometown Guide',goal:'Create a two-stop tour together. Decide what a visitor should see first.',steps:'1. Each describe an interesting place.  2. Ask questions.  3. Agree on a short route.',a:'Your role: Recommend a place that local people love, not just a famous tourist attraction.',b:'Your role: Recommend a place that tells a story about the city.',ruGoal:'Создайте вместе короткий маршрут по родному городу.',phrasesEn:['In my town, there is…','What is special about it?','I would recommend…','Shall we start here?'],phrasesRu:['В моём городе есть…','Что в нём особенного?','Я бы посоветовал(а)…','Начнём здесь?']},
+ weekend:{title:'Plan a Weekend',goal:'Agree on a weekend plan that works for both people.',steps:'1. Say what you like.  2. Explain your budget.  3. Choose two activities together.',a:'Your preference: You like the outdoors and have a small budget.',b:'Your preference: You prefer museums or cafés and want to avoid long journeys.',ruGoal:'Договоритесь о плане выходных, который подойдёт обоим.',phrasesEn:['How about…?','That sounds good, but…','It is too expensive.','Let’s agree on…'],phrasesRu:['Может быть, мы…?','Хорошая идея, но…','Это слишком дорого.','Давай договоримся…']},
+ wallet:{title:'The Lost Wallet',goal:'Decide what to do with a wallet you found. Explain your reasoning.',steps:'1. Discuss the facts.  2. Consider possible actions.  3. Agree on a responsible plan.',a:'Your clue: The wallet has an ID card and a phone number.',b:'Your clue: The wallet contains a large amount of money, and a café worker saw it earlier.',ruGoal:'Решите, что делать с найденным кошельком, и объясните почему.',phrasesEn:['We could…','What if…?','I agree because…','I am not sure that…'],phrasesRu:['Мы могли бы…','А если…?','Я согласен/согласна, потому что…','Я не уверен(а), что…']},
+ business:{title:'Start a Business',goal:'Invent a small business together and pitch it to a future customer.',steps:'1. Choose a product.  2. Discuss who needs it and how much it costs.  3. Give your two-minute pitch.',a:'Your role: Think about the product and its design.',b:'Your role: Think about customers, price and promotion.',ruGoal:'Придумайте совместный бизнес и представьте свою идею.',phrasesEn:['Our idea is…','Who would buy it?','It should cost…','What do you think?'],phrasesRu:['Наша идея — это…','Кто это купит?','Это должно стоить…','Что ты думаешь?']},
+ chat:{title:'Just Chat',goal:'Get to know each other. Talk freely, or choose one of the prompts below.',steps:'Try: Something surprising this week · Your favourite place · What made you laugh recently · One thing you want to try.',a:'Your invitation: Ask your partner about something they enjoyed recently.',b:'Your invitation: Ask your partner to describe a place they love.',ruGoal:'Познакомьтесь и поговорите свободно на интересную вам тему.',phrasesEn:['What have you been up to?','Tell me more!','What do you mean?','That reminds me of…'],phrasesRu:['Как у тебя дела?','Расскажи подробнее!','Что ты имеешь в виду?','Это мне напоминает…']}
+};
+let provider='jitsi',room='',side='A',api=null,active=false,roomUrl='',phase='en';
+function safeName(s){return /^[A-Za-z0-9_-]{12,90}$/.test(s||'')?s:''}
+function safeDaily(s){try{const u=new URL(s);return u.protocol==='https:'&&/^[a-z0-9-]+\.daily\.co$/i.test(u.hostname)&&/^\/[a-zA-Z0-9_-]+\/?$/.test(u.pathname)&&!u.username&&!u.password?u.origin+u.pathname.replace(/\/$/,''):''}catch(_){return ''}}
+function randomRoom(){const a=new Uint8Array(16);crypto.getRandomValues(a);return 'WebilangPilot'+Array.from(a,x=>x.toString(16).padStart(2,'0')).join('')}
+function myName(){const n=$('name').value.trim();return n.slice(0,42)||'Webilang Student'}
+function status(msg,type){$('setup-status').textContent=msg;$('setup-status').className='status '+(type||'')}
+function setSelected(){provider=document.querySelector('input[name="provider"]:checked').value;$('jitsi-card').classList.toggle('selected',provider==='jitsi');$('daily-card').classList.toggle('selected',provider==='daily')}
+function urlFor(s){const u=new URL(location.href);u.search='';u.hash='';u.searchParams.set('p',provider);if(provider==='jitsi')u.searchParams.set('r',room);else u.searchParams.set('d',roomUrl);u.searchParams.set('a',$('activity').value);u.searchParams.set('l',$('language').value);u.searchParams.set('level',$('level').value);u.searchParams.set('side',s);return u.toString()}
+function showInvite(){const partner=side==='A'?'B':'A';$('invite-url').value=urlFor(partner);$('live-invite-url').value=urlFor(partner);$('invite-empty').classList.add('hide');$('invite-ready').classList.remove('hide')}
+function setIntro(){const item=DATA[$('activity').value];const lang=$('language').value;$('live-title').textContent=item.title;$('live-level').textContent=$('level').value+' · '+(lang==='both'?'English + Russian':lang==='ru'?'Russian':'English')+' · '+(side==='A'?'Partner A':'Partner B');$('mission-goal').textContent=lang==='ru'?item.ruGoal:item.goal;$('mission-steps').textContent=item.steps;$('secret-clue').textContent=side==='A'?item.a:item.b;$('role-label').textContent='Partner '+side;phase=lang==='ru'?'ru':'en';updateRound()}
+function updateRound(){$('lang-label').textContent=phase==='ru'?'Russian':'English';$('round-description').textContent=$('language').value==='both'?'Current round: '+(phase==='ru'?'Russian':'English')+'. Switch when you agree with your partner.':'Optional switch for phrase suggestions.';$('magic-output').textContent='Click for a hint.'}
+function setProviderRooms(){if(provider==='daily')$('direct-link').href=roomUrl;else $('direct-link').href='https://meet.jit.si/'+encodeURIComponent(room)}
+function prepare(invited=false){setSelected();if(provider==='jitsi'){
+ if(!room)room=randomRoom();
+ }else{roomUrl=safeDaily($('daily-url').value);if(!roomUrl){status('Please enter a valid Daily room URL, e.g. https://yourteam.daily.co/test-room. Create the room in your Daily Dashboard first.','warn');return false}}
+ if(location.protocol==='file:'){status('Upload meet.html to your Webilang Vercel site before sharing invitations. File:// links cannot be used by your partner.','warn');return false}
+ $('setup').classList.add('hide');$('live').classList.remove('hide');$('provider-label').textContent=provider==='jitsi'?'Jitsi public test':'Daily Prebuilt';showInvite();setIntro();setProviderRooms();active=true;reportActive(true);
+ const url=urlFor(side);history.replaceState(null,'',url);loadVideo();return true;
+}
+function addScript(url,check){return new Promise((resolve,reject)=>{if(check())return resolve();const s=document.createElement('script');s.src=url;s.async=true;s.onload=()=>check()?resolve():reject(Error('Video API missing after load'));s.onerror=()=>reject(Error('Could not load the video provider'));document.head.appendChild(s)})}
+function msg(s,error){$('video-status').textContent=s;$('live-status').textContent=s;if(error)$('live-status').style.color='#d97779';else $('live-status').style.color=''}
+async function loadVideo(){msg('Loading '+(provider==='jitsi'?'Jitsi test room':'Daily video')+'…');const container=$('video-frame');container.textContent='';try{
+ if(provider==='jitsi'){
+ await addScript('https://meet.jit.si/external_api.js',()=>typeof window.JitsiMeetExternalAPI==='function');if(!active)return;
+ api=new window.JitsiMeetExternalAPI('meet.jit.si',{roomName:room,width:'100%',height:'100%',parentNode:container,userInfo:{displayName:myName()},configOverwrite:{prejoinConfig:{enabled:true},startWithAudioMuted:false,startWithVideoMuted:false},interfaceConfigOverwrite:{SHOW_JITSI_WATERMARK:true}});
+ api.addListener('videoConferenceJoined',()=>{msg('Connected. Your partner can join using the invitation link.');$('video-placeholder').classList.add('hide')});
+ api.addListener('readyToClose',()=>{msg('Call ended. You can leave the room or join again.')});
+ }else{
+ await addScript('https://unpkg.com/@daily-co/daily-js',()=>!!(window.DailyIframe||window.Daily));if(!active)return;
+ const daily=window.DailyIframe||window.Daily;
+ api=daily.createFrame(container,{iframeStyle:{position:'absolute',top:'0',left:'0',width:'100%',height:'100%',border:'0'},showLeaveButton:true});
+ api.on('joined-meeting',()=>{msg('Connected. Your partner can join using the invitation link.');$('video-placeholder').classList.add('hide')});
+ api.on('left-meeting',()=>msg('You have left the video meeting.'));
+ await api.join({url:roomUrl,userName:myName()});
+ }
+ $('video-placeholder').classList.add('hide');msg('Room loaded. If asked, allow camera and microphone access.');
+ }catch(e){console.error('Webilang video room:',e);$('video-placeholder').classList.remove('hide');msg('Embedded video could not start: '+(e.message||e)+'. Use “Open video directly” below.',true)}
+}
+async function leave(){active=false;reportActive(false);if(api){try{if(provider==='jitsi'&&typeof api.dispose==='function')api.dispose();else if(api.destroy)await api.destroy()}catch(e){console.warn(e)}api=null} $('video-frame').textContent='';$('live').classList.add('hide');$('setup').classList.remove('hide');$('video-placeholder').classList.remove('hide');$('notes').value=$('notes').value||'';history.replaceState(null,'',location.pathname);status('Call closed. You can create a new meeting or rejoin the same room.','success')}
+async function copy(s,output){try{await navigator.clipboard.writeText(s);if(output)output.textContent='Copied!'}catch(e){if(output)output.textContent='Copy manually from the invitation field.';try{if($('invite-url').value){$('invite-url').focus();$('invite-url').select()}}catch(_){}}}
+$('create').addEventListener('click',()=>{setSelected();side='A';if(provider==='jitsi')room=randomRoom();else room='';prepare()});
+$('join-existing').addEventListener('click',()=>prepare(true));
+document.querySelectorAll('input[name="provider"]').forEach(el=>el.addEventListener('change',setSelected));
+$('activity').addEventListener('change',()=>{if(active){setIntro();showInvite()}});
+$('copy-invite').addEventListener('click',()=>copy($('invite-url').value,$('copy-message')));
+$('copy-live').addEventListener('click',()=>copy($('live-invite-url').value,$('live-status')));
+$('share-invite').addEventListener('click',async()=>{const url=$('invite-url').value;if(navigator.share){try{await navigator.share({title:'Join my Webilang conversation',text:'Join me for a Webilang language mission!',url})}catch(e){}}else copy(url,$('copy-message'))});
+$('phrase-help').addEventListener('click',()=>{const arr=phase==='ru'?DATA[$('activity').value].phrasesRu:DATA[$('activity').value].phrasesEn;$('magic-output').textContent=arr.join('  ·  ')});
+$('listening-help').addEventListener('click',()=>{$('magic-output').textContent=phase==='ru'?'Повтори, пожалуйста. · Можно помедленнее? · Что это значит?':'Could you say that again? · A little more slowly, please. · What does that mean?'});
+$('switch-language').addEventListener('click',()=>{phase=phase==='en'?'ru':'en';updateRound()});
+$('copy-notes').addEventListener('click',()=>copy($('notes').value,$('live-status')));
+$('leave').addEventListener('click',leave);
+window.addEventListener('beforeunload',()=>{try{if(api&&api.dispose)api.dispose()}catch(e){}});
+(function initFromLink(){const p=qs.get('p');const r=safeName(qs.get('r'));const d=safeDaily(qs.get('d'));const a=qs.get('a');const l=qs.get('l');const lv=qs.get('level');side=qs.get('side')==='B'?'B':'A';if(DATA[a])$('activity').value=a;if(['en','ru','both'].includes(l))$('language').value=l;if(['A2','B1'].includes(lv))$('level').value=lv;if(p==='jitsi'&&r){room=r;provider='jitsi'}else if(p==='daily'&&d){provider='daily';roomUrl=d;$('daily-url').value=d}else return;document.querySelector('input[name="provider"][value="'+provider+'"]').checked=true;setSelected();$('join-existing').classList.remove('hide');$('create').textContent='Create different room';status('You received a Webilang invitation. Enter your name and click “Join invited room”.','success');})();
+})();
+</script>
+</body></html>
