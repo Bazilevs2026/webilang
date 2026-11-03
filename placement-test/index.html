@@ -401,7 +401,7 @@ window.addEventListener('DOMContentLoaded',loadNaturalListening);
 <script type="module">
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
-import {VRMLoaderPlugin} from '@pixiv/three-vrm';
+import {VRMLoaderPlugin, VRMUtils} from '@pixiv/three-vrm';
 const host=document.getElementById('nova3d'),label=document.getElementById('nova3dStatus');
 try{
  const scene=new THREE.Scene();
@@ -413,10 +413,11 @@ try{
  host.appendChild(renderer.domElement);
  scene.add(new THREE.HemisphereLight(0xffffff,0x8996bc,2));
  const light=new THREE.DirectionalLight(0xffffff,2);light.position.set(1,3,3);scene.add(light);
- let vrm=null;const loader=new GLTFLoader();loader.register(parser=>new VRMLoaderPlugin(parser));
+ let vrm=null, novaFraming=null;const loader=new GLTFLoader();loader.register(parser=>new VRMLoaderPlugin(parser));
  loader.load('/avatar-lab/models/nova.vrm',gltf=>{
    vrm=gltf.userData.vrm;
-   scene.add(vrm.scene);vrm.scene.rotation.y=Math.PI;
+   VRMUtils.rotateVRM0(vrm);
+   scene.add(vrm.scene);
    label.textContent='';
    // Auto-framing based on the actual model bounds, works across differing VRM scales.
    const bounds=new THREE.Box3().setFromObject(vrm.scene),size=bounds.getSize(new THREE.Vector3()),center=bounds.getCenter(new THREE.Vector3());
@@ -424,10 +425,10 @@ try{
    const look=new THREE.Vector3(center.x,headY-size.y*.22,center.z);
    const close=new THREE.Vector3(center.x,headY-size.y*.2,center.z+Math.max(1.12,size.y*.67));
    const medium=new THREE.Vector3(center.x,headY-size.y*.30,center.z+Math.max(1.9,size.y*1.13));
-   vrm.userData.novaFraming={look,close,medium};
+   novaFraming={look,close,medium};
    window.novaCameraClose=true;
    camera.position.copy(close);camera.lookAt(look);
- },undefined,err=>{label.textContent='Could not load 3D Nova (check /avatar-lab/models/nova.vrm)';console.error(err)});
+ },undefined,err=>{label.textContent='Nova 3D error: '+(err?.message||String(err));console.error('[Nova VRM]',err)});
  // VRM humanoid procedural idle pose, conversation gestures and blink.
  const clock=new THREE.Clock(), joints={};let time=0;
  function joint(name){return vrm?.humanoid?.getNormalizedBoneNode?.(name)||null}
@@ -462,8 +463,8 @@ try{
      const hips=joint('hips');
      if(hips){hips.rotation.y+=(Math.sin(time*.55)*.012-hips.rotation.y)*Math.min(1,dt);}
      // Cinematic camera: switch between medium close-up and conversation portrait.
-     if(vrm.userData.novaFraming){
-       const f=vrm.userData.novaFraming;
+     if(novaFraming){
+       const f=novaFraming;
        const desired=window.novaCameraClose===false?f.medium:f.close;
        camera.position.lerp(desired,Math.min(1,dt*3));
        camera.lookAt(f.look);
