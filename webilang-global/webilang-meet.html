@@ -42,6 +42,35 @@ body.embedded .video-box{height:clamp(520px,66vh,760px);min-height:520px}
 #rtk-video-tiles video{background:#102332;display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px}
 #rtk-video-tiles label{display:block;font-weight:650;font-size:12px;color:#456370;margin:0 0 5px}
 @media(max-width:580px){#rtk-video-tiles{grid-template-columns:1fr 1fr}#rtk-video-tools .actions button{font-size:12px}}
+
+/* Main-video v4: display the already-working SDK video tracks in the actual meeting stage.
+   RealtimeKit's component stays mounted to manage the audio session but is visually hidden. */
+.video-box.rtk-main-active{background:#0f1720}
+.video-box.rtk-main-active #video-frame{opacity:0;pointer-events:none}
+#rtk-main-controls{position:absolute;top:0;left:0;right:0;z-index:10;min-height:66px;
+ display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
+ padding:10px 12px;background:#152936;color:#fff}
+#rtk-main-controls .actions{gap:7px}
+#rtk-main-controls button{background:#294656;color:#fff;border:1px solid #4c6875;font-size:12px;padding:9px 11px}
+#rtk-main-controls button.active-off{background:#a83944;border-color:#a83944}
+#rtk-call-state{font-size:12px;color:#d8e9ee;max-width:250px}
+.video-box.rtk-main-active #rtk-video-tiles{position:absolute;inset:70px 10px 10px;z-index:5;
+ margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+ align-items:stretch;justify-items:stretch;pointer-events:none}
+.video-box.rtk-main-active #rtk-video-tiles>div{position:relative;min-width:0;min-height:0;
+ border:1px solid #3d505b;border-radius:12px;overflow:hidden;background:#22323c}
+.video-box.rtk-main-active #rtk-video-tiles video{width:100%;height:100%;aspect-ratio:auto;
+ border-radius:0;object-fit:contain;background:#14212b}
+.video-box.rtk-main-active #rtk-self-video{transform:scaleX(-1)}
+.video-box.rtk-main-active #rtk-video-tiles label{position:absolute;z-index:1;bottom:8px;left:8px;
+ margin:0;color:white;background:#0c1f30ba;padding:6px 9px;border-radius:6px;font-size:12px}
+@media(max-width:600px){
+ #rtk-main-controls{min-height:78px;padding:9px 8px;justify-content:center}
+ #rtk-call-state{text-align:center;max-width:none;width:100%}
+ #rtk-main-controls button{padding:7px 9px;font-size:11px}
+ .video-box.rtk-main-active #rtk-video-tiles{inset:88px 7px 7px;
+ grid-template-columns:1fr;grid-template-rows:1fr 1fr;gap:7px}
+}
 </style>
 <script type="module">
 import { defineCustomElements } from 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit-ui@latest/loader/index.es2017.js';
@@ -86,7 +115,7 @@ defineCustomElements();
   <div class="room-top"><div><h2 id="live-title">Your conversation</h2><span id="live-level" class="muted tiny"></span></div><div class="actions"><button id="copy-live" class="secondary">🔗 Copy invite</button><button id="leave" class="danger">Leave room</button></div></div>
   <div class="field" style="max-width:780px"><label for="live-invite-url">Partner invitation link — share this to enter the same meeting</label><input id="live-invite-url" readonly style="font-size:12px;background:#f6f9fc"/></div>
   <div class="room-grid">
-    <section class="card" style="padding:12px;min-width:0"><div class="video-box"><div id="video-placeholder" class="video-placeholder"><div class="symbol">🎥</div><h2 id="video-placeholder-title">Connecting to your room…</h2><p id="video-status">Video will load here. Your browser may ask for camera and microphone permission.</p><button id="join-video-now" type="button" class="hide" style="margin:12px auto 0;padding:15px 22px;font-size:17px">Join video meeting →</button></div><div id="video-frame" class="video-frame"></div></div><div class="rowline" style="flex-wrap:wrap;gap:10px;padding:11px 2px 0"><span id="live-status" class="tiny muted" role="status">Preparing room…</span><a id="direct-link" href="#" target="_blank" rel="noopener noreferrer" class="app-link">Open video directly ↗</a></div><div id="rtk-video-tools" class="hide"><strong style="font-size:14px">📹 Video check</strong><div id="rtk-video-state" role="status">Checking camera...</div><div class="actions"><button id="rtk-restart-video" type="button" class="secondary">Start / restart my camera</button><button id="rtk-show-tiles" type="button" class="outline">Show video tiles</button></div><p id="rtk-video-message" role="status"></p><div id="rtk-video-tiles" class="hide"><div><label>My camera</label><video id="rtk-self-video" autoplay muted playsinline></video></div><div><label>Partner’s camera</label><video id="rtk-partner-video" autoplay playsinline muted></video></div></div><p class="hint">These tiles are a troubleshooting view. Video is never recorded or sent to AI.</p></div></section>
+    <section class="card" style="padding:12px;min-width:0"><div class="video-box"><div id="video-placeholder" class="video-placeholder"><div class="symbol">🎥</div><h2 id="video-placeholder-title">Connecting to your room…</h2><p id="video-status">Video will load here. Your browser may ask for camera and microphone permission.</p><button id="join-video-now" type="button" class="hide" style="margin:12px auto 0;padding:15px 22px;font-size:17px">Join video meeting →</button></div><div id="video-frame" class="video-frame"></div><div id="rtk-main-controls" class="hide"><span id="rtk-call-state" role="status">Connecting to the meeting…</span><div class="actions"><button id="rtk-main-mic" type="button">Mute mic</button><button id="rtk-main-camera" type="button">Turn camera off</button></div></div></div><div class="rowline" style="flex-wrap:wrap;gap:10px;padding:11px 2px 0"><span id="live-status" class="tiny muted" role="status">Preparing room…</span><a id="direct-link" href="#" target="_blank" rel="noopener noreferrer" class="app-link">Open video directly ↗</a></div><div id="rtk-video-tools" class="hide"><strong style="font-size:14px">📹 Video check</strong><div id="rtk-video-state" role="status">Checking camera...</div><div class="actions"><button id="rtk-restart-video" type="button" class="secondary">Start / restart my camera</button><button id="rtk-show-tiles" type="button" class="outline">Show video tiles</button></div><p id="rtk-video-message" role="status"></p><div id="rtk-video-tiles" class="hide"><div><label>My camera</label><video id="rtk-self-video" autoplay muted playsinline></video></div><div><label>Partner’s camera</label><video id="rtk-partner-video" autoplay playsinline muted></video></div></div><p class="hint">Video is displayed in the main meeting window. These controls are for diagnosing connection issues; Webilang does not record or send video to AI.</p></div></section>
     <aside class="side-stack">
       <section class="card"><div class="rowline"><h3 style="margin:0">🎯 Shared Mission</h3><span id="role-label" class="pill">Partner A</span></div><div id="mission-goal" class="goal"></div><div id="mission-steps" class="muted" style="font-size:13px;line-height:1.55"></div><div id="secret-clue" class="note" style="margin-top:11px"></div><p class="hint" style="margin:10px 0 0">Your clue is personal. Tell your partner about it using your target language.</p></section>
       <section class="card"><div class="rowline"><h3 style="margin:0">✨ Magic Box</h3><span id="lang-label" class="muted tiny">English</span></div><p class="hint" style="margin:8px 0">Help when you need it. These are prepared phrases, not live AI feedback yet.</p><div class="actions"><button id="phrase-help" class="secondary">Useful phrases</button><button id="listening-help" class="secondary">Listening help</button></div><div id="magic-output" class="phrase">Click for a hint.</div></section>
@@ -201,7 +230,14 @@ function rtkVideoStatus(){
  const localTrack=selfTrack?.readyState||'none';
  const remoteTrack=peerTrack?.readyState||'none';
  $('rtk-video-state').textContent='Meeting: '+(self.roomState||'connecting')+'  ·  Participants: '+(api.participants?.count??'?')+'\nMy camera: '+local+' (track: '+localTrack+')  ·  Partner camera: '+remote+' (track: '+remoteTrack+')';
- if(!$('rtk-video-tiles').classList.contains('hide'))rtkBindTiles(peer);
+  if(!$('rtk-video-tiles').classList.contains('hide'))rtkBindTiles(peer);
+  if(document.querySelector('.video-box')?.classList.contains('rtk-main-active')){
+    $('rtk-call-state').textContent=peer?'Partner connected · video call':'Waiting for your partner to join…';
+    $('rtk-main-mic').textContent=self.audioEnabled===true?'Mute mic':'Unmute mic';
+    $('rtk-main-camera').textContent=self.videoEnabled===true?'Turn camera off':'Turn camera on';
+    $('rtk-main-mic').classList.toggle('active-off',self.audioEnabled!==true);
+    $('rtk-main-camera').classList.toggle('active-off',self.videoEnabled!==true);
+  }
 }
 function rtkBindTiles(peer){
  if(!api||provider!=='rtk')return;
@@ -226,14 +262,28 @@ function rtkBindTiles(peer){
 function showRtkVideoTools(){
  if(provider!=='rtk')return;
  $('rtk-video-tools').classList.remove('hide');
+ const box=document.querySelector('.video-box');
+ const tiles=$('rtk-video-tiles');
+ // The troubleshooting tiles already proved that both camera tracks render correctly.
+ // Move those SAME video elements to the main stage, without recreating their streams.
+ if(tiles.parentElement!==box)box.appendChild(tiles);
+ tiles.classList.remove('hide');
+ box.classList.add('rtk-main-active');
+ $('rtk-main-controls').classList.remove('hide');
+ $('rtk-show-tiles').textContent='Refresh video display';
  if(rtkVideoPoll)clearInterval(rtkVideoPoll);
  rtkVideoStatus();rtkVideoPoll=setInterval(rtkVideoStatus,2000);
 }
 function hideRtkVideoTools(){
  if(rtkVideoPoll)clearInterval(rtkVideoPoll);rtkVideoPoll=null;
+ const box=document.querySelector('.video-box');
+ if(box)box.classList.remove('rtk-main-active');
+ $('rtk-main-controls').classList.add('hide');
+ const tiles=$('rtk-video-tiles');
+ if(tiles.parentElement!==$('rtk-video-tools'))$('rtk-video-tools').appendChild(tiles);
  rtkSelfRegistered=false;rtkRemoteRegistered=null;
  $('rtk-video-tools').classList.add('hide');
- $('rtk-video-tiles').classList.add('hide');
+ tiles.classList.add('hide');
  $('rtk-video-message').textContent='';
  for(const id of ['rtk-self-video','rtk-partner-video']){$(id).srcObject=null}
 }
@@ -246,15 +296,33 @@ $('rtk-restart-video').addEventListener('click',async()=>{
    if(api.self.videoEnabled===true)await api.self.disableVideo();
    await api.self.enableVideo();
    const track=api.self.videoTrack;
-   $('rtk-video-message').textContent=track?.readyState==='live'?'Camera started. If the main screen is still black, press Show video tiles.':'Camera request sent. Check the camera status above.';
+   $('rtk-video-message').textContent=track?.readyState==='live'?'Camera started. Check the main video window above.':'Camera request sent. Check the camera status above.';
  }catch(err){
    $('rtk-video-message').textContent='Cannot start camera: '+(err?.message||String(err))+'. Check camera permission and device selection.';
  }finally{btn.disabled=false;rtkVideoStatus()}
 });
 $('rtk-show-tiles').addEventListener('click',()=>{
- const hidden=$('rtk-video-tiles').classList.toggle('hide');
- $('rtk-show-tiles').textContent=hidden?'Show video tiles':'Hide video tiles';
- if(!hidden)rtkVideoStatus();
+ // Refresh stream bindings without hiding the working video window.
+ rtkVideoStatus();
+ $('rtk-video-message').textContent='Video display refreshed. Check the video window above.';
+});
+$('rtk-main-mic').addEventListener('click',async()=>{
+ if(provider!=='rtk'||!api?.self)return;
+ const b=$('rtk-main-mic');b.disabled=true;
+ try{
+   if(api.self.audioEnabled===true)await api.self.disableAudio();
+   else await api.self.enableAudio();
+ }catch(e){$('rtk-video-message').textContent='Microphone: '+(e.message||String(e))}
+ finally{b.disabled=false;rtkVideoStatus()}
+});
+$('rtk-main-camera').addEventListener('click',async()=>{
+ if(provider!=='rtk'||!api?.self)return;
+ const b=$('rtk-main-camera');b.disabled=true;
+ try{
+   if(api.self.videoEnabled===true)await api.self.disableVideo();
+   else await api.self.enableVideo();
+ }catch(e){$('rtk-video-message').textContent='Camera: '+(e.message||String(e))}
+ finally{b.disabled=false;rtkVideoStatus()}
 });
 let rtkJoinStarted=false;
 $('join-video-now').addEventListener('click',async()=>{
@@ -271,7 +339,7 @@ $('join-video-now').addEventListener('click',async()=>{
    element.showSetupScreen=false;
    element.addEventListener('rtkStatesUpdate',(event)=>{
      const state=event.detail?.meeting;
-     if(state==='joined'){msg('Connected. Camera state is shown in Video check below.');rtkVideoStatus();}
+     if(state==='joined'){msg('Connected. Video is displayed in the main window.');rtkVideoStatus();}
      else if(state==='waiting')msg('Waiting for the host to admit you…');
      else if(state==='ended')msg('Meeting ended. Choose Leave room to start again.');
    });
@@ -279,10 +347,10 @@ $('join-video-now').addEventListener('click',async()=>{
    container.appendChild(element);
    $('video-placeholder').classList.add('hide');
    showRtkVideoTools();
-   $('rtk-video-message').textContent='If the screen stays black, click Start / restart my camera, then Show video tiles.';
+   $('rtk-video-message').textContent='Your camera feeds now appear in the main window. Use Start / restart my camera if needed.';
    // Cloudflare auto-joins when setup is skipped. When joining succeeds,
    // invite the user to start video explicitly if no live camera track exists.
-   msg('Joining the meeting… camera status is shown in Video check below.');
+   msg('Joining the meeting… the main window will show both video streams.');
  }catch(err){
    console.error('Webilang join:',err);
    rtkJoinStarted=false;button.disabled=false;
