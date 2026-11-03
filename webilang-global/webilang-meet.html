@@ -31,6 +31,17 @@ body.embedded .privacy{margin:15px 3px 0}
 @media(max-width:660px){.video-box{height:clamp(440px,70dvh,690px);min-height:440px}}
 body.embedded .video-box{height:clamp(520px,66vh,760px);min-height:520px}
 @media(max-width:660px){body.embedded .video-box{height:clamp(440px,70dvh,680px);min-height:440px}}
+
+/* Video-check v3: explicit local camera publishing and readable diagnostics. */
+#rtk-video-tools{margin-top:12px;border:1px solid #d4e3e1;border-radius:12px;padding:12px;background:#f5faf9}
+#rtk-video-tools .actions{margin:9px 0}
+#rtk-video-state{font-size:13px;color:#244a51;line-height:1.5;white-space:pre-line}
+#rtk-video-message{font-size:12px;min-height:16px;margin:6px 0;color:#b25222}
+#rtk-video-tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+#rtk-video-tiles>div{min-width:0}
+#rtk-video-tiles video{background:#102332;display:block;width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px}
+#rtk-video-tiles label{display:block;font-weight:650;font-size:12px;color:#456370;margin:0 0 5px}
+@media(max-width:580px){#rtk-video-tiles{grid-template-columns:1fr 1fr}#rtk-video-tools .actions button{font-size:12px}}
 </style>
 <script type="module">
 import { defineCustomElements } from 'https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit-ui@latest/loader/index.es2017.js';
@@ -75,7 +86,7 @@ defineCustomElements();
   <div class="room-top"><div><h2 id="live-title">Your conversation</h2><span id="live-level" class="muted tiny"></span></div><div class="actions"><button id="copy-live" class="secondary">🔗 Copy invite</button><button id="leave" class="danger">Leave room</button></div></div>
   <div class="field" style="max-width:780px"><label for="live-invite-url">Partner invitation link — share this to enter the same meeting</label><input id="live-invite-url" readonly style="font-size:12px;background:#f6f9fc"/></div>
   <div class="room-grid">
-    <section class="card" style="padding:12px;min-width:0"><div class="video-box"><div id="video-placeholder" class="video-placeholder"><div class="symbol">🎥</div><h2 id="video-placeholder-title">Connecting to your room…</h2><p id="video-status">Video will load here. Your browser may ask for camera and microphone permission.</p><button id="join-video-now" type="button" class="hide" style="margin:12px auto 0;padding:15px 22px;font-size:17px">Join video meeting →</button></div><div id="video-frame" class="video-frame"></div></div><div class="rowline" style="flex-wrap:wrap;gap:10px;padding:11px 2px 0"><span id="live-status" class="tiny muted" role="status">Preparing room…</span><a id="direct-link" href="#" target="_blank" rel="noopener noreferrer" class="app-link">Open video directly ↗</a></div></section>
+    <section class="card" style="padding:12px;min-width:0"><div class="video-box"><div id="video-placeholder" class="video-placeholder"><div class="symbol">🎥</div><h2 id="video-placeholder-title">Connecting to your room…</h2><p id="video-status">Video will load here. Your browser may ask for camera and microphone permission.</p><button id="join-video-now" type="button" class="hide" style="margin:12px auto 0;padding:15px 22px;font-size:17px">Join video meeting →</button></div><div id="video-frame" class="video-frame"></div></div><div class="rowline" style="flex-wrap:wrap;gap:10px;padding:11px 2px 0"><span id="live-status" class="tiny muted" role="status">Preparing room…</span><a id="direct-link" href="#" target="_blank" rel="noopener noreferrer" class="app-link">Open video directly ↗</a></div><div id="rtk-video-tools" class="hide"><strong style="font-size:14px">📹 Video check</strong><div id="rtk-video-state" role="status">Checking camera...</div><div class="actions"><button id="rtk-restart-video" type="button" class="secondary">Start / restart my camera</button><button id="rtk-show-tiles" type="button" class="outline">Show video tiles</button></div><p id="rtk-video-message" role="status"></p><div id="rtk-video-tiles" class="hide"><div><label>My camera</label><video id="rtk-self-video" autoplay muted playsinline></video></div><div><label>Partner’s camera</label><video id="rtk-partner-video" autoplay playsinline muted></video></div></div><p class="hint">These tiles are a troubleshooting view. Video is never recorded or sent to AI.</p></div></section>
     <aside class="side-stack">
       <section class="card"><div class="rowline"><h3 style="margin:0">🎯 Shared Mission</h3><span id="role-label" class="pill">Partner A</span></div><div id="mission-goal" class="goal"></div><div id="mission-steps" class="muted" style="font-size:13px;line-height:1.55"></div><div id="secret-clue" class="note" style="margin-top:11px"></div><p class="hint" style="margin:10px 0 0">Your clue is personal. Tell your partner about it using your target language.</p></section>
       <section class="card"><div class="rowline"><h3 style="margin:0">✨ Magic Box</h3><span id="lang-label" class="muted tiny">English</span></div><p class="hint" style="margin:8px 0">Help when you need it. These are prepared phrases, not live AI feedback yet.</p><div class="actions"><button id="phrase-help" class="secondary">Useful phrases</button><button id="listening-help" class="secondary">Listening help</button></div><div id="magic-output" class="phrase">Click for a hint.</div></section>
@@ -140,7 +151,7 @@ async function prepare(invited=false){
 }
 function addScript(url,check){return new Promise((resolve,reject)=>{if(check())return resolve();const s=document.createElement('script');s.src=url;s.async=true;s.onload=()=>check()?resolve():reject(Error('Video API missing after load'));s.onerror=()=>reject(Error('Could not load the video provider'));document.head.appendChild(s)})}
 function msg(s,error){$('video-status').textContent=s;$('live-status').textContent=s;if(error)$('live-status').style.color='#d97779';else $('live-status').style.color=''}
-async function loadVideo(){rtkJoinStarted=false;$('join-video-now').disabled=false;$('join-video-now').classList.add('hide');$('video-placeholder').classList.remove('join-ready');msg('Loading '+(provider==='rtk'?'Cloudflare RealtimeKit':provider==='jitsi'?'Jitsi test room':'Daily video')+'…');const container=$('video-frame');container.textContent='';try{
+async function loadVideo(){hideRtkVideoTools();rtkJoinStarted=false;$('join-video-now').disabled=false;$('join-video-now').classList.add('hide');$('video-placeholder').classList.remove('join-ready');msg('Loading '+(provider==='rtk'?'Cloudflare RealtimeKit':provider==='jitsi'?'Jitsi test room':'Daily video')+'…');const container=$('video-frame');container.textContent='';try{
  if(provider==='rtk'){
    await addScript('https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit@latest/dist/browser.js',()=>typeof window.RealtimeKitClient?.init==='function');
    if(!active)return;
@@ -172,9 +183,79 @@ async function loadVideo(){rtkJoinStarted=false;$('join-video-now').disabled=fal
  if(provider!=='rtk'){$('video-placeholder').classList.add('hide');msg('Room loaded. If asked, allow camera and microphone access.');}
  }catch(e){console.error('Webilang video room:',e);$('video-placeholder').classList.remove('hide');msg('Embedded video could not start: '+(e.message||e)+'. Use “Open video directly” below.',true)}
 }
-async function leave(){rtkJoinStarted=false;$('join-video-now').disabled=false;$('join-video-now').classList.add('hide');$('video-placeholder').classList.remove('join-ready');$('video-placeholder-title').textContent='Connecting to your room…';active=false;reportActive(false);if(api){try{if(provider==='rtk'&&typeof api.leave==='function')await api.leave();else if(provider==='jitsi'&&typeof api.dispose==='function')api.dispose();else if(api.destroy)await api.destroy()}catch(e){console.warn(e)}api=null} $('video-frame').textContent='';$('live').classList.add('hide');$('setup').classList.remove('hide');$('video-placeholder').classList.remove('hide');$('notes').value=$('notes').value||'';history.replaceState(null,'',location.pathname);status('Call closed. You can create a new meeting or rejoin the same room.','success')}
+async function leave(){hideRtkVideoTools();rtkJoinStarted=false;$('join-video-now').disabled=false;$('join-video-now').classList.add('hide');$('video-placeholder').classList.remove('join-ready');$('video-placeholder-title').textContent='Connecting to your room…';active=false;reportActive(false);if(api){try{if(provider==='rtk'&&typeof api.leave==='function')await api.leave();else if(provider==='jitsi'&&typeof api.dispose==='function')api.dispose();else if(api.destroy)await api.destroy()}catch(e){console.warn(e)}api=null} $('video-frame').textContent='';$('live').classList.add('hide');$('setup').classList.remove('hide');$('video-placeholder').classList.remove('hide');$('notes').value=$('notes').value||'';history.replaceState(null,'',location.pathname);status('Call closed. You can create a new meeting or rejoin the same room.','success')}
 async function copy(s,output){try{await navigator.clipboard.writeText(s);if(output)output.textContent='Copied!'}catch(e){if(output)output.textContent='Copy manually from the invitation field.';try{if($('invite-url').value){$('invite-url').focus();$('invite-url').select()}}catch(_){}}}
 
+// RealtimeKit diagnostics: we use the SDK's published media states,
+// not the UI button label, to distinguish camera capture from a rendering issue.
+let rtkVideoPoll=null, rtkSelfRegistered=false, rtkRemoteRegistered=null;
+function rtkVideoStatus(){
+ if(provider!=='rtk'||!api||!active)return;
+ const self=api.self||{};
+ const remotes=api.participants?.joined?.toArray?.()||[];
+ const peer=remotes.find(x=>x && x.id!==self.id)||null;
+ const selfTrack=self.videoTrack;
+ const peerTrack=peer?.videoTrack;
+ const local=self.videoEnabled===true?'on':'off';
+ const remote=peer?(peer.videoEnabled===true?'on':'off'):'not connected';
+ const localTrack=selfTrack?.readyState||'none';
+ const remoteTrack=peerTrack?.readyState||'none';
+ $('rtk-video-state').textContent='Meeting: '+(self.roomState||'connecting')+'  ·  Participants: '+(api.participants?.count??'?')+'\nMy camera: '+local+' (track: '+localTrack+')  ·  Partner camera: '+remote+' (track: '+remoteTrack+')';
+ if(!$('rtk-video-tiles').classList.contains('hide'))rtkBindTiles(peer);
+}
+function rtkBindTiles(peer){
+ if(!api||provider!=='rtk')return;
+ const selfVideo=$('rtk-self-video'),remoteVideo=$('rtk-partner-video');
+ // The SDK's registerVideoElement directly attaches the received track.
+ try{
+   if(!rtkSelfRegistered&&typeof api.self?.registerVideoElement==='function'){
+     api.self.registerVideoElement(selfVideo,true);rtkSelfRegistered=true;
+   }
+   if(peer?.id!==rtkRemoteRegistered){
+     // Avoid keeping a stale remote video element attached to a departed peer.
+     const prev=api.participants?.joined?.get?.(rtkRemoteRegistered);
+     if(prev&&typeof prev.deregisterVideoElement==='function')prev.deregisterVideoElement(remoteVideo);
+     remoteVideo.srcObject=null;
+     rtkRemoteRegistered=null;
+     if(peer&&typeof peer.registerVideoElement==='function'){
+       peer.registerVideoElement(remoteVideo);rtkRemoteRegistered=peer.id;
+     }
+   }
+ }catch(err){$('rtk-video-message').textContent='Video tile diagnostic: '+(err?.message||String(err));}
+}
+function showRtkVideoTools(){
+ if(provider!=='rtk')return;
+ $('rtk-video-tools').classList.remove('hide');
+ if(rtkVideoPoll)clearInterval(rtkVideoPoll);
+ rtkVideoStatus();rtkVideoPoll=setInterval(rtkVideoStatus,2000);
+}
+function hideRtkVideoTools(){
+ if(rtkVideoPoll)clearInterval(rtkVideoPoll);rtkVideoPoll=null;
+ rtkSelfRegistered=false;rtkRemoteRegistered=null;
+ $('rtk-video-tools').classList.add('hide');
+ $('rtk-video-tiles').classList.add('hide');
+ $('rtk-video-message').textContent='';
+ for(const id of ['rtk-self-video','rtk-partner-video']){$(id).srcObject=null}
+}
+$('rtk-restart-video').addEventListener('click',async()=>{
+ if(!api||provider!=='rtk')return;
+ const btn=$('rtk-restart-video');btn.disabled=true;
+ $('rtk-video-message').textContent='Requesting camera access and starting video...';
+ try{
+   // Explicit camera activation, since the Webilang join flow skips Cloudflare setup.
+   if(api.self.videoEnabled===true)await api.self.disableVideo();
+   await api.self.enableVideo();
+   const track=api.self.videoTrack;
+   $('rtk-video-message').textContent=track?.readyState==='live'?'Camera started. If the main screen is still black, press Show video tiles.':'Camera request sent. Check the camera status above.';
+ }catch(err){
+   $('rtk-video-message').textContent='Cannot start camera: '+(err?.message||String(err))+'. Check camera permission and device selection.';
+ }finally{btn.disabled=false;rtkVideoStatus()}
+});
+$('rtk-show-tiles').addEventListener('click',()=>{
+ const hidden=$('rtk-video-tiles').classList.toggle('hide');
+ $('rtk-show-tiles').textContent=hidden?'Show video tiles':'Hide video tiles';
+ if(!hidden)rtkVideoStatus();
+});
 let rtkJoinStarted=false;
 $('join-video-now').addEventListener('click',async()=>{
  if(rtkJoinStarted||!active||provider!=='rtk'||!api)return;
@@ -190,14 +271,18 @@ $('join-video-now').addEventListener('click',async()=>{
    element.showSetupScreen=false;
    element.addEventListener('rtkStatesUpdate',(event)=>{
      const state=event.detail?.meeting;
-     if(state==='joined')msg('Connected to the meeting. Invite your partner using Copy invite.');
+     if(state==='joined'){msg('Connected. Camera state is shown in Video check below.');rtkVideoStatus();}
      else if(state==='waiting')msg('Waiting for the host to admit you…');
      else if(state==='ended')msg('Meeting ended. Choose Leave room to start again.');
    });
    element.meeting=api;
    container.appendChild(element);
    $('video-placeholder').classList.add('hide');
-   msg('Joining the video meeting… allow camera and microphone access if prompted.');
+   showRtkVideoTools();
+   $('rtk-video-message').textContent='If the screen stays black, click Start / restart my camera, then Show video tiles.';
+   // Cloudflare auto-joins when setup is skipped. When joining succeeds,
+   // invite the user to start video explicitly if no live camera track exists.
+   msg('Joining the meeting… camera status is shown in Video check below.');
  }catch(err){
    console.error('Webilang join:',err);
    rtkJoinStarted=false;button.disabled=false;
@@ -217,7 +302,7 @@ $('listening-help').addEventListener('click',()=>{$('magic-output').textContent=
 $('switch-language').addEventListener('click',()=>{phase=phase==='en'?'ru':'en';updateRound()});
 $('copy-notes').addEventListener('click',()=>copy($('notes').value,$('live-status')));
 $('leave').addEventListener('click',leave);
-window.addEventListener('beforeunload',()=>{try{if(api&&api.dispose)api.dispose()}catch(e){}});
+window.addEventListener('beforeunload',()=>{if(rtkVideoPoll)clearInterval(rtkVideoPoll);try{if(api&&api.dispose)api.dispose()}catch(e){}});
 (function initFromLink(){const p=qs.get('p');const r=safeName(qs.get('r'));const d=safeDaily(qs.get('d'));const a=qs.get('a');const l=qs.get('l');const lv=qs.get('level');side=qs.get('side')==='B'?'B':'A';if(DATA[a])$('activity').value=a;if(['en','ru','both'].includes(l))$('language').value=l;if(['A2','B1'].includes(lv))$('level').value=lv;if(p==='rtk'&&qs.get('invite')&&qs.get('invite').length<1000){provider='rtk';invite=qs.get('invite')}else if(p==='jitsi'&&r){room=r;provider='jitsi'}else if(p==='daily'&&d){provider='daily';roomUrl=d;$('daily-url').value=d}else return;document.querySelector('input[name="provider"][value="'+provider+'"]').checked=true;setSelected();$('join-existing').classList.remove('hide');$('create').textContent='Create different room';status('You received a Webilang invitation. Enter your name and click “Join invited room”.','success');})();
 })();
 </script>
