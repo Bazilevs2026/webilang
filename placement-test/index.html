@@ -142,7 +142,19 @@ body.nova-theater #novaGame .game-input #handsFreeLabel{color:#e7f7fc}
  body.nova-theater #novaGame .stage-controls{bottom:4px;padding:3px}
  body.nova-theater #novaGame .stage-controls button{padding:4px;font-size:10px}
 }
-.placement-timer-strip{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 16px;margin:0 0 12px;border:1px solid #c8dced;border-radius:12px;background:#f6fbff;color:#284563;font-weight:700}.placement-timer-strip #placementClock{font-size:23px}@media(max-width:650px){.placement-timer-strip{flex-wrap:wrap}}</style>
+.placement-timer-strip{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 16px;margin:0 0 12px;border:1px solid #c8dced;border-radius:12px;background:#f6fbff;color:#284563;font-weight:700}.placement-timer-strip #placementClock{font-size:23px}@media(max-width:650px){.placement-timer-strip{flex-wrap:wrap}}.adaptive-evidence{background:#f3f8ff;border:1px solid #aecbea;border-radius:14px;padding:14px 16px;margin-top:12px;font-size:14px;line-height:1.5}
+.adaptive-evidence h4{margin:0 0 8px;color:#1d4e85}
+.adaptive-evidence ul{padding-left:22px}
+.adaptive-evidence li{margin:5px 0}
+
+.adaptive-zone{margin-top:17px}.adaptive-panel{padding:18px;background:#fff;border:2px solid #b6d8ff;border-radius:18px;margin-top:14px;box-shadow:0 3px 13px #183b5710}
+.adaptive-panel h3{font-size:1.24rem;margin:0 0 8px;color:#17365a}
+.adaptive-panel .adaptive-passage{background:#f2f7ff;border-left:4px solid #629de0;padding:16px;border-radius:10px;line-height:1.8;white-space:pre-line;margin:12px 0}
+.adaptive-panel .question{margin:12px 0}.adaptive-next{background:#1758a0;color:white;font-weight:700;padding:10px 17px;border-radius:10px;border:0;cursor:pointer}
+.adaptive-result{margin-top:14px;border-left:4px solid #42a284;background:#eaf7f2;padding:12px 14px;border-radius:8px;white-space:pre-line}
+.adaptive-warning{margin:10px 0;color:#9f3e24;font-weight:700}
+.adaptive-player{width:100%;margin:14px 0}.adaptive-label{display:inline-block;font-size:12px;font-weight:700;padding:4px 10px;border-radius:30px;background:#e1ecff;color:#24477a}
+</style>
 <style id="placement-realtime-style">
 #novaGame > .nova-stage,#novaGame > .quest-track,#novaGame > .chat,#novaGame > .game-input,
 #novaGame > #novaEvaluateBtn,#novaGame > .npc-immersive-close{display:none!important}
@@ -184,14 +196,14 @@ body.nova-theater #novaGame .game-input #handsFreeLabel{color:#e7f7fc}
 <body><header><div class="eyebrow">WEBILANG INSPIRED · PLACEMENT QUEST</div><h1>🎮 LEVEL QUEST <span style="color:var(--cyan)">A1 → A2 → B1</span></h1><p style="max-width:800px">Six skill missions • real listening audio • 2-minute speaking challenge • conversation with Nova • individual CEFR profile</p><div class="row"><span class="tag">45–60 minutes</span><span class="tag">A2 target + B1 stretch</span><span class="tag">Unofficial CEFR-aligned diagnostic</span></div></header>
 <div class="shell"><aside class="sidebar"><div class="eyebrow">MISSION SELECT</div><div class="nav" id="nav"></div><p class="small">Progress</p><div class="progress"><div id="progressFill" class="fill"></div></div><p id="progressLabel" class="small">0 / 6 completed</p><p class="small">Answer independently. You can move between missions. Press “Check” to save a skill score.</p><input id="studentName" type="text" placeholder="Student name (optional)" autocomplete="name" style="font-size:13px"><p class="small">🔒 No audio leaves your device unless you use a connected AI service. Speech recognition may use your browser's provider.</p></aside>
 <main>
-<section class="panel active" id="s0"><span class="quest">Mission 01 / Comprehension</span><h2>📖 Reading — A new weekend plan</h2><p class="muted">Read once, then answer. 8 questions, from basic facts to B1 inference.</p>
-<div class="story"><b>A Weekend Without a Car</b><br><br>Last summer, Daniel moved to a small town near Bristol because he got a new job. At first, he was worried. He didn't have a car, and the nearest supermarket was three kilometres away. However, he soon discovered that life without a car could be easier than he expected.<br><br>On weekdays, Daniel usually cycles to work. It takes twenty minutes, which is faster than the bus during rush hour. On Fridays, he works from home, so he doesn't need to travel. At weekends, he meets his friend Leo, who lives in the city. They often go hiking or visit local markets.<br><br>Last Saturday, they wanted to visit a lake, but the weather changed suddenly. Instead of cancelling their plans, they took a train to a nearby village and explored an old castle. Daniel had never visited it before. The tickets were a little expensive, but the view from the top was amazing.<br><br>Now Daniel is thinking about buying an electric bicycle. He hasn't decided yet because he wants to save money for a holiday abroad. Although travelling without a car sometimes takes longer, Daniel says it has helped him become healthier and discover new places.</div><div id="readingQs"></div><div class="row"><button class="primary" onclick="checkMC('reading')">✓ Check reading</button><span class="small">No answers shown before submission</span></div><div class="feedback hide" id="readingFeedback"></div><div class="section-actions"><span></span><button onclick="go(1)">Listening →</button></div></section>
+<section class="panel active" id="s0"><span class="quest">Mission 01 / Comprehension</span><h2>📖 Reading — A new weekend plan</h2><p class="muted">Read once, then answer. A2 starting assessment with adaptive follow-ups inference.</p>
+<div class="story"><b>A Weekend Without a Car</b><br><br>Last summer, Daniel moved to a small town near Bristol because he got a new job. At first, he was worried. He didn't have a car, and the nearest supermarket was three kilometres away. However, he soon discovered that life without a car could be easier than he expected.<br><br>On weekdays, Daniel usually cycles to work. It takes twenty minutes, which is faster than the bus during rush hour. On Fridays, he works from home, so he doesn't need to travel. At weekends, he meets his friend Leo, who lives in the city. They often go hiking or visit local markets.<br><br>Last Saturday, they wanted to visit a lake, but the weather changed suddenly. Instead of cancelling their plans, they took a train to a nearby village and explored an old castle. Daniel had never visited it before. The tickets were a little expensive, but the view from the top was amazing.<br><br>Now Daniel is thinking about buying an electric bicycle. He hasn't decided yet because he wants to save money for a holiday abroad. Although travelling without a car sometimes takes longer, Daniel says it has helped him become healthier and discover new places.</div><div id="readingQs"></div><div class="row"><button class="primary" onclick="checkMC('reading')">✓ Check reading</button><span class="small">No answers shown before submission</span></div><div class="feedback hide" id="readingFeedback"></div><div class="adaptive-zone" id="readingAdaptive" aria-live="polite"></div><div class="section-actions"><span></span><button onclick="go(1)">Listening →</button></div></section>
 <section class="panel" id="s1"><span class="quest">Mission 02 / Audio</span><h2>🎧 Listening — A message from Mia</h2><p>Listen to the recorded message. For a more valid result, play it no more than twice and don't view the transcript until after checking.</p><audio id="listenAudio" controls preload="none" aria-label="Qwen natural listening audio"></audio><div class="listening-recovery" aria-live="polite">
   <span class="sr-only" id="voiceStatus" role="status">Connecting to Qwen Natural Voice…</span>
   <button type="button" id="retryNaturalVoice" onclick="loadNaturalListening()" style="display:none">↻ Retry audio</button>
-</div><div id="listeningQs"></div><button class="primary" onclick="checkMC('listening')">✓ Check listening</button><div class="feedback hide" id="listeningFeedback"></div><details><summary>Teacher / post-test transcript (opening it may affect validity)</summary><p id="transcript"></p></details><div class="section-actions"><button onclick="go(0)">← Reading</button><button onclick="go(2)">Grammar →</button></div></section>
-<section class="panel" id="s2"><span class="quest">Mission 03 / Accuracy</span><h2>🧩 Grammar — Structures in action</h2><p class="muted">12 items: present and past, questions, comparatives, modals, present perfect, conditionals.</p><div id="grammarQs"></div><button class="primary" onclick="checkMC('grammar')">✓ Check grammar</button><div class="feedback hide" id="grammarFeedback"></div><div class="section-actions"><button onclick="go(1)">← Listening</button><button onclick="go(3)">Vocabulary →</button></div></section>
-<section class="panel" id="s3"><span class="quest">Mission 04 / Word power</span><h2>🗝️ Vocabulary — Everyday English</h2><p class="muted">12 questions testing meaning, collocations, travel, work, emotions and B1 stretch.</p><div id="vocabQs"></div><button class="primary" onclick="checkMC('vocab')">✓ Check vocabulary</button><div class="feedback hide" id="vocabFeedback"></div><div class="section-actions"><button onclick="go(2)">← Grammar</button><button onclick="go(4)">Writing →</button></div></section>
+</div><div id="listeningQs"></div><button class="primary" onclick="checkMC('listening')">✓ Check listening</button><div class="feedback hide" id="listeningFeedback"></div><div class="adaptive-zone" id="listeningAdaptive" aria-live="polite"></div><details><summary>Teacher / post-test transcript (opening it may affect validity)</summary><p id="transcript"></p></details><div class="section-actions"><button onclick="go(0)">← Reading</button><button onclick="go(2)">Grammar →</button></div></section>
+<section class="panel" id="s2"><span class="quest">Mission 03 / Accuracy</span><h2>🧩 Grammar — Structures in action</h2><p class="muted">Begin at A2. Strong answers unlock B1 and B2 challenges; other answers trigger confirmation or A1 support.</p><div id="grammarQs"></div><button class="primary" onclick="checkMC('grammar')">✓ Check grammar</button><div class="feedback hide" id="grammarFeedback"></div><div class="adaptive-zone" id="grammarAdaptive" aria-live="polite"></div><div class="section-actions"><button onclick="go(1)">← Listening</button><button onclick="go(3)">Vocabulary →</button></div></section>
+<section class="panel" id="s3"><span class="quest">Mission 04 / Word power</span><h2>🗝️ Vocabulary — Everyday English</h2><p class="muted">12 questions testing meaning, collocations, travel, work, emotions and B1 stretch.</p><div id="vocabQs"></div><button class="primary" onclick="checkMC('vocab')">✓ Check vocabulary</button><div class="feedback hide" id="vocabFeedback"></div><div class="adaptive-zone" id="vocabAdaptive" aria-live="polite"></div><div class="section-actions"><button onclick="go(2)">← Grammar</button><button onclick="go(4)">Writing →</button></div></section>
 <section class="panel" id="s4"><span class="quest">Mission 05 / Production</span><h2>✍️ Writing — Help a visiting friend</h2><div class="box"><b>You received this message from your English-speaking friend Alex:</b><p>“I'm visiting your town next month. Where should I stay, what can we do together, and how can I get around? I'm also worried about the weather!”</p><b>Write an email (80–120 words).</b><p>Include: (1) a place to stay and why; (2) two activities; (3) transport advice; (4) weather advice; (5) at least one question for Alex. Write naturally, not as a list.</p></div><textarea id="writingText" placeholder="Hi Alex,&#10;It's great that you're coming..."></textarea><div class="row spread"><span id="wordCount" class="small">0 words</span><button class="primary" onclick="checkWriting()">✨ Evaluate my writing</button></div><div class="feedback hide" id="writingFeedback"></div><div class="section-actions"><button onclick="go(3)">← Vocabulary</button><button onclick="go(5)">Speaking →</button></div></section>
 <section class="panel" id="s5"><span class="quest">Mission 06 / Speaking arena</span><h2>🎙️ Speaking — Two challenges</h2>
 <div class="box speaking-total-card" id="speakingLiveOverview"><h3>Speaking assessment — Monologue + Dialogue</h3><div id="speakingLiveResult">Complete both tasks to receive your combined Speaking score.</div><p class="criteria-note">Two separately assessed components, each worth 50% of Speaking. The final six-skill profile uses the combined result.</p></div>
@@ -213,7 +225,8 @@ body.nova-theater #novaGame .game-input #handsFreeLabel{color:#e7f7fc}
 <div class="game-input"><div class="row"><button class="primary" id="startQuestBtn" onclick="startDialogue()">▶ Start / Restart quest</button><button id="talkBtn" onclick="toggleDialogueMic()">🎙 Talk to Nova</button><button id="novaHintBtn" onclick="showNovaPrompt()">💡 Conversation support</button></div><div class="row"><label id="handsFreeLabel"><input type="checkbox" id="novaAutoSend"> Auto-send after microphone stops (hands-free turns)</label><span class="npc-hotkeys">Enter: send · Esc: leave game</span></div><textarea id="dialogueInput" style="min-height:95px" placeholder="Speak into your microphone or type your own answer to Nova…"></textarea><div class="row spread"><span class="small" id="novaMicStatus">🎙 Microphone ready on supported browsers · Enter to send, Shift+Enter for new line</span><button id="novaSendBtn" class="primary" onclick="sendDialogue()">Send answer ➜</button></div><p class="small" id="novaProgressNote">Unassisted speaking gives the clearest placement evidence. Optional hints are recorded in the report.</p></div>
 <button id="novaEvaluateBtn" onclick="checkDialogue()" style="margin-top:12px">✨ Evaluate my conversation</button><div class="feedback hide" id="dialogueFeedback"></div>
 <div class="speaking-criteria-info"><h4>Dialogue · 5 minutes · scoring criteria</h4><p>Mission objectives 30% · Interaction and initiative 25% · Grammar 20% · Vocabulary 15% · Coherence 10%. The special request is about a personal preference, not a hotel booking problem.</p></div>
-<div class="placement-realtime-shell">
+<div class="criteria-note" style="margin:10px 0 12px"><b>Adaptive Nova:</b> the same Brighton mission for everyone. Nova begins with straightforward questions and may ask more demanding follow-ups when your replies support them. No level labels are shown during the conversation.</div>
+<div class="placement-realtime-shell>
  <div class="placement-timer-strip"><span>⏱ Speaking countdown</span><strong id="placementClock" aria-live="polite">05:00</strong></div>
  <iframe id="placementNovaRealtime" title="Live 3D Nova conversation" src="/placement-test/nova-realtime.html?pilot=placement_nova&mode=avatar&embed=gender" allow="microphone; autoplay; fullscreen"></iframe>
   <div class="realtime-score">
@@ -226,7 +239,8 @@ body.nova-theater #novaGame .game-input #handsFreeLabel{color:#e7f7fc}
      <button type="button" id="placementGoReport" disabled>🏆 View overall assessment</button>
    </div>
    <p class="small">The test checks the six mission objectives, responsiveness and follow-up questions, grammar, vocabulary and coherence from the captured transcript. Pronunciation and acoustic fluency cannot be confirmed from a transcript alone.</p>
-   <div class="speaking-rubric-result" id="dialogueCriteriaResult"></div><div id="placementRealtimeStatus" class="small" role="status">Start the live conversation in the scene above. Assessment unlocks when you finish.</div>
+   <div class="speaking-rubric-result" id="dialogueCriteriaResult"></div>
+<div id="dialogueAdaptiveEvidence" class="adaptive-evidence" aria-live="polite"></div><div id="placementRealtimeStatus" class="small" role="status">Start the live conversation in the scene above. Assessment unlocks when you finish.</div>
   </div>
 </div></div><div class="section-actions"><button onclick="go(4)">← Writing</button><button class="primary" onclick="go(6)">See assessment →</button></div></section>
 <section class="panel" id="s6"><span class="quest">Final Boss / Individual profile</span><h2>🏆 Your CEFR placement profile</h2><p>Skills are scored separately. An A2 student can have A1 speaking and B1 reading; don't collapse that information into one label.</p><div class="result-grid" id="resultGrid"></div>
@@ -285,7 +299,7 @@ vocab:[
 ['Despite the rain, we ___ to finish the walk.',['managed','avoided','refused'],0,'B1','Manage to do = succeed in doing.']
 ]};
 const navNames=['📖 Reading','🎧 Listening','🧩 Grammar','🗝️ Vocabulary','✍️ Writing','🎙️ Speaking','🏆 Assessment'];let active=0;
-const scores={},notes={},mode={},criteriaResults={},chatHistory=[];const realtimeTranscriptLog=[];let monoTimer=null,remaining=120,recognizer=null,recTarget='',chatStarted=false,aiStatus='';let monoElapsed=0;
+const scores={},notes={},mode={},criteriaResults={},chatHistory=[];let dialogueAdaptive=null;const realtimeTranscriptLog=[];let monoTimer=null,remaining=120,recognizer=null,recTarget='',chatStarted=false,aiStatus='';let monoElapsed=0;
 const qids={reading:'readingQs',listening:'listeningQs',grammar:'grammarQs',vocab:'vocabQs'};
 function esc(v){return String(v||'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]))}
 function renderQ(){for(const skill of Object.keys(qids)){document.getElementById(qids[skill]).innerHTML=DATA[skill].map((q,i)=>`<div class="question"><b>${i+1}. ${esc(q[0])} <span class="tag">${q[3]}</span></b><div class="opts">${q[1].map((o,j)=>`<label><input type="radio" name="${skill}_${i}" value="${j}"> ${esc(o)}</label>`).join('')}</div></div>`).join('')}}
@@ -300,7 +314,7 @@ document.getElementById('writingText').addEventListener('input',e=>document.getE
 document.getElementById('monoText').addEventListener('input',e=>document.getElementById('monoWords').textContent=count(e.target.value)+' words');
 function sentences(t){return t.split(/[.!?]+/).filter(x=>x.trim()).length}
 function heuristic(kind,t){let n=count(t),lower=t.toLowerCase(),connect=(lower.match(/\b(because|although|however|but|so|first|then|after|before|when|if|while|also|finally|instead)\b/g)||[]).length;let grammar=(lower.match(/\b(went|was|were|visited|played|stayed|had|saw|did|have been|would|could|should|will|going to|might|has|have)\b/g)||[]).length;let issues=[];if(/\bi am agree\b/i.test(t))issues.push('Use “I agree”, not “I am agree”.');if(/\bhe go\b/i.test(t))issues.push('Use “he goes” in the present simple.');if(/\bi have (\d+) years\b/i.test(t))issues.push('Say “I am ... years old”.');if(/\bmore better\b/i.test(t))issues.push('Use “better”, not “more better”.');if(/\bi very like\b/i.test(t))issues.push('Try “I really like ...”.');if(/\byesterday i (go|see|eat)\b/i.test(t))issues.push('Use past simple with “yesterday”: went / saw / ate.');let target=kind==='writing'?95:kind==='monologue'?150:75;let score=Math.min(44,n/target*44)+Math.min(20,connect*5)+Math.min(14,grammar*3)+Math.min(12,sentences(t)*2)+(n>=Math.round(target*.7)?10:0);if(kind==='writing'){let cover=[/stay|hotel|hostel|room|apartment/i,/visit|museum|park|walk|restaurant|see|go to/i,/bus|train|bike|taxi|walk|metro/i,/weather|rain|cold|warm|jacket|coat/i,/\?/].filter(r=>r.test(t)).length;score=score*.65+cover*7; if(cover<5)issues.push(`Task coverage: ${cover}/5 required content elements detected.`)}if(kind==='dialogue'){score=Math.min(100,score+10)}score=Math.max(0,Math.min(100,Math.round(score)));let advice=n<target*.7?'Expand with specific details, reasons, and examples.':'Add precision and more varied linking expressions.';let feedback=`Local rubric estimate: ${level(score)} (${score}%). ${n} words; ${connect} linking words; ${grammar} detected verb / modal cues.\nWhat works: ${n>=40?'You provide an extended response.':'You have started communicating the idea.'}\nTo improve: ${issues.join(' ')||advice}\nExample upgrade: “I enjoyed the trip because we visited an interesting place. Although the weather was bad, we had a great time.”\nNote: this is NOT generative AI feedback and cannot reliably judge meaning, grammar, fluency or pronunciation.`;return{score,feedback}}
-async function callAI(kind,payload){try{const r=await fetch('/api/placement-evaluate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,...payload})});if(!r.ok)throw Error('AI service not connected');const data=await r.json();if(typeof data.score!=='number'||!data.feedback)throw Error('Invalid feedback');return {score:Math.max(0,Math.min(100,data.score)),feedback:'🤖 AI assessment:\n'+data.feedback,source:'AI',criteria:Array.isArray(data.criteria)?data.criteria:[]}}catch(e){return null}}
+async function callAI(kind,payload){try{const r=await fetch('/api/placement-evaluate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,...payload})});if(!r.ok)throw Error('AI service not connected');const data=await r.json();if(typeof data.score!=='number'||!data.feedback)throw Error('Invalid feedback');return {score:Math.max(0,Math.min(100,data.score)),feedback:'🤖 AI assessment:\n'+data.feedback,source:'AI',criteria:Array.isArray(data.criteria)?data.criteria:[],adaptive:data.adaptive||null}}catch(e){return null}}
 
 const RUBRICS={
  monologue:[['Task completion',25],['Grammar',25],['Vocabulary',20],['Organisation',20],['Development',10]],
@@ -314,6 +328,20 @@ function renderCriteria(key){
  el.innerHTML='<table class="criteria-table"><thead><tr><th>Criterion</th><th>Weight</th><th>Score</th><th>Evidence</th></tr></thead><tbody>'+
  c.map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+Number(x.weight)+'%</td><td>'+Math.round(Number(x.score))+'/100</td><td>'+esc(x.evidence||'')+'</td></tr>').join('')+
  '</tbody></table><div class="criteria-note">Criterion scores are AI estimates from text transcripts, not from acoustic speech analysis.</div>';
+}
+
+function renderAdaptiveEvidence(){
+ const el=document.getElementById('dialogueAdaptiveEvidence');if(!el)return;
+ const a=dialogueAdaptive;
+ if(!a){el.innerHTML='<p class="criteria-note">Adaptive CEFR evidence will appear after AI evaluation of the completed realtime transcript.</p>';return}
+ const observed=a.demonstratedLevel==='insufficient_evidence'?'Insufficient evidence':a.demonstratedLevel;
+ const examples=(a.levelEvidence||[]).map(e=>'<li><b>'+esc(e.level)+'</b>: “'+esc(e.quote)+'” — '+esc(e.reason)+'</li>').join('');
+ el.innerHTML='<h4>Adaptive dialogue evidence</h4><p><b>Demonstrated level:</b> '+esc(observed)+
+   ' · <b>Confidence:</b> '+esc(a.confidence||'low')+'</p>'+
+   '<p><b>Levels probed:</b> '+esc((a.probedLevels||[]).join(', ')||'Not established')+
+   '</p>'+(examples?'<ul>'+examples+'</ul>':'<p>No independently verifiable higher-level examples were returned.</p>')+
+   (a.supportNotes?'<p><b>Support used:</b> '+esc(a.supportNotes)+'</p>':'')+
+   '<p class="criteria-note">A probe is not proof of mastery. Transcript-based estimate only; pronunciation and acoustic fluency are not scored.</p>';
 }
 function downloadTextFile(filename,content){
  const blob=new Blob([content],{type:'text/plain;charset=utf-8'});
@@ -344,7 +372,9 @@ function speakingCombined(){
 function renderSpeakingLive(){
  const el=document.getElementById('speakingLiveResult');if(!el)return;
  const score=speakingCombined();
- const row=k=>scores[k]==null?'Pending':scores[k]+'% · '+level(scores[k])+' ('+esc(mode[k]||'local')+')';
+ const row=k=>scores[k]==null?'Pending':scores[k]+'% · '+
+ (k==='dialogue'&&dialogueAdaptive?.demonstratedLevel&&dialogueAdaptive.demonstratedLevel!=='insufficient_evidence'
+  ?dialogueAdaptive.demonstratedLevel:(k==='dialogue'&&dialogueAdaptive?.demonstratedLevel==='insufficient_evidence'?'evidence limited':level(scores[k])))+' ('+esc(mode[k]||'local')+')';
  el.innerHTML='<div class="row" style="gap:14px;flex-wrap:wrap"><span><b>Monologue:</b> '+row('monologue')+'</span><span><b>Dialogue:</b> '+row('dialogue')+'</span></div>'+
  '<p><b>Combined Speaking:</b> '+(score==null?'Pending both assessments':score+'% · '+level(score))+'</p>';
 }
@@ -356,7 +386,13 @@ function speakingDetailedHTML(){
    score==null?'Not yet assessed':score+'% · '+level(score)+' · '+esc(mode[key]||'local'))+'</b></p>');
   if(cr.length)out.push('<table class="criteria-table"><thead><tr><th>Criterion</th><th>Weight</th><th>Score</th><th>Evidence</th></tr></thead><tbody>'+
    cr.map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+Number(x.weight)+'%</td><td>'+Math.round(Number(x.score))+'/100</td><td>'+esc(x.evidence||'')+'</td></tr>').join('')+'</tbody></table>');
-  if(notes[key])out.push('<p style="white-space:pre-wrap">'+esc(notes[key])+'</p>');
+  if(key==='dialogue'&&dialogueAdaptive){
+    const a=dialogueAdaptive;out.push('<p><b>Adaptive level demonstrated:</b> '+esc(a.demonstratedLevel==='insufficient_evidence'?'Insufficient evidence':a.demonstratedLevel)+
+      ' · <b>Confidence:</b> '+esc(a.confidence||'low')+
+      ' · <b>Levels probed:</b> '+esc((a.probedLevels||[]).join(', ')||'Not established')+'</p>');
+    if(a.levelEvidence?.length)out.push('<ul>'+a.levelEvidence.map(e=>'<li>'+esc(e.level)+': “'+esc(e.quote)+'” — '+esc(e.reason)+'</li>').join('')+'</ul>');
+   }
+   if(notes[key])out.push('<p style="white-space:pre-wrap">'+esc(notes[key])+'</p>');
   out.push('</div>');
  }
  const combined=speakingCombined();
@@ -542,7 +578,7 @@ window.addEventListener('DOMContentLoaded',()=>{
  const inp=document.getElementById('dialogueInput');
  if(inp)inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendDialogue()}});
 });
-function skillCard(name,key){let v=scores[key];return `<div class="result-cell"><span class="small">${name}</span><strong>${v==null?'—':level(v)}</strong><div class="small">${v==null?'Not submitted':v+'% · '+(mode[key]==='AI'?'AI':'local')}</div></div>`}
+function skillCard(name,key){let v=scores[key];return `<div class="result-cell"><span class="small">${name}</span><strong>${v==null?'—':(window.adaptiveLevels?.[key]||level(v))}</strong><div class="small">${v==null?'Not submitted':v+'% · '+(mode[key]==='AI'?'AI':'local')}</div></div>`}
 function renderFinal(){let speakScore=speakingCombined();document.getElementById('speakingDetailedReport').innerHTML='<h3>Speaking assessment details</h3>'+speakingDetailedHTML();document.getElementById('resultGrid').innerHTML=[['Reading','reading'],['Listening','listening'],['Grammar','grammar'],['Vocabulary','vocab'],['Writing','writing']].map(x=>skillCard(...x)).join('')+`<div class="result-cell"><span class="small">Speaking (50% mono + 50% dialogue)</span><strong>${speakScore==null?'—':level(speakScore)}</strong><div class="small">${speakScore==null?'Not submitted':Math.round(speakScore)+'% · combined'}</div></div>`;
 let metrics=[['Reading',scores.reading],['Listening',scores.listening],['Grammar',scores.grammar],['Vocabulary',scores.vocab],['Writing',scores.writing],['Speaking',speakScore]];document.getElementById('skillBars').innerHTML=metrics.map(([k,v])=>`<div class="barrow"><b>${k}</b><div class="progress"><div class="fill" style="width:${v==null?0:v}%"></div></div><span>${v==null?'—':Math.round(v)+'%'}</span></div>`).join('');
 let complete=metrics.filter(x=>x[1]!=null),avg=complete.length?complete.reduce((s,x)=>s+x[1],0)/complete.length:null,all=complete.length===6,weak=complete.filter(x=>x[1]<48).map(x=>x[0]),strong=complete.filter(x=>x[1]>=78).map(x=>x[0]);let provisional=['writing','monologue','dialogue'].some(k=>scores[k]!=null&&mode[k]!=='AI');document.getElementById('overall').innerHTML=`<h3>${all?'Overall indicative level':'Incomplete placement profile'}: ${avg==null?'—':level(avg)}</h3><p>${all?'All six skills have evidence.':'Only '+complete.length+'/6 skills have been assessed; complete the other missions before deciding placement.'} Mean score: <b>${avg==null?'—':Math.round(avg)+'%'}</b>. ${provisional?'Writing/speaking contain local heuristic estimates; their CEFR labels are especially tentative.':''}</p><p><b>Strengths:</b> ${strong.join(', ')||'No clear B1-strength skills yet.'}<br><b>Priority support:</b> ${weak.join(', ')||'No clear A1-range skills among submitted results.'}</p><p><b>Recommended next step:</b> ${!all?'Finish all missions and review open responses with a teacher.':avg>=78?'Trial B1 tasks, especially spontaneous speaking and extended writing.':avg>=48?'Continue A2 with controlled B1 stretch in connected speech, tense control and functional vocabulary.':'Consolidate A1 basics, then revisit A2 communicative tasks.'}</p><p class="small">Bands used here: below 48% ≈ A1, 48–77% ≈ A2, 78%+ ≈ B1. These are classroom rules, not psychometrically calibrated cut scores. A teacher should verify productive skills and pronunciation.</p>`}
@@ -732,8 +768,8 @@ try{
    const d=ev.data;
    if(d?.source!=='webilang-gender-qwen'||d.scenario!=='placement_nova')return;
    if(d.type==='started'){
-     if(ended){seen.clear();log.length=0;turns.length=0;realtimeTranscriptLog.length=0;ended=false;evaluating=false;reportBtn.disabled=true;evaluateBtn.disabled=true;finishBtn.disabled=false;transcript.textContent='';}
-     running=true;clock.textContent='05:00';status.textContent='Live session started. Complete the six travel objectives.';
+     if(ended){dialogueAdaptive=null;renderAdaptiveEvidence();seen.clear();log.length=0;turns.length=0;realtimeTranscriptLog.length=0;ended=false;evaluating=false;reportBtn.disabled=true;evaluateBtn.disabled=true;finishBtn.disabled=false;transcript.textContent='';}
+     running=true;clock.textContent='05:00';status.textContent='Live adaptive conversation started. Complete your six travel objectives; ask Nova questions and explain your choices.';
      return;
    }
    if(d.type==='tick'){
@@ -760,7 +796,7 @@ try{
  evaluateBtn.onclick=async()=>{
    if(!ended){status.textContent='Finish the realtime session first.';return;}
    if(evaluating||!turns.length)return;
-   evaluating=true;evaluateBtn.disabled=true;status.textContent='AI is assessing your completed travel mission…';
+   evaluating=true;evaluateBtn.disabled=true;status.textContent='AI is checking mission goals, interaction and demonstrated A1–B2 language…';
    const mission={destination:'Brighton, UK',duration:'two days',budgetGBP:180,
      objectives:['state trip duration','choose accommodation','choose transport','choose activity','make a specific personal request and give a reason','summarise itinerary and budget'],
      timeLimitSeconds:300,endedReason:finishReason};
@@ -770,7 +806,8 @@ try{
      status.textContent='AI assessment unavailable. Please retry when connected; no estimated transcript-only score has been recorded.';
      evaluating=false;evaluateBtn.disabled=false;return;
    }
-   feedback('dialogueFeedback',ai.feedback);criteriaResults.dialogue=ai.criteria||[];renderCriteria('dialogue');
+   feedback('dialogueFeedback',ai.feedback);criteriaResults.dialogue=ai.criteria||[];
+   dialogueAdaptive=ai.adaptive||null;renderCriteria('dialogue');renderAdaptiveEvidence();
    const f=document.getElementById('dialogueFeedback');
    if(f){f.classList.remove('hide');f.style.display='block';document.querySelector('.placement-realtime-shell .realtime-score').appendChild(f);}
    mark('dialogue',ai.score,ai.feedback,'AI · realtime transcript');
@@ -779,5 +816,165 @@ try{
    evaluating=false;
  };
 })();
+</script>
+<script>
+
+(function(){
+'use strict';
+const P={"bank": {"reading": {"A1": [["Who does Emma visit?", ["Her teacher", "Her grandmother", "Her friend"], 1, "Emma visits her grandmother."], ["When does Emma take the bus to her grandmother's house?", ["At ten", "At eleven", "At four"], 0, "Her outward bus is at ten."], ["What do they cook?", ["Chicken soup", "Vegetable soup", "Fish"], 1, "They make vegetable soup."], ["Why do they go home?", ["It is late", "It is raining", "They are tired"], 1, "It starts to rain."]], "A2C": [["Where is the course held?", ["At the market", "At the library", "At a museum"], 1, "The course meets at the library."], ["How often does Oliver attend?", ["Every Tuesday", "Every Friday", "Twice a week"], 0, "It meets every Tuesday."], ["Why was Oliver nervous?", ["He lost his camera", "He had never taken an evening class", "He didn't know the teacher"], 1, "It was his first class after work."], ["What do students plan next month?", ["An exhibition", "A holiday", "A competition"], 0, "They are planning an exhibition."]], "B1": [["What were some residents initially worried about?", ["Noise and maintenance", "The price of vegetables", "The café closing"], 0, "They worried about noise and upkeep."], ["Why did organisers propose a six-month trial?", ["To test the idea before committing", "To avoid any volunteers", "To close the car park permanently"], 0, "A trial offered a limited first step."], ["What helped the garden survive difficulties?", ["Buying more land", "A rota and collecting rainwater", "Closing it in summer"], 1, "The group introduced a rota and collected rainwater."], ["What does the writer suggest was the most important outcome?", ["Vegetable sales", "Stronger social connections", "A bigger car park"], 1, "Relationships mattered most."], ["Which attitude best describes the organisers?", ["Flexible and practical", "Indifferent", "Unwilling to listen"], 0, "They adapted to concerns and problems."]], "B2": [["Why might the same restriction affect districts differently?", ["Tourism and housing pressures vary", "All cities have identical markets", "Owners always sell properties"], 0, "Local conditions change the impact."], ["What complicates judging whether restrictions work?", ["Other changes can affect rents", "Registration is never enforced", "Visitors never spend locally"], 0, "Confounding trends such as housing construction matter."], ["Why are exceptions for primary residences discussed?", ["To distinguish occasional hosts from businesses", "To prohibit all visitors", "To remove registration"], 0, "They distinguish casual sharing from commercial operations."], ["How does the text present the debate?", ["As a trade-off requiring local evidence", "As a simple choice with one obvious winner", "As unrelated to housing"], 0, "It weighs competing effects and local context."], ["What does 'neither position fully captures the situation' signal?", ["A nuanced counterargument", "A complete rejection of all regulation", "A claim there is no problem"], 0, "It challenges oversimplified positions."]]}, "listening": {"A1": [["Who is speaking?", ["Lucy", "Sam", "Mia"], 0, "Lucy introduces herself."], ["When does the class start?", ["Three", "Three thirty", "Four"], 1, "The new start time is half past three."], ["Where will they meet?", ["At the park", "Outside the library", "Inside the café"], 1, "At the bus stop outside the library."], ["What should Sam bring?", ["A camera", "A notebook", "A ticket"], 1, "Lucy asks for a notebook."]], "A2C": [["Why is the plan changing?", ["The park is closed", "The morning may be windy", "Sophie is ill"], 1, "The forecast predicts wind."], ["Where will they meet?", ["At the sports centre", "At the park", "At the station"], 0, "They will meet at the sports centre."], ["What time is the meeting?", ["Eleven", "Eleven thirty", "Twelve thirty"], 1, "Half past eleven."], ["What does Ben need to bring?", ["Food", "A water bottle", "Sports shoes"], 1, "Sophie says bring a water bottle."]], "B1": [["Why is Alex's original shift no longer needed?", ["The festival was cancelled", "Other volunteers took it", "Alex arrived late"], 1, "Two volunteers took the entrance shift."], ["What alternative role does Priya suggest?", ["Information desk", "Cleaning the centre", "Cooking all day"], 0, "The information desk from 11 to 2."], ["What can Alex do if allergy questions feel difficult?", ["Hand out maps", "Leave the event", "Close the desk"], 0, "Priya offers distributing maps."], ["Why does Priya need an answer by Thursday?", ["To finish the rota", "To buy tickets", "To change the festival date"], 0, "She needs to finalise the rota."], ["What does the message imply about the organisers?", ["They offer flexibility", "They expect no training", "They cannot feed volunteers"], 0, "Training material and an alternative role are offered."]], "B2": [["What does Maya identify as the central purpose?", ["Punishing motorists", "Reliable public transport", "Closing outer districts"], 1, "She wants reliable buses and alternatives."], ["What is Daniel's main objection?", ["Cleaner air is unnecessary", "Restrictions may precede viable alternatives", "Traffic does not exist"], 1, "He worries about sequencing and equity."], ["What concession does Maya make?", ["Restrictions should be gradual", "Buses should stop early", "Drivers have no concerns"], 0, "She agrees changes should follow improvements."], ["Where do the speakers find common ground?", ["Both support cleaner air", "Both oppose buses", "Both reject traffic controls permanently"], 0, "Both want cleaner air."], ["What does the host mean by 'order of the changes'?", ["Implementation sequence matters", "The speakers disagree about destinations", "The bus route's alphabetical order"], 0, "The debate concerns timing and sequence."]]}, "grammar": {"A1": [["My brother ___ sixteen.", ["is", "are", "be"], 0, "Use is with singular he."], ["We ___ tennis on Sundays.", ["plays", "play", "playing"], 1, "We takes play."], ["There ___ two chairs.", ["is", "are", "has"], 1, "Plural chairs require are."], ["She ___ like coffee.", ["don't", "doesn't", "isn't"], 1, "Use doesn't with she."]], "A2C": [["I ___ my keys yesterday.", ["lose", "lost", "have losing"], 1, "Past simple: lost."], ["They were talking when I ___ .", ["arrived", "arrive", "was arriving"], 0, "A completed interruption: arrived."], ["This bag is ___ than that one.", ["more heavy", "heavier", "heaviest"], 1, "Heavy → heavier."], ["If you're tired, you ___ go to bed early.", ["should", "mustn't", "couldn't"], 0, "Should offers advice."]], "B1": [["I ___ this film before.", ["have seen", "saw yesterday", "had seeing"], 0, "Present perfect for experience."], ["If I had more time, I ___ Spanish.", ["learn", "would learn", "will learning"], 1, "Second conditional: would + base."], ["This is the café ___ we first met.", ["which", "where", "whose"], 1, "Where for place."], ["The report ___ yesterday.", ["was sent", "sent", "has send"], 0, "Past passive: was sent."], ["She asked me where I ___ .", ["live", "lived", "living"], 1, "Reported questions shift tense."]], "B2": [["Had I known about the delay, I ___ earlier.", ["would leave", "would have left", "will leave"], 1, "Inverted third conditional."], ["Not only ___ late, but he also forgot his notes.", ["was he", "he was", "did he was"], 0, "Inversion after Not only."], ["The proposal, ___ was published yesterday, faces criticism.", ["that", "which", "what"], 1, "Non-defining relative clause uses which."], ["By next July, she ___ here for ten years.", ["will have worked", "will work", "has worked"], 0, "Future perfect looks back from a future point."], ["I wish I ___ more carefully before replying.", ["had listened", "would listen", "have listened"], 0, "Past regret: wish + past perfect."]]}, "vocab": {"A1": [["A 'receipt' is...", ["a paper showing payment", "a type of transport", "a small meal"], 0, "Receipt shows a purchase."], ["Choose the opposite of 'early'.", ["late", "fast", "quiet"], 0, "Late is the opposite."], ["I am ___ because I need food.", ["hungry", "angry", "busy"], 0, "Hungry means needing food."], ["A 'chemist's' is a place to buy...", ["medicine", "tickets", "furniture"], 0, "A chemist sells medicine."]], "A2C": [["Could I ___ a table for two?", ["book", "miss", "borrow"], 0, "Book a table."], ["The bus is ___ by twenty minutes.", ["delayed", "crowded", "available"], 0, "Delayed means late."], ["I need to ___ the form before Friday.", ["fill in", "look after", "get off"], 0, "Fill in a form."], ["Which expression is polite?", ["Give me that", "Could I have that, please?", "I take it now"], 1, "Could I... is polite."]], "B1": [["We had to ___ the trip because of the storm.", ["put off", "look up to", "get along"], 0, "Put off means postpone."], ["A 'reliable' service is one you can...", ["depend on", "avoid", "forget"], 0, "Reliable means dependable."], ["Her suggestion was ___ worth considering.", ["definitely", "hardly ever", "unlikely"], 0, "Definitely modifies worth considering naturally."], ["They reached a ___ after a long discussion.", ["compromise", "complaint", "permission"], 0, "A compromise resolves disagreement."], ["Which phrase means 'take responsibility'?", ["take charge", "take off", "take after"], 0, "Take charge means assume control."]], "B2": [["The plan is 'feasible' if it is...", ["possible to carry out", "highly controversial", "financially wasteful"], 0, "Feasible means practical/possible."], ["A 'significant drawback' is a...", ["major disadvantage", "minor advantage", "neutral observation"], 0, "Drawback = disadvantage."], ["The new information ___ doubt on the original claim.", ["cast", "made", "putted"], 0, "Cast doubt on is the collocation."], ["A measured response is...", ["carefully considered", "unexpectedly angry", "completely unrelated"], 0, "Measured means restrained and thoughtful."], ["Which is closest to 'alleviate pressure'?", ["reduce strain", "increase urgency", "ignore criticism"], 0, "Alleviate means ease."]]}}, "reading": {"A1": ["A Simple Sunday", "On Sunday, Emma visits her grandmother. She takes the bus at ten o'clock. Her grandmother lives near a park. They cook lunch together. Emma likes chicken, but her grandmother makes vegetable soup. After lunch, they walk in the park for thirty minutes. It starts to rain, so they go home. Emma takes the bus home at four o'clock."], "A2C": ["A New Class", "Oliver started an evening photography class last month. The course meets every Tuesday at the library, where students practise using their cameras. At first Oliver felt nervous because he had never taken a class after work. Now he enjoys meeting people who share his interests. Last week the group photographed the old market. Next month they are planning to organise a small exhibition, and Oliver hopes to invite his family."], "B1": ["Why the Community Garden Worked", "When the council announced plans to turn an empty car park into a community garden, many residents were doubtful. They worried about noise and wondered who would look after the space. The organisers invited neighbours to a meeting and suggested a six-month trial. Volunteers could choose short shifts, and a local café agreed to provide water for the plants during hot weeks. At first only a handful of people joined. However, once the first vegetables appeared, more families began helping. The garden also became a place where older residents shared practical skills with teenagers. Not everything went smoothly: several plants died during a dry spell, and volunteers disagreed about opening hours. Instead of cancelling the project, the group introduced a rota and collected rainwater. By autumn the garden was popular enough for the council to extend the trial. The organisers say the biggest achievement was not the vegetables but the stronger relationships between neighbours."], "B2": ["Should Cities Restrict Short-Term Rentals?", "A growing number of cities are considering limits on short-term holiday rentals. Supporters of restrictions argue that converting residential flats into tourist accommodation reduces the supply of long-term housing. They also point to the disruption that frequent visitors may cause in otherwise quiet buildings. Property owners, however, argue that rental income helps them manage rising costs and that visitors spend money in local shops. Neither position fully captures the situation. In districts dominated by tourism, restrictions may improve availability for residents; in less visited areas, the same rules could discourage useful investment. Moreover, the evidence is complicated by wider trends such as population growth and the construction of new homes. A policy that looks successful when rents stabilise might have benefited from unrelated changes in the market. Some councils have therefore opted for a combination of registration, limits on the number of rental nights, and exceptions for people renting out their primary residence. Critics say enforcement can be costly, while advocates counter that transparent registration makes it easier to distinguish occasional hosts from commercial operators. The central challenge is to design a policy that responds to local conditions without treating every host or neighbourhood as identical."]}, "listening": {"A1": ["Bus to the Library", "Hello Sam, it's Lucy. Our English class starts at half past three today, not three o'clock. Please meet me at the bus stop outside the library at three fifteen. Bring your notebook. We can get a drink after class, if you like. See you soon!"], "A2C": ["A Changed Meeting", "Hi Ben, it's Sophie. About our picnic tomorrow: the weather forecast says it will be windy in the morning, so I think we should meet at the sports centre instead of the park. Let's meet at half past eleven. You don't need to bring food because there's a small café there, but please bring your water bottle. Text me if you prefer another place."], "B1": ["Volunteer Shift Change", "Hi Alex, this is Priya from the community centre. Thanks for offering to help at Saturday's food festival. We originally needed you at the entrance at nine, but two volunteers have already taken that shift. Would you be able to help at the information desk from eleven until two instead? Visitors sometimes ask about food allergies, so we will give you a printed guide before the event. If you're uncomfortable answering those questions, you can help distribute maps. Please let me know by Thursday evening because we need to finish the rota. Oh, and don't worry about lunch: volunteers get a meal voucher. Thanks again!"], "B2": ["Local Transport Radio Discussion", "Host: Today we're discussing the city's plan to reduce car traffic in the centre. Maya, you support the proposal. Why? Maya: The main goal isn't to punish drivers. It's to make buses more reliable and give people a realistic alternative to driving. When buses get stuck in the same traffic as cars, everyone loses time. Host: Daniel, you're less convinced. Daniel: I agree with the goal, but the council has announced restrictions before improving services in the outer districts. Someone who works late might have no practical alternative to a car. Maya: That's a fair concern. I'd support introducing restrictions gradually, after buses run later and more frequently. Daniel: Then we may agree on more than it sounds. I also want cleaner air. What I don't want is a policy whose costs fall mostly on people with the fewest options. Host: So the disagreement is less about the destination than about the order of the changes."]}};
+const SKILLS=['reading','listening','grammar','vocab'];
+window.adaptiveLevels=Object.create(null);
+const state=Object.fromEntries(SKILLS.map(k=>[k,{stage:'core',complete:false,attempts:[],session:0}]));
+const scale={A1:32,A2:58,B1:80,B2:96};
+const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+function ask(skill,questions,stage,container){
+ container.innerHTML=questions.map((q,i)=>`<div class="question"><b>${i+1}. ${safe(q[0])}</b><div class="opts">${q[1].map((a,j)=>`<label><input type="radio" name="adapt_${skill}_${stage}_${i}" value="${j}"> ${safe(a)}</label>`).join('')}</div></div>`).join('');
+}
+async function loadAudio(stage,skill,token){
+ const audio=document.getElementById('adaptiveAudio_'+skill);
+ const message=document.getElementById('adaptiveAudioStatus_'+skill);
+ if(!audio||!message)return;
+ message.textContent='Preparing natural Qwen audio…';
+ try{
+   const r=await fetch('/api/placement-adaptive-listening?level='+encodeURIComponent(stage),{cache:'no-store'});
+   if(!r.ok)throw Error('Qwen audio HTTP '+r.status);
+   const b=await r.blob();
+   if(!b.type.startsWith('audio/')||b.size<1000)throw Error('No valid audio was received');
+   if(state[skill].session!==token)return;
+   const u=URL.createObjectURL(b);
+   if(audio.dataset.blob)URL.revokeObjectURL(audio.dataset.blob);
+   audio.dataset.blob=u;audio.src=u;audio.controls=true;message.textContent='Natural voice ready. Listen and answer.';
+ }catch(e){if(state[skill].session!==token)return;
+   message.textContent='Audio unavailable: '+e.message+'. Retry when ready. No robotic fallback.';
+   const retry=document.getElementById('audioRetry_'+skill);
+   if(retry)retry.hidden=false;
+ }
+}
+function stagePanel(skill,stage){
+ const st=state[skill];st.stage=stage;st.session++;
+ const zone=document.getElementById(skill+'Adaptive');
+ const title=stage==='A2C'?'A2 confirmation':stage+' challenge';
+ const content=P.bank[skill][stage];
+ let extra='';
+ if(skill==='reading'){
+    const [name,passage]=P.reading[stage];
+    extra=`<h4>${safe(name)}</h4><div class="adaptive-passage">${safe(passage)}</div>`;
+ }
+ if(skill==='listening'){
+    extra=`<p class="small">New recording. Do not read a transcript before finishing the questions.</p><audio id="adaptiveAudio_${skill}" class="adaptive-player" controlslist="nodownload" preload="none"></audio><p class="small" id="adaptiveAudioStatus_${skill}">Preparing audio…</p><button type="button" id="audioRetry_${skill}" hidden>↻ Retry audio</button>`;
+ }
+ zone.innerHTML=`<div class="adaptive-panel"><span class="adaptive-label">${safe(title)}</span><h3>${skill==='listening'?'Listen to a new track':skill==='reading'?'Read a new text':'Answer the follow-up questions'}</h3><p>Complete all questions before the next result. Your level is assessed independently in each skill.</p>${extra}<div id="adaptiveItems_${skill}"></div><button type="button" class="adaptive-next" id="adaptiveSubmit_${skill}">Check this stage</button><div id="adaptiveStageNote_${skill}" class="adaptive-result" hidden></div></div>`;
+ ask(skill,content,stage,document.getElementById('adaptiveItems_'+skill));
+ document.getElementById('adaptiveSubmit_'+skill).onclick=()=>checkStage(skill,stage);
+ if(skill==='listening'){
+   document.getElementById('audioRetry_'+skill).onclick=()=>{document.getElementById('audioRetry_'+skill).hidden=true;loadAudio(stage,skill,st.session)};
+   loadAudio(stage,skill,st.session);
+ }
+}
+function scoreQuestions(skill,questions,stage){
+ let right=0,answered=0,errors=[];
+ questions.forEach((q,i)=>{
+   const name=stage==='core'?skill+'_'+i:'adapt_'+skill+'_'+stage+'_'+i;
+   const chosen=document.querySelector('input[name="'+name+'"]:checked');
+   if(chosen){answered++;if(Number(chosen.value)===(stage==='core'?q[2]:q[2]))right++;
+     else errors.push(`${i+1}. ${stage==='core'?q[4]:q[3]} Answer: ${q[1][q[2]]}.`);
+   }
+ });
+ return {right,answered,total:questions.length,ratio:right/questions.length,errors};
+}
+function completed(skill,label,value,description){
+ const st=state[skill];st.complete=true;st.stage='done';
+ window.adaptiveLevels[skill]=label;
+ const numeric=scale[label]??58;
+ const history=st.attempts.map(a=>a.stage+': '+a.right+'/'+a.total).join('; ');
+ const note=`Estimated ${label} (classroom placement, not certified). \n${description}\nStages: ${history}`;
+ const target=document.getElementById(skill+'Adaptive');
+ target.innerHTML=`<div class="adaptive-result"><b>${skill.toUpperCase()} · ${label}</b>\n${safe(note)}</div>`;
+ mark(skill,numeric,note,'adaptive · objective scoring');
+ // AI feedback is optional and MUST NOT alter the keyed scores.
+ (async()=>{try{
+  const r=await fetch('/api/placement-evaluate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:skill,text:JSON.stringify({level:label,attempts:st.attempts,errors:st.attempts.flatMap(a=>a.errors).slice(0,8)})})});
+  if(!r.ok)return;const d=await r.json();
+  if(d.feedback){const p=document.createElement('p');p.className='small';p.textContent='AI learning feedback (not used to determine objective score): '+d.feedback;target.querySelector('.adaptive-result').appendChild(p)}
+ }catch(e){} })();
+}
+function route(skill,stage,result){
+ const st=state[skill];
+ st.attempts.push({stage,right:result.right,total:result.total,errors:result.errors});
+ if(stage==='core'){
+   if(result.ratio>=.80)return stagePanel(skill,'B1');
+   if(result.ratio>=.5)return stagePanel(skill,'A2C');
+   return stagePanel(skill,'A1');
+ }
+ if(stage==='A1')return completed(skill,'A1',result.ratio>=.70?'A1 foundation confirmed.':'A1 foundations need further support.');
+ if(stage==='A2C')return completed(skill,result.ratio>=.75?'A2':'A1',result.ratio>=.75?'A2 performance confirmed.':'A2 performance was not consistent on the second sample.');
+ if(stage==='B1'){
+    if(result.ratio>=.80)return stagePanel(skill,'B2');
+    if(result.ratio>=.60)return completed(skill,'B1','B1 was demonstrated; B2 was not assessed.');
+    return completed(skill,'A2','B1 extension was not demonstrated consistently.');
+ }
+ if(stage==='B2'){
+   return completed(skill,result.ratio>=.80?'B2':'B1',
+      result.ratio>=.80?'B2 challenge demonstrated on this small sample.':'B2 was attempted but not securely demonstrated.');
+ }
+}
+function checkStage(skill,stage){
+ const st=state[skill];
+ if(st.stage!==stage||st.complete)return;
+ const res=scoreQuestions(skill,P.bank[skill][stage],stage);
+ const note=document.getElementById('adaptiveStageNote_'+skill);
+ if(res.answered!==res.total){note.hidden=false;note.textContent=`Answer all ${res.total} questions first (${res.answered} completed).`;return}
+ const content=`${res.right}/${res.total} correct. ${res.errors.length?'Review after the test:\n'+res.errors.join('\n'):'All correct.'}`;
+ note.hidden=false;note.textContent=content;
+ // Stage result remains visible at the beginning of the next stage.
+ const previous=st.attempts.slice();
+ route(skill,stage,res);
+ if(!st.complete){
+   const z=document.getElementById(skill+'Adaptive');
+   const summary=document.createElement('details');summary.innerHTML=`<summary>Previous stage: ${safe(stage)} · ${res.right}/${res.total}</summary><p class="small">${safe(content)}</p>`;
+   z.querySelector('.adaptive-panel').prepend(summary);
+ }
+}
+function checkCore(skill){
+ const st=state[skill];if(st.stage!=='core'||st.complete){
+    document.getElementById(skill+'Adaptive').scrollIntoView({behavior:'smooth',block:'start'});return;
+ }
+ const res=scoreQuestions(skill,DATA[skill],'core');
+ if(res.answered!==res.total){
+   feedback(skill+'Feedback',`Answer all ${res.total} initial questions before continuing (${res.answered} answered).`);
+   return;
+ }
+ feedback(skill+'Feedback',`Starting assessment: ${res.right}/${res.total} correct. ${res.ratio>=.80?'B1 challenge unlocked.':res.ratio>=.50?'Checking A2 with a second set.':'Checking A1 foundations.'} Your final skill level will appear after the follow-up.`);
+ route(skill,'core',res);
+ document.getElementById(skill+'Adaptive').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+window.checkMC=checkCore;
+window.adaptiveSkillState=state;
+// Update final report with the actual staged results instead of equating the mean percent to a CEFR cut-off.
+const oldRenderFinal=window.renderFinal;
+window.renderFinal=function(){
+ oldRenderFinal();
+ const labels=['reading','listening','grammar','vocab'];
+ for(const k of labels){
+   const label=window.adaptiveLevels[k];
+   if(!label)continue;
+   const card=Array.from(document.querySelectorAll('#resultGrid .result-cell')).find(e=>e.textContent.toLowerCase().includes(k==='vocab'?'vocabulary':k));
+   if(card){const strong=card.querySelector('strong');if(strong)strong.textContent=label}
+ }
+ const overall=document.getElementById('overall');
+ const keys=['reading','listening','grammar','vocab','writing','speaking'];
+ const skillLabels=keys.map(k=>k==='speaking'?(speakingCombined()==null?null:level(speakingCombined())):k==='writing'?(scores.writing==null?null:level(scores.writing)):window.adaptiveLevels[k]||null);
+ const levels=skillLabels.filter(Boolean),rank={A1:1,A2:2,B1:3,B2:4};
+ const sorted=levels.map(x=>rank[x]).sort((a,b)=>a-b);
+ const preliminary=sorted.length===6?['','A1','A2','B1','B2'][sorted[2]]:'Pending all six skills';
+ const hasB2=levels.includes('B2');
+ overall.innerHTML='<h3>Overall placement — '+safe(preliminary)+'</h3>'+
+   '<p>'+keys.map((k,i)=>safe(k==='vocab'?'Vocabulary':k[0].toUpperCase()+k.slice(1))+': <b>'+safe(skillLabels[i]||'Not assessed')+'</b>').join(' · ')+'</p>'+
+   '<p>'+ (levels.length===6?'A provisional median-based placement across six skills is shown. A teacher should review discrepancies before assigning a course.':'Finish the remaining skill assessments before an overall CEFR estimate is shown.')+'</p>'+
+   '<p class="small">Adaptive Reading, Listening, Grammar and Vocabulary use small staged item banks. Writing and Speaking retain their separate rubrics. B2 in productive skills is not fully calibrated; this is a diagnostic classroom estimate, not a certified CEFR result. Scores are not directly comparable across different item banks.</p>'+
+   (hasB2?'<p class="small">B2 proficiency in one skill does not establish an overall B2 level.</p>':'');
+};
+})();
+
 </script>
 </body></html>
