@@ -78,6 +78,70 @@ small,.small,.muted,footer{color:#64758c}
 .game-input textarea{margin:0}
 .game-input .row{gap:8px}
 @media(max-width:700px){.stage-main{grid-template-columns:1fr;padding:5px 12px}.nova-stage .nova3d{height:205px!important}.stage-side{grid-template-columns:1fr 1fr;gap:8px}.npc-name{font-size:23px}.stage-hint{grid-column:1/-1}.npc-subtitle{font-size:14px}.quest-steps{grid-template-columns:repeat(3,1fr)}}
+
+/* WEBILANG NPC GAMEPLAY • immersive scene layered on original placement quest */
+.nova-theater-trigger{background:linear-gradient(120deg,#164c75,#514cbb)!important;color:#fff!important;border-color:#4064a2!important}
+body.nova-theater{overflow:hidden}
+body.nova-theater #novaGame{
+ position:fixed;inset:0;z-index:5000;display:grid;grid-template-columns:minmax(0,1fr) 315px;grid-template-rows:auto minmax(0,1fr) auto;
+ gap:0;padding:0!important;margin:0!important;background:#0b1b30!important;border:0!important;border-radius:0!important;
+ color:#f2f8ff;overflow:hidden;box-shadow:none;
+}
+body.nova-theater #novaGame .game-head{grid-column:1/-1;position:absolute;z-index:6;left:22px;top:15px;right:20px;pointer-events:none}
+body.nova-theater #novaGame .game-head h3{font-size:18px;color:#fff;margin:0;text-shadow:0 2px 6px #000}
+body.nova-theater #novaGame .game-head p,body.nova-theater #novaGame .game-head .quest{display:none}
+body.nova-theater #novaGame .game-badge{background:#122d44e6;color:#9fe6d9!important;border:1px solid #53b5a4}
+body.nova-theater #novaGame .nova-stage{grid-column:1;grid-row:1/4;border:0;border-radius:0;position:relative;min-height:100%;background:
+ linear-gradient(180deg,rgba(6,20,38,.15),rgba(9,29,49,.07) 43%,rgba(3,12,25,.85) 100%),
+ radial-gradient(ellipse at 50% 20%,#e9f5e9 0,#b7d1d3 31%,#7097b0 70%,#43627f 100%)}
+body.nova-theater #novaGame .nova-stage:before{
+ content:"";position:absolute;inset:0;pointer-events:none;
+ background:linear-gradient(90deg,#173b578c 0 6%,transparent 7% 93%,#173b578c 94%),
+ linear-gradient(180deg,transparent 18%,#d9edf440 18.4%,transparent 19%,transparent 72%,#17394d80 73%,transparent 80%);
+}
+body.nova-theater #novaGame .stage-scenery{position:absolute;top:63px;left:24px;right:24px;z-index:4;color:#f8ffff;text-shadow:0 1px 6px #18344b;letter-spacing:1.2px}
+body.nova-theater #novaGame .stage-main{position:absolute;inset:0;display:block;padding:0}
+body.nova-theater #novaGame .nova3d{position:absolute;inset:0;width:100%!important;height:100%!important;max-height:none!important;min-height:0!important;pointer-events:none}
+body.nova-theater #novaGame .stage-side{position:absolute;top:110px;right:30px;z-index:3;width:min(280px,36%);padding:16px;background:#102c48be;border:1px solid #9dc6d35e;border-radius:18px;backdrop-filter:blur(8px)}
+body.nova-theater #novaGame .npc-name,body.nova-theater #novaGame .npc-name span,body.nova-theater #novaGame .npc-mood,body.nova-theater #novaGame .stage-hint{color:#effbff}
+body.nova-theater #novaGame .stage-objective{background:#f6fcffed}
+body.nova-theater #novaGame .npc-subtitle{position:absolute;z-index:5;left:5%;right:5%;bottom:76px;min-height:72px;margin:0;font-size:clamp(17px,2vw,24px);align-items:center;background:#0d2139ec;border:1px solid #62b9cd6e;box-shadow:0 10px 50px #0004}
+body.nova-theater #novaGame .stage-controls{position:absolute;bottom:14px;left:5%;right:5%;z-index:5;background:#081d35ce;border:1px solid #ffffff2a;border-radius:13px;color:#f0ffff}
+body.nova-theater #novaGame .stage-controls #novaVoiceStatus{color:#b3e5ee}
+body.nova-theater #novaGame .quest-track{grid-column:2;grid-row:1;margin:0;padding:68px 18px 12px;border:0;border-radius:0;background:#112843;color:#d7eeff}
+body.nova-theater #novaGame .quest-track-title{color:#b9d0e4}
+body.nova-theater #novaGame .quest-steps{grid-template-columns:repeat(3,1fr)}
+body.nova-theater #novaGame .quest-step{border-color:#355a7b;color:#c1d6e4;background:#1a3655}
+body.nova-theater #novaGame .quest-step.active{background:#195a70;color:white}
+body.nova-theater #novaGame .quest-step.done{background:#175948;color:white}
+body.nova-theater #novaGame #chat{grid-column:2;grid-row:2;max-height:none;min-height:0;margin:0;border-radius:0;background:#112843;border:0;border-top:1px solid #355673;padding:12px;overflow:auto}
+body.nova-theater #novaGame .game-input{grid-column:2;grid-row:3;margin:0;border:0;border-top:1px solid #315671;border-radius:0;background:#142c47;padding:12px;max-height:34vh;overflow:auto}
+body.nova-theater #novaGame .game-input .row{gap:6px}
+body.nova-theater #novaGame .game-input button{font-size:11px;padding:7px}
+body.nova-theater #novaGame .game-input textarea{min-height:65px!important;max-height:90px;background:#f4f9ff}
+body.nova-theater #novaGame .game-input .small{color:#c7dbe9}
+body.nova-theater #novaGame #novaEvaluateBtn,body.nova-theater #novaGame #dialogueFeedback{display:none}
+body.nova-theater #novaGame .npc-immersive-close{display:block}
+.npc-immersive-close{display:none;position:fixed;right:15px;top:14px;z-index:5200;padding:9px 14px;border:1px solid #d3f1ff80;border-radius:11px;background:#172e47;color:white;font-weight:800;cursor:pointer}
+.game-immersive-description{font-size:12px;color:#526b82;margin-top:6px}
+body.nova-theater #novaGame .game-immersive-description{display:none}
+#novaGame .game-input #handsFreeLabel{font-size:12px;font-weight:700}
+.npc-hotkeys{font-size:11px;opacity:.8}
+body.nova-theater .npc-hotkeys{color:#bedde8}
+body.nova-theater #novaGame .game-input #handsFreeLabel{color:#e7f7fc}
+@media(max-width:900px){
+ body.nova-theater #novaGame{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) minmax(165px,31vh)}
+ body.nova-theater #novaGame .nova-stage{grid-column:1;grid-row:1/2}
+ body.nova-theater #novaGame .quest-track{display:none}
+ body.nova-theater #novaGame #chat{display:none}
+ body.nova-theater #novaGame .game-input{grid-column:1;grid-row:2;max-height:none}
+ body.nova-theater #novaGame .stage-side{right:10px;top:88px;width:35%;padding:9px}
+ body.nova-theater #novaGame .npc-name{font-size:18px}
+ body.nova-theater #novaGame .npc-mood,body.nova-theater #novaGame .stage-hint{display:none}
+ body.nova-theater #novaGame .npc-subtitle{bottom:54px;font-size:15px;padding:9px;min-height:49px}
+ body.nova-theater #novaGame .stage-controls{bottom:4px;padding:3px}
+ body.nova-theater #novaGame .stage-controls button{padding:4px;font-size:10px}
+}
 </style></head>
 <body><header><div class="eyebrow">WEBILANG INSPIRED · PLACEMENT QUEST</div><h1>🎮 LEVEL QUEST <span style="color:var(--cyan)">A1 → A2 → B1</span></h1><p style="max-width:800px">Six skill missions • real listening audio • 2-minute speaking challenge • conversation with Nova • individual CEFR profile</p><div class="row"><span class="tag">45–60 minutes</span><span class="tag">A2 target + B1 stretch</span><span class="tag">Unofficial CEFR-aligned diagnostic</span></div></header>
 <div class="shell"><aside class="sidebar"><div class="eyebrow">MISSION SELECT</div><div class="nav" id="nav"></div><p class="small">Progress</p><div class="progress"><div id="progressFill" class="fill"></div></div><p id="progressLabel" class="small">0 / 6 completed</p><p class="small">Answer independently. You can move between missions. Press “Check” to save a skill score.</p><input id="studentName" type="text" placeholder="Student name (optional)" autocomplete="name" style="font-size:13px"><p class="small">🔒 No audio leaves your device unless you use a connected AI service. Speech recognition may use your browser's provider.</p></aside>
@@ -96,13 +160,14 @@ small,.small,.muted,footer{color:#64758c}
 <section class="panel" id="s5"><span class="quest">Mission 06 / Speaking arena</span><h2>🎙️ Speaking — Two challenges</h2>
 <div class="box"><h3>Part A · Two-minute monologue</h3><p><b>Talk about a weekend or trip that you remember.</b> Describe where you went, who you went with, what happened, what you liked or disliked, and what you would do differently next time. Connect your ideas with <i>first, then, because, although, after that</i> where natural.</p><div class="row"><span class="timer" id="clock">02:00</span><button id="timerBtn" class="primary" onclick="startMonologue()">▶ Start 2-minute timer + mic</button><button onclick="stopMonologue()">■ Stop</button><button onclick="listenToPrompt()">🔊 Hear task</button></div><p class="small" id="micStatus">Microphone transcription is supported in some browsers (often Chrome/Edge on HTTPS). You can type or paste your own transcript instead.</p><textarea id="monoText" placeholder="Your spoken words appear here if speech recognition is available. Otherwise type your transcript after speaking."></textarea><div class="row"><span class="small" id="monoWords">0 words</span><button onclick="checkMonologue()" class="primary">✨ Evaluate monologue</button></div><div class="feedback hide" id="monoFeedback"></div></div>
 <div class="box game-box" id="novaGame"><div class="game-head"><div><span class="quest">INTERACTIVE NPC ENCOUNTER · MISSION 06B</span><h3>🎮 Talk with Nova — Travel Quest</h3><p class="small">Speak naturally. Nova listens, responds in context and speaks with Qwen AI. Complete six turns to unlock your speaking assessment.</p></div><span class="game-badge" id="novaGameBadge">READY</span></div>
+<button type="button" class="npc-immersive-close" onclick="toggleNovaTheater(false)" aria-label="Exit immersive mode">✕ Exit game · Esc</button>
 <div class="nova-stage" id="novaStage"><div class="stage-scenery"><span class="stage-place">✦ CITY VISITOR CENTRE</span><span class="stage-signal" id="npcStatus">● NPC ONLINE</span></div>
 <div class="stage-main"><div id="nova3d" class="nova3d" aria-label="Nova 3D interactive character"><div id="nova3dStatus">Loading Nova 3D…</div></div><div class="stage-side"><div class="npc-name">NOVA <span>TRAVEL ADVISER</span></div><div class="npc-mood" id="novaMood">😊 Friendly · Ready to help</div><div class="stage-objective"><span class="tiny">CURRENT OBJECTIVE</span><strong id="novaObjective">Start a conversation with Nova</strong></div><div class="game-progress"><div id="novaProgress"></div></div><div class="stage-hint" id="novaHint">🎯 Your goal: arrange a two-day city trip, discuss accommodation, transport, activities and solve a problem.</div></div></div>
 <div class="npc-subtitle" aria-live="polite"><span class="subtitle-speaker" id="subtitleSpeaker">NOVA</span><span id="novaSubtitle">Press Start quest to meet Nova.</span></div>
-<div class="stage-controls"><span id="novaVoiceStatus" role="status">Qwen natural voice · ready</span><button type="button" id="novaMuteBtn" onclick="toggleNovaSound()">🔊 Sound ON</button><button type="button" onclick="speakLastNova()">↻ Replay voice</button><button type="button" onclick="toggleNovaCamera()">📷 Camera</button></div></div>
+<div class="stage-controls"><button type="button" class="nova-theater-trigger" id="novaTheaterBtn" onclick="toggleNovaTheater()">🎮 Enter game</button><span id="novaVoiceStatus" role="status">Qwen natural voice · ready</span><button type="button" id="novaMuteBtn" onclick="toggleNovaSound()">🔊 Sound ON</button><button type="button" onclick="speakLastNova()">↻ Replay voice</button><button type="button" onclick="toggleNovaCamera()">📷 Camera</button></div></div>
 <div class="quest-track"><div class="quest-track-title">QUEST LOG <span id="turnCounter">0 / 6 turns</span></div><div id="novaSteps" class="quest-steps"></div></div>
 <div class="chat" id="chat" aria-live="polite"></div>
-<div class="game-input"><div class="row"><button class="primary" id="startQuestBtn" onclick="startDialogue()">▶ Start / Restart quest</button><button id="talkBtn" onclick="toggleDialogueMic()">🎙 Talk to Nova</button><button id="novaHintBtn" onclick="showNovaPrompt()">💡 Conversation support</button></div><textarea id="dialogueInput" style="min-height:95px" placeholder="Speak into your microphone or type your own answer to Nova…"></textarea><div class="row spread"><span class="small" id="novaMicStatus">🎙 Microphone ready on supported browsers · Enter to send, Shift+Enter for new line</span><button id="novaSendBtn" class="primary" onclick="sendDialogue()">Send answer ➜</button></div><p class="small" id="novaProgressNote">Unassisted speaking gives the clearest placement evidence. Optional hints are recorded in the report.</p></div>
+<div class="game-input"><div class="row"><button class="primary" id="startQuestBtn" onclick="startDialogue()">▶ Start / Restart quest</button><button id="talkBtn" onclick="toggleDialogueMic()">🎙 Talk to Nova</button><button id="novaHintBtn" onclick="showNovaPrompt()">💡 Conversation support</button></div><div class="row"><label id="handsFreeLabel"><input type="checkbox" id="novaAutoSend"> Auto-send after microphone stops (hands-free turns)</label><span class="npc-hotkeys">Enter: send · Esc: leave game</span></div><textarea id="dialogueInput" style="min-height:95px" placeholder="Speak into your microphone or type your own answer to Nova…"></textarea><div class="row spread"><span class="small" id="novaMicStatus">🎙 Microphone ready on supported browsers · Enter to send, Shift+Enter for new line</span><button id="novaSendBtn" class="primary" onclick="sendDialogue()">Send answer ➜</button></div><p class="small" id="novaProgressNote">Unassisted speaking gives the clearest placement evidence. Optional hints are recorded in the report.</p></div>
 <button id="novaEvaluateBtn" onclick="checkDialogue()" style="margin-top:12px">✨ Evaluate my conversation</button><div class="feedback hide" id="dialogueFeedback"></div></div><div class="section-actions"><button onclick="go(4)">← Writing</button><button class="primary" onclick="go(6)">See assessment →</button></div></section>
 <section class="panel" id="s6"><span class="quest">Final Boss / Individual profile</span><h2>🏆 Your CEFR placement profile</h2><p>Skills are scored separately. An A2 student can have A1 speaking and B1 reading; don't collapse that information into one label.</p><div class="result-grid" id="resultGrid"></div><div class="box"><h3>Skill breakdown</h3><div id="skillBars"></div></div><div class="box" id="overall"></div><div class="row"><button class="primary" onclick="renderFinal()">↻ Refresh assessment</button><button onclick="downloadReport()">⬇ Download teacher report (.txt)</button><button onclick="window.print()">🖨 Print</button><button onclick="resetAll()">↺ Start over</button></div><p class="small">Method: proficiency bands loosely aligned to CEFR descriptors, with progressive A1/A2/B1 items and task-based rubrics inspired by adaptive proficiency assessments. This is NOT an official Avant test or a validated certified CEFR exam. Text-based evaluations cannot reliably measure pronunciation; browser transcription may mishear speech.</p><div class="section-actions"><button onclick="go(5)">← Speaking</button><span></span></div></section>
 </main></div><footer>Designed for one A2 learner being screened across A1–B1. AI evaluation is available when deployed with the optional secure /api/placement-evaluate and /api/placement-nova endpoints. Offline analysis is heuristic and marked as such.</footer>
@@ -315,7 +380,7 @@ function toggleDialogueMic(){
  const ok=initSpeech('dialogueInput');
  if(ok){btn.textContent='■ Stop recording';status.textContent='🔴 Recording. Speak your answer; stop when finished.';novaSetState('listening','🎙 Microphone active · Speak naturally');
   gameSpeech=recognizer;
-  if(gameSpeech){const previous=gameSpeech.onend;gameSpeech.onend=()=>{if(previous)previous();if(recognizer===gameSpeech){recognizer=null;btn.textContent='🎙 Talk to Nova';status.textContent='Microphone finished. Review your words and click Send answer.'}}}
+  if(gameSpeech){const previous=gameSpeech.onend;gameSpeech.onend=()=>{if(previous)previous();if(recognizer===gameSpeech){recognizer=null;btn.textContent='🎙 Talk to Nova';status.textContent='Microphone finished. Review your words and click Send answer.';if(document.getElementById('novaAutoSend')?.checked&&document.getElementById('dialogueInput').value.trim()&&!novaBusy){status.textContent='Sending your spoken response…';sendDialogue();}}}}
  }else status.textContent='Speech recognition is not available here. Type your answer and press Send.';
 }
 async function sendDialogue(){
@@ -394,10 +459,23 @@ async function loadNaturalListening(){
   }
 }
 window.addEventListener('DOMContentLoaded',loadNaturalListening);
+
+// Immersive NPC conversation interface, using the existing verified VRM renderer and Qwen endpoints.
+function toggleNovaTheater(force){
+ const on=typeof force==='boolean'?force:!document.body.classList.contains('nova-theater');
+ document.body.classList.toggle('nova-theater',on);
+ const btn=document.getElementById('novaTheaterBtn');if(btn)btn.textContent=on?'↙ Leave game':'🎮 Enter game';
+ const frame=document.getElementById('novaStage');if(frame)frame.classList.toggle('immersive',on);
+ // The 3D renderer observes its canvas size and reframes the camera on resize.
+ window.novaCameraClose=on;
+ if(window.novaReframe)requestAnimationFrame(()=>window.novaReframe());
+}
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&document.body.classList.contains('nova-theater'))toggleNovaTheater(false);
+});
 </script>
 <script type="importmap">
-{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/","@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"}}
-</script>
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/","@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"}}</script>
 <script type="module">
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
@@ -442,7 +520,7 @@ try{
        const position=new THREE.Vector3(look.x,look.y,look.z+distance);
        return {look,position};
      }
-     novaFraming={close:frame(.83,.20),medium:frame(1.08,.32)};
+     novaFraming={close:frame(.76,.17),medium:frame(1.05,.30)};
      window.novaCameraClose=true;
      camera.position.copy(novaFraming.close.position);
      camera.lookAt(novaFraming.close.look);
