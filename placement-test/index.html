@@ -36,6 +36,7 @@ small,.small,.muted,footer{color:#64758c}
 .good{color:#177c4d}.bad{color:#b5374a}.warn{color:#935f03}
 #alert{color:#905c00}
 @media print{body{background:white;color:black}.panel,.sidebar,.story,.question,.box{background:white;color:black}}
+.nova3d{width:220px;height:240px;flex:0 0 220px;position:relative;background:linear-gradient(160deg,#e2f4ff,#f5eafa);border-radius:22px;overflow:hidden}.nova3d canvas{display:block;width:100%;height:100%}#nova3dStatus{position:absolute;inset:auto 8px 6px;font-size:11px;text-align:center;color:#46617e;z-index:1;pointer-events:none}@media(max-width:620px){.nova3d{width:160px;height:180px;flex-basis:160px}}
 </style></head>
 <body><header><div class="eyebrow">WEBILANG INSPIRED · PLACEMENT QUEST</div><h1>🎮 LEVEL QUEST <span style="color:var(--cyan)">A1 → A2 → B1</span></h1><p style="max-width:800px">Six skill missions • real listening audio • 2-minute speaking challenge • conversation with Nova • individual CEFR profile</p><div class="row"><span class="tag">45–60 minutes</span><span class="tag">A2 target + B1 stretch</span><span class="tag">Unofficial CEFR-aligned diagnostic</span></div></header>
 <div class="shell"><aside class="sidebar"><div class="eyebrow">MISSION SELECT</div><div class="nav" id="nav"></div><p class="small">Progress</p><div class="progress"><div id="progressFill" class="fill"></div></div><p id="progressLabel" class="small">0 / 6 completed</p><p class="small">Answer independently. You can move between missions. Press “Check” to save a skill score.</p><input id="studentName" type="text" placeholder="Student name (optional)" autocomplete="name" style="font-size:13px"><p class="small">🔒 No audio leaves your device unless you use a connected AI service. Speech recognition may use your browser's provider.</p></aside>
@@ -57,8 +58,8 @@ small,.small,.muted,footer{color:#64758c}
 <section class="panel" id="s4"><span class="quest">Mission 05 / Production</span><h2>✍️ Writing — Help a visiting friend</h2><div class="box"><b>You received this message from your English-speaking friend Alex:</b><p>“I'm visiting your town next month. Where should I stay, what can we do together, and how can I get around? I'm also worried about the weather!”</p><b>Write an email (80–120 words).</b><p>Include: (1) a place to stay and why; (2) two activities; (3) transport advice; (4) weather advice; (5) at least one question for Alex. Write naturally, not as a list.</p></div><textarea id="writingText" placeholder="Hi Alex,&#10;It's great that you're coming..."></textarea><div class="row spread"><span id="wordCount" class="small">0 words</span><button class="primary" onclick="checkWriting()">✨ Evaluate my writing</button></div><div class="feedback hide" id="writingFeedback"></div><div class="section-actions"><button onclick="go(3)">← Vocabulary</button><button onclick="go(5)">Speaking →</button></div></section>
 <section class="panel" id="s5"><span class="quest">Mission 06 / Speaking arena</span><h2>🎙️ Speaking — Two challenges</h2>
 <div class="box"><h3>Part A · Two-minute monologue</h3><p><b>Talk about a weekend or trip that you remember.</b> Describe where you went, who you went with, what happened, what you liked or disliked, and what you would do differently next time. Connect your ideas with <i>first, then, because, although, after that</i> where natural.</p><div class="row"><span class="timer" id="clock">02:00</span><button id="timerBtn" class="primary" onclick="startMonologue()">▶ Start 2-minute timer + mic</button><button onclick="stopMonologue()">■ Stop</button><button onclick="listenToPrompt()">🔊 Hear task</button></div><p class="small" id="micStatus">Microphone transcription is supported in some browsers (often Chrome/Edge on HTTPS). You can type or paste your own transcript instead.</p><textarea id="monoText" placeholder="Your spoken words appear here if speech recognition is available. Otherwise type your transcript after speaking."></textarea><div class="row"><span class="small" id="monoWords">0 words</span><button onclick="checkMonologue()" class="primary">✨ Evaluate monologue</button></div><div class="feedback hide" id="monoFeedback"></div></div>
-<div class="box"><h3>Part B · Dialogue with Nova</h3><div class="avatar-zone"><div class="avatar" id="novaAvatar"><div class="hair"></div><div class="neck"></div><div class="body"></div><div class="face"><div class="eyes"><i></i><i></i></div><div class="mouth"></div></div><div class="bang"></div></div><div><span class="tag">NOVA · TRAVEL SHOP NPC</span><p>You're planning a two-day city trip. Nova works at a local visitor centre. Ask about accommodation, transport and activities; explain your budget, solve a problem, and make a decision.</p><p class="small">5–6 turns. Nova speaks each reply. Use the microphone or type. In connected mode, Nova generates contextual replies; offline, Nova follows a branching scripted scenario.</p></div></div>
-<div id="chat" class="chat" aria-live="polite"></div><div class="row"><button onclick="startDialogue()">▶ Start dialogue</button><button onclick="speakLastNova()">🔊 Repeat Nova</button><button id="talkBtn" onclick="toggleDialogueMic()">🎤 Speak</button></div><textarea id="dialogueInput" style="min-height:75px;margin-top:8px" placeholder="Type or dictate your answer..."></textarea><div class="row spread"><span class="small" id="turnCounter">0 / 6 turns</span><button class="primary" onclick="sendDialogue()">Send to Nova →</button></div><button onclick="checkDialogue()" style="margin-top:10px">✨ Evaluate dialogue</button><div class="feedback hide" id="dialogueFeedback"></div></div><div class="section-actions"><button onclick="go(4)">← Writing</button><button class="primary" onclick="go(6)">See assessment →</button></div></section>
+<div class="box"><h3>Part B · Dialogue with Nova</h3><div class="avatar-zone"><div id="nova3d" class="nova3d" aria-label="3D Nova VRM avatar"><div id="nova3dStatus">Loading Nova 3D…</div></div><div><span class="tag">NOVA · TRAVEL SHOP NPC</span><p>You're planning a two-day city trip. Nova works at a local visitor centre. Ask about accommodation, transport and activities; explain your budget, solve a problem, and make a decision.</p><p class="small">5–6 turns. Nova speaks each reply. Use the microphone or type. In connected mode, Nova generates contextual replies; offline, Nova follows a branching scripted scenario.</p></div></div>
+<p class="small" id="novaVoiceStatus" role="status">Natural Qwen voice · default (requires server configuration)</p><div id="chat" class="chat" aria-live="polite"></div><div class="row"><button onclick="startDialogue()">▶ Start dialogue</button><button onclick="speakLastNova()">🔊 Repeat Nova</button><button id="talkBtn" onclick="toggleDialogueMic()">🎤 Speak</button></div><textarea id="dialogueInput" style="min-height:75px;margin-top:8px" placeholder="Type or dictate your answer..."></textarea><div class="row spread"><span class="small" id="turnCounter">0 / 6 turns</span><button class="primary" onclick="sendDialogue()">Send to Nova →</button></div><button onclick="checkDialogue()" style="margin-top:10px">✨ Evaluate dialogue</button><div class="feedback hide" id="dialogueFeedback"></div></div><div class="section-actions"><button onclick="go(4)">← Writing</button><button class="primary" onclick="go(6)">See assessment →</button></div></section>
 <section class="panel" id="s6"><span class="quest">Final Boss / Individual profile</span><h2>🏆 Your CEFR placement profile</h2><p>Skills are scored separately. An A2 student can have A1 speaking and B1 reading; don't collapse that information into one label.</p><div class="result-grid" id="resultGrid"></div><div class="box"><h3>Skill breakdown</h3><div id="skillBars"></div></div><div class="box" id="overall"></div><div class="row"><button class="primary" onclick="renderFinal()">↻ Refresh assessment</button><button onclick="downloadReport()">⬇ Download teacher report (.txt)</button><button onclick="window.print()">🖨 Print</button><button onclick="resetAll()">↺ Start over</button></div><p class="small">Method: proficiency bands loosely aligned to CEFR descriptors, with progressive A1/A2/B1 items and task-based rubrics inspired by adaptive proficiency assessments. This is NOT an official Avant test or a validated certified CEFR exam. Text-based evaluations cannot reliably measure pronunciation; browser transcription may mishear speech.</p><div class="section-actions"><button onclick="go(5)">← Speaking</button><span></span></div></section>
 </main></div><footer>Designed for one A2 learner being screened across A1–B1. AI evaluation is available when deployed with the optional secure /api/placement-evaluate and /api/placement-nova endpoints. Offline analysis is heuristic and marked as such.</footer>
 <script>
@@ -132,7 +133,46 @@ function heuristic(kind,t){let n=count(t),lower=t.toLowerCase(),connect=(lower.m
 async function callAI(kind,payload){try{const r=await fetch('/api/placement-evaluate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,...payload})});if(!r.ok)throw Error('AI service not connected');const data=await r.json();if(typeof data.score!=='number'||!data.feedback)throw Error('Invalid feedback');return {score:Math.max(0,Math.min(100,data.score)),feedback:'🤖 AI assessment:\n'+data.feedback,source:'AI'}}catch(e){return null}}
 async function evaluate(kind,text,output,scoreKey,more={}){if(count(text)<5){feedback(output,'Please provide a longer answer before submitting.');return}feedback(output,'Evaluating...');let ai=await callAI(kind,{text,...more});let h=heuristic(kind,text),res=ai||{...h,source:'local'};feedback(output,res.feedback);mark(scoreKey,res.score,res.feedback,res.source)}
 function checkWriting(){evaluate('writing',document.getElementById('writingText').value,'writingFeedback','writing')}
-function speak(text){if(!('speechSynthesis'in window))return;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='en-GB';u.rate=.88;u.onstart=()=>document.getElementById('novaAvatar').classList.add('talking');u.onend=()=>document.getElementById('novaAvatar').classList.remove('talking');speechSynthesis.speak(u)}
+let qwenAudio=null,qwenAudioUrl=null,voiceRequestId=0;
+function stopNovaVoice(){
+ voiceRequestId++;
+ if(qwenAudio){qwenAudio.pause();qwenAudio=null}
+ if(qwenAudioUrl){URL.revokeObjectURL(qwenAudioUrl);qwenAudioUrl=null}
+ window.novaVoiceLevel=0;
+ if('speechSynthesis' in window)window.speechSynthesis.cancel();
+}
+async function speak(text){
+ stopNovaVoice();
+ const id=voiceRequestId;
+ const status=document.getElementById('novaVoiceStatus');
+ if(status)status.textContent='Nova is preparing natural Qwen speech…';
+ try{
+  const response=await fetch('/api/placement-qwen-speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+  if(!response.ok){let e={};try{e=await response.json()}catch{}throw Error(e.error||'Qwen voice is unavailable')}
+  const audioBlob=await response.blob();
+  if(!audioBlob.type.startsWith('audio/')||audioBlob.size<1000)throw Error('Invalid speech audio');
+  if(id!==voiceRequestId)return;
+  qwenAudioUrl=URL.createObjectURL(audioBlob);qwenAudio=new Audio(qwenAudioUrl);
+  qwenAudio.onended=()=>{window.novaVoiceLevel=0;if(status)status.textContent='Natural Qwen voice · ready'};
+  qwenAudio.onerror=()=>{window.novaVoiceLevel=0;if(status)status.textContent='Audio playback failed'};
+  await qwenAudio.play();
+  if(status)status.textContent='Nova speaking · Qwen natural voice';
+  const ctx=window.novaAudioContext||(window.novaAudioContext=new (window.AudioContext||window.webkitAudioContext)());
+  if(ctx.state==='suspended')await ctx.resume();
+  const node=ctx.createMediaElementSource(qwenAudio);const analyser=ctx.createAnalyser();analyser.fftSize=256;
+  node.connect(analyser);analyser.connect(ctx.destination);
+  const data=new Uint8Array(analyser.frequencyBinCount);
+  const tick=()=>{if(id!==voiceRequestId||!qwenAudio||qwenAudio.paused){window.novaVoiceLevel=0;return}
+   analyser.getByteFrequencyData(data);let v=0;for(const x of data)v+=x;
+   window.novaVoiceLevel=Math.min(1,v/data.length/85);
+   requestAnimationFrame(tick);
+  };tick();
+ }catch(e){
+  window.novaVoiceLevel=0;
+  if(status)status.textContent='Qwen voice unavailable: '+e.message+' (text response remains available)';
+  // Deliberately avoid automatic robotic speech fallback.
+ }
+}
 function listenToPrompt(){speak('Talk about a weekend or trip that you remember. Describe where you went, who you went with, what happened, what you liked or disliked, and what you would do differently next time.')}
 function initSpeech(target){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){document.getElementById('micStatus').textContent='No speech recognition in this browser. Speak aloud and type a transcript for evaluation.';return false}stopSpeech();recTarget=target;recognizer=new SR();recognizer.lang='en-US';recognizer.continuous=true;recognizer.interimResults=true;let finalText=document.getElementById(target).value.trim();recognizer.onresult=e=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){let chunk=e.results[i][0].transcript;if(e.results[i].isFinal)finalText+=(finalText?' ':'')+chunk;else interim+=chunk}document.getElementById(target).value=finalText+(interim?' '+interim:'');document.getElementById(target).dispatchEvent(new Event('input'))};recognizer.onerror=e=>{document.getElementById('micStatus').textContent='Speech recognition: '+e.error+'. You can type a transcript.'};try{recognizer.start();return true}catch(e){return false}}
 function stopSpeech(){if(recognizer){try{recognizer.stop()}catch(e){}recognizer=null}}
@@ -164,6 +204,7 @@ let complete=metrics.filter(x=>x[1]!=null),avg=complete.length?complete.reduce((
 function downloadReport(){renderFinal();let nm=document.getElementById('studentName').value||'Unnamed learner';let lines=[`LEVEL QUEST placement report — ${nm}`,new Date().toLocaleString(),'Unofficial CEFR diagnostic',''];for(let k of ['reading','listening','grammar','vocab','writing','monologue','dialogue'])lines.push(k+': '+(scores[k]==null?'not submitted':`${scores[k]}% (${level(scores[k])}) [${mode[k]}]`),notes[k]||'','');lines.push('Writing answer:',document.getElementById('writingText').value,'','Monologue transcript:',document.getElementById('monoText').value,'','Dialogue:',chatHistory.map(x=>`${x.role}: ${x.content}`).join('\n'));let blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='placement_report_'+(nm.replace(/[^a-z0-9_-]/gi,'_'))+'.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),500)}
 function resetAll(){if(!confirm('Clear all answers and scores?'))return;location.reload()}
 document.getElementById('transcript').textContent=SCRIPT;renderQ();navRender();
+window.addEventListener('load',()=>{loadNaturalListening();});
 
 // Human voice import and server-side neural TTS. No API key is stored in the HTML.
 const defaultListeningSrc=document.querySelector('#listenAudio source').getAttribute('src');
@@ -195,9 +236,58 @@ async function loadNaturalListening(){
     if(uploadedListeningURL)URL.revokeObjectURL(uploadedListeningURL);
     uploadedListeningURL=URL.createObjectURL(blob);
     changeListeningSrc(uploadedListeningURL);
-    voiceMessage('Natural AI voice is ready. Press play to hear Mia’s message.');
+    voiceMessage('Natural Qwen AI voice is ready by default. Press play to hear Mia’s message.');
   }catch(e){
     voiceMessage('Natural AI voice unavailable: '+e.message+' Use a human-recorded MP3 for guaranteed natural speech, or use the original embedded audio.');
   }
 }
-</script></body></html>
+</script>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/","@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {VRMLoaderPlugin} from '@pixiv/three-vrm';
+const host=document.getElementById('nova3d'),label=document.getElementById('nova3dStatus');
+try{
+ const scene=new THREE.Scene();
+ const camera=new THREE.PerspectiveCamera(26,220/240,.1,20);
+ camera.position.set(0,1.40,2.55);camera.lookAt(0,1.35,0);
+ const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+ renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+ renderer.outputColorSpace=THREE.SRGBColorSpace;
+ host.appendChild(renderer.domElement);
+ scene.add(new THREE.HemisphereLight(0xffffff,0x8996bc,2));
+ const light=new THREE.DirectionalLight(0xffffff,2);light.position.set(1,3,3);scene.add(light);
+ let vrm=null;const loader=new GLTFLoader();loader.register(parser=>new VRMLoaderPlugin(parser));
+ loader.load('/avatar-lab/models/nova.vrm',gltf=>{
+   vrm=gltf.userData.vrm;
+   scene.add(vrm.scene);vrm.scene.rotation.y=Math.PI;
+   label.textContent='';
+   // Auto-framing based on the actual model bounds, works across differing VRM scales.
+   const bounds=new THREE.Box3().setFromObject(vrm.scene),size=bounds.getSize(new THREE.Vector3()),center=bounds.getCenter(new THREE.Vector3());
+   const headY=bounds.max.y;
+   camera.position.set(center.x,headY-size.y*.22,center.z+Math.max(1.7,size.y*1.05));
+   camera.lookAt(center.x,headY-size.y*.27,center.z);
+ },undefined,err=>{label.textContent='Could not load 3D Nova (check /avatar-lab/models/nova.vrm)';console.error(err)});
+ const clock=new THREE.Clock();
+ function frame(){
+   requestAnimationFrame(frame);const dt=clock.getDelta();
+   if(vrm){
+     const amp=window.novaVoiceLevel||0;
+     if(vrm.expressionManager){
+       vrm.expressionManager.setValue('aa',Math.min(.9,amp*.95));
+       vrm.expressionManager.setValue('oh',Math.min(.25,amp*.2));
+     }
+     vrm.update(dt);
+   }
+   const w=host.clientWidth,h=host.clientHeight;
+   if(w&&h&&(renderer.domElement.width!==Math.round(w*renderer.getPixelRatio())||renderer.domElement.height!==Math.round(h*renderer.getPixelRatio()))){
+      renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
+   }
+   renderer.render(scene,camera);
+ }frame();
+}catch(e){label.textContent='3D renderer unavailable: '+e.message;console.error(e)}
+</script>
+</body></html>
