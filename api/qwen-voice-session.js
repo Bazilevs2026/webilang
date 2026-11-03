@@ -21,6 +21,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       voices: {
         en: 'qwen-omni-vc-kostya_en-voice-20261028012830649-fab3',
+        nova: process.env.ALIBABA_QWEN_NOVA_VOICE_ID || 'Tina',
         ru: process.env.ALIBABA_QWEN_RU_VOICE_ID || ''
       }
     });
