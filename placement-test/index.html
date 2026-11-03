@@ -37,6 +37,47 @@ small,.small,.muted,footer{color:#64758c}
 #alert{color:#905c00}
 @media print{body{background:white;color:black}.panel,.sidebar,.story,.question,.box{background:white;color:black}}
 .nova3d{width:220px;height:240px;flex:0 0 220px;position:relative;background:linear-gradient(160deg,#e2f4ff,#f5eafa);border-radius:22px;overflow:hidden}.nova3d canvas{display:block;width:100%;height:100%}#nova3dStatus{position:absolute;inset:auto 8px 6px;font-size:11px;text-align:center;color:#46617e;z-index:1;pointer-events:none}@media(max-width:620px){.nova3d{width:160px;height:180px;flex-basis:160px}}
+
+/* NOVA RPG ENCOUNTER — a self-contained light-theme game screen */
+.game-box{background:#f7faff;border:1px solid #d2e2f7;padding:clamp(12px,2vw,22px)}
+.game-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
+.game-head h3{margin:4px 0 0;font-size:22px}
+.game-badge{border-radius:99px;background:#e3f4ec;color:#147358;border:1px solid #9fe1c7;font-weight:900;letter-spacing:1.5px;font-size:11px;padding:8px 13px;white-space:nowrap}
+.nova-stage{position:relative;overflow:hidden;border-radius:23px;background:radial-gradient(ellipse at 23% 42%,#b8dbff 0,transparent 47%),linear-gradient(130deg,#d9edff,#eee7ff 65%,#dff8f3);border:1px solid #b9d8f2;min-height:390px}
+.stage-scenery{padding:13px 18px 0;display:flex;justify-content:space-between;gap:10px;color:#285579;font-size:11px;font-weight:900;letter-spacing:1.4px}
+.stage-signal{color:#197c6b}
+.stage-main{display:grid;grid-template-columns:minmax(250px,44%) 1fr;align-items:center;gap:12px;padding:4px 20px 12px}
+.nova-stage .nova3d{height:295px!important;width:100%!important;max-width:none;flex:auto;overflow:hidden;background:transparent;border-radius:10px}
+.nova-stage .nova3d canvas{width:100%;height:100%;display:block}
+.stage-side{display:grid;align-content:center;gap:13px;padding:4px 8px}
+.npc-name{font-weight:1000;font-size:clamp(25px,4vw,38px);letter-spacing:.5px;color:#1c365b}
+.npc-name span{display:block;font-size:11px;letter-spacing:2px;color:#1485a0}
+.npc-mood{font-size:13px;color:#28617c}
+.stage-objective{background:#ffffffbd;border:1px solid #c9dff4;border-radius:14px;padding:13px 15px}
+.stage-objective strong{display:block;font-size:16px;color:#263e64}
+.tiny{display:block;font-size:10px;font-weight:900;letter-spacing:2px;color:#397f9a;margin-bottom:4px}
+.game-progress{height:10px;background:#cbdcf0;border-radius:30px;overflow:hidden}
+.game-progress>div{height:100%;width:0;background:linear-gradient(90deg,#0fa6bf,#6554cc);transition:width .4s}
+.stage-hint{font-size:12px;color:#42587a}
+.npc-subtitle{margin:0 15px 12px;padding:12px 15px;min-height:68px;border-radius:15px;background:#132849e8;color:white;display:flex;gap:13px;align-items:flex-start;font-size:16px;line-height:1.5}
+.subtitle-speaker{color:#74e1ef;font-size:11px;letter-spacing:1px;font-weight:900;flex:none;padding-top:4px}
+.stage-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:9px 14px;border-top:1px solid #bdd6ed;background:#ffffff8c}
+.stage-controls #novaVoiceStatus{font-size:12px;color:#32627b;margin-right:auto}
+.stage-controls button{font-size:12px;padding:6px 9px;background:#e6efff}
+.quest-track{margin:14px 0 10px;border-radius:14px;border:1px solid #d6e3f2;padding:12px;background:white}
+.quest-track-title{display:flex;justify-content:space-between;font-size:11px;font-weight:900;letter-spacing:1.4px;color:#4e6580;margin-bottom:9px}
+.quest-steps{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+.quest-step{padding:8px 4px;border:1px solid #d9e3f0;border-radius:9px;color:#6a7d95;text-align:center;font-size:10px;font-weight:800}
+.quest-step span{display:block;font-size:17px}
+.quest-step.active{border-color:#62b9d6;color:#0b6789;background:#e8f8ff}
+.quest-step.done{border-color:#7fd6bb;background:#e8fbf4;color:#167659}
+#novaGame .chat{background:white;border:1px solid #d5e5f2;min-height:110px;max-height:260px}
+#novaGame .bubble{background:#edf4ff;color:#294365}
+#novaGame .bubble.me{background:#dcf9ee;color:#155746}
+.game-input{display:grid;gap:10px;background:#fff;border:1px solid #d6e3f2;padding:12px;border-radius:15px}
+.game-input textarea{margin:0}
+.game-input .row{gap:8px}
+@media(max-width:700px){.stage-main{grid-template-columns:1fr;padding:5px 12px}.nova-stage .nova3d{height:230px!important}.stage-side{grid-template-columns:1fr 1fr;gap:8px}.npc-name{font-size:23px}.stage-hint{grid-column:1/-1}.npc-subtitle{font-size:14px}.quest-steps{grid-template-columns:repeat(3,1fr)}}
 </style></head>
 <body><header><div class="eyebrow">WEBILANG INSPIRED · PLACEMENT QUEST</div><h1>🎮 LEVEL QUEST <span style="color:var(--cyan)">A1 → A2 → B1</span></h1><p style="max-width:800px">Six skill missions • real listening audio • 2-minute speaking challenge • conversation with Nova • individual CEFR profile</p><div class="row"><span class="tag">45–60 minutes</span><span class="tag">A2 target + B1 stretch</span><span class="tag">Unofficial CEFR-aligned diagnostic</span></div></header>
 <div class="shell"><aside class="sidebar"><div class="eyebrow">MISSION SELECT</div><div class="nav" id="nav"></div><p class="small">Progress</p><div class="progress"><div id="progressFill" class="fill"></div></div><p id="progressLabel" class="small">0 / 6 completed</p><p class="small">Answer independently. You can move between missions. Press “Check” to save a skill score.</p><input id="studentName" type="text" placeholder="Student name (optional)" autocomplete="name" style="font-size:13px"><p class="small">🔒 No audio leaves your device unless you use a connected AI service. Speech recognition may use your browser's provider.</p></aside>
@@ -54,8 +95,15 @@ small,.small,.muted,footer{color:#64758c}
 <section class="panel" id="s4"><span class="quest">Mission 05 / Production</span><h2>✍️ Writing — Help a visiting friend</h2><div class="box"><b>You received this message from your English-speaking friend Alex:</b><p>“I'm visiting your town next month. Where should I stay, what can we do together, and how can I get around? I'm also worried about the weather!”</p><b>Write an email (80–120 words).</b><p>Include: (1) a place to stay and why; (2) two activities; (3) transport advice; (4) weather advice; (5) at least one question for Alex. Write naturally, not as a list.</p></div><textarea id="writingText" placeholder="Hi Alex,&#10;It's great that you're coming..."></textarea><div class="row spread"><span id="wordCount" class="small">0 words</span><button class="primary" onclick="checkWriting()">✨ Evaluate my writing</button></div><div class="feedback hide" id="writingFeedback"></div><div class="section-actions"><button onclick="go(3)">← Vocabulary</button><button onclick="go(5)">Speaking →</button></div></section>
 <section class="panel" id="s5"><span class="quest">Mission 06 / Speaking arena</span><h2>🎙️ Speaking — Two challenges</h2>
 <div class="box"><h3>Part A · Two-minute monologue</h3><p><b>Talk about a weekend or trip that you remember.</b> Describe where you went, who you went with, what happened, what you liked or disliked, and what you would do differently next time. Connect your ideas with <i>first, then, because, although, after that</i> where natural.</p><div class="row"><span class="timer" id="clock">02:00</span><button id="timerBtn" class="primary" onclick="startMonologue()">▶ Start 2-minute timer + mic</button><button onclick="stopMonologue()">■ Stop</button><button onclick="listenToPrompt()">🔊 Hear task</button></div><p class="small" id="micStatus">Microphone transcription is supported in some browsers (often Chrome/Edge on HTTPS). You can type or paste your own transcript instead.</p><textarea id="monoText" placeholder="Your spoken words appear here if speech recognition is available. Otherwise type your transcript after speaking."></textarea><div class="row"><span class="small" id="monoWords">0 words</span><button onclick="checkMonologue()" class="primary">✨ Evaluate monologue</button></div><div class="feedback hide" id="monoFeedback"></div></div>
-<div class="box"><h3>Part B · Dialogue with Nova</h3><div class="avatar-zone"><div id="nova3d" class="nova3d" aria-label="3D Nova VRM avatar"><div id="nova3dStatus">Loading Nova 3D…</div></div><div><span class="tag">NOVA · TRAVEL SHOP NPC</span><p>You're planning a two-day city trip. Nova works at a local visitor centre. Ask about accommodation, transport and activities; explain your budget, solve a problem, and make a decision.</p><p class="small">5–6 turns. Nova speaks each reply. Use the microphone or type. In connected mode, Nova generates contextual replies; offline, Nova follows a branching scripted scenario.</p></div></div>
-<p class="small" id="novaVoiceStatus" role="status">Natural Qwen voice · default (requires server configuration)</p><div id="chat" class="chat" aria-live="polite"></div><div class="row"><button onclick="startDialogue()">▶ Start dialogue</button><button onclick="speakLastNova()">🔊 Repeat Nova</button><button id="talkBtn" onclick="toggleDialogueMic()">🎤 Speak</button></div><textarea id="dialogueInput" style="min-height:75px;margin-top:8px" placeholder="Type or dictate your answer..."></textarea><div class="row spread"><span class="small" id="turnCounter">0 / 6 turns</span><button class="primary" onclick="sendDialogue()">Send to Nova →</button></div><button onclick="checkDialogue()" style="margin-top:10px">✨ Evaluate dialogue</button><div class="feedback hide" id="dialogueFeedback"></div></div><div class="section-actions"><button onclick="go(4)">← Writing</button><button class="primary" onclick="go(6)">See assessment →</button></div></section>
+<div class="box game-box" id="novaGame"><div class="game-head"><div><span class="quest">INTERACTIVE NPC ENCOUNTER · MISSION 06B</span><h3>🎮 Talk with Nova — Travel Quest</h3><p class="small">Speak naturally. Nova listens, responds in context and speaks with Qwen AI. Complete six turns to unlock your speaking assessment.</p></div><span class="game-badge" id="novaGameBadge">READY</span></div>
+<div class="nova-stage" id="novaStage"><div class="stage-scenery"><span class="stage-place">✦ CITY VISITOR CENTRE</span><span class="stage-signal" id="npcStatus">● NPC ONLINE</span></div>
+<div class="stage-main"><div id="nova3d" class="nova3d" aria-label="Nova 3D interactive character"><div id="nova3dStatus">Loading Nova 3D…</div></div><div class="stage-side"><div class="npc-name">NOVA <span>TRAVEL ADVISER</span></div><div class="npc-mood" id="novaMood">😊 Friendly · Ready to help</div><div class="stage-objective"><span class="tiny">CURRENT OBJECTIVE</span><strong id="novaObjective">Start a conversation with Nova</strong></div><div class="game-progress"><div id="novaProgress"></div></div><div class="stage-hint" id="novaHint">🎯 Your goal: arrange a two-day city trip, discuss accommodation, transport, activities and solve a problem.</div></div></div>
+<div class="npc-subtitle" aria-live="polite"><span class="subtitle-speaker" id="subtitleSpeaker">NOVA</span><span id="novaSubtitle">Press Start quest to meet Nova.</span></div>
+<div class="stage-controls"><span id="novaVoiceStatus" role="status">Qwen natural voice · ready</span><button type="button" id="novaMuteBtn" onclick="toggleNovaSound()">🔊 Sound ON</button><button type="button" onclick="speakLastNova()">↻ Replay voice</button><button type="button" onclick="toggleNovaCamera()">📷 Camera</button></div></div>
+<div class="quest-track"><div class="quest-track-title">QUEST LOG <span id="turnCounter">0 / 6 turns</span></div><div id="novaSteps" class="quest-steps"></div></div>
+<div class="chat" id="chat" aria-live="polite"></div>
+<div class="game-input"><div class="row"><button class="primary" id="startQuestBtn" onclick="startDialogue()">▶ Start / Restart quest</button><button id="talkBtn" onclick="toggleDialogueMic()">🎙 Talk to Nova</button><button id="novaHintBtn" onclick="showNovaPrompt()">💡 Conversation support</button></div><textarea id="dialogueInput" style="min-height:95px" placeholder="Speak into your microphone or type your own answer to Nova…"></textarea><div class="row spread"><span class="small" id="novaMicStatus">🎙 Microphone ready on supported browsers · Enter to send, Shift+Enter for new line</span><button id="novaSendBtn" class="primary" onclick="sendDialogue()">Send answer ➜</button></div><p class="small" id="novaProgressNote">Unassisted speaking gives the clearest placement evidence. Optional hints are recorded in the report.</p></div>
+<button id="novaEvaluateBtn" onclick="checkDialogue()" style="margin-top:12px">✨ Evaluate my conversation</button><div class="feedback hide" id="dialogueFeedback"></div></div><div class="section-actions"><button onclick="go(4)">← Writing</button><button class="primary" onclick="go(6)">See assessment →</button></div></section>
 <section class="panel" id="s6"><span class="quest">Final Boss / Individual profile</span><h2>🏆 Your CEFR placement profile</h2><p>Skills are scored separately. An A2 student can have A1 speaking and B1 reading; don't collapse that information into one label.</p><div class="result-grid" id="resultGrid"></div><div class="box"><h3>Skill breakdown</h3><div id="skillBars"></div></div><div class="box" id="overall"></div><div class="row"><button class="primary" onclick="renderFinal()">↻ Refresh assessment</button><button onclick="downloadReport()">⬇ Download teacher report (.txt)</button><button onclick="window.print()">🖨 Print</button><button onclick="resetAll()">↺ Start over</button></div><p class="small">Method: proficiency bands loosely aligned to CEFR descriptors, with progressive A1/A2/B1 items and task-based rubrics inspired by adaptive proficiency assessments. This is NOT an official Avant test or a validated certified CEFR exam. Text-based evaluations cannot reliably measure pronunciation; browser transcription may mishear speech.</p><div class="section-actions"><button onclick="go(5)">← Speaking</button><span></span></div></section>
 </main></div><footer>Designed for one A2 learner being screened across A1–B1. AI evaluation is available when deployed with the optional secure /api/placement-evaluate and /api/placement-nova endpoints. Offline analysis is heuristic and marked as such.</footer>
 <script>
@@ -149,7 +197,7 @@ async function speak(text){
   if(!audioBlob.type.startsWith('audio/')||audioBlob.size<1000)throw Error('Invalid speech audio');
   if(id!==voiceRequestId)return;
   qwenAudioUrl=URL.createObjectURL(audioBlob);qwenAudio=new Audio(qwenAudioUrl);
-  qwenAudio.onended=()=>{window.novaVoiceLevel=0;if(status)status.textContent='Natural Qwen voice · ready'};
+  qwenAudio.onended=()=>{window.novaVoiceLevel=0;if(status)status.textContent='Natural Qwen voice · ready';if(window.novaGameState==='speaking')novaSetState(novaCompleted?'done':'listening')};
   qwenAudio.onerror=()=>{window.novaVoiceLevel=0;if(status)status.textContent='Audio playback failed'};
   await qwenAudio.play();
   if(status)status.textContent='Nova speaking · Qwen natural voice';
@@ -165,7 +213,7 @@ async function speak(text){
   };tick();
  }catch(e){
   window.novaVoiceLevel=0;
-  if(status)status.textContent='Qwen voice unavailable: '+e.message+' (text response remains available)';
+  if(status)status.textContent='Qwen voice unavailable: '+e.message+' (text response remains available)';if(window.novaGameState==='speaking')novaSetState('error');
   // Deliberately avoid automatic robotic speech fallback.
  }
 }
@@ -177,22 +225,133 @@ function startMonologue(){if(monoTimer)clearInterval(monoTimer);remaining=120;mo
 function stopMonologue(){if(monoTimer)clearInterval(monoTimer);monoTimer=null;stopSpeech()}
 function checkMonologue(){stopMonologue();evaluate('monologue',document.getElementById('monoText').value,'monoFeedback','monologue',{seconds:monoElapsed})}
 const offlineNova=[
-'Hi! Welcome to the visitor centre. Where would you like to go, and how many days will you stay?',
-'Great! What kind of accommodation are you looking for? Tell me your budget.',
-'You can travel by bus or rent a bike. Which would you prefer, and why?',
-'There is an art museum and a beautiful park. What would you like to do on Saturday?',
-'Oh no! The museum is closed on Sunday. How could we change your plan?',
-'Sounds good. Can you summarise your plan and ask me one final question?',
-'Thanks! I hope you have a wonderful trip.'
+"Hi! Welcome to the visitor centre. Where would you like to go, and how many days will you stay?",
+"That sounds exciting! Tell me what kind of place you need to stay in, and how much you can spend.",
+"You can take the city bus, or rent a bike. Which is better for you, and why?",
+"There is a famous museum, a street market and a lovely riverside park. What would you like to see?",
+"One problem: the museum is closed on Sunday. How would you change your plan?",
+"Lovely! Please tell me your final plan, and ask me one more question.",
+"Wonderful! Your trip is planned. Thank you for speaking with me. See you soon!"
 ];
-let lastNova='';
-function novaSay(t){lastNova=t;chatHistory.push({role:'assistant',content:t});drawChat();speak(t)}
-function drawChat(){document.getElementById('chat').innerHTML=chatHistory.map(x=>`<div class="bubble ${x.role==='user'?'me':''}"><strong>${x.role==='user'?'You':'Nova'}</strong><div>${esc(x.content)}</div></div>`).join('');document.getElementById('chat').scrollTop=99999;document.getElementById('turnCounter').textContent=chatHistory.filter(x=>x.role==='user').length+' / 6 turns'}
-function startDialogue(){chatHistory.length=0;chatStarted=true;novaSay(offlineNova[0])}
-function speakLastNova(){if(lastNova)speak(lastNova)}
-function toggleDialogueMic(){if(recognizer){stopSpeech();document.getElementById('talkBtn').textContent='🎤 Speak'}else{initSpeech('dialogueInput');document.getElementById('talkBtn').textContent='■ Stop mic'}}
-async function sendDialogue(){let t=document.getElementById('dialogueInput').value.trim();if(!chatStarted)startDialogue();if(!t)return;stopSpeech();document.getElementById('talkBtn').textContent='🎤 Speak';chatHistory.push({role:'user',content:t});document.getElementById('dialogueInput').value='';drawChat();let turn=chatHistory.filter(x=>x.role==='user').length;if(turn>=6){novaSay(offlineNova[6]);return}let reply='';try{let r=await fetch('/api/placement-nova',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({history:chatHistory.slice(-12),turn})});if(r.ok){let j=await r.json();reply=j.reply||''}}catch(e){}novaSay(reply||offlineNova[Math.min(turn,5)])}
-function checkDialogue(){let studentTurns=chatHistory.filter(x=>x.role==='user').map(x=>x.content);if(!studentTurns.length){feedback('dialogueFeedback','Start a dialogue and answer Nova first.');return}evaluate('dialogue',studentTurns.join(' '),'dialogueFeedback','dialogue',{history:chatHistory,turns:studentTurns.length})}
+const novaObjectives=['Say where and how long','Explain budget and accommodation','Choose transport and explain why','Choose activities','Solve a timetable problem','Confirm plan and ask a question'];
+const novaHints=[
+'Where would you like to go? How long will you stay?',
+'Think about your budget, preferred accommodation and one reason.',
+'Compare two transport choices. Give a reason for your preference.',
+'Tell Nova what you want to visit and when.',
+'Offer a different activity or change the day of your museum visit.',
+'Explain your complete plan and ask Nova for extra information.'
+];
+let lastNova='',novaBusy=false,novaSoundOn=true,novaSupportUsed=0,novaCameraClose=true,novaCompleted=false;
+function novaSetState(kind,message){
+ const badge=document.getElementById('novaGameBadge'),s=document.getElementById('npcStatus'),m=document.getElementById('novaMood');
+ const names={ready:'READY',speaking:'NOVA SPEAKS',listening:'YOUR TURN',thinking:'THINKING',done:'QUEST COMPLETE',error:'VOICE ERROR'};
+ const colors={ready:'#147358',speaking:'#096d9f',listening:'#5a4ec0',thinking:'#a46a10',done:'#147358',error:'#b4414f'};
+ if(badge){badge.textContent=names[kind]||kind.toUpperCase();badge.style.color=colors[kind]||colors.ready}
+ if(s)s.textContent=({speaking:'● NOVA TALKING',listening:'● LISTENING FOR YOU',thinking:'● GENERATING REPLY',done:'★ QUEST COMPLETE',error:'● VOICE UNAVAILABLE'})[kind]||'● NPC ONLINE';
+ if(m)m.textContent=message||({ready:'😊 Friendly · Ready to help',speaking:'🗣️ Speaking naturally',listening:'👂 Listening · Your turn',thinking:'🤔 Thinking about your answer',done:'🏆 Mission accomplished',error:'🔇 Voice service unavailable'})[kind];
+ window.novaGameState=kind;
+}
+function novaRefreshQuest(){
+ const n=chatHistory.filter(x=>x.role==='user').length;
+ const el=document.getElementById('novaSteps');
+ if(el)el.innerHTML=novaObjectives.map((x,i)=>'<div class="quest-step '+(i<n?'done':i===n?'active':'')+'" title="'+esc(x)+'"><span>'+(i<n?'✓':i+1)+'</span>'+['INTRO','STAY','TRAVEL','ACT','FIX','PLAN'][i]+'</div>').join('');
+ const progress=document.getElementById('novaProgress');if(progress)progress.style.width=Math.min(100,n/6*100)+'%';
+ const obj=document.getElementById('novaObjective');if(obj)obj.textContent=n>=6?'Quest complete — evaluate your speaking':novaObjectives[n];
+ const counter=document.getElementById('turnCounter');if(counter)counter.textContent=Math.min(6,n)+' / 6 turns';
+ const hint=document.getElementById('novaHint');
+ if(hint)hint.textContent=n>=6?'🏆 You completed six replies. Your conversation is ready to assess.':'🎯 '+novaHints[n];
+ const btn=document.getElementById('novaSendBtn');if(btn)btn.disabled=n>=6||novaBusy;
+}
+function drawChat(){
+ const el=document.getElementById('chat');
+ el.innerHTML=chatHistory.map(x=>'<div class="bubble '+(x.role==='user'?'me':'')+'"><strong>'+(x.role==='user'?'YOU':'NOVA')+'</strong><div>'+esc(x.content)+'</div></div>').join('');
+ el.scrollTop=el.scrollHeight;novaRefreshQuest();
+}
+function novaSay(t){
+ lastNova=t;chatHistory.push({role:'assistant',content:t});drawChat();
+ document.getElementById('subtitleSpeaker').textContent='NOVA';
+ document.getElementById('novaSubtitle').textContent=t;
+ if(novaSoundOn){novaSetState('speaking');speak(t)}
+ else novaSetState(novaCompleted?'done':'listening','🔇 Sound muted · Read the subtitle');
+}
+function startDialogue(){
+ stopNovaVoice();stopSpeech();
+ chatHistory.length=0;chatStarted=true;novaBusy=false;novaCompleted=false;novaSupportUsed=0;
+ document.getElementById('dialogueInput').value='';
+ document.getElementById('novaProgressNote').textContent='Unassisted speaking gives the clearest placement evidence. Optional hints are recorded in the report.';
+ document.getElementById('dialogueFeedback').classList.add('hide');
+ document.getElementById('talkBtn').textContent='🎙 Talk to Nova';
+ novaRefreshQuest();novaSay(offlineNova[0]);
+}
+function speakLastNova(){if(lastNova&&novaSoundOn){novaSetState('speaking');speak(lastNova)}}
+function toggleNovaSound(){
+ novaSoundOn=!novaSoundOn;
+ const btn=document.getElementById('novaMuteBtn');btn.textContent=novaSoundOn?'🔊 Sound ON':'🔇 Sound OFF';
+ if(!novaSoundOn){stopNovaVoice();novaSetState('listening','🔇 Subtitles are enabled')}
+ else if(lastNova)speakLastNova();
+}
+function toggleNovaCamera(){
+ novaCameraClose=!novaCameraClose;window.novaCameraClose=novaCameraClose;
+ const stage=document.getElementById('novaStage');stage.classList.toggle('camera-close',novaCameraClose);
+}
+function showNovaPrompt(){
+ const n=chatHistory.filter(x=>x.role==='user').length;
+ if(n>=6)return;
+ novaSupportUsed++;
+ document.getElementById('novaProgressNote').textContent='Conversation support used '+novaSupportUsed+' time(s). The teacher report should interpret this as supported performance.';
+ document.getElementById('novaSubtitle').textContent='💡 '+novaHints[n]+' Give your own answer, not a memorised sentence.';
+ document.getElementById('subtitleSpeaker').textContent='HINT';
+}
+let gameSpeech=null;
+function toggleDialogueMic(){
+ const btn=document.getElementById('talkBtn'),status=document.getElementById('novaMicStatus');
+ if(recognizer){
+  stopSpeech();btn.textContent='🎙 Talk to Nova';status.textContent='Microphone stopped. Check your words, then Send answer.';novaSetState('listening');return;
+ }
+ if(!chatStarted)startDialogue();
+ if(novaCompleted||novaBusy){status.textContent='Finish the current turn before speaking.';return}
+ stopNovaVoice();
+ const ok=initSpeech('dialogueInput');
+ if(ok){btn.textContent='■ Stop recording';status.textContent='🔴 Recording. Speak your answer; stop when finished.';novaSetState('listening','🎙 Microphone active · Speak naturally');
+  gameSpeech=recognizer;
+  if(gameSpeech){const previous=gameSpeech.onend;gameSpeech.onend=()=>{if(previous)previous();if(recognizer===gameSpeech){recognizer=null;btn.textContent='🎙 Talk to Nova';status.textContent='Microphone finished. Review your words and click Send answer.'}}}
+ }else status.textContent='Speech recognition is not available here. Type your answer and press Send.';
+}
+async function sendDialogue(){
+ if(novaBusy)return;
+ if(!chatStarted)startDialogue();
+ const input=document.getElementById('dialogueInput'),t=input.value.trim();
+ if(!t){document.getElementById('novaMicStatus').textContent='Please speak or type an answer before sending.';return}
+ const n=chatHistory.filter(x=>x.role==='user').length;if(n>=6)return;
+ stopSpeech();document.getElementById('talkBtn').textContent='🎙 Talk to Nova';stopNovaVoice();
+ novaBusy=true;chatHistory.push({role:'user',content:t});input.value='';
+ document.getElementById('subtitleSpeaker').textContent='YOU';document.getElementById('novaSubtitle').textContent=t;
+ drawChat();novaSetState('thinking');
+ const turn=n+1;
+ let reply='',connected=false;
+ if(turn<6){
+  try{
+   const r=await fetch('/api/placement-nova',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({history:chatHistory.slice(-12),turn})});
+   if(r.ok){const data=await r.json();reply=String(data.reply||'').trim();connected=!!reply}
+  }catch(e){console.warn('Nova conversational AI offline:',e)}
+ }
+ if(turn===6){novaCompleted=true;reply=offlineNova[6];}
+ if(!reply){reply=offlineNova[Math.min(turn,5)];document.getElementById('novaMicStatus').textContent='Offline scenario response · AI dialogue service unavailable.'}
+ else document.getElementById('novaMicStatus').textContent=connected?'Live contextual AI reply · Qwen voice':'Quest turn completed';
+ novaBusy=false;novaSay(reply);
+ if(novaCompleted){novaRefreshQuest();setTimeout(()=>{if(window.novaGameState!=='speaking')novaSetState('done')},1000)}
+}
+function checkDialogue(){
+ const studentTurns=chatHistory.filter(x=>x.role==='user').map(x=>x.content);
+ if(!studentTurns.length){feedback('dialogueFeedback','Start the quest and answer Nova first.');return}
+ evaluate('dialogue',studentTurns.join(' '),'dialogueFeedback','dialogue',{history:chatHistory,turns:studentTurns.length,supportUsed:novaSupportUsed});
+}
+window.addEventListener('DOMContentLoaded',()=>{
+ novaRefreshQuest();
+ const inp=document.getElementById('dialogueInput');
+ if(inp)inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendDialogue()}});
+});
 function skillCard(name,key){let v=scores[key];return `<div class="result-cell"><span class="small">${name}</span><strong>${v==null?'—':level(v)}</strong><div class="small">${v==null?'Not submitted':v+'% · '+(mode[key]==='AI'?'AI':'local')}</div></div>`}
 function renderFinal(){let speaking=[scores.monologue,scores.dialogue].filter(v=>v!=null);let speakScore=speaking.length?speaking.reduce((a,b)=>a+b,0)/speaking.length:null;document.getElementById('resultGrid').innerHTML=[['Reading','reading'],['Listening','listening'],['Grammar','grammar'],['Vocabulary','vocab'],['Writing','writing']].map(x=>skillCard(...x)).join('')+`<div class="result-cell"><span class="small">Speaking (mono + dialogue)</span><strong>${speakScore==null?'—':level(speakScore)}</strong><div class="small">${speakScore==null?'Not submitted':Math.round(speakScore)+'% · combined'}</div></div>`;
 let metrics=[['Reading',scores.reading],['Listening',scores.listening],['Grammar',scores.grammar],['Vocabulary',scores.vocab],['Writing',scores.writing],['Speaking',speakScore]];document.getElementById('skillBars').innerHTML=metrics.map(([k,v])=>`<div class="barrow"><b>${k}</b><div class="progress"><div class="fill" style="width:${v==null?0:v}%"></div></div><span>${v==null?'—':Math.round(v)+'%'}</span></div>`).join('');
@@ -262,17 +421,52 @@ try{
    // Auto-framing based on the actual model bounds, works across differing VRM scales.
    const bounds=new THREE.Box3().setFromObject(vrm.scene),size=bounds.getSize(new THREE.Vector3()),center=bounds.getCenter(new THREE.Vector3());
    const headY=bounds.max.y;
-   camera.position.set(center.x,headY-size.y*.22,center.z+Math.max(1.7,size.y*1.05));
-   camera.lookAt(center.x,headY-size.y*.27,center.z);
+   const look=new THREE.Vector3(center.x,headY-size.y*.22,center.z);
+   const close=new THREE.Vector3(center.x,headY-size.y*.2,center.z+Math.max(1.12,size.y*.67));
+   const medium=new THREE.Vector3(center.x,headY-size.y*.30,center.z+Math.max(1.9,size.y*1.13));
+   vrm.userData.novaFraming={look,close,medium};
+   window.novaCameraClose=true;
+   camera.position.copy(close);camera.lookAt(look);
  },undefined,err=>{label.textContent='Could not load 3D Nova (check /avatar-lab/models/nova.vrm)';console.error(err)});
- const clock=new THREE.Clock();
+ // VRM humanoid procedural idle pose, conversation gestures and blink.
+ const clock=new THREE.Clock(), joints={};let time=0;
+ function joint(name){return vrm?.humanoid?.getNormalizedBoneNode?.(name)||null}
  function frame(){
    requestAnimationFrame(frame);const dt=clock.getDelta();
    if(vrm){
-     const amp=window.novaVoiceLevel||0;
+     time+=Math.min(.05,dt);
+     const amp=window.novaVoiceLevel||0,talking=window.novaGameState==='speaking',thinking=window.novaGameState==='thinking';
      if(vrm.expressionManager){
-       vrm.expressionManager.setValue('aa',Math.min(.9,amp*.95));
-       vrm.expressionManager.setValue('oh',Math.min(.25,amp*.2));
+       try{
+         vrm.expressionManager.setValue('aa',Math.min(.88,amp*.9));
+         vrm.expressionManager.setValue('oh',Math.min(.28,amp*.22));
+         const blink=Math.max(0,1-Math.abs((time%4.2)-.13)/.11);
+         vrm.expressionManager.setValue('blink',Math.min(1,blink));
+         vrm.expressionManager.setValue('happy',talking?.08:.04);
+       }catch(e){}
+     }
+     // Rotate the arms down from the exported T-pose for a relaxed NPC stance.
+     for(const [key,sign] of [['leftUpperArm',1],['rightUpperArm',-1]]){
+       const bone=joint(key);
+       if(bone){
+         const target=sign*(.82+(talking?.09*Math.sin(time*5):0));
+         bone.rotation.z+=(target-bone.rotation.z)*Math.min(1,dt*3);
+         bone.rotation.x+=(.06-bone.rotation.x)*Math.min(1,dt*3);
+       }
+     }
+     const neck=joint('neck')||joint('head');
+     if(neck){
+       neck.rotation.y+=(Math.sin(time*.52)*.065-neck.rotation.y)*Math.min(1,dt*2.1);
+       neck.rotation.x+=((thinking?.08:talking?.03*Math.sin(time*4):.02*Math.sin(time*.7))-neck.rotation.x)*Math.min(1,dt*2.1);
+     }
+     const hips=joint('hips');
+     if(hips){hips.rotation.y+=(Math.sin(time*.55)*.012-hips.rotation.y)*Math.min(1,dt);}
+     // Cinematic camera: switch between medium close-up and conversation portrait.
+     if(vrm.userData.novaFraming){
+       const f=vrm.userData.novaFraming;
+       const desired=window.novaCameraClose===false?f.medium:f.close;
+       camera.position.lerp(desired,Math.min(1,dt*3));
+       camera.lookAt(f.look);
      }
      vrm.update(dt);
    }
