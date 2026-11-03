@@ -152,12 +152,12 @@ body.nova-theater #novaGame .game-input #handsFreeLabel{color:#e7f7fc}
 .placement-realtime-shell iframe{width:100%;height:690px;border:0;border-radius:14px;background:#f4f6f1;display:block}
 .placement-realtime-shell .realtime-score{padding:12px;margin-top:10px;background:#eef6ff;border-radius:12px}
 .placement-realtime-shell .realtime-score button{margin:8px 0}
-.nova-test-task{padding:15px 18px;background:#eef7ff;border:1px solid #bdd8ed;border-radius:14px;margin:0 0 12px;color:#1e3655}
+.nova-test-task{padding:20px 22px;background:#edf7ff;border:2px solid #91c2e5;border-radius:14px;margin:0 0 12px;color:#1e3655}
 .nova-test-task .task-top{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;color:#12607e}
 #placementClock{font-size:30px;font-weight:900;letter-spacing:1px;font-variant-numeric:tabular-nums;color:#a35d04}
-.nova-test-task p{margin:8px 0;line-height:1.55}
-.nova-task-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
-.nova-task-grid>div{padding:9px;background:white;border-radius:9px;border:1px solid #d5e3f0;font-size:13px}
+.nova-test-task p{margin:12px 0;line-height:1.6;font-size:18px}
+.nova-task-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.nova-task-grid>div{padding:13px 14px;background:white;border-radius:11px;border:1.5px solid #b1d2ed;font-size:17px;font-weight:750;line-height:1.45}
 .realtime-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .realtime-actions button:disabled{opacity:.45;cursor:not-allowed}
 @media(max-width:650px){.nova-task-grid{grid-template-columns:1fr}}
@@ -184,7 +184,7 @@ body.nova-theater #novaGame .game-input #handsFreeLabel{color:#e7f7fc}
 <div class="box game-box" id="novaGame"><div class="game-head"><div><span class="quest">INTERACTIVE NPC ENCOUNTER · MISSION 06B</span><h3>🎮 Talk with Nova — Travel Quest</h3><p class="small">Speak naturally. Nova listens, responds in context and speaks with Qwen AI. Complete six turns to unlock your speaking assessment.</p></div><span class="game-badge" id="novaGameBadge">READY</span></div>
 <button type="button" class="npc-immersive-close" onclick="toggleNovaTheater(false)" aria-label="Exit immersive mode">✕ Exit game · Esc</button>
 <div class="nova-stage" id="novaStage"><div class="stage-scenery"><span class="stage-place">✦ CITY VISITOR CENTRE</span><span class="stage-signal" id="npcStatus">● NPC ONLINE</span></div>
-<div class="stage-main"><div id="nova3d" class="nova3d" aria-label="Nova 3D interactive character"><div id="nova3dStatus">Loading Nova 3D…</div></div><div class="stage-side"><div class="npc-name">NOVA <span>TRAVEL ADVISER</span></div><div class="npc-mood" id="novaMood">😊 Friendly · Ready to help</div><div class="stage-objective"><span class="tiny">CURRENT OBJECTIVE</span><strong id="novaObjective">Start a conversation with Nova</strong></div><div class="game-progress"><div id="novaProgress"></div></div><div class="stage-hint" id="novaHint">🎯 Your goal: arrange a two-day city trip, discuss accommodation, transport, activities and solve a problem.</div></div></div>
+<div class="stage-main"><div id="nova3d" class="nova3d" aria-label="Nova 3D interactive character"><div id="nova3dStatus">Loading Nova 3D…</div></div><div class="stage-side"><div class="npc-name">NOVA <span>TRAVEL ADVISER</span></div><div class="npc-mood" id="novaMood">😊 Friendly · Ready to help</div><div class="stage-objective"><span class="tiny">CURRENT OBJECTIVE</span><strong id="novaObjective">Start a conversation with Nova</strong></div><div class="game-progress"><div id="novaProgress"></div></div><div class="stage-hint" id="novaHint">🎯 Your goal: arrange a two-day city trip, discuss accommodation, transport and activities, and make a personal request.</div></div></div>
 <div class="npc-subtitle" aria-live="polite"><span class="subtitle-speaker" id="subtitleSpeaker">NOVA</span><span id="novaSubtitle">Press Start quest to meet Nova.</span></div>
 <div class="stage-controls"><button type="button" class="nova-theater-trigger" id="novaTheaterBtn" onclick="toggleNovaTheater()">🎮 Enter game</button><span id="novaVoiceStatus" role="status">Qwen natural voice · ready</span><button type="button" id="novaMuteBtn" onclick="toggleNovaSound()">🔊 Sound ON</button><button type="button" onclick="speakLastNova()">↻ Replay voice</button><button type="button" onclick="toggleNovaCamera()">📷 Camera</button></div></div>
 <div class="quest-track"><div class="quest-track-title">QUEST LOG <span id="turnCounter">0 / 6 turns</span></div><div id="novaSteps" class="quest-steps"></div></div>
@@ -198,7 +198,7 @@ body.nova-theater #novaGame .game-input #handsFreeLabel{color:#e7f7fc}
    <div class="nova-task-grid">
       <div>① Tell Nova your travel dates and duration</div><div>② Ask about accommodation and choose one</div>
       <div>③ Find transport and decide how to travel</div><div>④ Ask about an activity and choose one</div>
-      <div>⑤ Solve an unexpected booking problem</div><div>⑥ Explain your final plan and its total cost</div>
+      <div>⑤ Make a special request (e.g. quiet room) and say why</div><div>⑥ Explain your final plan and its total cost</div>
    </div>
    <p class="small">Don't read a prepared script. Ask follow-up questions and make decisions yourself. The timer begins when the realtime connection is ready.</p>
  </div>
@@ -211,7 +211,7 @@ body.nova-theater #novaGame .game-input #handsFreeLabel{color:#e7f7fc}
      <button class="primary" type="button" id="placementRealtimeEvaluate" disabled>✨ Evaluate mission and update CEFR report</button>
      <button type="button" id="placementGoReport" disabled>🏆 View overall assessment</button>
    </div>
-   <p class="small">The test checks mission completion, interaction, grammar, vocabulary and coherence from the captured transcript. Pronunciation and acoustic fluency cannot be confirmed from a transcript alone.</p>
+   <p class="small">The test checks the six mission objectives, responsiveness and follow-up questions, grammar, vocabulary and coherence from the captured transcript. Pronunciation and acoustic fluency cannot be confirmed from a transcript alone.</p>
    <div id="placementRealtimeStatus" class="small" role="status">Start the live conversation in the scene above. Assessment unlocks when you finish.</div>
   </div>
 </div></div><div class="section-actions"><button onclick="go(4)">← Writing</button><button class="primary" onclick="go(6)">See assessment →</button></div></section>
@@ -683,7 +683,7 @@ try{
    if(evaluating||!turns.length)return;
    evaluating=true;evaluateBtn.disabled=true;status.textContent='AI is assessing your completed travel mission…';
    const mission={destination:'Brighton, UK',duration:'two days',budgetGBP:180,
-     objectives:['state trip duration','choose accommodation','choose transport','choose activity','resolve unavailable hotel booking','summarise itinerary and budget'],
+     objectives:['state trip duration','choose accommodation','choose transport','choose activity','make a specific personal request and give a reason','summarise itinerary and budget'],
      timeLimitSeconds:300,endedReason:finishReason};
    const text=turns.join(' ');
    const ai=await callAI('dialogue',{text,history:log,turns:turns.length,supportUsed:false,mission});
