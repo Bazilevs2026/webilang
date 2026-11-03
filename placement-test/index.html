@@ -164,23 +164,44 @@ body.nova-theater #novaGame .game-input #handsFreeLabel{color:#e7f7fc}
 .placement-realtime-shell .realtime-turns{max-height:130px;overflow:auto;font-size:13px;line-height:1.6}
 @media(max-width:700px){.placement-realtime-shell iframe{height:760px}.placement-realtime-shell{padding:4px}}
 </style>
+<style id="speaking-assessment-upgrade">
+.speaking-criteria-info{background:#f2f8ff;border:1px solid #bcdaed;border-left:4px solid #2188ab;border-radius:12px;padding:13px 16px;margin:12px 0 16px}
+.speaking-criteria-info h4{margin:0 0 5px;color:#213b58;font-size:17px}.speaking-criteria-info p{margin:0;color:#395673;font-size:14px;line-height:1.6}
+.speaking-tools{margin:10px 0}.speaking-tools button{font-size:13px}
+.speaking-rubric-result{margin-top:10px}.speaking-rubric-result:empty{display:none}
+.criteria-table{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5;margin:9px 0}
+.criteria-table th,.criteria-table td{text-align:left;padding:8px;border-bottom:1px solid #dbe7f3}
+.criteria-table th{background:#ebf5ff}.criteria-note{color:#526985;font-size:12px}
+.speaking-subscore{background:#f3f8fe;border:1px solid #c9dff0;border-radius:12px;padding:13px;margin:12px 0}
+.speaking-subscore h4{margin:0 0 7px;color:#1d3656}.speaking-subscore p{margin:5px 0}
+@media(max-width:650px){.criteria-table{font-size:12px}.criteria-table th,.criteria-table td{padding:6px}}
+</style>
+<style>
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.listening-recovery{margin-top:7px}
+</style>
 </head>
 <body><header><div class="eyebrow">WEBILANG INSPIRED · PLACEMENT QUEST</div><h1>🎮 LEVEL QUEST <span style="color:var(--cyan)">A1 → A2 → B1</span></h1><p style="max-width:800px">Six skill missions • real listening audio • 2-minute speaking challenge • conversation with Nova • individual CEFR profile</p><div class="row"><span class="tag">45–60 minutes</span><span class="tag">A2 target + B1 stretch</span><span class="tag">Unofficial CEFR-aligned diagnostic</span></div></header>
 <div class="shell"><aside class="sidebar"><div class="eyebrow">MISSION SELECT</div><div class="nav" id="nav"></div><p class="small">Progress</p><div class="progress"><div id="progressFill" class="fill"></div></div><p id="progressLabel" class="small">0 / 6 completed</p><p class="small">Answer independently. You can move between missions. Press “Check” to save a skill score.</p><input id="studentName" type="text" placeholder="Student name (optional)" autocomplete="name" style="font-size:13px"><p class="small">🔒 No audio leaves your device unless you use a connected AI service. Speech recognition may use your browser's provider.</p></aside>
 <main>
 <section class="panel active" id="s0"><span class="quest">Mission 01 / Comprehension</span><h2>📖 Reading — A new weekend plan</h2><p class="muted">Read once, then answer. 8 questions, from basic facts to B1 inference.</p>
 <div class="story"><b>A Weekend Without a Car</b><br><br>Last summer, Daniel moved to a small town near Bristol because he got a new job. At first, he was worried. He didn't have a car, and the nearest supermarket was three kilometres away. However, he soon discovered that life without a car could be easier than he expected.<br><br>On weekdays, Daniel usually cycles to work. It takes twenty minutes, which is faster than the bus during rush hour. On Fridays, he works from home, so he doesn't need to travel. At weekends, he meets his friend Leo, who lives in the city. They often go hiking or visit local markets.<br><br>Last Saturday, they wanted to visit a lake, but the weather changed suddenly. Instead of cancelling their plans, they took a train to a nearby village and explored an old castle. Daniel had never visited it before. The tickets were a little expensive, but the view from the top was amazing.<br><br>Now Daniel is thinking about buying an electric bicycle. He hasn't decided yet because he wants to save money for a holiday abroad. Although travelling without a car sometimes takes longer, Daniel says it has helped him become healthier and discover new places.</div><div id="readingQs"></div><div class="row"><button class="primary" onclick="checkMC('reading')">✓ Check reading</button><span class="small">No answers shown before submission</span></div><div class="feedback hide" id="readingFeedback"></div><div class="section-actions"><span></span><button onclick="go(1)">Listening →</button></div></section>
-<section class="panel" id="s1"><span class="quest">Mission 02 / Audio</span><h2>🎧 Listening — A message from Mia</h2><p>Listen to the recorded message. For a more valid result, play it no more than twice and don't view the transcript until after checking.</p><audio id="listenAudio" controls preload="none" aria-label="Qwen natural listening audio"></audio><div class="box" style="margin-top:8px">
-  <strong>🎙️ Natural AI Listening · Qwen</strong>
-  <p class="small" id="voiceStatus" role="status" aria-live="polite">Connecting to Qwen Natural Voice…</p>
-  <button type="button" id="retryNaturalVoice" onclick="loadNaturalListening()" style="display:none">↻ Retry Qwen Natural Voice</button>
-  <p class="small">Only natural Qwen AI voice is used. Audio is enabled once it has loaded; if the service is unavailable, no robotic or embedded MP3 will play.</p>
+<section class="panel" id="s1"><span class="quest">Mission 02 / Audio</span><h2>🎧 Listening — A message from Mia</h2><p>Listen to the recorded message. For a more valid result, play it no more than twice and don't view the transcript until after checking.</p><audio id="listenAudio" controls preload="none" aria-label="Qwen natural listening audio"></audio><div class="listening-recovery" aria-live="polite">
+  <span class="sr-only" id="voiceStatus" role="status">Connecting to Qwen Natural Voice…</span>
+  <button type="button" id="retryNaturalVoice" onclick="loadNaturalListening()" style="display:none">↻ Retry audio</button>
 </div><div id="listeningQs"></div><button class="primary" onclick="checkMC('listening')">✓ Check listening</button><div class="feedback hide" id="listeningFeedback"></div><details><summary>Teacher / post-test transcript (opening it may affect validity)</summary><p id="transcript"></p></details><div class="section-actions"><button onclick="go(0)">← Reading</button><button onclick="go(2)">Grammar →</button></div></section>
 <section class="panel" id="s2"><span class="quest">Mission 03 / Accuracy</span><h2>🧩 Grammar — Structures in action</h2><p class="muted">12 items: present and past, questions, comparatives, modals, present perfect, conditionals.</p><div id="grammarQs"></div><button class="primary" onclick="checkMC('grammar')">✓ Check grammar</button><div class="feedback hide" id="grammarFeedback"></div><div class="section-actions"><button onclick="go(1)">← Listening</button><button onclick="go(3)">Vocabulary →</button></div></section>
 <section class="panel" id="s3"><span class="quest">Mission 04 / Word power</span><h2>🗝️ Vocabulary — Everyday English</h2><p class="muted">12 questions testing meaning, collocations, travel, work, emotions and B1 stretch.</p><div id="vocabQs"></div><button class="primary" onclick="checkMC('vocab')">✓ Check vocabulary</button><div class="feedback hide" id="vocabFeedback"></div><div class="section-actions"><button onclick="go(2)">← Grammar</button><button onclick="go(4)">Writing →</button></div></section>
 <section class="panel" id="s4"><span class="quest">Mission 05 / Production</span><h2>✍️ Writing — Help a visiting friend</h2><div class="box"><b>You received this message from your English-speaking friend Alex:</b><p>“I'm visiting your town next month. Where should I stay, what can we do together, and how can I get around? I'm also worried about the weather!”</p><b>Write an email (80–120 words).</b><p>Include: (1) a place to stay and why; (2) two activities; (3) transport advice; (4) weather advice; (5) at least one question for Alex. Write naturally, not as a list.</p></div><textarea id="writingText" placeholder="Hi Alex,&#10;It's great that you're coming..."></textarea><div class="row spread"><span id="wordCount" class="small">0 words</span><button class="primary" onclick="checkWriting()">✨ Evaluate my writing</button></div><div class="feedback hide" id="writingFeedback"></div><div class="section-actions"><button onclick="go(3)">← Vocabulary</button><button onclick="go(5)">Speaking →</button></div></section>
 <section class="panel" id="s5"><span class="quest">Mission 06 / Speaking arena</span><h2>🎙️ Speaking — Two challenges</h2>
-<div class="box"><h3>Part A · Two-minute monologue</h3><p><b>Talk about a weekend or trip that you remember.</b> Describe where you went, who you went with, what happened, what you liked or disliked, and what you would do differently next time. Connect your ideas with <i>first, then, because, although, after that</i> where natural.</p><div class="row"><span class="timer" id="clock">02:00</span><button id="timerBtn" class="primary" onclick="startMonologue()">▶ Start 2-minute timer + mic</button><button onclick="stopMonologue()">■ Stop</button><button onclick="listenToPrompt()">🔊 Hear task</button></div><p class="small" id="micStatus">Microphone transcription is supported in some browsers (often Chrome/Edge on HTTPS). You can type or paste your own transcript instead.</p><textarea id="monoText" placeholder="Your spoken words appear here if speech recognition is available. Otherwise type your transcript after speaking."></textarea><div class="row"><span class="small" id="monoWords">0 words</span><button onclick="checkMonologue()" class="primary">✨ Evaluate monologue</button></div><div class="feedback hide" id="monoFeedback"></div></div>
+<div class="box speaking-total-card" id="speakingLiveOverview"><h3>Speaking assessment — Monologue + Dialogue</h3><div id="speakingLiveResult">Complete both tasks to receive your combined Speaking score.</div><p class="criteria-note">Two separately assessed components, each worth 50% of Speaking. The final six-skill profile uses the combined result.</p></div>
+<div class="box"><h3>Part A · Two-minute monologue</h3><p><b>Talk about a weekend or trip that you remember.</b> Describe where you went, who you went with, what happened, what you liked or disliked, and what you would do differently next time. Connect your ideas with <i>first, then, because, although, after that</i> where natural.</p><div class="row"><span class="timer" id="clock">02:00</span><button id="timerBtn" class="primary" onclick="startMonologue()">▶ Start 2-minute timer + mic</button><button onclick="stopMonologue()">■ Stop</button><button onclick="listenToPrompt()">🔊 Hear task</button></div><p class="small" id="micStatus">Microphone transcription is supported in some browsers (often Chrome/Edge on HTTPS). You can type or paste your own transcript instead.</p><textarea id="monoText" placeholder="Your spoken words appear here if speech recognition is available. Otherwise type your transcript after speaking."></textarea><div class="row"><span class="small" id="monoWords">0 words</span><button onclick="checkMonologue()" class="primary">✨ Evaluate monologue</button></div><div class="row speaking-tools">
+<button type="button" onclick="downloadMonologueTranscript()">⬇ Download monologue transcript</button>
+<span class="small">Transcript reflects microphone recognition or typed text; audio is not recorded.</span>
+</div>
+<div class="feedback hide" id="monoFeedback"></div>
+<div class="speaking-rubric-result" id="monoCriteriaResult"></div></div>
+<div class="speaking-criteria-info"><h4>Monologue · 2 minutes · scoring criteria</h4><p>Task completion 25% · Grammar 25% · Vocabulary 20% · Organisation 20% · Development 10%. Only transcript evidence is scored. Pronunciation requires a separate audio review.</p></div>
 <div class="box game-box" id="novaGame"><div class="game-head"><div><span class="quest">INTERACTIVE NPC ENCOUNTER · MISSION 06B</span><h3>🎮 Talk with Nova — Travel Quest</h3><p class="small">Speak naturally. Nova listens, responds in context and speaks with Qwen AI. Complete six turns to unlock your speaking assessment.</p></div><span class="game-badge" id="novaGameBadge">READY</span></div>
 <button type="button" class="npc-immersive-close" onclick="toggleNovaTheater(false)" aria-label="Exit immersive mode">✕ Exit game · Esc</button>
 <div class="nova-stage" id="novaStage"><div class="stage-scenery"><span class="stage-place">✦ CITY VISITOR CENTRE</span><span class="stage-signal" id="npcStatus">● NPC ONLINE</span></div>
@@ -191,22 +212,25 @@ body.nova-theater #novaGame .game-input #handsFreeLabel{color:#e7f7fc}
 <div class="chat" id="chat" aria-live="polite"></div>
 <div class="game-input"><div class="row"><button class="primary" id="startQuestBtn" onclick="startDialogue()">▶ Start / Restart quest</button><button id="talkBtn" onclick="toggleDialogueMic()">🎙 Talk to Nova</button><button id="novaHintBtn" onclick="showNovaPrompt()">💡 Conversation support</button></div><div class="row"><label id="handsFreeLabel"><input type="checkbox" id="novaAutoSend"> Auto-send after microphone stops (hands-free turns)</label><span class="npc-hotkeys">Enter: send · Esc: leave game</span></div><textarea id="dialogueInput" style="min-height:95px" placeholder="Speak into your microphone or type your own answer to Nova…"></textarea><div class="row spread"><span class="small" id="novaMicStatus">🎙 Microphone ready on supported browsers · Enter to send, Shift+Enter for new line</span><button id="novaSendBtn" class="primary" onclick="sendDialogue()">Send answer ➜</button></div><p class="small" id="novaProgressNote">Unassisted speaking gives the clearest placement evidence. Optional hints are recorded in the report.</p></div>
 <button id="novaEvaluateBtn" onclick="checkDialogue()" style="margin-top:12px">✨ Evaluate my conversation</button><div class="feedback hide" id="dialogueFeedback"></div>
+<div class="speaking-criteria-info"><h4>Dialogue · 5 minutes · scoring criteria</h4><p>Mission objectives 30% · Interaction and initiative 25% · Grammar 20% · Vocabulary 15% · Coherence 10%. The special request is about a personal preference, not a hotel booking problem.</p></div>
 <div class="placement-realtime-shell">
  <div class="placement-timer-strip"><span>⏱ Speaking countdown</span><strong id="placementClock" aria-live="polite">05:00</strong></div>
  <iframe id="placementNovaRealtime" title="Live 3D Nova conversation" src="/placement-test/nova-realtime.html?pilot=placement_nova&mode=avatar&embed=gender" allow="microphone; autoplay; fullscreen"></iframe>
   <div class="realtime-score">
    <strong id="placementRealtimeTurns">0 learner turns recorded</strong>
    <div id="placementRealtimeTranscript" class="realtime-turns" aria-live="polite"></div>
+<div class="row speaking-tools"><button type="button" onclick="downloadDialogueTranscript()">⬇ Download realtime dialogue transcript</button><span class="small">Includes captured student and Nova turns.</span></div>
    <div class="realtime-actions">
      <button type="button" id="placementStopNow">■ Finish speaking mission</button>
      <button class="primary" type="button" id="placementRealtimeEvaluate" disabled>✨ Evaluate mission and update CEFR report</button>
      <button type="button" id="placementGoReport" disabled>🏆 View overall assessment</button>
    </div>
    <p class="small">The test checks the six mission objectives, responsiveness and follow-up questions, grammar, vocabulary and coherence from the captured transcript. Pronunciation and acoustic fluency cannot be confirmed from a transcript alone.</p>
-   <div id="placementRealtimeStatus" class="small" role="status">Start the live conversation in the scene above. Assessment unlocks when you finish.</div>
+   <div class="speaking-rubric-result" id="dialogueCriteriaResult"></div><div id="placementRealtimeStatus" class="small" role="status">Start the live conversation in the scene above. Assessment unlocks when you finish.</div>
   </div>
 </div></div><div class="section-actions"><button onclick="go(4)">← Writing</button><button class="primary" onclick="go(6)">See assessment →</button></div></section>
-<section class="panel" id="s6"><span class="quest">Final Boss / Individual profile</span><h2>🏆 Your CEFR placement profile</h2><p>Skills are scored separately. An A2 student can have A1 speaking and B1 reading; don't collapse that information into one label.</p><div class="result-grid" id="resultGrid"></div><div class="box"><h3>Skill breakdown</h3><div id="skillBars"></div></div><div class="box" id="overall"></div><div class="row"><button class="primary" onclick="renderFinal()">↻ Refresh assessment</button><button onclick="downloadReport()">⬇ Download teacher report (.txt)</button><button onclick="window.print()">🖨 Print</button><button onclick="resetAll()">↺ Start over</button></div><p class="small">Method: proficiency bands loosely aligned to CEFR descriptors, with progressive A1/A2/B1 items and task-based rubrics inspired by adaptive proficiency assessments. This is NOT an official Avant test or a validated certified CEFR exam. Text-based evaluations cannot reliably measure pronunciation; browser transcription may mishear speech.</p><div class="section-actions"><button onclick="go(5)">← Speaking</button><span></span></div></section>
+<section class="panel" id="s6"><span class="quest">Final Boss / Individual profile</span><h2>🏆 Your CEFR placement profile</h2><p>Skills are scored separately. An A2 student can have A1 speaking and B1 reading; don't collapse that information into one label.</p><div class="result-grid" id="resultGrid"></div>
+<div class="box" id="speakingDetailedReport"><h3>Speaking: two separate assessments</h3><p>Evaluate both parts to obtain a combined Speaking score.</p></div><div class="box"><h3>Skill breakdown</h3><div id="skillBars"></div></div><div class="box" id="overall"></div><div class="row"><button class="primary" onclick="renderFinal()">↻ Refresh assessment</button><button onclick="downloadReport()">⬇ Download teacher report (.txt)</button><button onclick="window.print()">🖨 Print</button><button onclick="resetAll()">↺ Start over</button></div><p class="small">Method: proficiency bands loosely aligned to CEFR descriptors, with progressive A1/A2/B1 items and task-based rubrics inspired by adaptive proficiency assessments. This is NOT an official Avant test or a validated certified CEFR exam. Text-based evaluations cannot reliably measure pronunciation; browser transcription may mishear speech.</p><div class="section-actions"><button onclick="go(5)">← Speaking</button><span></span></div></section>
 </main></div><footer>Designed for one A2 learner being screened across A1–B1. AI evaluation is available when deployed with the optional secure /api/placement-evaluate and /api/placement-nova endpoints. Offline analysis is heuristic and marked as such.</footer>
 <script>
 'use strict';
@@ -261,14 +285,14 @@ vocab:[
 ['Despite the rain, we ___ to finish the walk.',['managed','avoided','refused'],0,'B1','Manage to do = succeed in doing.']
 ]};
 const navNames=['📖 Reading','🎧 Listening','🧩 Grammar','🗝️ Vocabulary','✍️ Writing','🎙️ Speaking','🏆 Assessment'];let active=0;
-const scores={},notes={},mode={},chatHistory=[];let monoTimer=null,remaining=120,recognizer=null,recTarget='',chatStarted=false,aiStatus='';let monoElapsed=0;
+const scores={},notes={},mode={},criteriaResults={},chatHistory=[];const realtimeTranscriptLog=[];let monoTimer=null,remaining=120,recognizer=null,recTarget='',chatStarted=false,aiStatus='';let monoElapsed=0;
 const qids={reading:'readingQs',listening:'listeningQs',grammar:'grammarQs',vocab:'vocabQs'};
 function esc(v){return String(v||'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]))}
 function renderQ(){for(const skill of Object.keys(qids)){document.getElementById(qids[skill]).innerHTML=DATA[skill].map((q,i)=>`<div class="question"><b>${i+1}. ${esc(q[0])} <span class="tag">${q[3]}</span></b><div class="opts">${q[1].map((o,j)=>`<label><input type="radio" name="${skill}_${i}" value="${j}"> ${esc(o)}</label>`).join('')}</div></div>`).join('')}}
 function go(n){active=n;document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===n));document.querySelectorAll('#nav button').forEach((b,i)=>b.classList.toggle('active',i===n));if(n===6)renderFinal();window.scrollTo({top:0,behavior:'smooth'})}
 function navRender(){document.getElementById('nav').innerHTML=navNames.map((name,i)=>`<button onclick="go(${i})">${name}</button>`).join('');go(active)}
 function feedback(id,text){let e=document.getElementById(id);e.classList.remove('hide');e.textContent=text}
-function mark(skill,score,feedbackText,source='auto'){scores[skill]=Math.max(0,Math.min(100,Math.round(score)));notes[skill]=feedbackText;mode[skill]=source;let keys=['reading','listening','grammar','vocab','writing','monologue','dialogue'];let completed=keys.filter(k=>scores[k]!=null).length;document.getElementById('progressFill').style.width=(completed/7*100)+'%';document.getElementById('progressLabel').textContent=`${completed} / 7 task scores`;let done=['reading','listening','grammar','vocab','writing','monologue','dialogue'];document.querySelectorAll('#nav button').forEach((b,i)=>{let ok=i<5?scores[done[i]]!=null:i===5?scores.monologue!=null&&scores.dialogue!=null:false;b.classList.toggle('done',ok)})}
+function mark(skill,score,feedbackText,source='auto'){scores[skill]=Math.max(0,Math.min(100,Math.round(score)));notes[skill]=feedbackText;mode[skill]=source;let keys=['reading','listening','grammar','vocab','writing','monologue','dialogue'];let completed=keys.filter(k=>scores[k]!=null).length;document.getElementById('progressFill').style.width=(completed/7*100)+'%';document.getElementById('progressLabel').textContent=`${completed} / 7 task scores`;let done=['reading','listening','grammar','vocab','writing','monologue','dialogue'];document.querySelectorAll('#nav button').forEach((b,i)=>{let ok=i<5?scores[done[i]]!=null:i===5?scores.monologue!=null&&scores.dialogue!=null:false;b.classList.toggle('done',ok)});renderSpeakingLive()}
 function level(v){return v>=78?'B1':v>=48?'A2':'A1'}
 function checkMC(skill){let qs=DATA[skill],correct=0,errs=[],a1=0,a2=0,b1=0,ca1=0,ca2=0,cb1=0,answered=0;qs.forEach((q,i)=>{let input=document.querySelector(`input[name="${skill}_${i}"]:checked`);let x=input?+input.value:-1;if(input)answered++;if(q[3]==='A1')a1++;if(q[3]==='A2')a2++;if(q[3]==='B1')b1++;if(x===q[2]){correct++;if(q[3]==='A1')ca1++;if(q[3]==='A2')ca2++;if(q[3]==='B1')cb1++}else errs.push(`${i+1}. ${q[4]} Correct: ${q[1][q[2]]}.`)});let score=correct/qs.length*100;let msg=`${correct}/${qs.length} correct · ${Math.round(score)}% · estimated ${level(score)}.\nA1 items ${ca1}/${a1}, A2 items ${ca2}/${a2}, B1 stretch ${cb1}/${b1}.\n`+(errs.length?'\nReview:\n'+errs.join('\n'):'Excellent — all correct.');if(answered<qs.length)msg=`You answered ${answered}/${qs.length} items.\n`+msg;feedback(skill+'Feedback',msg);mark(skill,score,msg);(async()=>{try{let r=await fetch('/api/placement-evaluate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:skill,text:JSON.stringify({score,correct,total:qs.length,incorrect:errs.slice(0,8),bandBreakdown:{A1:ca1+'/'+a1,A2:ca2+'/'+a2,B1:cb1+'/'+b1}})})});if(r.ok){let d=await r.json();if(d.feedback){let combined=msg+'\\n\\n🤖 AI coaching (extra):\\n'+d.feedback;feedback(skill+'Feedback',combined);notes[skill]=combined;mode[skill]='AI+auto'}}}catch(e){}})()}
 const count=t=>(t.trim().match(/\b[\p{L}]+(?:['’][\p{L}]+)?\b/gu)||[]).length;
@@ -276,8 +300,72 @@ document.getElementById('writingText').addEventListener('input',e=>document.getE
 document.getElementById('monoText').addEventListener('input',e=>document.getElementById('monoWords').textContent=count(e.target.value)+' words');
 function sentences(t){return t.split(/[.!?]+/).filter(x=>x.trim()).length}
 function heuristic(kind,t){let n=count(t),lower=t.toLowerCase(),connect=(lower.match(/\b(because|although|however|but|so|first|then|after|before|when|if|while|also|finally|instead)\b/g)||[]).length;let grammar=(lower.match(/\b(went|was|were|visited|played|stayed|had|saw|did|have been|would|could|should|will|going to|might|has|have)\b/g)||[]).length;let issues=[];if(/\bi am agree\b/i.test(t))issues.push('Use “I agree”, not “I am agree”.');if(/\bhe go\b/i.test(t))issues.push('Use “he goes” in the present simple.');if(/\bi have (\d+) years\b/i.test(t))issues.push('Say “I am ... years old”.');if(/\bmore better\b/i.test(t))issues.push('Use “better”, not “more better”.');if(/\bi very like\b/i.test(t))issues.push('Try “I really like ...”.');if(/\byesterday i (go|see|eat)\b/i.test(t))issues.push('Use past simple with “yesterday”: went / saw / ate.');let target=kind==='writing'?95:kind==='monologue'?150:75;let score=Math.min(44,n/target*44)+Math.min(20,connect*5)+Math.min(14,grammar*3)+Math.min(12,sentences(t)*2)+(n>=Math.round(target*.7)?10:0);if(kind==='writing'){let cover=[/stay|hotel|hostel|room|apartment/i,/visit|museum|park|walk|restaurant|see|go to/i,/bus|train|bike|taxi|walk|metro/i,/weather|rain|cold|warm|jacket|coat/i,/\?/].filter(r=>r.test(t)).length;score=score*.65+cover*7; if(cover<5)issues.push(`Task coverage: ${cover}/5 required content elements detected.`)}if(kind==='dialogue'){score=Math.min(100,score+10)}score=Math.max(0,Math.min(100,Math.round(score)));let advice=n<target*.7?'Expand with specific details, reasons, and examples.':'Add precision and more varied linking expressions.';let feedback=`Local rubric estimate: ${level(score)} (${score}%). ${n} words; ${connect} linking words; ${grammar} detected verb / modal cues.\nWhat works: ${n>=40?'You provide an extended response.':'You have started communicating the idea.'}\nTo improve: ${issues.join(' ')||advice}\nExample upgrade: “I enjoyed the trip because we visited an interesting place. Although the weather was bad, we had a great time.”\nNote: this is NOT generative AI feedback and cannot reliably judge meaning, grammar, fluency or pronunciation.`;return{score,feedback}}
-async function callAI(kind,payload){try{const r=await fetch('/api/placement-evaluate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,...payload})});if(!r.ok)throw Error('AI service not connected');const data=await r.json();if(typeof data.score!=='number'||!data.feedback)throw Error('Invalid feedback');return {score:Math.max(0,Math.min(100,data.score)),feedback:'🤖 AI assessment:\n'+data.feedback,source:'AI'}}catch(e){return null}}
-async function evaluate(kind,text,output,scoreKey,more={}){if(count(text)<5){feedback(output,'Please provide a longer answer before submitting.');return}feedback(output,'Evaluating...');let ai=await callAI(kind,{text,...more});let h=heuristic(kind,text),res=ai||{...h,source:'local'};feedback(output,res.feedback);mark(scoreKey,res.score,res.feedback,res.source)}
+async function callAI(kind,payload){try{const r=await fetch('/api/placement-evaluate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind,...payload})});if(!r.ok)throw Error('AI service not connected');const data=await r.json();if(typeof data.score!=='number'||!data.feedback)throw Error('Invalid feedback');return {score:Math.max(0,Math.min(100,data.score)),feedback:'🤖 AI assessment:\n'+data.feedback,source:'AI',criteria:Array.isArray(data.criteria)?data.criteria:[]}}catch(e){return null}}
+
+const RUBRICS={
+ monologue:[['Task completion',25],['Grammar',25],['Vocabulary',20],['Organisation',20],['Development',10]],
+ dialogue:[['Mission objectives',30],['Interaction and initiative',25],['Grammar',20],['Vocabulary',15],['Coherence',10]]
+};
+function renderCriteria(key){
+ const el=document.getElementById(key==='monologue'?'monoCriteriaResult':'dialogueCriteriaResult');
+ if(!el)return;
+ const c=criteriaResults[key]||[];
+ if(!c.length){el.innerHTML='<p class="criteria-note">Detailed AI criterion scores are not available for this attempt. Only an estimated total was provided.</p>';return}
+ el.innerHTML='<table class="criteria-table"><thead><tr><th>Criterion</th><th>Weight</th><th>Score</th><th>Evidence</th></tr></thead><tbody>'+
+ c.map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+Number(x.weight)+'%</td><td>'+Math.round(Number(x.score))+'/100</td><td>'+esc(x.evidence||'')+'</td></tr>').join('')+
+ '</tbody></table><div class="criteria-note">Criterion scores are AI estimates from text transcripts, not from acoustic speech analysis.</div>';
+}
+function downloadTextFile(filename,content){
+ const blob=new Blob([content],{type:'text/plain;charset=utf-8'});
+ const url=URL.createObjectURL(blob),link=document.createElement('a');
+ link.href=url;link.download=filename;document.body.appendChild(link);link.click();link.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function downloadMonologueTranscript(){
+ const transcript=document.getElementById('monoText').value.trim();
+ if(!transcript){alert('No monologue transcript yet. Record or type your answer first.');return}
+ const name=(document.getElementById('studentName').value||'student').replace(/[^a-z0-9_-]/gi,'_');
+ downloadTextFile(name+'_monologue_transcript.txt',
+ ['LEVEL QUEST — Monologue transcript','Student: '+name,'Task: Describe a memorable weekend or trip',
+ 'Duration recorded: '+monoElapsed+' seconds','Note: automatic speech recognition may omit or mishear words.','',transcript].join('\n'));
+}
+function downloadDialogueTranscript(){
+ if(!realtimeTranscriptLog.length){alert('No realtime dialogue captured yet. Start the Qwen conversation first.');return}
+ const name=(document.getElementById('studentName').value||'student').replace(/[^a-z0-9_-]/gi,'_');
+ downloadTextFile(name+'_dialogue_transcript.txt',
+ ['LEVEL QUEST — Nova realtime dialogue','Student: '+name,'Task: Brighton trip, 2 days, £180, special request with reason',
+ 'Note: realtime transcripts may contain recognition errors.','',
+ ...realtimeTranscriptLog.map(t=>(t.role==='user'?'STUDENT':'NOVA')+': '+t.content)].join('\n'));
+}
+function speakingCombined(){
+ if(scores.monologue==null||scores.dialogue==null)return null;
+ return Math.round((scores.monologue+scores.dialogue)/2);
+}
+function renderSpeakingLive(){
+ const el=document.getElementById('speakingLiveResult');if(!el)return;
+ const score=speakingCombined();
+ const row=k=>scores[k]==null?'Pending':scores[k]+'% · '+level(scores[k])+' ('+esc(mode[k]||'local')+')';
+ el.innerHTML='<div class="row" style="gap:14px;flex-wrap:wrap"><span><b>Monologue:</b> '+row('monologue')+'</span><span><b>Dialogue:</b> '+row('dialogue')+'</span></div>'+
+ '<p><b>Combined Speaking:</b> '+(score==null?'Pending both assessments':score+'% · '+level(score))+'</p>';
+}
+function speakingDetailedHTML(){
+ const out=[];
+ for(const [name,key,subtitle] of [['Part A — Monologue','monologue','2-minute individual presentation'],['Part B — Dialogue with Nova','dialogue','5-minute realtime interactive task']]){
+  const score=scores[key],cr=criteriaResults[key]||[];
+  out.push('<div class="speaking-subscore"><h4>'+name+'</h4><p>'+subtitle+'</p><p><b>'+(
+   score==null?'Not yet assessed':score+'% · '+level(score)+' · '+esc(mode[key]||'local'))+'</b></p>');
+  if(cr.length)out.push('<table class="criteria-table"><thead><tr><th>Criterion</th><th>Weight</th><th>Score</th><th>Evidence</th></tr></thead><tbody>'+
+   cr.map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+Number(x.weight)+'%</td><td>'+Math.round(Number(x.score))+'/100</td><td>'+esc(x.evidence||'')+'</td></tr>').join('')+'</tbody></table>');
+  if(notes[key])out.push('<p style="white-space:pre-wrap">'+esc(notes[key])+'</p>');
+  out.push('</div>');
+ }
+ const combined=speakingCombined();
+ out.push('<h3>Overall Speaking: '+(combined==null?'Pending both components':combined+'% · '+level(combined))+'</h3>'+
+ '<p>Equal weighting: Monologue 50% + Dialogue 50%. A result is not issued until both parts have been assessed. The six-skill overall placement uses this combined score.</p>'+
+ '<p class="criteria-note">Transcript-based estimation cannot verify actual pronunciation, intonation, acoustic fluency or hesitation. Teacher moderation is recommended.</p>');
+ return out.join('');
+}
+async function evaluate(kind,text,output,scoreKey,more={}){if(count(text)<5){feedback(output,'Please provide a longer answer before submitting.');return}feedback(output,'Evaluating...');let ai=await callAI(kind,{text,...more});let h=heuristic(kind,text),res=ai||{...h,source:'local'};feedback(output,res.feedback);criteriaResults[scoreKey]=res.criteria||[];renderCriteria(scoreKey);mark(scoreKey,res.score,res.feedback,res.source)}
 function checkWriting(){evaluate('writing',document.getElementById('writingText').value,'writingFeedback','writing')}
 let qwenAudio=null,qwenAudioUrl=null,voiceRequestId=0;
 function stopNovaVoice(){
@@ -455,10 +543,10 @@ window.addEventListener('DOMContentLoaded',()=>{
  if(inp)inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendDialogue()}});
 });
 function skillCard(name,key){let v=scores[key];return `<div class="result-cell"><span class="small">${name}</span><strong>${v==null?'—':level(v)}</strong><div class="small">${v==null?'Not submitted':v+'% · '+(mode[key]==='AI'?'AI':'local')}</div></div>`}
-function renderFinal(){let speaking=[scores.monologue,scores.dialogue].filter(v=>v!=null);let speakScore=speaking.length?speaking.reduce((a,b)=>a+b,0)/speaking.length:null;document.getElementById('resultGrid').innerHTML=[['Reading','reading'],['Listening','listening'],['Grammar','grammar'],['Vocabulary','vocab'],['Writing','writing']].map(x=>skillCard(...x)).join('')+`<div class="result-cell"><span class="small">Speaking (mono + dialogue)</span><strong>${speakScore==null?'—':level(speakScore)}</strong><div class="small">${speakScore==null?'Not submitted':Math.round(speakScore)+'% · combined'}</div></div>`;
+function renderFinal(){let speakScore=speakingCombined();document.getElementById('speakingDetailedReport').innerHTML='<h3>Speaking assessment details</h3>'+speakingDetailedHTML();document.getElementById('resultGrid').innerHTML=[['Reading','reading'],['Listening','listening'],['Grammar','grammar'],['Vocabulary','vocab'],['Writing','writing']].map(x=>skillCard(...x)).join('')+`<div class="result-cell"><span class="small">Speaking (50% mono + 50% dialogue)</span><strong>${speakScore==null?'—':level(speakScore)}</strong><div class="small">${speakScore==null?'Not submitted':Math.round(speakScore)+'% · combined'}</div></div>`;
 let metrics=[['Reading',scores.reading],['Listening',scores.listening],['Grammar',scores.grammar],['Vocabulary',scores.vocab],['Writing',scores.writing],['Speaking',speakScore]];document.getElementById('skillBars').innerHTML=metrics.map(([k,v])=>`<div class="barrow"><b>${k}</b><div class="progress"><div class="fill" style="width:${v==null?0:v}%"></div></div><span>${v==null?'—':Math.round(v)+'%'}</span></div>`).join('');
 let complete=metrics.filter(x=>x[1]!=null),avg=complete.length?complete.reduce((s,x)=>s+x[1],0)/complete.length:null,all=complete.length===6,weak=complete.filter(x=>x[1]<48).map(x=>x[0]),strong=complete.filter(x=>x[1]>=78).map(x=>x[0]);let provisional=['writing','monologue','dialogue'].some(k=>scores[k]!=null&&mode[k]!=='AI');document.getElementById('overall').innerHTML=`<h3>${all?'Overall indicative level':'Incomplete placement profile'}: ${avg==null?'—':level(avg)}</h3><p>${all?'All six skills have evidence.':'Only '+complete.length+'/6 skills have been assessed; complete the other missions before deciding placement.'} Mean score: <b>${avg==null?'—':Math.round(avg)+'%'}</b>. ${provisional?'Writing/speaking contain local heuristic estimates; their CEFR labels are especially tentative.':''}</p><p><b>Strengths:</b> ${strong.join(', ')||'No clear B1-strength skills yet.'}<br><b>Priority support:</b> ${weak.join(', ')||'No clear A1-range skills among submitted results.'}</p><p><b>Recommended next step:</b> ${!all?'Finish all missions and review open responses with a teacher.':avg>=78?'Trial B1 tasks, especially spontaneous speaking and extended writing.':avg>=48?'Continue A2 with controlled B1 stretch in connected speech, tense control and functional vocabulary.':'Consolidate A1 basics, then revisit A2 communicative tasks.'}</p><p class="small">Bands used here: below 48% ≈ A1, 48–77% ≈ A2, 78%+ ≈ B1. These are classroom rules, not psychometrically calibrated cut scores. A teacher should verify productive skills and pronunciation.</p>`}
-function downloadReport(){renderFinal();let nm=document.getElementById('studentName').value||'Unnamed learner';let lines=[`LEVEL QUEST placement report — ${nm}`,new Date().toLocaleString(),'Unofficial CEFR diagnostic',''];for(let k of ['reading','listening','grammar','vocab','writing','monologue','dialogue'])lines.push(k+': '+(scores[k]==null?'not submitted':`${scores[k]}% (${level(scores[k])}) [${mode[k]}]`),notes[k]||'','');lines.push('Writing answer:',document.getElementById('writingText').value,'','Monologue transcript:',document.getElementById('monoText').value,'','Dialogue:',chatHistory.map(x=>`${x.role}: ${x.content}`).join('\n'));let blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='placement_report_'+(nm.replace(/[^a-z0-9_-]/gi,'_'))+'.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),500)}
+function downloadReport(){renderFinal();let nm=document.getElementById('studentName').value||'Unnamed learner';let lines=[`LEVEL QUEST placement report — ${nm}`,new Date().toLocaleString(),'Unofficial CEFR diagnostic',''];for(let k of ['reading','listening','grammar','vocab','writing','monologue','dialogue'])lines.push(k+': '+(scores[k]==null?'not submitted':`${scores[k]}% (${level(scores[k])}) [${mode[k]}]`),notes[k]||'','');lines.push('Writing answer:',document.getElementById('writingText').value,'','Monologue transcript:',document.getElementById('monoText').value,'','Dialogue (realtime transcript):',realtimeTranscriptLog.map(x=>`${x.role==='user'?'STUDENT':'NOVA'}: ${x.content}`).join('\n'),'','Speaking combined:',speakingCombined()==null?'Pending':speakingCombined()+'% ('+level(speakingCombined())+')','', 'Criteria:',...['monologue','dialogue'].flatMap(k=>[k,...(criteriaResults[k]||[]).map(c=>`${c.name} (${c.weight}%): ${c.score}/100 — ${c.evidence}`),'']));let blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='placement_report_'+(nm.replace(/[^a-z0-9_-]/gi,'_'))+'.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),500)}
 function resetAll(){if(!confirm('Clear all answers and scores?'))return;location.reload()}
 document.getElementById('transcript').textContent=SCRIPT;renderQ();navRender();
 // Qwen-only natural listening. The player starts empty and cannot play any embedded voice.
@@ -621,7 +709,7 @@ try{
 
 <script id="placement-realtime-bridge">
 (function(){
- const seen=new Set(),log=[],turns=[];
+ const seen=new Set(),log=[],turns=[];window.placementLiveTranscript=realtimeTranscriptLog;
  const frame=document.getElementById('placementNovaRealtime');
  const transcript=document.getElementById('placementRealtimeTranscript');
  const label=document.getElementById('placementRealtimeTurns');
@@ -644,7 +732,7 @@ try{
    const d=ev.data;
    if(d?.source!=='webilang-gender-qwen'||d.scenario!=='placement_nova')return;
    if(d.type==='started'){
-     if(ended){seen.clear();log.length=0;turns.length=0;ended=false;evaluating=false;reportBtn.disabled=true;evaluateBtn.disabled=true;finishBtn.disabled=false;transcript.textContent='';}
+     if(ended){seen.clear();log.length=0;turns.length=0;realtimeTranscriptLog.length=0;ended=false;evaluating=false;reportBtn.disabled=true;evaluateBtn.disabled=true;finishBtn.disabled=false;transcript.textContent='';}
      running=true;clock.textContent='05:00';status.textContent='Live session started. Complete the six travel objectives.';
      return;
    }
@@ -659,7 +747,7 @@ try{
    const key=d.speaker+':'+(d.id||d.text);
    if(seen.has(key))return;
    seen.add(key);
-   log.push({role:d.speaker==='student'?'user':'assistant',content:d.text});
+   log.push({role:d.speaker==='student'?'user':'assistant',content:d.text});realtimeTranscriptLog.push({role:d.speaker==='student'?'user':'assistant',content:d.text});
    if(d.speaker==='student')turns.push(d.text);
    transcript.innerHTML=log.map(x=>'<div><b>'+(x.role==='user'?'YOU':'NOVA')+':</b> '+esc(x.content)+'</div>').join('');
    transcript.scrollTop=transcript.scrollHeight;
@@ -682,7 +770,7 @@ try{
      status.textContent='AI assessment unavailable. Please retry when connected; no estimated transcript-only score has been recorded.';
      evaluating=false;evaluateBtn.disabled=false;return;
    }
-   feedback('dialogueFeedback',ai.feedback);
+   feedback('dialogueFeedback',ai.feedback);criteriaResults.dialogue=ai.criteria||[];renderCriteria('dialogue');
    const f=document.getElementById('dialogueFeedback');
    if(f){f.classList.remove('hide');f.style.display='block';document.querySelector('.placement-realtime-shell .realtime-score').appendChild(f);}
    mark('dialogue',ai.score,ai.feedback,'AI · realtime transcript');
