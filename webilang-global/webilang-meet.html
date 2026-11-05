@@ -90,14 +90,19 @@ defineCustomElements();
     </select></div>
     <div class="controls" style="gap:10px"><div class="field" style="margin:0"><label for="level">Your level</label><select id="level"><option>A2</option><option>B1</option></select></div><div class="field" style="margin:0"><label for="language">Main conversation language</label><select id="language"><option value="en">English</option><option value="ru">Russian</option><option value="both">English + Russian exchange</option></select></div></div>
     <div class="divider"></div>
-    <label>Video provider</label>
-    <div class="stack" style="gap:9px">
-      <div id="rtk-card" class="provider-card selected"><label><input type="radio" name="provider" value="rtk" checked/> ☁️ Cloudflare RealtimeKit · Webilang Video</label><p class="hint" style="margin:8px 0 9px">Recommended. The organizer uses a private access code; invited guests only need the link. Works within Webilang on desktop and mobile.</p><label for="rtk-host-code" style="font-size:12px">Organizer access code (for creating a new room only)</label><input id="rtk-host-code" type="password" autocomplete="off" maxlength="180" placeholder="Enter your private organizer code"/><p class="hint" style="margin:8px 0 0">For the pilot, only the organizer needs this code. Never put Cloudflare API tokens here.</p></div>
-      <div id="jitsi-card" class="provider-card"><label><input type="radio" name="provider" value="jitsi"/> Instant test · Jitsi</label><p class="hint" style="margin:8px 0 0">No API key. The first person may have to sign in to Jitsi to start the meeting. Testing only—not a production provider.</p></div>
-      <div id="daily-card" class="provider-card"><label><input type="radio" name="provider" value="daily"/> Daily Prebuilt · managed video</label><p class="hint" style="margin:8px 0 9px">Create a free room in <a href="https://dashboard.daily.co/" target="_blank" rel="noopener">Daily Dashboard</a> once, then paste its room URL.</p><input id="daily-url" aria-label="Daily room URL" placeholder="https://yourteam.daily.co/roomname" inputmode="url"/></div>
+    <div class="provider-card selected" id="rtk-card">
+      <input type="radio" name="provider" value="rtk" checked hidden aria-hidden="true"/>
+      <h3>🎥 Webilang Video</h3>
+      <p class="hint">Your private video room for learning missions. Invited partners can join using their invitation link.</p>
+      <label for="rtk-host-code" style="font-size:12px">Organizer access code (room creator only)</label>
+      <input id="rtk-host-code" type="password" autocomplete="off" maxlength="180" placeholder="Enter organizer code"/>
+      <p class="hint" style="margin:8px 0 0">Only the organizer needs this code. Invited students do not need it.</p>
     </div>
+    <!-- Legacy provider elements are hidden to preserve compatibility with historical links. -->
+    <div id="jitsi-card" hidden><input type="radio" name="provider" value="jitsi"></div>
+    <div id="daily-card" hidden><input type="radio" name="provider" value="daily"><input id="daily-url" hidden aria-label="Legacy room URL"></div>
     <div class="actions" style="margin-top:16px"><button id="create">Create room</button><button id="join-existing" class="secondary hide">Join invited room</button></div>
-    <p class="hint" style="margin:12px 0 0">RealtimeKit invitations are signed and expire after 24 hours. The pilot does not yet use Student Dashboard login or persistent chat. Invite trusted partners only.</p>
+    <p class="hint" style="margin:12px 0 0">Video invitations expire after 24 hours. Share them only with your intended learning partner. You can find registered partners in Missions → Teams & Lounge.</p>
     <div id="setup-status" class="status hide" role="status"></div>
   </section>
   <section class="card">
@@ -124,7 +129,7 @@ defineCustomElements();
     </aside>
   </div>
 </section>
-<p class="privacy">Pilot warning: Cloudflare RealtimeKit provides the video connection; this Webilang page does not record or transcribe calls. Anyone with a valid invitation link can join for 24 hours. Use only with trusted test partners; do not use unsupervised with minors. Jitsi/Daily remain optional fallback providers.</p>
+<p class="privacy">Webilang Video does not record or transcribe your call. Anyone holding a valid meeting link can join for up to 24 hours. Share links only with trusted classmates and use teacher supervision when appropriate.</p>
 </main>
 <script>
 (function(){'use strict';
@@ -158,11 +163,11 @@ async function prepare(invited=false){
    try{
      const data={action:invited?'join':'create',name:myName()};
      if(invited){if(!invite){status('Invalid invitation. Ask the organizer for a new link.','warn');return false}data.invite=invite}
-     else{const hostCode=$('rtk-host-code').value.trim();if(!hostCode){status('Enter the organizer access code to create a Cloudflare room.','warn');return false}data.hostCode=hostCode;data.activity=$('activity').value}
-     status('Connecting to Cloudflare RealtimeKit…');$('create').disabled=true;$('join-existing').disabled=true;
+     else{const hostCode=$('rtk-host-code').value.trim();if(!hostCode){status('Enter the organizer access code to create a Webilang room.','warn');return false}data.hostCode=hostCode;data.activity=$('activity').value}
+     status('Creating your Webilang video room…');$('create').disabled=true;$('join-existing').disabled=true;
      const response=await fetch('/api/webilang-rtk',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',cache:'no-store',body:JSON.stringify(data)});
      const result=await response.json().catch(()=>({}));
-     if(!response.ok||!result.authToken)throw new Error(result.error||'Cloudflare could not create the video session.');
+     if(!response.ok||!result.authToken)throw new Error(result.error||'Webilang could not create the video session.');
      rtkToken=result.authToken;
      if(!invited){invite=result.invite; if(!invite)throw new Error('No invitation was returned by the server.')}
    }catch(e){status(e.message||'Unable to connect to video.','error');return false}
@@ -174,13 +179,13 @@ async function prepare(invited=false){
    if(!roomUrl){status('Please enter a valid Daily room URL.','warn');return false}
  }
  $('setup').classList.add('hide');$('live').classList.remove('hide');
- $('provider-label').textContent=provider==='rtk'?'Cloudflare RealtimeKit':provider==='jitsi'?'Jitsi public test':'Daily Prebuilt';
+ $('provider-label').textContent='Webilang Video';
  showInvite();setIntro();setProviderRooms();active=true;reportActive(true);
  const url=urlFor(side);history.replaceState(null,'',url);loadVideo();return true;
 }
 function addScript(url,check){return new Promise((resolve,reject)=>{if(check())return resolve();const s=document.createElement('script');s.src=url;s.async=true;s.onload=()=>check()?resolve():reject(Error('Video API missing after load'));s.onerror=()=>reject(Error('Could not load the video provider'));document.head.appendChild(s)})}
 function msg(s,error){$('video-status').textContent=s;$('live-status').textContent=s;if(error)$('live-status').style.color='#d97779';else $('live-status').style.color=''}
-async function loadVideo(){hideRtkVideoTools();rtkJoinStarted=false;$('join-video-now').disabled=false;$('join-video-now').classList.add('hide');$('video-placeholder').classList.remove('join-ready');msg('Loading '+(provider==='rtk'?'Cloudflare RealtimeKit':provider==='jitsi'?'Jitsi test room':'Daily video')+'…');const container=$('video-frame');container.textContent='';try{
+async function loadVideo(){hideRtkVideoTools();rtkJoinStarted=false;$('join-video-now').disabled=false;$('join-video-now').classList.add('hide');$('video-placeholder').classList.remove('join-ready');msg('Preparing Webilang Video…');const container=$('video-frame');container.textContent='';try{
  if(provider==='rtk'){
    await addScript('https://cdn.jsdelivr.net/npm/@cloudflare/realtimekit@latest/dist/browser.js',()=>typeof window.RealtimeKitClient?.init==='function');
    if(!active)return;

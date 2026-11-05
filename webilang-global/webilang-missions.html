@@ -81,7 +81,7 @@ function renderMeet(){
   return `${commonHead('REAL PEOPLE, REAL CONVERSATIONS','Meet & Speak','Talk with a partner in the Webilang room. Choose a mission or simply have a conversation.')}
     <div class="meet-banner" style="margin-top:18px"><div><h3>Start a conversation together</h3><p>Invite another student, share a mission and practise English or Russian. Video is optional; audio-only works too.</p></div><div class="meet-tools"><a class="btn outline" href="./webilang-meet.html" target="_blank" rel="noopener">↗ Open full-page room</a><button class="btn soft" onclick="navigate('teams')">← Team space</button></div></div>
     <div class="meet-frame-wrap"><iframe id="meetFrame" class="meet-iframe" title="Webilang Meet & Speak video room" src="${src}" allow="camera; microphone; fullscreen; autoplay; display-capture; clipboard-write" allowfullscreen></iframe></div>
-    <p class="meet-notice">Pilot video provider: Jitsi for quick tests, or Daily for managed video. Meeting invitations work only when these pages are hosted online. The shared team chat, automatic matching and AI feedback on partner calls are not yet connected. For the most reliable camera experience on iPhone, use “Open full-page room”.</p>`;
+    <p class="meet-notice">Webilang Video lets you talk with your learning partner directly inside Missions. To invite a registered student, open Teams & Lounge and choose an available partner. Calls are not recorded by this pilot.</p>`;
 }
 function launchMeet(activity='chat'){state.meetActivity=activity;navigate('meet')}
 
