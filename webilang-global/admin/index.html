@@ -13,6 +13,7 @@
 <section id="admin" class="hidden"><div class="card"><span class="tag">Verified administrator</span><p id="admin-email" class="muted"></p><p style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
 <a href="/webilang-global/" style="display:inline-block;background:#e87821;color:white;padding:11px 17px;border-radius:11px;text-decoration:none;font-weight:750">← Student Dashboard (My Learning)</a>
 <a href="/webilang-global/admin/placement.html" style="display:inline-block;background:#e87917;color:white;padding:11px 17px;border-radius:11px;text-decoration:none;font-weight:750">🎯 Placement Test Results →</a>
+<a href="#partner-management" style="display:inline-block;background:#eaf4f1;color:#195e52;padding:11px 17px;border-radius:11px;text-decoration:none;font-weight:750">🤝 Manage Learning Partners →</a>
 </p><p class="muted">Private AI notes and raw Zoom transcripts are not exposed through this page. Student data operations require separate, server-enforced permissions.</p></div>
 <div class="tiles"><section class="card"><h2>Student Records</h2><p class="muted">See registered learners. Next phase: consent-checked Zoom transcript import, speaker review, AI analysis preview and explicit approval before saving.</p></section><section class="card"><h2>Kostya Profile</h2><p class="muted">Edit the AI teacher’s identity, interests and teaching style. Save a draft, then explicitly publish it. Voice, 3D avatar and lesson logic are unaffected.</p><a href="#kp-editor">Open character editor ↓</a></section></div>
 <section id="kp-editor" class="card"><h2>Kostya · AI Teacher Profile Editor</h2><p class="muted">Only administrators can edit and publish. Published versions guide English Kostya; drafts do not affect live lessons. Changes take effect in newly opened Kostya conversations.</p>
@@ -193,4 +194,4 @@ el('assign-submit').addEventListener('click',async()=>{
 });
 
 el('reload').addEventListener('click',learners);init();
-</script><script type="module" src="/webilang-global/admin/placement-results.js"></script></body></html>
+</script><script type="module" src="/webilang-global/admin/placement-results.js"></script><script type="module" src="/webilang-global/admin/partner-management.js"></script></body></html>
