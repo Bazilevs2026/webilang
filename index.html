@@ -5166,8 +5166,12 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus
         <strong>⚔️ Team Battle</strong>
         <span>4 players · Blue vs Red</span>
       </button>
+      <button id="codeModeDuo" type="button" class="codeModeChoice" aria-pressed="false" onclick="window.location.assign('/codenames-duo/?topic=video&amp;lang=en&amp;level=easy')">
+        <strong>🕵️ Duo · Switch Roles</strong>
+        <span>2 real players · take turns as Spymaster and Guesser</span>
+      </button>
     </nav>
-    <p class="codeModeGuidance" id="codeModeGuidance">Choose either mode. Switching modes does not end or reset your game.</p>
+    <p class="codeModeGuidance" id="codeModeGuidance">Choose Co-op or Team Battle here, or open Duo for two real students. Switching existing modes does not reset your game.</p>
     <div class="codeGameHero codeCoopOnly">
       <div class="watchEyebrow">GAME · CODENAMES</div>
       <h2>Code Names · Teacher + Student</h2>
@@ -15803,6 +15807,21 @@ choose(0);
  // Move the original nodes (rather than cloning) to preserve all listeners and reading bridge.
  document.body.append(fab,panel);
 })();
+</script>
+<script id="wl-codenames-direct-mode-nav">
+window.addEventListener('load',()=>{
+ const q=new URLSearchParams(location.search);
+ if(q.get('tab')!=='game')return;
+ setTimeout(()=>{
+  const tab=document.querySelector('.wlTab[data-tab="game"]');
+  if(tab)tab.click();
+  const mode=q.get('mode');
+  if(mode==='team'||mode==='coop'){
+   const button=document.getElementById(mode==='team'?'codeModeTeam':'codeModeCoop');
+   if(button)button.click();
+  }
+ },150);
+});
 </script>
 </body>
 </html>
