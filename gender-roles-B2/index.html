@@ -720,31 +720,22 @@ nav .tab{white-space:normal}
 </section>
 
 <section class="panel" id="panel-game">
-  <div class="section-head"><span class="tag">GAME</span><h2>Who Would Most Likely Say This?</h2><p>Read six profiles. Then match 12 adapted statements to the person whose documented ideas or life story they most closely reflect.</p></div>
-  <div class="card">
-    <div class="profile-grid">
-      <div class="profile"><h4>Justin Baldoni</h4><p>Actor and filmmaker. Argues that men can redefine masculinity by accepting vulnerability, listening to women and challenging harmful male behaviour.</p></div>
-      <div class="profile"><h4>Chimamanda Ngozi Adichie</h4><p>Nigerian writer. Critiques restrictive gender expectations and argues that both women and men should be freer to develop beyond rigid roles.</p></div>
-      <div class="profile"><h4>Erich Fromm</h4><p>German-American social psychologist and psychoanalyst. Connected mature love with care, responsibility, respect and independent judgement.</p></div>
-      <div class="profile"><h4>John Paul II</h4><p>Catholic thinker and pope. Emphasised equal human dignity while also defending the idea that men and women make different, complementary contributions.</p></div>
-      <div class="profile"><h4>Elena</h4><p>A Soviet professional woman whose life illustrates education, professional independence and the ability to support a family after divorce.</p></div>
-      <div class="profile"><h4>Simone de Beauvoir</h4><p>French philosopher. Argued that social expectations play a major role in constructing what societies understand as “womanhood”.</p></div>
-    </div>
-    <p class="small">The statements below are <b>adapted summaries of ideas</b>, not direct quotations.</p>
+  <div class="section-head"><span class="tag">GAME</span><h2>Code Names · Choose Your Game</h2><p>Practise vocabulary, clues and communication. Choose a mode to play with your teacher or a classmate.</p></div>
+  <style>
+  .gender-code-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:16px 0}
+  .gender-code-mode{display:flex;flex-direction:column;gap:10px;padding:20px;border:1px solid #d5dee7;border-radius:18px;background:#fff;text-decoration:none;color:#243649;box-shadow:0 5px 18px #172b4010}
+  .gender-code-mode:hover,.gender-code-mode:focus-visible{border-color:#647eac;box-shadow:0 7px 20px #172b4022}
+  .gender-code-mode h3{margin:0;font-size:21px;color:inherit}.gender-code-mode p{margin:0;line-height:1.55;flex:1}
+  .gender-code-mode .launch{font-weight:750;color:#315d95;margin-top:8px}
+  .gender-code-tip{padding:16px;background:#f5f8fc;border:1px solid #e0e7f0;border-radius:13px;line-height:1.65}
+  @media(max-width:800px){.gender-code-modes{grid-template-columns:1fr}}
+  </style>
+  <div class="gender-code-modes" aria-label="Code Names game modes">
+    <a class="gender-code-mode" href="/?tab=game&amp;mode=coop" target="_blank" rel="noopener"><h3>🤝 Co-op · Teacher + Student</h3><p>Two players join forces against the computer. Keep the existing Co-op game and its game-code system.</p><span class="launch">Open Co-op ↗</span></a>
+    <a class="gender-code-mode" href="/?tab=game&amp;mode=team" target="_blank" rel="noopener"><h3>⚔️ Team Battle · 4 Players</h3><p>Blue vs Red. Four real players with the existing role and team controls.</p><span class="launch">Open Team Battle ↗</span></a>
+    <a class="gender-code-mode" href="/codenames-duo/?lang=en&amp;topic=gender&amp;level=hard" target="_blank" rel="noopener"><h3>🕵️ Duo · Switch Roles · 2 Players</h3><p>Two real learners. Alternate Spymaster and Guesser, with shared word boards and no robot.</p><span class="launch">Create or join Duo ↗</span></a>
   </div>
-  <div class="card">
-    <div class="scorebox"><span class="pill" id="gameCounter">1 / 12</span><span class="pill" id="gameScore">Score: 0</span></div>
-    <div class="game-statement" id="gameStatement"></div>
-    <div class="person-buttons" id="personButtons"></div>
-    <div id="gameFeedback" class="feedback"></div>
-    <button class="btn pale hidden" id="nextGame" onclick="nextGame()">Next statement →</button>
-  </div>
-  <div class="card hidden" id="gameFinal">
-    <h3>Final challenge</h3>
-    <p><b>Which two people in the game disagree most strongly about gender roles?</b> Explain your choice in 3–4 sentences.</p>
-    <p><b>Which two positions could actually be combined rather than treated as opposites?</b></p>
-    <textarea class="write-area" id="gameReflection" oninput="saveText('gameReflection')"></textarea>
-  </div>
+  <div class="gender-code-tip"><strong>Duo settings:</strong> English / Russian · General / Video Games / Gender Roles · A1–A2–B1 / B2–C1–C2. Default for this module: English · Gender Roles · B2–C1–C2. Create a room, share its code, and let your partner join. Co-op and Team Battle open the existing Video Games game; select the corresponding mode there.</div>
 </section>
 </main>
 
@@ -771,7 +762,7 @@ function showPanel(name){
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>showPanel(t.dataset.tab));
 function resetAll(){if(confirm('Reset all answers and progress?')){localStorage.removeItem('genderRolesModule');location.reload()}}
 function saveText(id){state[id]=document.getElementById(id).value;saveState()}
-function restoreTexts(){['storyNotes','writing1','writing2','gameReflection'].forEach(id=>{if(document.getElementById(id)&&state[id])document.getElementById(id).value=state[id]})}
+function restoreTexts(){['storyNotes','writing1','writing2'].forEach(id=>{if(document.getElementById(id)&&state[id])document.getElementById(id).value=state[id]})}
 function countWords(id,out){const n=(document.getElementById(id).value.trim().match(/\b[\w’'-]+\b/g)||[]).length;document.getElementById(out).textContent=n+' words'}
 
 const readingQs=[
@@ -862,31 +853,6 @@ function checkGaps(){const sels=[...document.querySelectorAll('#gapFill select')
 
 let timerInt=null,seconds=60;
 function startTimer(){clearInterval(timerInt);seconds=60;document.getElementById('timer').textContent='01:00';timerInt=setInterval(()=>{seconds--;document.getElementById('timer').textContent=`00:${String(seconds).padStart(2,'0')}`;if(seconds<=0){clearInterval(timerInt);document.getElementById('timer').textContent='TIME!'}},1000)}
-
-const people=['Justin Baldoni','Chimamanda Ngozi Adichie','Erich Fromm','John Paul II','Elena','Simone de Beauvoir'];
-const gameData=[
- ['Being emotionally open does not make a man less strong.','Justin Baldoni'],
- ['Men should challenge other men when their behaviour harms women.','Justin Baldoni'],
- ['Gender expectations can prevent both women and men from becoming fully themselves.','Chimamanda Ngozi Adichie'],
- ['Girls are often taught to limit ambition in ways boys are not.','Chimamanda Ngozi Adichie'],
- ['Mature love requires care, responsibility, respect and knowledge.','Erich Fromm'],
- ['A mature person should move from dependence toward greater independence and responsibility.','Erich Fromm'],
- ['Men and women have equal dignity but may make different, complementary contributions.','John Paul II'],
- ['Equality does not necessarily mean that masculinity and femininity are identical.','John Paul II'],
- ['Education can give a woman the ability to support herself when family circumstances change.','Elena'],
- ['Professional equality does not automatically remove domestic responsibilities.','Elena'],
- ['Social expectations help construct what societies understand as “womanhood”.','Simone de Beauvoir'],
- ['A woman should not be defined only through roles assigned to her by society.','Simone de Beauvoir']
-];
-let gi=0,gs=0,order=[];
-function initGame(){order=shuffle(gameData.map((_,i)=>i));gi=0;gs=0;document.getElementById('gameFinal').classList.add('hidden');showGame()}
-function showGame(){
- if(gi>=order.length){document.getElementById('gameStatement').textContent='Game complete!';document.getElementById('personButtons').innerHTML='';document.getElementById('nextGame').classList.add('hidden');document.getElementById('gameFinal').classList.remove('hidden');document.getElementById('gameCounter').textContent='12 / 12';document.getElementById('gameScore').textContent='Final score: '+gs;markDone('game');return}
- const [st,ans]=gameData[order[gi]];document.getElementById('gameStatement').textContent='“'+st+'”';document.getElementById('gameCounter').textContent=(gi+1)+' / 12';document.getElementById('gameScore').textContent='Score: '+gs;document.getElementById('gameFeedback').textContent='';document.getElementById('nextGame').classList.add('hidden');
- const root=document.getElementById('personButtons');root.innerHTML='';shuffle(people).forEach(p=>{const b=document.createElement('button');b.textContent=p;b.onclick=()=>{[...root.children].forEach(x=>x.disabled=true);if(p===ans){gs++;document.getElementById('gameFeedback').textContent='Correct — this statement best matches '+ans+'.';document.getElementById('gameFeedback').className='feedback ok'}else{document.getElementById('gameFeedback').textContent='Best match: '+ans+'. Read the profile again and compare the underlying idea.';document.getElementById('gameFeedback').className='feedback bad'}document.getElementById('gameScore').textContent='Score: '+gs;document.getElementById('nextGame').classList.remove('hidden')};root.appendChild(b)})
-}
-function nextGame(){gi++;showGame()}
-initGame();
 
 restoreTexts();countWords('writing1','wc1');countWords('writing2','wc2');updateProgress();
 </script>
