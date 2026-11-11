@@ -6,6 +6,25 @@ import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from '/student-memory/config.js';
 
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+
+// Load the names entered in Supabase Authentication, with a user-ID join.
+// Fail safely: leave existing names intact if this optional admin RPC is unavailable.
+async function applyAuthDisplayNames(client, learners) {
+  try {
+    const { data, error } = await client.rpc('webilang_admin_auth_display_names');
+    if (error) throw error;
+    const namesById = new Map((Array.isArray(data) ? data : [])
+      .filter(row => row.user_id && typeof row.display_name === 'string' && row.display_name.trim())
+      .map(row => [row.user_id, row.display_name.trim()]));
+    for (const learner of learners) {
+      const name = namesById.get(learner.user_id);
+      if (name) learner.display_name = name;
+    }
+  } catch (error) {
+    console.warn('Authentication display names unavailable: retaining current student labels.', error);
+  }
+}
+
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const clean=(s,max=80)=>String(s??'').trim().slice(0,max);
@@ -92,7 +111,7 @@ async function load(){if(loading)return;loading=true;status('Loading registered 
    const a=await db.from('webilang_admins').select('user_id').eq('user_id',auth.data.user.id).maybeSingle();if(a.error||!a.data)throw Error('This account does not have administrator access.');
    const [roster,partnerRows]=await Promise.all([db.rpc('webilang_admin_list_students'),db.rpc('webilang_admin_list_partner_profiles')]);
    if(roster.error)throw roster.error;if(partnerRows.error)throw partnerRows.error;
-   students=Array.isArray(roster.data)?roster.data:[];profiles=new Map((partnerRows.data||[]).map(p=>[p.user_id,p]));
+   students=Array.isArray(roster.data)?roster.data:[];await applyAuthDisplayNames(db,students);profiles=new Map((partnerRows.data||[]).map(p=>[p.user_id,p]));
    const select=$('pm-student'),previous=select.value;select.replaceChildren(new Option('Select a learner…',''));
    students.forEach(s=>select.add(new Option((s.display_name||s.email||'Student')+' — '+(s.email||''),s.user_id)));
    if([...select.options].some(o=>o.value===previous))select.value=previous;

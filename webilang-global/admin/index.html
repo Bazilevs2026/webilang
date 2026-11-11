@@ -50,8 +50,27 @@
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from '/student-memory/config.js';
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+
+// Load the names entered in Supabase Authentication, with a user-ID join.
+// Fail safely: leave existing names intact if this optional admin RPC is unavailable.
+async function applyAuthDisplayNames(client, learners) {
+  try {
+    const { data, error } = await client.rpc('webilang_admin_auth_display_names');
+    if (error) throw error;
+    const namesById = new Map((Array.isArray(data) ? data : [])
+      .filter(row => row.user_id && typeof row.display_name === 'string' && row.display_name.trim())
+      .map(row => [row.user_id, row.display_name.trim()]));
+    for (const learner of learners) {
+      const name = namesById.get(learner.user_id);
+      if (name) learner.display_name = name;
+    }
+  } catch (error) {
+    console.warn('Authentication display names unavailable: retaining current student labels.', error);
+  }
+}
+
 const el=id=>document.getElementById(id);const show=id=>{for(const x of ['loading','signed-out','denied','admin'])el(x).classList.toggle('hidden',x!==id)};
-async function learners(){const button=el('reload');button.disabled=true;el('list-status').textContent='Loading student list…';el('students').replaceChildren();try{const {data,error}=await db.rpc('webilang_admin_list_students');if(error)throw error;const rows=Array.isArray(data)?data:[];for(const item of rows){const tr=document.createElement('tr');for(const key of ['email','display_name','english_level','goals']){const td=document.createElement('td');td.textContent=String(item[key]??'—').slice(0,300);tr.append(td)}el('students').append(tr)}el('list-status').textContent=rows.length+' registered account(s).';const select=el('imp-student');const last=select.value;select.replaceChildren(new Option('Select a registered student…',''));for(const item of rows){select.add(new Option((item.display_name||item.email||'Student')+' — '+(item.email||''),item.user_id));}if([...select.options].some(o=>o.value===last))select.value=last;const psel=el('profile-student'),prev=psel.value;psel.replaceChildren(new Option('Select a registered student…',''));for(const item of rows)psel.add(new Option((item.display_name||item.email||'Student')+' — '+(item.email||''),item.user_id));if([...psel.options].some(o=>o.value===prev))psel.value=prev;const a=el('assign-student'),old=a.value;a.replaceChildren(new Option('Choose a student…',''));for(const item of rows)a.add(new Option((item.display_name||item.email||'Student')+' — '+(item.email||''),item.user_id));if([...a.options].some(o=>o.value===old))a.value=old;if(a.value)await listAssigned();}catch(e){el('list-status').textContent='Student list unavailable: '+(e?.message||e)+'. Run the supplied SQL setup in Supabase.'}finally{button.disabled=false}}
+async function learners(){const button=el('reload');button.disabled=true;el('list-status').textContent='Loading student list…';el('students').replaceChildren();try{const {data,error}=await db.rpc('webilang_admin_list_students');if(error)throw error;const rows=Array.isArray(data)?data:[];await applyAuthDisplayNames(db,rows);for(const item of rows){const tr=document.createElement('tr');for(const key of ['email','display_name','english_level','goals']){const td=document.createElement('td');td.textContent=String(item[key]??'—').slice(0,300);tr.append(td)}el('students').append(tr)}el('list-status').textContent=rows.length+' registered account(s).';const select=el('imp-student');const last=select.value;select.replaceChildren(new Option('Select a registered student…',''));for(const item of rows){select.add(new Option((item.display_name||item.email||'Student')+' — '+(item.email||''),item.user_id));}if([...select.options].some(o=>o.value===last))select.value=last;const psel=el('profile-student'),prev=psel.value;psel.replaceChildren(new Option('Select a registered student…',''));for(const item of rows)psel.add(new Option((item.display_name||item.email||'Student')+' — '+(item.email||''),item.user_id));if([...psel.options].some(o=>o.value===prev))psel.value=prev;const a=el('assign-student'),old=a.value;a.replaceChildren(new Option('Choose a student…',''));for(const item of rows)a.add(new Option((item.display_name||item.email||'Student')+' — '+(item.email||''),item.user_id));if([...a.options].some(o=>o.value===old))a.value=old;if(a.value)await listAssigned();}catch(e){el('list-status').textContent='Student list unavailable: '+(e?.message||e)+'. Run the supplied SQL setup in Supabase.'}finally{button.disabled=false}}
 async function init(){try{const {data:{user},error}=await db.auth.getUser();if(error||!user){show('signed-out');return}const {data,error:permissionError}=await db.from('webilang_admins').select('user_id').eq('user_id',user.id).maybeSingle();if(permissionError||!data){show('denied');return}show('admin');el('admin-email').textContent='Signed in as '+user.email;await learners();await kpRefresh()}catch(e){el('loading').textContent='Could not check admin access: '+(e?.message||e)}}
 
 // Zoom transcript import. All writes go through the admin-checked Supabase RPC.

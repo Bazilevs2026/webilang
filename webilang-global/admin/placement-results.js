@@ -6,6 +6,25 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '/student-memory/config.js';
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+
+// Load the names entered in Supabase Authentication, with a user-ID join.
+// Fail safely: leave existing names intact if this optional admin RPC is unavailable.
+async function applyAuthDisplayNames(client, learners) {
+  try {
+    const { data, error } = await client.rpc('webilang_admin_auth_display_names');
+    if (error) throw error;
+    const namesById = new Map((Array.isArray(data) ? data : [])
+      .filter(row => row.user_id && typeof row.display_name === 'string' && row.display_name.trim())
+      .map(row => [row.user_id, row.display_name.trim()]));
+    for (const learner of learners) {
+      const name = namesById.get(learner.user_id);
+      if (name) learner.display_name = name;
+    }
+  } catch (error) {
+    console.warn('Authentication display names unavailable: retaining current student labels.', error);
+  }
+}
+
 const e=id=>document.getElementById(id);
 const clean=(v,max=12000)=>String(v??'').slice(0,max);
 const labels={reading:'Reading',listening:'Listening',grammar:'Grammar',vocab:'Vocabulary',writing:'Writing',speaking:'Speaking'};
@@ -142,6 +161,7 @@ async function load(){
     const learners=await db.rpc('webilang_admin_list_students');
     if(learners.error)throw learners.error;
     const list=Array.isArray(learners.data)?learners.data:[];
+    await applyAuthDisplayNames(db,list);
     studentMap=new Map(list.map(x=>[x.user_id,x]));
     const select=e('placement-admin-student'),old=select.value;
     select.replaceChildren(new Option('All registered students',''));
