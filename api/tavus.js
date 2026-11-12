@@ -158,9 +158,11 @@ export default async function handler(req,res){
    const raw=await redis(["GET",`${PREFIX}:session:${token}`]);
    if(!raw)return json(res,403,{error:"Session expired. Automatic transcript is no longer available."});
    const saved=JSON.parse(raw);
-   if(saved.id!==id||!["russian_michael","russian_anna"].includes(saved.scenario))return json(res,403,{error:"Session mismatch"});
-   const problem=checkRussianAccess(req,body);
-   if(problem)return json(res,403,{error:problem});
+   if(saved.id!==id||!["russian_michael","russian_anna","atlas"].includes(saved.scenario))return json(res,403,{error:"Session mismatch"});
+   if(saved.scenario!=="atlas"){
+    const problem=checkRussianAccess(req,body);
+    if(problem)return json(res,403,{error:problem});
+   }
    const data=await tavus(`/${encodeURIComponent(id)}?verbose=true`,"GET");
    const events=Array.isArray(data.events)?data.events:[];
    const result=events.find(e=>(e.event_type||e.type||e.event||e.name)==="application.transcription_ready");
@@ -169,7 +171,62 @@ export default async function handler(req,res){
    const userLines=entries.filter(x=>x&&x.role==="user"&&typeof x.content==="string").map(x=>x.content.trim()).filter(Boolean);
    const assistantLines=entries.filter(x=>x&&x.role==="assistant"&&typeof x.content==="string").map(x=>x.content.trim()).filter(Boolean);
    const learner=userLines.join("\n").slice(0,8000);
-   return json(res,200,{status:"ready",transcript:learner,learnerTurns:userLines.length,avatarTurns:assistantLines.length,requiresReview:true});
+   return json(res,200,{status:"ready",transcript:learner,learnerTurns:userLines.length,avatarTurns:assistantLines.length,requiresReview:true,source:"tavus"});
+  }
+
+  if(body.action==="atlas_feedback"){
+   const token=String(body.token||"");
+   const id=String(body.conversationId||"");
+   if(!/^[0-9a-f]{48}$/.test(token)||!validId(id))return json(res,403,{error:"Invalid session credentials"});
+   const raw=await redis(["GET",`${PREFIX}:session:${token}`]);
+   if(!raw)return json(res,403,{error:"Session expired. Please complete a new ATLAS call."});
+   const saved=JSON.parse(raw);
+   if(saved.id!==id||saved.scenario!=="atlas")return json(res,403,{error:"Session mismatch"});
+   if(!process.env.OPENAI_API_KEY)return json(res,503,{error:"OpenAI feedback key is not configured."});
+   let source="self-reported",transcript=String(body.transcript||"").trim().slice(0,9000);
+   // Prefer the server-fetched transcript so that reported fluency is grounded in the actual call.
+   try{
+    const data=await tavus(`/${encodeURIComponent(id)}?verbose=true`,"GET");
+    const events=Array.isArray(data.events)?data.events:[];
+    const event=events.find(e=>(e.event_type||e.type||e.event||e.name)==="application.transcription_ready");
+    const entries=event?.properties?.transcript;
+    if(Array.isArray(entries)){
+     const spoken=entries.filter(x=>x&&x.role==="user"&&typeof x.content==="string").map(x=>x.content.trim()).filter(Boolean).join("\n").slice(0,9000);
+     if(spoken.length>=40){transcript=spoken;source="tavus";}
+    }
+   }catch(_){/* A user-reviewed transcript can still be assessed with an explicit evidence caveat. */}
+   if(transcript.length<40)return json(res,400,{error:"Not enough speaking evidence. Retrieve your transcript or enter at least 40 characters of what you said."});
+   const key=`${PREFIX}:atlas-feedback:${token}`;
+   const lock=await redis(["SET",key,"working","EX",120,"NX"]);
+   if(lock!=="OK")return json(res,429,{error:"Feedback has already been requested for this call. One evaluation per call is allowed."});
+   try{
+    const instructions=`You are a rigorous but constructive English speaking assessor for a C1-C2 educational roleplay. The student played a human teacher arguing against ATLAS, a fictional AI director planning to replace teachers in 2035. The student's mission was to justify human pedagogical value and propose a feasible division of human and AI roles, addressing pedagogy, wellbeing, accountability and costs. You receive ONLY the student's speech transcript; you may not have the AI interlocutor's turns. Evaluate only what this speech supports. NEVER invent student quotes, events, mistakes, responses by ATLAS, claimed outcomes or exact pronunciations. The transcript may contain recognition errors. Do not assess pronunciation. If evidence is thin, explicitly state limitations and use null for unsupported interaction score. Scores are formative 0-5 based on demonstrated performance, not official CEFR certification. Strong arguments are coherent, specific, qualified and address trade-offs.
+Return strictly valid JSON with keys:
+"scores": object with "task", "argument", "interaction", "grammar", "vocabulary"; each object {"score":integer from 0 to 5 OR null if insufficient evidence,"note":one concise sentence grounded in evidence}. Grammar means grammatical range/accuracy, vocabulary means precision and range, interaction means evidence of addressing objections (not imagined exchanges).
+"overall": at most 70 words; "strength": one evidence-based strength, ideally citing an actual short phrase; "nextStep": one concrete practical improvement; "corrections": at most three objects {"original": exact short contiguous quote from transcript, "correction": natural improved English, "explanation": short why}; only actual errors, not invented; "upgradePhrases": up to five new C1+ expressions suitable for a future debate, clearly recommendations not claims about prior speech.
+No markdown, no unsupported conclusions or scores derived from avatar persuasion outcomes.`;
+    const resp=await fetch("https://api.openai.com/v1/chat/completions",{
+     method:"POST",headers:{"Authorization":`Bearer ${process.env.OPENAI_API_KEY}`,"Content-Type":"application/json"},
+     body:JSON.stringify({model:process.env.WEBILANG_FEEDBACK_MODEL||"gpt-4o-mini",temperature:0,response_format:{type:"json_object"},max_tokens:1250,messages:[{role:"system",content:instructions},{role:"user",content:`Evidence source: ${source}\nStudent's spoken words:\n${transcript}`}]})
+    });
+    const data=await resp.json().catch(()=>({}));
+    if(!resp.ok)throw Error("AI feedback is temporarily unavailable");
+    const report=JSON.parse(data.choices?.[0]?.message?.content||"{}");
+    const keys=["task","argument","interaction","grammar","vocabulary"];
+    const scores={};
+    for(const name of keys){
+     const entry=report.scores?.[name]||{};
+     const number=Number(entry.score);
+     scores[name]={score:entry.score===null||entry.score===undefined||!Number.isInteger(number)||number<0||number>5?null:number,note:String(entry.note||"").slice(0,300)};
+    }
+    const corrections=(Array.isArray(report.corrections)?report.corrections:[]).filter(x=>x&&typeof x.original==="string"&&typeof x.correction==="string"&&transcript.includes(x.original)).slice(0,3).map(x=>({original:x.original.slice(0,180),correction:x.correction.slice(0,180),explanation:String(x.explanation||"").slice(0,260)}));
+    const upgradePhrases=(Array.isArray(report.upgradePhrases)?report.upgradePhrases:[]).filter(x=>typeof x==="string").slice(0,5).map(x=>x.slice(0,200));
+    await redis(["SET",key,"done","EX",7200]);
+    return json(res,200,{scores,overall:String(report.overall||"").slice(0,650),strength:String(report.strength||"").slice(0,500),nextStep:String(report.nextStep||"").slice(0,500),corrections,upgradePhrases,evidence:source});
+   }catch(error){
+    await redis(["DEL",key]).catch(()=>{});
+    return json(res,502,{error:String(error.message||"AI feedback unavailable").slice(0,180)});
+   }
   }
 
   if(body.action==="feedback"){
