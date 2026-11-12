@@ -139,5 +139,55 @@ document.querySelectorAll("[data-page]").forEach(el=>el.addEventListener("click"
 render();
 </script>
 <script type="module" src="/webilang-global/missions-online.js"></script>
-</body>
+<script>
+(() => {
+  function addAI() {
+    if (document.querySelector('#ai-c1-module-card')) return;
+
+    const title = [...document.querySelectorAll('h2,h3,h4')]
+      .find(el => el.textContent.trim().startsWith('Gender Roles'));
+
+    if (!title) return;
+
+    const original = title.closest('.card');
+    if (!original) return;
+
+    const card = original.cloneNode(true);
+    card.id = 'ai-c1-module-card';
+
+    card.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+
+    card.querySelector('h2,h3,h4').textContent =
+      'AI: Opportunities & Risks · C1';
+
+    const description = card.querySelector('p');
+    if (description) description.textContent =
+      'Explore real AI cases, documentaries, Nick Cave and a live ATLAS roleplay.';
+
+    const links = card.querySelectorAll('a');
+    links.forEach((link, index) => {
+      if (index === 0) {
+        link.href = '/ai/';
+        link.textContent = 'Open module ↗';
+      } else {
+        link.remove();
+      }
+    });
+
+    card.querySelectorAll('.tag').forEach(tag => {
+      if (tag.textContent.trim() === 'B2') tag.textContent = 'C1';
+    });
+
+    original.after(card);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    addAI();
+    new MutationObserver(addAI).observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  });
+})();
+</script></body>
 </html>
