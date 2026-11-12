@@ -197,21 +197,21 @@ The school's success should be evaluated by …" rows="6"></textarea>
   <div class="atlas-add-row"><input id="atlas-add-phrase" maxlength="100" placeholder="e.g., pedagogical judgement"><button type="button" class="btn" id="atlas-add-phrase-btn">+ Add</button></div></div>
  </div>
  <div class="atlas-stock-actions"><button type="button" class="btn primary" id="atlas-stock-save">✓ Save selected items to my Stocks</button><span id="atlas-stock-status" role="status" class="muted small"></span></div>
- <p class="muted small">Open your <a href="/gender-roles-B2/">existing Webilang My Word Stock and My Grammar Stock</a> (choose the relevant tab) to generate personalised AI exercises. Stocks are currently saved in this browser for this Webilang site, not synchronised between devices.</p>
+ <p class="muted small">Your selections are saved only to the AI module’s My Word Stock and My Grammar Stock tabs. They will not mix with items from Gender Roles or other modules. These collections are currently saved in this browser and do not synchronise between devices. AI-generated practice inside these tabs is a future improvement.</p>
 </section>
 
 <p class="muted small">Feedback is formative, not a certified CEFR examination or a school grade. Recordings and transcripts may be processed by Tavus and OpenAI when you request evaluation; avoid sharing sensitive information.</p>
 </article></section>
 <section class="panel" id="mystockwords" role="tabpanel" aria-label="My Word Stock">
 <article class="card"><div class="kicker">YOUR PERSONALISED LEARNING · VOCABULARY</div><h2>📘 My Word Stock</h2>
-<p class="muted">Expressions you have chosen from AI feedback, roleplays or transcripts. Nothing is added without your selection.</p>
+<p class="muted">Only expressions you selected within this AI module. Other Webilang modules have separate collections. Nothing is added without your selection.</p>
 <div class="stock-tabs-intro"><span id="word-stock-count" class="stock-pill">0 expressions</span><button class="smallbtn" type="button" id="word-stock-refresh">↻ Refresh</button></div>
 <div id="word-stock-library" aria-live="polite"></div>
 <div class="stock-practice-cta"><strong>Ready to practise?</strong><p>Open the Word Stock practice tab in the Gender Roles module to request a new AI-generated practice round for your selected expressions.</p><a class="btn primary" href="/gender-roles-B2/">Open AI vocabulary practice ↗</a></div>
 </article></section>
 <section class="panel" id="mystockgrammar" role="tabpanel" aria-label="My Grammar Stock">
 <article class="card"><div class="kicker">YOUR PERSONALISED LEARNING · GRAMMAR</div><h2>🧩 My Grammar Stock</h2>
-<p class="muted">Grammar patterns and corrections you chose to revisit. Compare your original wording with an improved version.</p>
+<p class="muted">Grammar patterns and corrections you chose within this AI module. Other modules’ grammar collections remain separate.</p>
 <div class="stock-tabs-intro"><span id="grammar-stock-count" class="stock-pill">0 patterns</span><button class="smallbtn" type="button" id="grammar-stock-refresh">↻ Refresh</button></div>
 <div id="grammar-stock-library" aria-live="polite"></div>
 <div class="stock-practice-cta"><strong>Practise your grammar</strong><p>Open the Grammar Stock practice tab in the Gender Roles module to generate practice when you want it.</p><a class="btn primary" href="/gender-roles-B2/">Open AI grammar practice ↗</a></div>
@@ -438,8 +438,8 @@ transcriptButton.addEventListener('click',async()=>{
 });
 const el=(tag,text,klass)=>{const node=document.createElement(tag);if(text!==undefined)node.textContent=String(text);if(klass)node.className=klass;return node;};
 const addParagraph=(target,heading,value,kind='')=>{const section=el('section',undefined,'atlas-colored-section '+kind);section.append(el('h4',heading));section.append(el('p',value||'Not enough evidence in this transcript.'));target.append(section);};
-// Shared browser collection used by the existing Gender Roles My Word Stock/My Grammar Stock.
-const STOCK_KEY='genderRolesAIStocks_v1';
+// AI-module-only browser collection. Never read or overwrite the Gender Roles stocks.
+const STOCK_KEY='webilang_ai_module_stocks_v1';
 const stockPanel=byId('atlas-stock-panel'),grammarChoices=byId('atlas-grammar-choices'),vocabChoices=byId('atlas-vocab-choices');
 const stockStatus=byId('atlas-stock-status'),addPhrase=byId('atlas-add-phrase'),addPhraseButton=byId('atlas-add-phrase-btn'),saveStock=byId('atlas-stock-save');
 const normal=s=>String(s||'').trim().replace(/\s+/g,' ');
@@ -486,7 +486,7 @@ saveStock.addEventListener('click',()=>{
   store.words.push({id:'w'+Date.now()+Math.random().toString(36).slice(2,7),word:normal(w),source:'AI · ATLAS The Last Human Teacher',selected:true,time:new Date().toISOString()});wAdded++;
  });
  try{localStorage.setItem(STOCK_KEY,JSON.stringify(store));}catch{stockStatus.textContent='Unable to save: browser storage is unavailable.';return;}
- window.dispatchEvent(new Event('gender-roleplay-stock-updated'));
+ window.dispatchEvent(new Event('ai-module-stock-updated'));
  stockStatus.textContent=`Saved ${gAdded} grammar and ${wAdded} vocabulary items. ${selectedGrammar.length+selectedWords.length-gAdded-wAdded} already existed. Open your Stocks to practise whenever you wish.`;
 });
 
@@ -538,7 +538,7 @@ window.addEventListener('pagehide',()=>{
 </script><script>
 (function(){
   'use strict';
-  const STORE='genderRolesAIStocks_v1';
+  const STORE='webilang_ai_module_stocks_v1';
   const get=id=>document.getElementById(id);
   function read(){try{let x=JSON.parse(localStorage.getItem(STORE)||'{}');return x&&typeof x==='object'?x:{};}catch{return {};}}
   function write(x){try{localStorage.setItem(STORE,JSON.stringify(x));return true;}catch{return false;}}
@@ -566,7 +566,7 @@ window.addEventListener('pagehide',()=>{
   function refresh(){render('words');render('grammar');}
   ['word-stock-refresh','grammar-stock-refresh'].forEach(id=>get(id)?.addEventListener('click',refresh));
   document.querySelectorAll('nav.tabs .tab').forEach(b=>b.addEventListener('click',()=>{if(['mystockwords','mystockgrammar'].includes(b.dataset.tab))refresh();}));
-  window.addEventListener('gender-roleplay-stock-updated',refresh);
+  window.addEventListener('ai-module-stock-updated',refresh);
   window.addEventListener('storage',e=>{if(e.key===STORE)refresh();});
   refresh();
 })();
