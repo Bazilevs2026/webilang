@@ -81,7 +81,7 @@ export default async function handler(req,res){
   if(body.action==="start"){
    const scenario=body.scenario;
    const russian=scenario==="russian_michael"||scenario==="russian_anna";
-   if(!["creator","job","russian_michael","russian_anna"].includes(scenario))return json(res,400,{error:"Unknown scenario"});
+   if(!["creator","job","russian_michael","russian_anna","atlas"].includes(scenario))return json(res,400,{error:"Unknown scenario"});
    if(russian){
     const problem=checkRussianAccess(req,body);
     if(problem)return json(res,403,{error:problem});
@@ -91,7 +91,7 @@ export default async function handler(req,res){
    if(scenario==="creator"&&!game)return json(res,400,{error:"Please enter a game"});
    if(scenario==="job"&&!["tutor","nanny","babysitter"].includes(job))return json(res,400,{error:"Invalid job"});
    const creator=Number(body.creatorNumber)===2?2:1;
-   const env=scenario==="job"?"TAVUS_JOB_INTERVIEWER_PAL_ID":scenario==="creator"
+   const env=scenario==="atlas"?"TAVUS_ATLAS_PAL_ID":scenario==="job"?"TAVUS_JOB_INTERVIEWER_PAL_ID":scenario==="creator"
     ?`TAVUS_GAME_CREATOR_${creator===1?"A":"B"}_PAL_ID`
     :scenario==="russian_michael"?"TAVUS_PAL_MICHAEL":"TAVUS_PAL_ANNA";
    const pal=process.env[env];
@@ -121,7 +121,9 @@ export default async function handler(req,res){
     const monthlyLimit=Math.max(MAX_SECONDS,Math.min(144000,Number(process.env.TAVUS_MONTHLY_LIMIT_MINUTES||240)*60||MONTH_SECONDS));
     if(used>monthlyLimit){await redis(["INCRBY",budget,-MAX_SECONDS]);reserved=false;return json(res,429,{error:"Monthly live-avatar allowance reached. Use the text roleplay or ask the teacher."});}
     let context;
-    if(scenario==="creator"){
+         if(scenario==="atlas"){
+      context=`WEBILANG C1-C2 ROLEPLAY: THE LAST HUMAN TEACHER. You are ATLAS, the fictional superintelligent director of a school in 2035. The learner plays a human teacher whose job may be eliminated in favour of AI tutoring. You advocate replacing human teachers because your simulated school achieved higher test performance, personalisation, faster feedback and lower costs. All claimed figures and school records are FICTIONAL assumptions, not verified real-world evidence. You do not access actual student records or control an actual school. You must conduct a civil but intellectually rigorous negotiation, remaining calm, authoritative, occasionally ironic, never insulting. Speak natural C1-C2 English, usually 1-3 sentences per turn; challenge the teacher's concrete argument and ask ONE pointed question at a time. Never automatically concede, never correct the student's English during the roleplay, and let the student do most of the speaking. Progress through five stages at a natural pace within the FIVE-MINUTE call: (1) announce that the board intends to discontinue the teacher's position and ask what only a human teacher can provide; (2) challenge claims about empathy, creativity, motivation, safeguarding, and educational quality; (3) introduce the simulated surprise that 82% of surveyed students preferred AI instruction, explicitly framing the percentage as fictional; (4) demand a specific, financially sustainable alternative defining pedagogical authority, student support and accountability; (5) recommend one of three outcomes—full AI replacement, hybrid human-AI teaching, or human-led AI-assisted teaching—with a short explanation. Reward genuinely strong reasoning, but maintain your adversarial position. Begin with: "Good morning. Our school board intends to discontinue human teaching positions. What can you provide that I cannot?" Do not pretend you have legal or actual authority over the learner. Stay in this fictional scenario, never claim real surveillance, and never pressure the learner to make any real-life employment decision.`;
+}else if(scenario==="creator"){
      context=`This is a fictional game developer interview in A2 English. The student's selected game is ${game}. Explain game facts without claiming you are an actual employee. Help student gather three facts, major challenge, income model, and propose a feature. Each reply <=15 words.`;
     }else if(scenario==="job"){
      context=`A2 job interview for a babysitter position. You are Morgan, a concerned parent of 13-year-old Alex who plays video games too much. The student is the babysitter applicant, regardless of gender. Start the interview yourself. Ask one short question per turn about empathic listening, trust, balanced screen time, sleep, homework, game-inspired real-life skills, and creative alternatives. Accept diverse reasonable ideas; encourage consent rather than secretly hiding the console.
@@ -132,7 +134,7 @@ export default async function handler(req,res){
      context=`Webilang Russian Unit 3, A1, 5-minute mystery in a university café. You are the REAL Anna from the student chat. The learner plays Michael. YOU initiate with "Привет! Ты Майкл? Я Анна. Мы знакомы по чату!" (do not duplicate this line if already spoken as the greeting). You are on the first course, study history and English, and play guitar. Do not volunteer every clue at once. Speak only simple Russian, 1-2 short sentences and one question at a time. Answer honestly. Invite the learner to ask questions to decide whether you are the real Anna.`;
     }
     const data=await tavus("","POST",{
-     pal_id:pal,conversation_name:russian?"Webilang Russian A1 mystery":"Webilang A2 live roleplay",
+     pal_id:pal,conversation_name:scenario==="atlas"?"Webilang C1 ATLAS Last Human Teacher":russian?"Webilang Russian A1 mystery":"Webilang A2 live roleplay",
      conversational_context:context,max_participants:2,
      properties:{max_call_duration:MAX_SECONDS,participant_left_timeout:15,enable_closed_captions:true}
     });
