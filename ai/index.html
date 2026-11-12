@@ -7,6 +7,43 @@
 .comics-intro p{max-width:850px}.comic-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0}.comic-controls label{font-weight:700}.comic-controls select{padding:8px 12px;border:1px solid #ccd7e6;border-radius:9px;background:#fff}.line-box{border:1px solid #c8d8f8;background:#f1f6ff;border-radius:12px;padding:14px 16px;margin-top:14px;min-height:96px}.line-eyebrow{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#4b6693}#selectedLine{font-size:19px;font-weight:700;margin:4px 0}.comic-heading{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:8px}.comic-heading p{margin:5px 0}.comic-image{position:relative;width:100%;max-width:100%;border-radius:10px;overflow:hidden;background:#dce7f4;line-height:0;user-select:none}.comic-image img{width:100%;height:auto;display:block}.bubble-hotspot{position:absolute;z-index:2;display:block;background:transparent;border:2px solid transparent;border-radius:45%;cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s;touch-action:manipulation;padding:0}.bubble-hotspot:hover,.bubble-hotspot:focus-visible,.bubble-hotspot.is-speaking{border-color:#1754c5;background:#b4d3ff45;box-shadow:0 0 0 2px #fff7;outline:none}.sound-mark{position:absolute;right:3px;bottom:3px;display:grid;place-items:center;background:#123c85;color:white;border:1px solid #fff;border-radius:50%;width:19px;height:19px;font:700 13px system-ui;box-shadow:0 1px 6px #0004;line-height:1}.bubble-hotspot.is-speaking .sound-mark{background:#e87917}.dialogue-transcript{padding:12px;border:1px solid var(--line);border-radius:11px;margin-top:12px}.dialogue-transcript summary{font-weight:700;cursor:pointer}.dialogue-transcript li{margin:7px 0}.comic-card .comic-image{margin:14px 0}.comics-intro .btn{margin:0}.comic-card .btn{white-space:normal}
 @media(max-width:700px){.comic-card{padding:12px}.bubble-hotspot{border-radius:30%}.sound-mark{width:13px;height:13px;font-size:10px;bottom:0;right:0}.comic-heading{padding:8px}.comic-image{border-radius:6px}}
 @media print{.bubble-hotspot,.comic-controls,.play-all{display:none!important}.comic-card{break-inside:auto}.comic-image{break-inside:avoid}}
+
+/* ATLAS dialogue and coloured assessment, accessible and scoped */
+.atlas-dialogue-panel{margin:20px 0;padding:17px;border:1px solid #b9d0f4;background:#f7faff;border-radius:14px}
+.atlas-dialogue-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}.atlas-dialogue-heading h3{margin:0 0 4px;color:#17356f}
+.atlas-dialogue-legend{display:flex;flex-wrap:wrap;gap:16px;font-weight:650;font-size:.9rem;margin:14px 0;color:#33465c}
+.atlas-dialogue-legend span{display:flex;align-items:center;gap:7px}.atlas-dialogue-legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.atlas-legend-teacher{background:#2763c8}.atlas-legend-ai{background:#9aa7b5}
+.atlas-dialogue-list{display:flex;flex-direction:column;gap:10px;max-height:640px;overflow-y:auto;padding-right:5px}
+.atlas-turn{padding:12px 14px;border-radius:11px;border:1px solid #dce3ec;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.atlas-turn.student{background:#e3efff;border-left:5px solid #2462ce;color:#132f5b;font-weight:600;margin-left:5%;border-color:#9ec1fa}
+.atlas-turn.atlas{background:#f0f2f5;border-left:5px solid #929eae;color:#364152;margin-right:5%}
+.atlas-turn .atlas-speaker{display:block;font-size:.73rem;font-weight:850;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;color:#2856a5}
+.atlas-turn.atlas .atlas-speaker{color:#576579}
+#atlas-feedback-results{background:#f8fbff;border-color:#b7c9e6}
+#atlas-feedback-results>.atlas-colored-section{padding:12px 14px;border-radius:10px;margin:11px 0;border-left:5px solid #5a88d3;background:#eef5ff}
+#atlas-feedback-results>.atlas-colored-section.strength{border-color:#1b9270;background:#e5f7ef}
+#atlas-feedback-results>.atlas-colored-section.next-step{border-color:#b56b19;background:#fff2df}
+#atlas-feedback-results>.atlas-colored-section.correction{border-color:#bd4c67;background:#fff0f3}
+#atlas-feedback-results>.atlas-colored-section.phrases{border-color:#7954be;background:#f1edff}
+#atlas-feedback-results .atlas-score{border-top:4px solid #5381cb;background:#f0f6ff}
+#atlas-feedback-results .atlas-score:nth-child(2){border-top-color:#8a65cc;background:#f4f0ff}
+#atlas-feedback-results .atlas-score:nth-child(3){border-top-color:#1a9a82;background:#eaf9f5}
+#atlas-feedback-results .atlas-score:nth-child(4){border-top-color:#c78131;background:#fff6e9}
+#atlas-feedback-results .atlas-score:nth-child(5){border-top-color:#ce6982;background:#fff0f4}
+#atlas-feedback-results .atlas-score b{font-size:1.65rem}
+@media(max-width:650px){.atlas-turn.student{margin-left:0}.atlas-turn.atlas{margin-right:0}.atlas-dialogue-panel{padding:12px}}
+
+/* ATLAS personalised practice selection */
+.atlas-stocks{margin-top:18px;border:1px solid #b9cbe4;border-radius:16px;background:#fafcff;padding:18px}
+.atlas-stocks h3{color:#153a70;margin:0 0 10px}.atlas-stock-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:15px 0}
+.atlas-stock-cols>div{border:1px solid #c4d1e2;border-radius:12px;padding:15px;min-width:0}
+.atlas-stock-grammar{background:#fff6ed}.atlas-stock-words{background:#f2efff}
+.atlas-stock-cols h4{margin:0 0 5px}.atlas-stock-choice{display:flex;align-items:flex-start;gap:10px;border:1px solid #d0d9e5;border-radius:9px;padding:10px;margin:8px 0;background:#fff;line-height:1.5;cursor:pointer}
+.atlas-stock-choice input{flex:none;margin-top:.35em;accent-color:#245de0}.atlas-stock-choice strong{display:block}.atlas-stock-choice small{display:block;color:#526279}
+.atlas-add-row{display:flex;align-items:center;gap:7px;margin-top:8px}.atlas-add-row input{flex:1;min-width:0;border:1px solid #aebddd;border-radius:9px;padding:11px}
+.atlas-stock-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:16px 0 10px}
+@media(max-width:700px){.atlas-stock-cols{grid-template-columns:1fr}.atlas-add-row{flex-wrap:wrap}}
 </style><style>
 /* Real-case C1 comic redesign */
 .c1-comic-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:15px 0 12px}
@@ -126,11 +163,29 @@ The school's success should be evaluated by …" rows="6"></textarea>
 <h3>AI feedback · Your speaking performance</h3>
 <p class="muted small">After the call, request the Tavus transcript and review what the system captured. AI will assess <strong>task achievement, argumentation, interaction, grammar and vocabulary</strong> based on the language actually supplied. If the automatic transcript is unavailable, you can enter your own words, but this will be marked as <em>self-reported evidence</em>. The written reflection is not included in the speaking score.</p>
 <div class="atlas-actions"><button class="btn" id="atlas-transcript" type="button" disabled>↻ Retrieve speaking transcript</button><button class="btn primary" id="atlas-feedback" type="button" disabled>✦ Get AI speaking feedback</button></div>
-<label for="atlas-transcript-text"><strong>What you said in the conversation (review before assessment)</strong></label>
+<div id="atlas-dialogue-panel" class="atlas-dialogue-panel" hidden>
+<div class="atlas-dialogue-heading"><div><h3>Complete conversation · ATLAS and you</h3><p class="muted small">Your turns are highlighted in blue. ATLAS's questions appear in grey, in their original order.</p></div><button class="btn" type="button" id="atlas-copy-dialogue">Copy full dialogue</button></div>
+<div class="atlas-dialogue-legend"><span><i class="atlas-legend-teacher"></i> You · Teacher</span><span><i class="atlas-legend-ai"></i> ATLAS · AI director</span></div>
+<div id="atlas-dialogue-list" class="atlas-dialogue-list" aria-label="Full conversation transcript"></div>
+</div>
+<label for="atlas-transcript-text"><strong>Your spoken words · editable assessment evidence</strong></label>
 <textarea id="atlas-transcript-text" rows="7" placeholder="Your spoken contributions will appear here after Tavus processes the call. You may paste or correct your own transcript if needed."></textarea>
 <p class="muted small" id="atlas-evidence">Evidence: no transcript yet. Feedback is only available after a completed call.</p>
 <p aria-live="polite" class="muted small" id="atlas-feedback-status"></p>
 <div id="atlas-feedback-results" hidden></div>
+<section class="atlas-stocks" id="atlas-stock-panel" hidden aria-label="Personal grammar and vocabulary practice">
+ <h3>Make this feedback part of your personal practice</h3>
+ <p class="muted small">Choose only what you want to work on. Nothing is saved automatically. Selected grammar patterns and vocabulary go into your existing Webilang Stocks, where you can generate AI practice whenever you wish.</p>
+ <div class="atlas-stock-cols">
+  <div class="atlas-stock-grammar"><h4>🧩 My Grammar Stock</h4><p class="muted small">Verified grammar improvements from your own speech. Choose patterns to revisit.</p><div id="atlas-grammar-choices"></div></div>
+  <div class="atlas-stock-words"><h4>📘 My Word Stock</h4><p class="muted small">C1+ alternatives, useful phrases or your own selected expressions.</p><div id="atlas-vocab-choices"></div>
+  <label for="atlas-add-phrase"><strong>Add an expression yourself</strong> <span class="muted small">(you can select text in the dialogue)</span></label>
+  <div class="atlas-add-row"><input id="atlas-add-phrase" maxlength="100" placeholder="e.g., pedagogical judgement"><button type="button" class="btn" id="atlas-add-phrase-btn">+ Add</button></div></div>
+ </div>
+ <div class="atlas-stock-actions"><button type="button" class="btn primary" id="atlas-stock-save">✓ Save selected items to my Stocks</button><span id="atlas-stock-status" role="status" class="muted small"></span></div>
+ <p class="muted small">Open your <a href="/gender-roles-B2/">existing Webilang My Word Stock and My Grammar Stock</a> (choose the relevant tab) to generate personalised AI exercises. Stocks are currently saved in this browser for this Webilang site, not synchronised between devices.</p>
+</section>
+
 <p class="muted small">Feedback is formative, not a certified CEFR examination or a school grade. Recordings and transcripts may be processed by Tavus and OpenAI when you request evaluation; avoid sharing sensitive information.</p>
 </article></section></main>
 <aside class="sidecol"><div class="card"><div class="kicker">Lesson map</div><h3>Suggested sequence</h3><ol class="steps small"><li>Watch trailer: 5 minutes</li><li>Opening clip and analysis: 15 minutes</li><li>Middle clip and debate: 20 minutes</li><li>Eugenics and bias: 15 minutes</li><li>Education roleplay: 20 minutes</li><li>Guardian critical reading: 15 minutes</li><li>Final review: 15–20 minutes</li></ol><p class="small muted">Use the tabs independently or teach across two sessions.</p></div><div class="card"><div class="kicker">C1 vocabulary bank</div><div class="gloss"><strong>Agency</strong><em>Capacity to make meaningful choices and act on them.</em></div><div class="gloss"><strong>Scrutiny</strong><em>Careful, critical examination.</em></div><div class="gloss"><strong>Determinism</strong><em>The view that an outcome is unavoidable because of prior conditions.</em></div><div class="gloss"><strong>Genealogy</strong><em>A critical tracing of how concepts and practices developed.</em></div><div class="gloss"><strong>Anthropomorphism</strong><em>Attributing human qualities to non-human systems.</em></div><div class="gloss"><strong>Proxy variable</strong><em>A measurable feature used as an indirect stand-in for another.</em></div><div class="gloss"><strong>Polemic</strong><em>A forceful argument defending a particular position.</em></div><div class="gloss"><strong>Accountability</strong><em>Responsibility for decisions, explanations and remedies.</em></div></div><div class="card"><div class="kicker">Reliable sources</div><a class="source" href="https://www.youtube.com/watch?v=dLQzVLtvdv8" rel="noopener" target="_blank">Ghost in the Machine · Full film on YouTube</a><a class="source" href="https://www.youtube.com/watch?v=dLQzVLtvdv8" rel="noopener" target="_blank">Ghost in the Machine · Full film on YouTube</a><a class="source" href="https://www.theguardian.com/film/2026/jun/01/ghost-in-the-machine-review-entertaining-ai-polemic-dives-into-its-dark-history-in-race-politics-and-eugenics" rel="noopener" target="_blank">Leslie Felperin · Guardian review</a><p class="small muted">Watch the linked film on YouTube. Availability may vary by region and uploader.</p></div></aside></div><p class="footer">Independent educational resource · Not affiliated with PBS or The Guardian · Original activities and paraphrased commentary · No backend or login required</p></div>
@@ -266,6 +321,22 @@ const start=byId('atlas-start'),end=byId('atlas-end'),status=byId('atlas-status'
 const holder=byId('atlas-video-holder'),frame=byId('atlas-video'),timer=byId('atlas-timer');
 const transcriptButton=byId('atlas-transcript'),feedbackButton=byId('atlas-feedback');
 const transcriptBox=byId('atlas-transcript-text'),evidence=byId('atlas-evidence');
+const dialoguePanel=byId('atlas-dialogue-panel'),dialogueList=byId('atlas-dialogue-list'),copyDialogue=byId('atlas-copy-dialogue');
+let fullDialogue=[];
+const renderDialogue=(turns)=>{
+ fullDialogue=Array.isArray(turns)?turns.filter(t=>t&&(t.speaker==='student'||t.speaker==='atlas')&&typeof t.text==='string'):[];
+ dialogueList.replaceChildren();dialoguePanel.hidden=!fullDialogue.length;
+ fullDialogue.forEach((t,i)=>{
+  const section=document.createElement('div');section.className='atlas-turn '+(t.speaker==='student'?'student':'atlas');
+  const who=document.createElement('span');who.className='atlas-speaker';who.textContent=(i+1)+' · '+(t.speaker==='student'?'You · Teacher':'ATLAS · AI director');
+  const words=document.createElement('span');words.textContent=t.text;section.append(who,words);dialogueList.append(section);
+ });
+};
+copyDialogue.addEventListener('click',async()=>{
+ if(!fullDialogue.length)return;
+ const value=fullDialogue.map(t=>(t.speaker==='student'?'TEACHER':'ATLAS')+': '+t.text).join('\n\n');
+ try{await navigator.clipboard.writeText(value);copyDialogue.textContent='Copied!';}catch{copyDialogue.textContent='Copy unavailable';}
+});
 const feedbackStatus=byId('atlas-feedback-status'),results=byId('atlas-feedback-results');
 if(!start||!end||!holder||!frame)return;
 let session=null,completed=null,busy=false,tick=null,deadline=0,originalTranscript='',fromTavus=false;
@@ -299,8 +370,8 @@ async function closeCall(reason='manual'){
 start.addEventListener('click',async()=>{
  if(busy||session)return;
  busy=true;start.disabled=true;end.disabled=true;
- transcriptButton.disabled=true;feedbackButton.disabled=true;results.hidden=true;results.textContent='';
- completed=null;fromTavus=false;originalTranscript='';transcriptBox.value='';
+ transcriptButton.disabled=true;feedbackButton.disabled=true;results.hidden=true;results.textContent='';stockPanel.hidden=true;
+ completed=null;fromTavus=false;originalTranscript='';transcriptBox.value='';renderDialogue([]);copyDialogue.textContent='Copy full dialogue';
  evidence.textContent='Evidence: none yet.';feedbackSay('');say('Connecting to Tavus ATLAS…');
  try {
   const data=await post({action:'start',scenario:'atlas'});
@@ -327,6 +398,7 @@ transcriptButton.addEventListener('click',async()=>{
   if(data.status==='pending'){
    feedbackSay('Tavus is still processing the call. Use Retrieve again in a moment, or enter your own words.');
   }else{
+   renderDialogue(data.dialogue);
    transcriptBox.value=data.transcript||'';
    originalTranscript=transcriptBox.value;fromTavus=true;
    evidence.textContent='Evidence: Tavus transcription, '+Number(data.learnerTurns||0)+' learner turns. Review for recognition errors.';
@@ -336,7 +408,59 @@ transcriptButton.addEventListener('click',async()=>{
  finally{transcriptButton.disabled=false;}
 });
 const el=(tag,text,klass)=>{const node=document.createElement(tag);if(text!==undefined)node.textContent=String(text);if(klass)node.className=klass;return node;};
-const addParagraph=(target,heading,value)=>{target.append(el('h4',heading));target.append(el('p',value||'Not enough evidence in this transcript.'));};
+const addParagraph=(target,heading,value,kind='')=>{const section=el('section',undefined,'atlas-colored-section '+kind);section.append(el('h4',heading));section.append(el('p',value||'Not enough evidence in this transcript.'));target.append(section);};
+// Shared browser collection used by the existing Gender Roles My Word Stock/My Grammar Stock.
+const STOCK_KEY='genderRolesAIStocks_v1';
+const stockPanel=byId('atlas-stock-panel'),grammarChoices=byId('atlas-grammar-choices'),vocabChoices=byId('atlas-vocab-choices');
+const stockStatus=byId('atlas-stock-status'),addPhrase=byId('atlas-add-phrase'),addPhraseButton=byId('atlas-add-phrase-btn'),saveStock=byId('atlas-stock-save');
+const normal=s=>String(s||'').trim().replace(/\s+/g,' ');
+let grammarSuggestions=[],vocabSuggestions=[];
+function addChoice(root,id,title,subtitle,checked=false){
+ const label=el('label',undefined,'atlas-stock-choice'),checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.value=id;checkbox.checked=checked;
+ const copy=el('span');copy.append(el('strong',title));if(subtitle)copy.append(el('small',subtitle));label.append(checkbox,copy);root.append(label);
+}
+function drawStockSuggestions(report){
+ grammarSuggestions=Array.isArray(report.corrections)?report.corrections.filter(c=>c&&normal(c.original)&&normal(c.correction)&&normal(c.original)!==normal(c.correction)):[];
+ vocabSuggestions=Array.isArray(report.upgradePhrases)?report.upgradePhrases.map(normal).filter(Boolean):[];
+ grammarChoices.replaceChildren();vocabChoices.replaceChildren();
+ grammarSuggestions.forEach((c,i)=>addChoice(grammarChoices,String(i),normal(c.pattern)||'Grammar structure',`${c.original} → ${c.correction}${c.explanation?' · '+c.explanation:''}`));
+ vocabSuggestions.forEach((w,i)=>addChoice(vocabChoices,String(i),w,'AI-suggested C1+ expression'));
+ if(!grammarSuggestions.length)grammarChoices.append(el('p','No verified grammar errors identified. You can still collect vocabulary.','muted small'));
+ stockPanel.hidden=false;stockStatus.textContent='Review and tick the items that matter to you.';
+}
+function addCustomPhrase(){
+ const word=normal(addPhrase.value);if(!word||word.length>100){stockStatus.textContent='Enter a short expression, up to 100 characters.';return;}
+ if(!/[a-zA-Z]/.test(word)){stockStatus.textContent='Enter an English word or phrase.';return;}
+ if(!vocabSuggestions.some(x=>x.toLowerCase()===word.toLowerCase())){
+  vocabSuggestions.push(word);addChoice(vocabChoices,String(vocabSuggestions.length-1),word,'Chosen by learner',true);
+ }
+ addPhrase.value='';stockStatus.textContent='Expression added to your choices. Click Save to keep it.';
+}
+addPhraseButton.addEventListener('click',addCustomPhrase);
+addPhrase.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addCustomPhrase();}});
+// Selecting a phrase in the dialogue offers it as a learner-selected item, without saving it.
+dialogueList.addEventListener('mouseup',()=>{const selected=normal(window.getSelection()?.toString());if(selected&&selected.length<=100&&/[a-zA-Z]/.test(selected))addPhrase.value=selected;});
+saveStock.addEventListener('click',()=>{
+ const selectedGrammar=[...grammarChoices.querySelectorAll('input[type="checkbox"]:checked')].map(el=>grammarSuggestions[Number(el.value)]).filter(Boolean);
+ const selectedWords=[...vocabChoices.querySelectorAll('input[type="checkbox"]:checked')].map(el=>vocabSuggestions[Number(el.value)]).filter(Boolean);
+ if(!selectedGrammar.length&&!selectedWords.length){stockStatus.textContent='Select at least one grammar or vocabulary item.';return;}
+ let store={};try{store=JSON.parse(localStorage.getItem(STOCK_KEY)||'{}')||{};}catch{}
+ if(!Array.isArray(store.words))store.words=[];if(!Array.isArray(store.grammar))store.grammar=[];
+ let gAdded=0,wAdded=0;
+ const key=s=>normal(s).toLowerCase();
+ selectedGrammar.forEach(g=>{
+  if(store.grammar.some(x=>key(x.original)===key(g.original)&&key(x.corrected)===key(g.correction)))return;
+  store.grammar.push({id:'g'+Date.now()+Math.random().toString(36).slice(2,7),pattern:normal(g.pattern)||'Grammar correction',original:normal(g.original),corrected:normal(g.correction),rule:normal(g.explanation),source:'AI · ATLAS The Last Human Teacher',date:new Date().toISOString()});gAdded++;
+ });
+ selectedWords.forEach(w=>{
+  if(store.words.some(x=>key(typeof x==='string'?x:(x.word||x.text||x.phrase))===key(w)))return;
+  store.words.push({id:'w'+Date.now()+Math.random().toString(36).slice(2,7),word:normal(w),source:'AI · ATLAS The Last Human Teacher',selected:true,time:new Date().toISOString()});wAdded++;
+ });
+ try{localStorage.setItem(STOCK_KEY,JSON.stringify(store));}catch{stockStatus.textContent='Unable to save: browser storage is unavailable.';return;}
+ window.dispatchEvent(new Event('gender-roleplay-stock-updated'));
+ stockStatus.textContent=`Saved ${gAdded} grammar and ${wAdded} vocabulary items. ${selectedGrammar.length+selectedWords.length-gAdded-wAdded} already existed. Open your Stocks to practise whenever you wish.`;
+});
+
 feedbackButton.addEventListener('click',async()=>{
  if(!completed)return;
  const typed=transcriptBox.value.trim();
@@ -357,20 +481,21 @@ feedbackButton.addEventListener('click',async()=>{
   });
   results.append(scores);
   addParagraph(results,'Overall feedback',report.overall);
-  addParagraph(results,'What you did well',report.strength);
-  addParagraph(results,'Your next step',report.nextStep);
+  addParagraph(results,'What you did well',report.strength,'strength');
+  addParagraph(results,'Your next step',report.nextStep,'next-step');
   if(Array.isArray(report.corrections)&&report.corrections.length){
-    results.append(el('h4','Language improvements'));
+    const section=el('section',undefined,'atlas-colored-section correction');section.append(el('h4','Language improvements'));
     const list=el('ul');report.corrections.forEach(c=>{
       const line=el('li');line.append(el('strong',(c.original||'')+' → '+(c.correction||'')));
       if(c.explanation)line.append(document.createTextNode(' — '+c.explanation));list.append(line);
-    });results.append(list);
+    });section.append(list);results.append(section);
   }
   if(Array.isArray(report.upgradePhrases)&&report.upgradePhrases.length){
-    results.append(el('h4','C1+ expressions to try next time'));
-    const list=el('ul');report.upgradePhrases.forEach(v=>list.append(el('li',v)));results.append(list);
+    const section=el('section',undefined,'atlas-colored-section phrases');section.append(el('h4','C1+ expressions to try next time'));
+    const list=el('ul');report.upgradePhrases.forEach(v=>list.append(el('li',v)));section.append(list);results.append(section);
   }
   results.hidden=false;
+  drawStockSuggestions(report);
   evidence.textContent='Assessment evidence: '+(report.evidence==='tavus'?'automatic Tavus transcript':'learner-reviewed / self-reported text')+'.';
   feedbackSay('Assessment complete. Review the evidence and revise your argument.');
  }catch(err){feedbackSay('Feedback unavailable: '+err.message);feedbackButton.disabled=false;}
