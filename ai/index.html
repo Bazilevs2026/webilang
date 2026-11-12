@@ -58,6 +58,11 @@
 .stock-practice-cta p{margin:9px 0 16px;color:#4c607a}.stock-practice-cta a{text-decoration:none;display:inline-flex}
 .stock-empty{background:#f5f7fb;border:1px dashed #c6d3e4;border-radius:12px;padding:20px;color:#52647d}
 @media(max-width:650px){.stock-library-item{flex-direction:column}.stock-remove{align-self:flex-end}}
+
+.ai-practice-card{margin:14px 0;padding:16px;border:1px solid #bfd1ed;border-radius:12px;background:#fff;display:grid;gap:9px}
+.ai-practice-card textarea{min-height:65px}.ai-practice-card select{max-width:100%;padding:9px;border-radius:8px;border:1px solid #c7d3e5}
+.ai-cloud-status{padding:9px 13px;border-left:3px solid #316bd5;background:#edf3ff;border-radius:5px}
+.stock-library-item input[type=checkbox]{accent-color:#2458d3;width:18px;height:18px;flex:none}
 </style><style>
 /* Real-case C1 comic redesign */
 .c1-comic-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:15px 0 12px}
@@ -197,27 +202,27 @@ The school's success should be evaluated by …" rows="6"></textarea>
   <div class="atlas-add-row"><input id="atlas-add-phrase" maxlength="100" placeholder="e.g., pedagogical judgement"><button type="button" class="btn" id="atlas-add-phrase-btn">+ Add</button></div></div>
  </div>
  <div class="atlas-stock-actions"><button type="button" class="btn primary" id="atlas-stock-save">✓ Save selected items to my Stocks</button><span id="atlas-stock-status" role="status" class="muted small"></span></div>
- <p class="muted small">Your selections are saved only to the AI module’s My Word Stock and My Grammar Stock tabs. They will not mix with items from Gender Roles or other modules. These collections are currently saved in this browser and do not synchronise between devices. AI-generated practice inside these tabs is a future improvement.</p>
+ <p class="muted small">Sign in with your Webilang Global student account to save selected items securely in your personal cloud Stocks. Each module stays separate. You can practise the items here whenever you choose.</p>
 </section>
 
 <p class="muted small">Feedback is formative, not a certified CEFR examination or a school grade. Recordings and transcripts may be processed by Tavus and OpenAI when you request evaluation; avoid sharing sensitive information.</p>
 </article></section>
 <section class="panel" id="mystockwords" role="tabpanel" aria-label="My Word Stock">
 <article class="card"><div class="kicker">YOUR PERSONALISED LEARNING · VOCABULARY</div><h2>📘 My Word Stock</h2>
-<p class="muted">Only expressions you selected within this AI module. Other Webilang modules have separate collections. Nothing is added without your selection.</p>
+<p class="muted">Only expressions you selected within this AI module. Other Webilang modules have separate collections. Your selections follow your signed-in Webilang account across devices.</p>
 <div class="stock-tabs-intro"><span id="word-stock-count" class="stock-pill">0 expressions</span><button class="smallbtn" type="button" id="word-stock-refresh">↻ Refresh</button></div>
-<div id="word-stock-library" aria-live="polite"></div>
-<div class="stock-practice-cta"><strong>Ready to practise?</strong><p>Open the Word Stock practice tab in the Gender Roles module to request a new AI-generated practice round for your selected expressions.</p><a class="btn primary" href="/gender-roles-B2/">Open AI vocabulary practice ↗</a></div>
+<p class="muted small ai-cloud-status" id="ai-cloud-status" role="status">Checking your Webilang Global sign-in…</p><div id="word-stock-library" aria-live="polite"></div>
+<div class="stock-practice-cta"><strong>Practise your saved vocabulary here</strong><p>Select up to six expressions, then ask AI to generate a new C1 practice round. Your answers remain private to this session.</p><button class="btn primary" id="ai-word-practice" type="button">✦ Generate vocabulary practice</button><p id="ai-word-practice-status" role="status" class="muted small"></p><div id="ai-word-practice-output"></div></div>
 </article></section>
 <section class="panel" id="mystockgrammar" role="tabpanel" aria-label="My Grammar Stock">
 <article class="card"><div class="kicker">YOUR PERSONALISED LEARNING · GRAMMAR</div><h2>🧩 My Grammar Stock</h2>
-<p class="muted">Grammar patterns and corrections you chose within this AI module. Other modules’ grammar collections remain separate.</p>
+<p class="muted">Grammar patterns and corrections you chose within this AI module. Your selected patterns synchronise with your signed-in Webilang account. Other modules remain separate.</p>
 <div class="stock-tabs-intro"><span id="grammar-stock-count" class="stock-pill">0 patterns</span><button class="smallbtn" type="button" id="grammar-stock-refresh">↻ Refresh</button></div>
 <div id="grammar-stock-library" aria-live="polite"></div>
-<div class="stock-practice-cta"><strong>Practise your grammar</strong><p>Open the Grammar Stock practice tab in the Gender Roles module to generate practice when you want it.</p><a class="btn primary" href="/gender-roles-B2/">Open AI grammar practice ↗</a></div>
+<div class="stock-practice-cta"><strong>Practise your saved grammar here</strong><p>Select up to six patterns, then ask AI for personalised C1 practice.</p><button class="btn primary" id="ai-grammar-practice" type="button">✦ Generate grammar practice</button><p id="ai-grammar-practice-status" role="status" class="muted small"></p><div id="ai-grammar-practice-output"></div></div>
 </article></section>
 </main>
-<aside class="sidecol"><div class="card"><div class="kicker">Lesson map</div><h3>Suggested sequence</h3><ol class="steps small"><li>Watch trailer: 5 minutes</li><li>Opening clip and analysis: 15 minutes</li><li>Middle clip and debate: 20 minutes</li><li>Eugenics and bias: 15 minutes</li><li>Education roleplay: 20 minutes</li><li>Guardian critical reading: 15 minutes</li><li>Final review: 15–20 minutes</li></ol><p class="small muted">Use the tabs independently or teach across two sessions.</p></div><div class="card"><div class="kicker">C1 vocabulary bank</div><div class="gloss"><strong>Agency</strong><em>Capacity to make meaningful choices and act on them.</em></div><div class="gloss"><strong>Scrutiny</strong><em>Careful, critical examination.</em></div><div class="gloss"><strong>Determinism</strong><em>The view that an outcome is unavoidable because of prior conditions.</em></div><div class="gloss"><strong>Genealogy</strong><em>A critical tracing of how concepts and practices developed.</em></div><div class="gloss"><strong>Anthropomorphism</strong><em>Attributing human qualities to non-human systems.</em></div><div class="gloss"><strong>Proxy variable</strong><em>A measurable feature used as an indirect stand-in for another.</em></div><div class="gloss"><strong>Polemic</strong><em>A forceful argument defending a particular position.</em></div><div class="gloss"><strong>Accountability</strong><em>Responsibility for decisions, explanations and remedies.</em></div></div><div class="card"><div class="kicker">Reliable sources</div><a class="source" href="https://www.youtube.com/watch?v=dLQzVLtvdv8" rel="noopener" target="_blank">Ghost in the Machine · Full film on YouTube</a><a class="source" href="https://www.youtube.com/watch?v=dLQzVLtvdv8" rel="noopener" target="_blank">Ghost in the Machine · Full film on YouTube</a><a class="source" href="https://www.theguardian.com/film/2026/jun/01/ghost-in-the-machine-review-entertaining-ai-polemic-dives-into-its-dark-history-in-race-politics-and-eugenics" rel="noopener" target="_blank">Leslie Felperin · Guardian review</a><p class="small muted">Watch the linked film on YouTube. Availability may vary by region and uploader.</p></div></aside></div><p class="footer">Independent educational resource · Not affiliated with PBS or The Guardian · Original activities and paraphrased commentary · No backend or login required</p></div>
+<aside class="sidecol"><div class="card"><div class="kicker">Lesson map</div><h3>Suggested sequence</h3><ol class="steps small"><li>Watch trailer: 5 minutes</li><li>Opening clip and analysis: 15 minutes</li><li>Middle clip and debate: 20 minutes</li><li>Eugenics and bias: 15 minutes</li><li>Education roleplay: 20 minutes</li><li>Guardian critical reading: 15 minutes</li><li>Final review: 15–20 minutes</li></ol><p class="small muted">Use the tabs independently or teach across two sessions.</p></div><div class="card"><div class="kicker">C1 vocabulary bank</div><div class="gloss"><strong>Agency</strong><em>Capacity to make meaningful choices and act on them.</em></div><div class="gloss"><strong>Scrutiny</strong><em>Careful, critical examination.</em></div><div class="gloss"><strong>Determinism</strong><em>The view that an outcome is unavoidable because of prior conditions.</em></div><div class="gloss"><strong>Genealogy</strong><em>A critical tracing of how concepts and practices developed.</em></div><div class="gloss"><strong>Anthropomorphism</strong><em>Attributing human qualities to non-human systems.</em></div><div class="gloss"><strong>Proxy variable</strong><em>A measurable feature used as an indirect stand-in for another.</em></div><div class="gloss"><strong>Polemic</strong><em>A forceful argument defending a particular position.</em></div><div class="gloss"><strong>Accountability</strong><em>Responsibility for decisions, explanations and remedies.</em></div></div><div class="card"><div class="kicker">Reliable sources</div><a class="source" href="https://www.youtube.com/watch?v=dLQzVLtvdv8" rel="noopener" target="_blank">Ghost in the Machine · Full film on YouTube</a><a class="source" href="https://www.youtube.com/watch?v=dLQzVLtvdv8" rel="noopener" target="_blank">Ghost in the Machine · Full film on YouTube</a><a class="source" href="https://www.theguardian.com/film/2026/jun/01/ghost-in-the-machine-review-entertaining-ai-polemic-dives-into-its-dark-history-in-race-politics-and-eugenics" rel="noopener" target="_blank">Leslie Felperin · Guardian review</a><p class="small muted">Watch the linked film on YouTube. Availability may vary by region and uploader.</p></div></aside></div><p class="footer">Independent educational resource · Not affiliated with PBS or The Guardian · Original activities and paraphrased commentary · Student account required for synchronised Stocks</p></div>
 <script>
 (()=>{const tabs=[...document.querySelectorAll('.tab')],panels=[...document.querySelectorAll('.panel')],KEY='ghost-machine-lab-v2';let state={};try{state=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}};function navigate(id){tabs.forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===id)));panels.forEach(p=>p.classList.toggle('active',p.id===id));state.tab=id;save();window.scrollTo({top:document.querySelector('nav.tabs').getBoundingClientRect().top+window.scrollY-8,behavior:'smooth'})}tabs.forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.tab)));function status(node,good,message){node.className='feedback '+(good?'ok':'no');node.textContent=(good?'✓ ':'✗ ')+message}function progress(){const q=[...document.querySelectorAll('.quiz')],m=[...document.querySelectorAll('.match')];const done=[...q,...m].filter(e=>state['done-'+(e.dataset.q||e.dataset.key)]).length;document.getElementById('progressCount').textContent=done+' of '+(q.length+m.length);document.getElementById('progressFill').style.width=(100*done/(q.length+m.length))+'%'}document.querySelectorAll('.quiz').forEach(q=>{const id=q.dataset.q;const saved=state['q-'+id];if(saved){let r=q.querySelector('input[value="'+saved+'"]');if(r)r.checked=true}q.querySelectorAll('input').forEach(r=>r.addEventListener('change',()=>{state['q-'+id]=r.value;save()}));q.querySelector('.check').addEventListener('click',()=>{const s=q.querySelector('input:checked');if(!s){let f=q.querySelector('.feedback');f.className='feedback neutral';f.textContent='Choose an option first.';return}state['q-'+id]=s.value;state['done-'+id]=true;save();status(q.querySelector('.feedback'),s.value===q.dataset.answer,(s.value===q.dataset.answer?'Correct. ':'Try again. ')+q.dataset.explain);progress()})});document.querySelectorAll('.match').forEach(m=>{const id=m.dataset.key,sel=m.querySelector('select');sel.value=state['q-'+id]||'';sel.addEventListener('change',()=>{state['q-'+id]=sel.value;save()})});document.getElementById('checkMatch')?.addEventListener('click',()=>{document.querySelectorAll('.match').forEach(m=>{let sel=m.querySelector('select'),id=m.dataset.key,ok=sel.value===m.dataset.answer;if(sel.value){state['done-'+id]=true;status(m.querySelector('.feedback'),ok,ok?'Correct.':'Reconsider the difference between goal-setting, control, agency and accountability.')}else{let f=m.querySelector('.feedback');f.className='feedback neutral';f.textContent='Choose a category first.'}});save();progress()});document.querySelectorAll('textarea[data-save]').forEach(t=>{t.value=state['text-'+t.dataset.save]||'';t.addEventListener('input',()=>{state['text-'+t.dataset.save]=t.value;save();count()})});document.querySelectorAll('.reveal').forEach(b=>b.addEventListener('click',()=>{const m=b.nextElementSibling;m.classList.toggle('show');b.textContent=m.classList.contains('show')?'Hide suggested response':'Show suggested response'}));function count(){const t=document.querySelector('[data-save="c-review"]');const n=t.value.trim()?t.value.trim().split(/\s+/).length:0;document.getElementById('wordcount').textContent=n+' words'}count();const index=()=>tabs.findIndex(b=>b.getAttribute('aria-selected')==='true');document.getElementById('prev').onclick=()=>navigate(tabs[Math.max(0,index()-1)].dataset.tab);document.getElementById('next').onclick=()=>navigate(tabs[Math.min(tabs.length-1,index()+1)].dataset.tab);document.getElementById('export').onclick=()=>{let lines=['GHOST IN THE MACHINE — LEARNER RESPONSES','Exported: '+new Date().toLocaleString(),''];document.querySelectorAll('textarea[data-save]').forEach(t=>{const title=t.closest('.panel').querySelector('h2').textContent;lines.push('=== '+title+' / '+t.dataset.save+' ===',t.value||'(no response)','')});document.querySelectorAll('.quiz').forEach(q=>{let s=q.querySelector('input:checked');lines.push(q.querySelector('.qtitle').textContent,'Answer: '+(s?s.parentNode.textContent.trim():'(not answered)'),'')});let blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ghost-in-the-machine-my-work.txt';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1200)};document.getElementById('reset').onclick=()=>{if(confirm('Clear all saved answers, writing and quiz progress for this lesson?')){state={};save();location.reload()}};progress();if(state.tab&&document.getElementById(state.tab))navigate(state.tab)})();
 </script><script>(()=>{
@@ -469,25 +474,17 @@ addPhraseButton.addEventListener('click',addCustomPhrase);
 addPhrase.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addCustomPhrase();}});
 // Selecting a phrase in the dialogue offers it as a learner-selected item, without saving it.
 dialogueList.addEventListener('mouseup',()=>{const selected=normal(window.getSelection()?.toString());if(selected&&selected.length<=100&&/[a-zA-Z]/.test(selected))addPhrase.value=selected;});
-saveStock.addEventListener('click',()=>{
+saveStock.addEventListener('click',async()=>{
  const selectedGrammar=[...grammarChoices.querySelectorAll('input[type="checkbox"]:checked')].map(el=>grammarSuggestions[Number(el.value)]).filter(Boolean);
  const selectedWords=[...vocabChoices.querySelectorAll('input[type="checkbox"]:checked')].map(el=>vocabSuggestions[Number(el.value)]).filter(Boolean);
  if(!selectedGrammar.length&&!selectedWords.length){stockStatus.textContent='Select at least one grammar or vocabulary item.';return;}
- let store={};try{store=JSON.parse(localStorage.getItem(STOCK_KEY)||'{}')||{};}catch{}
- if(!Array.isArray(store.words))store.words=[];if(!Array.isArray(store.grammar))store.grammar=[];
- let gAdded=0,wAdded=0;
- const key=s=>normal(s).toLowerCase();
- selectedGrammar.forEach(g=>{
-  if(store.grammar.some(x=>key(x.original)===key(g.original)&&key(x.corrected)===key(g.correction)))return;
-  store.grammar.push({id:'g'+Date.now()+Math.random().toString(36).slice(2,7),pattern:normal(g.pattern)||'Grammar correction',original:normal(g.original),corrected:normal(g.correction),rule:normal(g.explanation),source:'AI · ATLAS The Last Human Teacher',date:new Date().toISOString()});gAdded++;
- });
- selectedWords.forEach(w=>{
-  if(store.words.some(x=>key(typeof x==='string'?x:(x.word||x.text||x.phrase))===key(w)))return;
-  store.words.push({id:'w'+Date.now()+Math.random().toString(36).slice(2,7),word:normal(w),source:'AI · ATLAS The Last Human Teacher',selected:true,time:new Date().toISOString()});wAdded++;
- });
- try{localStorage.setItem(STOCK_KEY,JSON.stringify(store));}catch{stockStatus.textContent='Unable to save: browser storage is unavailable.';return;}
- window.dispatchEvent(new Event('ai-module-stock-updated'));
- stockStatus.textContent=`Saved ${gAdded} grammar and ${wAdded} vocabulary items. ${selectedGrammar.length+selectedWords.length-gAdded-wAdded} already existed. Open your Stocks to practise whenever you wish.`;
+ const entries=[...selectedGrammar.map(g=>({type:'grammar',pattern:normal(g.pattern)||'Grammar correction',original:normal(g.original),corrected:normal(g.correction),rule:normal(g.explanation),source:'ATLAS · The Last Human Teacher'})),...selectedWords.map(w=>({type:'words',word:normal(w),source:'ATLAS · The Last Human Teacher'}))];
+ const cloud=window.WebilangAIStocks;
+ if(!cloud){stockStatus.textContent='Cloud Stocks are still loading. Please try again.';return;}
+ saveStock.disabled=true;stockStatus.textContent='Saving selected items to your Webilang account…';
+ try{const result=await cloud.addMany(entries);stockStatus.textContent=`Saved ${result.added} new items to your Webilang account. ${result.skipped} already saved.`;}
+ catch(e){stockStatus.textContent='Nothing was saved. '+e.message;}
+ finally{saveStock.disabled=false;}
 });
 
 feedbackButton.addEventListener('click',async()=>{
@@ -535,39 +532,74 @@ window.addEventListener('pagehide',()=>{
  try{navigator.sendBeacon('/api/tavus',new Blob([payload],{type:'application/json'}));}catch(_){}
 });
 })();
-</script><script>
-(function(){
-  'use strict';
-  const STORE='webilang_ai_module_stocks_v1';
-  const get=id=>document.getElementById(id);
-  function read(){try{let x=JSON.parse(localStorage.getItem(STORE)||'{}');return x&&typeof x==='object'?x:{};}catch{return {};}}
-  function write(x){try{localStorage.setItem(STORE,JSON.stringify(x));return true;}catch{return false;}}
-  function text(parent,tag,value,className){const e=document.createElement(tag);e.textContent=String(value||'');if(className)e.className=className;parent.append(e);return e;}
-  function render(type){
-    const data=read(),isWord=type==='words',root=get(isWord?'word-stock-library':'grammar-stock-library'),count=get(isWord?'word-stock-count':'grammar-stock-count');
-    if(!root||!count)return;
-    root.replaceChildren();
-    const items=Array.isArray(data[type])?data[type]:[];
-    count.textContent=items.length+(isWord?' expressions':' patterns');
-    if(!items.length){text(root,'p',isWord?'Your Word Stock is empty. Complete the ATLAS conversation, review the AI feedback and select expressions to save here.':'Your Grammar Stock is empty. Select grammar improvements from your ATLAS AI feedback to build your personal practice collection.','stock-empty');return;}
-    items.forEach((item,index)=>{
-      const row=text(root,'div','','stock-library-item'),body=text(row,'div','','stock-item-text');
-      if(isWord){
-        text(body,'strong',typeof item==='string'?item:(item.word||item.phrase||item.text||'Saved expression'));
-      }else{
-        text(body,'strong',item.pattern||item.rule||item.topic||'Grammar pattern');
-        if(item.original||item.corrected){const ex=text(body,'span','','stock-example');text(ex,'span',(item.original||'')+'  →  '+(item.corrected||''));}
-      }
-      if(item&&typeof item==='object'&&item.source)text(body,'small','Source: '+item.source);
-      const remove=text(row,'button','Remove','stock-remove');remove.type='button';remove.setAttribute('aria-label','Remove saved '+(isWord?'expression':'grammar item'));
-      remove.onclick=()=>{if(!confirm('Remove this item from your personal Stock?'))return;const current=read();if(!Array.isArray(current[type]))return;let at=-1;if(item&&typeof item==='object'&&item.id)at=current[type].findIndex(x=>x&&x.id===item.id);else at=current[type].findIndex(x=>JSON.stringify(x)===JSON.stringify(item));if(at<0)return;current[type].splice(at,1);if(write(current))render(type);};
-    });
-  }
-  function refresh(){render('words');render('grammar');}
-  ['word-stock-refresh','grammar-stock-refresh'].forEach(id=>get(id)?.addEventListener('click',refresh));
-  document.querySelectorAll('nav.tabs .tab').forEach(b=>b.addEventListener('click',()=>{if(['mystockwords','mystockgrammar'].includes(b.dataset.tab))refresh();}));
-  window.addEventListener('ai-module-stock-updated',refresh);
-  window.addEventListener('storage',e=>{if(e.key===STORE)refresh();});
-  refresh();
-})();
+</script><script type="module">
+import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from '/student-memory/config.js';
+const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const MODULE='AI C1',SOURCE='webilang-ai-stock-v1';
+let currentUser=null,entries=[],errorMessage='';
+const get=id=>document.getElementById(id);
+const normal=s=>String(s||'').trim().replace(/\s+/g,' ');
+const announce=s=>{const x=get('ai-cloud-status');if(x)x.textContent=s;};
+function key(type,item){return type==='words'?normal(item.word||item.phrase||item.text||'').toLowerCase():[normal(item.original),normal(item.corrected)].join('|').toLowerCase();}
+function text(parent,tag,value,cls){const e=document.createElement(tag);e.textContent=String(value||'');if(cls)e.className=cls;parent.append(e);return e;}
+function items(type){return entries.filter(e=>e.content?.type===type).map(e=>({...e.content.item,cloudId:e.id}));}
+async function login(){const {data,error}=await db.auth.getUser();if(error||!data?.user)throw Error('Sign in to Webilang Global first. Your Stocks are stored under your student account.');currentUser=data.user;return currentUser;}
+async function refresh(){
+ try{await login();const {data,error}=await db.from('student_learning_entries').select('id,content,created_at').eq('user_id',currentUser.id).eq('module',MODULE).eq('kind','memory_note').contains('content',{source:SOURCE}).order('created_at',{ascending:false}).limit(500);if(error)throw error;entries=data||[];errorMessage='';announce('Signed in · Personal Stocks synchronised with Webilang Global.');}
+ catch(e){entries=[];errorMessage=e.message;announce(e.message+' Open /webilang-global/ to sign in.');}
+ render('words');render('grammar');
+}
+async function addMany(selected){
+ await login();if(errorMessage)await refresh();
+ let added=0,skipped=0;const unique=new Set(entries.map(e=>e.content.type+':'+key(e.content.type,e.content.item)));
+ for(const item of selected){const type=item.type;if(!['words','grammar'].includes(type))continue;const cleaned={...item};delete cleaned.type;
+ const k=type+':'+key(type,cleaned);if(unique.has(k)){skipped++;continue;}
+ if(!key(type,cleaned))continue;
+ const {data,error}=await db.from('student_learning_entries').insert({user_id:currentUser.id,kind:'memory_note',module:MODULE,content:{source:SOURCE,version:1,type,item:cleaned,text:type==='words'?cleaned.word:(cleaned.pattern+' · '+cleaned.original+' → '+cleaned.corrected)}}).select('id,content,created_at').single();if(error)throw error;
+ entries.unshift(data);unique.add(k);added++;
+ }
+ render('words');render('grammar');return {added,skipped};
+}
+async function remove(id){await login();const {error}=await db.from('student_learning_entries').delete().eq('id',id).eq('user_id',currentUser.id).eq('module',MODULE);if(error)throw error;entries=entries.filter(e=>e.id!==id);render('words');render('grammar');}
+function render(type){
+ const isWord=type==='words',root=get(isWord?'word-stock-library':'grammar-stock-library'),count=get(isWord?'word-stock-count':'grammar-stock-count');if(!root||!count)return;
+ root.replaceChildren();const list=items(type);count.textContent=list.length+(isWord?' expressions':' patterns');
+ if(errorMessage){const p=text(root,'p',errorMessage+' ','stock-empty');const a=text(p,'a','Sign in to Webilang Global');a.href='/webilang-global/';return;}
+ if(!list.length){text(root,'p',isWord?'No AI-module expressions saved yet. After ATLAS feedback, select expressions and save them here.':'No AI-module grammar patterns saved yet. Choose grammar items from your ATLAS feedback.','stock-empty');return;}
+ list.forEach(item=>{const row=text(root,'div','','stock-library-item');const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=true;checkbox.dataset.cloudId=item.cloudId;checkbox.dataset.type=type;checkbox.setAttribute('aria-label','Include this item in practice');checkbox.style.marginRight='12px';row.append(checkbox);
+ const body=text(row,'div','','stock-item-text');text(body,'strong',isWord?(item.word||item.phrase||item.text):(item.pattern||'Grammar pattern'));
+ if(!isWord){text(body,'span',(item.original||'')+' → '+(item.corrected||''),'stock-example');if(item.rule)text(body,'small',item.rule);}
+ if(item.source)text(body,'small','Source: '+item.source);
+ const button=text(row,'button','Remove','stock-remove');button.type='button';button.onclick=async()=>{if(!confirm('Remove this item from your personal cloud Stock?'))return;button.disabled=true;try{await remove(item.cloudId);}catch(e){announce('Could not remove item: '+e.message);button.disabled=false;}};
+ });
+}
+function showPractice(type,exercises){
+ const root=get(type==='words'?'ai-word-practice-output':'ai-grammar-practice-output');root.replaceChildren();
+ exercises.forEach((exercise,i)=>{const box=text(root,'section','','ai-practice-card');text(box,'strong',`${i+1}. ${exercise.prompt}`);
+ if(exercise.type==='choice'&&Array.isArray(exercise.options)){
+  const select=document.createElement('select');select.append(new Option('Choose an answer',''));exercise.options.forEach(option=>select.append(new Option(option,option)));box.append(select);
+  const check=text(box,'button','Check','smallbtn');check.type='button';const status=text(box,'p','','muted small');check.onclick=()=>{if(!select.value)return;const ok=normal(select.value)===normal(exercise.answer);status.textContent=(ok?'✓ Correct. ':'Try again. ')+(ok?exercise.explanation||'': '');status.style.color=ok?'#166b51':'#a14b27';};
+ }else{
+  const input=document.createElement('textarea');input.rows=2;input.placeholder='Write your answer or say it aloud before revealing the model.';box.append(input);
+  const reveal=text(box,'button','Show model answer','smallbtn');reveal.type='button';const output=text(box,'p','','muted small');reveal.onclick=()=>{output.textContent='Suggested answer: '+exercise.answer+(exercise.explanation?' · '+exercise.explanation:'');};
+ }
+ });
+}
+async function generate(type){
+ const btn=get(type==='words'?'ai-word-practice':'ai-grammar-practice'),status=get(type==='words'?'ai-word-practice-status':'ai-grammar-practice-status');
+ try{const user=await login();const chosen=[...document.querySelectorAll(`#${type==='words'?'word-stock-library':'grammar-stock-library'} input[type=checkbox]:checked`)].map(e=>entries.find(row=>row.id===e.dataset.cloudId)?.content?.item).filter(Boolean).slice(0,6);
+ if(!chosen.length)throw Error('Select at least one saved item.');
+ const {data:{session}}=await db.auth.getSession();if(!session?.access_token)throw Error('Sign in again to renew your session.');
+ btn.disabled=true;status.textContent='Generating a new C1 practice round…';
+ const response=await fetch('/api/ai-stock-practice',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},body:JSON.stringify({type,level:'C1',items:chosen})});const data=await response.json();if(!response.ok)throw Error(data.error||'Practice generation failed');
+ showPractice(type,data.exercises||[]);status.textContent='New practice ready. Your choices remain in your personal Stock.';
+ }catch(e){status.textContent=e.message;}finally{btn.disabled=false;}
+}
+window.WebilangAIStocks={addMany,refresh};
+get('word-stock-refresh')?.addEventListener('click',refresh);get('grammar-stock-refresh')?.addEventListener('click',refresh);
+get('ai-word-practice')?.addEventListener('click',()=>generate('words'));get('ai-grammar-practice')?.addEventListener('click',()=>generate('grammar'));
+document.querySelectorAll('nav.tabs .tab').forEach(button=>button.addEventListener('click',()=>{if(['mystockwords','mystockgrammar'].includes(button.dataset.tab))refresh();}));
+db.auth.onAuthStateChange(()=>{queueMicrotask(refresh);});
+refresh();
 </script></body></html>
