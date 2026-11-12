@@ -119,34 +119,106 @@ Clause 3 — Limits of autonomy: ..." rows="7"></textarea>
 <script>
 (()=>{const tabs=[...document.querySelectorAll('.tab')],panels=[...document.querySelectorAll('.panel')],KEY='ghost-machine-lab-v2';let state={};try{state=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}};function navigate(id){tabs.forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===id)));panels.forEach(p=>p.classList.toggle('active',p.id===id));state.tab=id;save();window.scrollTo({top:document.querySelector('nav.tabs').getBoundingClientRect().top+window.scrollY-8,behavior:'smooth'})}tabs.forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.tab)));function status(node,good,message){node.className='feedback '+(good?'ok':'no');node.textContent=(good?'✓ ':'✗ ')+message}function progress(){const q=[...document.querySelectorAll('.quiz')],m=[...document.querySelectorAll('.match')];const done=[...q,...m].filter(e=>state['done-'+(e.dataset.q||e.dataset.key)]).length;document.getElementById('progressCount').textContent=done+' of '+(q.length+m.length);document.getElementById('progressFill').style.width=(100*done/(q.length+m.length))+'%'}document.querySelectorAll('.quiz').forEach(q=>{const id=q.dataset.q;const saved=state['q-'+id];if(saved){let r=q.querySelector('input[value="'+saved+'"]');if(r)r.checked=true}q.querySelectorAll('input').forEach(r=>r.addEventListener('change',()=>{state['q-'+id]=r.value;save()}));q.querySelector('.check').addEventListener('click',()=>{const s=q.querySelector('input:checked');if(!s){let f=q.querySelector('.feedback');f.className='feedback neutral';f.textContent='Choose an option first.';return}state['q-'+id]=s.value;state['done-'+id]=true;save();status(q.querySelector('.feedback'),s.value===q.dataset.answer,(s.value===q.dataset.answer?'Correct. ':'Try again. ')+q.dataset.explain);progress()})});document.querySelectorAll('.match').forEach(m=>{const id=m.dataset.key,sel=m.querySelector('select');sel.value=state['q-'+id]||'';sel.addEventListener('change',()=>{state['q-'+id]=sel.value;save()})});document.getElementById('checkMatch')?.addEventListener('click',()=>{document.querySelectorAll('.match').forEach(m=>{let sel=m.querySelector('select'),id=m.dataset.key,ok=sel.value===m.dataset.answer;if(sel.value){state['done-'+id]=true;status(m.querySelector('.feedback'),ok,ok?'Correct.':'Reconsider the difference between goal-setting, control, agency and accountability.')}else{let f=m.querySelector('.feedback');f.className='feedback neutral';f.textContent='Choose a category first.'}});save();progress()});document.querySelectorAll('textarea[data-save]').forEach(t=>{t.value=state['text-'+t.dataset.save]||'';t.addEventListener('input',()=>{state['text-'+t.dataset.save]=t.value;save();count()})});document.querySelectorAll('.reveal').forEach(b=>b.addEventListener('click',()=>{const m=b.nextElementSibling;m.classList.toggle('show');b.textContent=m.classList.contains('show')?'Hide suggested response':'Show suggested response'}));function count(){const t=document.querySelector('[data-save="c-review"]');const n=t.value.trim()?t.value.trim().split(/\s+/).length:0;document.getElementById('wordcount').textContent=n+' words'}count();const index=()=>tabs.findIndex(b=>b.getAttribute('aria-selected')==='true');document.getElementById('prev').onclick=()=>navigate(tabs[Math.max(0,index()-1)].dataset.tab);document.getElementById('next').onclick=()=>navigate(tabs[Math.min(tabs.length-1,index()+1)].dataset.tab);document.getElementById('export').onclick=()=>{let lines=['GHOST IN THE MACHINE — LEARNER RESPONSES','Exported: '+new Date().toLocaleString(),''];document.querySelectorAll('textarea[data-save]').forEach(t=>{const title=t.closest('.panel').querySelector('h2').textContent;lines.push('=== '+title+' / '+t.dataset.save+' ===',t.value||'(no response)','')});document.querySelectorAll('.quiz').forEach(q=>{let s=q.querySelector('input:checked');lines.push(q.querySelector('.qtitle').textContent,'Answer: '+(s?s.parentNode.textContent.trim():'(not answered)'),'')});let blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ghost-in-the-machine-my-work.txt';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1200)};document.getElementById('reset').onclick=()=>{if(confirm('Clear all saved answers, writing and quiz progress for this lesson?')){state={};save();location.reload()}};progress();if(state.tab&&document.getElementById(state.tab))navigate(state.tab)})();
 </script><script>(()=>{
-const spots=[...document.querySelectorAll('.c1-bubble')], status=document.getElementById('ttsStatus');
-const supported=('speechSynthesis' in window)&&('SpeechSynthesisUtterance' in window);
-let current=null,token=0;
-function stop(){token++;if(supported)window.speechSynthesis.cancel();spots.forEach(s=>s.classList.remove('is-speaking'));current=null;}
-function speak(spot,serial,done){
- if(!serial)stop();const t=token;
- spots.forEach(s=>s.classList.remove('is-speaking'));spot.classList.add('is-speaking');current=spot;
- const line=spot.dataset.line||spot.textContent.trim();
- document.getElementById('selectedLine').textContent=line;
- document.getElementById('selectedSpeaker').textContent=spot.dataset.speaker||'Vocabulary';
- if(!supported){status.textContent='Speech playback is unavailable; the full line is shown above.';return;}
- window.speechSynthesis.cancel();
- const utterance=new SpeechSynthesisUtterance(line);utterance.lang='en-GB';utterance.rate=Number(document.getElementById('voiceRate').value)||1;
- const voice=window.speechSynthesis.getVoices().find(v=>/^en-GB/i.test(v.lang))||window.speechSynthesis.getVoices().find(v=>/^en/i.test(v.lang));if(voice)utterance.voice=voice;
- utterance.onend=()=>{if(token!==t)return;spot.classList.remove('is-speaking');current=null; if(done)done();};
- utterance.onerror=()=>{if(token!==t)return;spot.classList.remove('is-speaking');status.textContent='Audio could not play. The text is visible above.';};
- window.speechSynthesis.speak(utterance);status.textContent='Playing · '+(spot.dataset.speaker||'expression');
+// Natural AI voices for the C1 documentary comics.
+// Uses the already-installed Webilang /api/speak route and its server-side OPENAI_API_KEY.
+// Never put an API key in the browser. Avoid synthetic browser voices.
+const spots=[...document.querySelectorAll('.c1-bubble')];
+const status=document.getElementById('ttsStatus');
+const selectedLine=document.getElementById('selectedLine');
+const selectedSpeaker=document.getElementById('selectedSpeaker');
+const rateSelect=document.getElementById('voiceRate');
+const cache=new Map();
+let activeAudio=null,activeController=null,current=null,token=0,finishPlayback=null;
+const voiceFor=(speaker)=> /^(Parent|Advocate|Caseworker)$/i.test(speaker) ? 'female' : 'male';
+function cleanupSound(){
+  if(finishPlayback){finishPlayback(false);finishPlayback=null;}
+  if(activeController){activeController.abort();activeController=null;}
+  if(activeAudio){activeAudio.pause();activeAudio.onended=null;activeAudio.onerror=null;activeAudio.removeAttribute('src');activeAudio.load();activeAudio=null;}
+  spots.forEach(s=>s.classList.remove('is-speaking'));
+  current=null;
 }
-spots.forEach(b=>b.addEventListener('click',()=>speak(b,false)));
-document.querySelectorAll('.phrase-say').forEach(b=>b.addEventListener('click',()=>speak(b,false)));
+function stop(){token++;cleanupSound();if(status)status.textContent='Playback stopped.';}
+async function naturalAudio(line,speaker,signal){
+  const kind=voiceFor(speaker);
+  const key=kind+'\n'+line;
+  if(cache.has(key))return cache.get(key);
+  const response=await fetch('/api/speak',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({text:line,module:'avatar-lab',avatarVoice:kind,targetLanguage:'en'}),
+    signal
+  });
+  if(!response.ok){
+    const error=await response.json().catch(()=>({}));
+    throw new Error(error.error||('Voice service returned HTTP '+response.status));
+  }
+  const blob=await response.blob();
+  if(!blob.type.startsWith('audio/')||!blob.size)throw new Error('Natural audio is unavailable.');
+  const url=URL.createObjectURL(blob);
+  cache.set(key,url);
+  return url;
+}
+async function speak(button,serial=false){
+  if(!serial){stop();}
+  const myToken=token;
+  cleanupSound();
+  const line=button.dataset.line||button.textContent.trim();
+  const speaker=button.dataset.speaker||'Vocabulary';
+  current=button;
+  button.classList.add('is-speaking');
+  if(selectedLine)selectedLine.textContent=line;
+  if(selectedSpeaker)selectedSpeaker.textContent=speaker;
+  status.textContent='Preparing natural voice · '+speaker+'…';
+  const controller=new AbortController();activeController=controller;
+  try{
+    const src=await naturalAudio(line,speaker,controller.signal);
+    if(token!==myToken||controller.signal.aborted)return false;
+    activeController=null;
+    const audio=new Audio(src);activeAudio=audio;
+    audio.playbackRate=Number(rateSelect?.value)||1;
+    audio.preservesPitch=true;
+    audio.onended=()=>{};
+    await audio.play();
+    if(token!==myToken)return false;
+    status.textContent='Playing natural voice · '+speaker;
+    const ended=await new Promise(resolve=>{
+      let settled=false;
+      const finish=ok=>{if(settled)return;settled=true;finishPlayback=null;resolve(ok);};
+      finishPlayback=finish;
+      audio.onended=()=>finish(true);
+      audio.onerror=()=>finish(false);
+      if(audio.ended)finish(true);
+    });
+    if(token===myToken){
+      button.classList.remove('is-speaking');
+      if(activeAudio===audio)activeAudio=null;
+      if(!ended)status.textContent='Audio playback was interrupted.';
+    }
+    return token===myToken&&ended;
+  }catch(err){
+    if(token!==myToken||controller.signal.aborted)return false;
+    status.textContent='Natural voice unavailable: '+String(err.message||err).slice(0,150)+'. The text remains visible; no robotic voice is substituted.';
+    button.classList.remove('is-speaking');
+    return false;
+  }
+}
+spots.forEach(b=>b.addEventListener('click',()=>{void speak(b);}));
+document.querySelectorAll('.phrase-say').forEach(b=>b.addEventListener('click',()=>{void speak(b);}));
 document.getElementById('stopSpeech')?.addEventListener('click',stop);
-document.querySelectorAll('.play-all').forEach(b=>b.addEventListener('click',()=>{
- stop();const list=[...document.querySelectorAll('[data-comic="'+b.dataset.story+'"] .c1-bubble')];let i=0,ref=token;
- function next(){if(token!==ref)return;if(i<list.length)speak(list[i++],true,next);else status.textContent='Story complete.';}next();
+document.querySelectorAll('.play-all').forEach(b=>b.addEventListener('click',async()=>{
+  stop();const ref=token;
+  const list=[...document.querySelectorAll('[data-comic="'+b.dataset.story+'"] .c1-bubble')];
+  for(const spot of list){
+    if(token!==ref)return;
+    const completed=await speak(spot,true);
+    if(!completed)return;
+  }
+  if(token===ref)status.textContent='Story complete.';
 }));
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',stop));
 document.getElementById('reset')?.addEventListener('click',stop);
-window.addEventListener('pagehide',stop);
+window.addEventListener('pagehide',()=>{stop();for(const url of cache.values())URL.revokeObjectURL(url);cache.clear();});
+rateSelect?.addEventListener('change',()=>{if(activeAudio)activeAudio.playbackRate=Number(rateSelect.value)||1;});
 })();</script>
 <dialog aria-labelledby="nickBioTitle" class="ai-dialog" id="nickBio"><button class="dialog-x" data-close-dialog="" type="button">✕ Close</button><h2 id="nickBioTitle">Nick Cave · Artist profile</h2><img alt="Photograph of Australian musician Nick Cave" src="https://commons.wikimedia.org/wiki/Special:FilePath/Nick_Cave_(2021).jpg?width=500"/><p>Nick Cave (born 1957) is an Australian singer, songwriter, novelist and musician best known as the frontman of <em>Nick Cave &amp; the Bad Seeds</em>. His work spans post-punk, blues, alternative rock and intensely narrative ballads.</p><p>His music often explores mortality, loss, redemption, religious imagery and the relationship between art and lived experience. He writes about creativity and culture in <em>The Red Hand Files</em>, a website where he responds to readers' questions.</p><p>For this lesson, notice that Cave distinguishes between <em>an artist using AI to realise an idea</em> and <em>a system generating a song while removing the artist from the process</em>.</p><p class="small muted">Portrait: <a href="https://commons.wikimedia.org/wiki/File:Nick_Cave_(2021).jpg" rel="noopener" target="_blank">Wikimedia Commons · photograph and licensing details</a>.</p></dialog>
 <dialog aria-labelledby="tupeloTitle" class="ai-dialog" id="tupeloNote"><button class="dialog-x" data-close-dialog="" type="button">✕ Close</button><h2 id="tupeloTitle">Reference note · What does “Tupelo” mean?</h2><p><strong>The setting:</strong> Tupelo, Mississippi, is Elvis Presley's birthplace. In Nick Cave &amp; the Bad Seeds' 1985 song, the birth of Elvis is reimagined as a dark, almost biblical event amid a threatening storm. The album title, <em>The Firstborn Is Dead</em>, also evokes the death of Elvis's twin brother at birth.</p><p><strong>The sound and imagery:</strong> An insistent bass line, dramatic incantation and images of storms and floods transform a biographical event into a story of catastrophe and salvation. The song draws partly on John Lee Hooker's blues narrative about a Tupelo flood.</p><p><strong>The 2025 video:</strong> Filmmaker Andrew Dominik used AI to animate historical still images of Elvis. Cave praised the result as an imaginative interpretation—he did not say that AI wrote the song or created its emotional meaning on its own.</p><p><strong>Interpretive question:</strong> If the film evokes resurrection by animating a photograph of someone who has died, is the technological effect appropriate to the song's themes—or does it introduce new ethical concerns?</p><p class="small muted">This is an interpretive teaching note, not a definitive explanation. <a href="https://www.theredhandfiles.com/tupelo-film-elvis/" rel="noopener" target="_blank">Read Cave's account</a>.</p></dialog>
