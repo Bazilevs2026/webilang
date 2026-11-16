@@ -94,3 +94,18 @@
 #p4 .artlab-role-persona>.tiny{margin-top:10px}
 #p4 .artlab-role-log .theirs{background:#e1effd}
 #p4 .artlab-role-log .mine{background:#e5dbff}
+
+/* Natural spoken roleplay: captions are opt-in, full transcript post-conversation. */
+#p4 .artlab-role-log{display:none!important;min-height:0!important;max-height:230px;overflow:auto}
+#p4 .artlab-role-log.artlab-transcript-visible{display:flex!important;flex-direction:column}
+#p4 .artlab-live-panel{background:#e3f1ec;border:2px solid #181818;padding:18px;margin-bottom:14px}
+#p4 .artlab-live-row{display:flex;justify-content:space-between;gap:10px;align-items:center}
+#p4 .artlab-live-row strong{font-size:20px}#p4 .artlab-live-row p{font-size:14px;color:#425d50;margin:6px 0}
+#p4 #artlabLiveBadge{border:2px solid #191919;background:#fff;padding:5px 10px;border-radius:20px;font-size:13px;font-weight:800;white-space:nowrap}
+#p4 .artlab-live-prompt{font-size:15px;color:#45554d;margin:12px 0}
+#p4 .artlab-captions-toggle{font-size:14px;font-weight:700;display:flex;gap:10px;align-items:center;cursor:pointer}
+#p4 .artlab-captions-toggle input{width:18px;height:18px;accent-color:#704bff}
+#p4 .artlab-latest-caption{background:#fff;border-left:5px solid #7955eb;padding:11px;font-size:17px;line-height:1.5;margin:12px 0}
+#p4 .artlab-review-transcript{margin-top:13px;padding:9px 14px;background:#fff;border:2px solid #222;cursor:pointer;font-weight:700}
+#p4 .artlab-role-chat{display:flex;flex-direction:column;gap:10px}
+#p4 .artlab-role-chat form{margin-top:auto}
