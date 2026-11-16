@@ -8,10 +8,10 @@ Standalone, colorful A2–B1 English module with illustrated history, interactiv
 - Added an accessible explanation of the mural's meaning and why Rivera included Lenin.
 - Navigation: 11 compact section tabs, including mandatory Grammar; “Writing & Curating” → “Writing”. Horizontal swipeable navigation at smaller widths.
 - Floating **↺ Reset page** and **✦ Ask Kostya** controls throughout the module.
-- Every English word in the Rivera comic dialogue and the Comedian reading can be clicked and selected for My Word Stock. Once selected, open My Word Stock and click Save selected words.
+- Every English word in the Rivera comic dialogue and the Comedian reading can be clicked to save immediately to the signed-in student’s Word Stock. No second Save action is needed.
 - Four multiple-choice comprehension questions after Banksy watching, and four for the banana reading, with feedback after each item.
 - Audio recording on Rivera decision and banana opinion. The recorded audio stays local until the user requests server transcription; transcription then appears as editable text. AI feedback can identify grammar issues and offers clickable grammar-item saving.
-- Personalized AI practice generation for saved words and grammar when an OpenAI API key is configured, plus existing local fallback exercises.
+- Single-target five-exercise A2–B1 AI vocabulary practice, and the existing separate grammar practice when AI is configured.
 - Kept the nine compulsory vocabulary words and two grammar topics with 7 questions in each of Recognize, Retrieve, and Produce.
 
 ## Latest update
@@ -54,27 +54,37 @@ Run the browser regression tests from the repository root (Node 22+ and Chromium
 ```sh
 npm install --prefix /tmp/webilang-browser-tests --no-save playwright@1.65.1
 NODE_PATH=/tmp/webilang-browser-tests/node_modules CHROMIUM_PATH=/usr/bin/chromium \
-  node --test tests/rivera-comic.test.cjs
+  node --test tests/rivera-comic.test.cjs tests/artlab-word-practice-api.test.cjs
 ```
 
 The local test server deliberately serves the slashless lesson URL without a
 redirect. Tests cover all eight JPEG responses and decoded images on desktop
 and mobile, each supported entry URL, all eight 404/corrupt-image fallbacks,
 image recovery, and vocabulary selection with images present or missing.
-External fonts/APIs are blocked in these tests; AI behavior is outside their scope.
+External fonts/APIs are blocked in these tests. Supabase and AI responses use explicit test doubles; no real accounts or paid AI calls are used. API tests separately validate authentication, the single-target request, exact count/types, malformed output rejection, and production feedback.
 
 The repository's existing Vercel deployment configuration is unchanged.
 No merge or manual deployment is part of this fix's verification; automatic
 Git deployments follow the project's existing settings.
 
+## Account Word Stock and one-word practice
+
+- Sign in through Webilang Global on the same origin. Art Lab uses the existing Supabase client configuration and `student_learning_entries` records (`kind: memory_note`, `content.type: words`, `content.item.word/phrase/text`). It queries by the authenticated `user_id`, across modules, with pagination. No new table or second vocabulary cache is introduced; existing Supabase row-level security remains required.
+- The AI C1 module now uses this same reader for vocabulary, so previously saved AI-module words appear in Art Lab and Art Lab additions appear in AI C1. Its separate grammar workflow is retained. Refresh words reloads additions made in other tabs/modules.
+- Other modules still using unowned browser-only lists cannot be safely assigned to a student. They are left unchanged and are **not** claimed to synchronise. Older Art Lab browser words may be explicitly imported after confirming ownership; the original list is preserved. No automatic cross-account migration occurs.
+- Clicking comic words saves immediately and is case/whitespace-insensitive and idempotent. Saved-list buttons select one practice target (`aria-pressed`); only the separate **Remove** action with confirmation deletes account records. If one expression has records in several modules, removal explicitly confirms that all listed records will be removed.
+- **Generate five AI exercises** sends only the selected target to `/api/artlab-word-practice`. The authenticated API produces contextual gap, meaning choice, collocation, sentence completion, and guided production tasks in that order. Each carries the same target, an answer, a hint, and an explanation. Invalid/mixed-target/incomplete sets are rejected. Closed answers are checked locally; guided sentences receive AI feedback that accepts valid alternatives rather than exact model matching.
+- **Clear exercises** removes the entire practice DOM, inputs, hint visibility, and feedback and aborts pending requests. Changing targets, switching accounts, or resetting the activity does the same. It never writes to or deletes saved word records. Practice answers are intentionally not persisted across refreshes.
+- Regression coverage includes `commission` and `cover`, repeated additions, keyboard Enter/Space, 390px mobile, selection/highlighting, all five tasks, feedback and hints, clear, target switch, reload, other-module records, separate accounts/sign-out, and late network responses. Rivera JPEG/fallback tests remain in the same suite.
+
 ## Functional limits
 
-- Without `OPENAI_API_KEY`, AI feedback, AI transcription, real Ask Kostya responses, and AI-generated Stock exercises cannot run. Exercise content and typed responses still work, and local Stock exercise templates remain available.
+- Without `OPENAI_API_KEY`, AI feedback, AI transcription, real Ask Kostya responses, and AI-generated Stock exercises cannot run. The saved account word list and lesson content remain available, but vocabulary practice reports the AI error rather than pretending local templates are AI-generated.
 - Browser voice synthesis is the fallback for unconfigured `/api/speak`; server-side audio uses OpenAI speech with voice `cedar`.
 - Audio is submitted to OpenAI for transcription only when the recording stops. A text transcript is then submitted for AI feedback only when the learner clicks the feedback button.
-- The local Stocks are browser-local and not yet synchronized with Webilang student accounts.
+- Word Stock reuses student-account Supabase records; My Grammar Stock remains browser-local.
 - Ask Kostya is an on-demand *text* AI art companion, not a cloned video avatar or the existing Webilang student-aware Kostya. It is deliberately labeled as such.
-- Full real-browser verification of AI routes has not been possible in this environment. Syntax and structure were checked.
+- Browser and API contract tests pass with mocked Supabase/OpenAI. Live authenticated Supabase persistence and live model output quality require a real student session and server credentials, which are not available in this environment.
 
 ## Source note
 

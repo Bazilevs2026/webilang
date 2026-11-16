@@ -1,0 +1,12 @@
+#savedWords{display:flex;flex-direction:column;align-items:stretch}
+.word-stock-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #397b5540;padding:9px 0}
+#savedWords .word-stock-select{flex:1;overflow-wrap:anywhere;text-align:left;min-height:44px;border:2px solid #191919;background:#fff4ac}
+#savedWords .word-stock-select[aria-pressed=true]{background:#7751ff;color:white;box-shadow:3px 3px 0 #191919}
+#savedWords .word-stock-remove{background:#fff;color:#852739;min-height:44px}
+.word-stock-source{width:100%;font-size:12px;color:#403f3b}
+#wordExercise{display:block}
+.word-exercise-card{background:#fff;border:2px solid #191919;padding:16px;margin:16px 0}
+.word-exercise-card label{display:block;font-weight:700;line-height:1.5;margin-bottom:10px}
+.word-exercise-card input,.word-exercise-card select,.word-exercise-card textarea{width:100%;max-width:100%;padding:12px;border:2px solid #191919;margin-bottom:12px;min-height:44px}
+.word-exercise-card .row button{min-height:44px}
+.word-exercise-feedback{line-height:1.5}

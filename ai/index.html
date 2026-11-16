@@ -535,9 +535,10 @@ window.addEventListener('pagehide',()=>{
 </script><script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from '/student-memory/config.js';
+import {readWords,deleteWord} from '/student-memory/word-stock.js';
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const MODULE='AI C1',SOURCE='webilang-ai-stock-v1';
-let currentUser=null,entries=[],errorMessage='';
+let currentUser=null,entries=[],errorMessage='',stockRevision=0;
 const get=id=>document.getElementById(id);
 const normal=s=>String(s||'').trim().replace(/\s+/g,' ');
 const announce=s=>{const x=get('ai-cloud-status');if(x)x.textContent=s;};
@@ -546,8 +547,11 @@ function text(parent,tag,value,cls){const e=document.createElement(tag);e.textCo
 function items(type){return entries.filter(e=>e.content?.type===type).map(e=>({...e.content.item,cloudId:e.id}));}
 async function login(){const {data,error}=await db.auth.getUser();if(error||!data?.user)throw Error('Sign in to Webilang Global first. Your Stocks are stored under your student account.');currentUser=data.user;return currentUser;}
 async function refresh(){
- try{await login();const {data,error}=await db.from('student_learning_entries').select('id,content,created_at').eq('user_id',currentUser.id).eq('module',MODULE).eq('kind','memory_note').contains('content',{source:SOURCE}).order('created_at',{ascending:false}).limit(500);if(error)throw error;entries=data||[];errorMessage='';announce('Signed in · Personal Stocks synchronised with Webilang Global.');}
- catch(e){entries=[];errorMessage=e.message;announce(e.message+' Open /webilang-global/ to sign in.');}
+ const ticket=++stockRevision;entries=[];render('words');render('grammar');
+ try{const owner=await login();const {data,error}=await db.from('student_learning_entries').select('id,content,created_at').eq('user_id',owner.id).eq('module',MODULE).eq('kind','memory_note').contains('content',{source:SOURCE}).order('created_at',{ascending:false}).limit(500);if(error)throw error;
+ const words=await readWords(db,owner.id);if(ticket!==stockRevision)return;
+ entries=[...(data||[]).filter(e=>e.content?.type!=='words'),...words];errorMessage='';announce('Signed in · Account Word Stock includes all connected modules.');}
+ catch(e){if(ticket!==stockRevision)return;entries=[];errorMessage=e.message;announce(e.message+' Open /webilang-global/ to sign in.');}
  render('words');render('grammar');
 }
 async function addMany(selected){
@@ -561,12 +565,12 @@ async function addMany(selected){
  }
  render('words');render('grammar');return {added,skipped};
 }
-async function remove(id){await login();const {error}=await db.from('student_learning_entries').delete().eq('id',id).eq('user_id',currentUser.id).eq('module',MODULE);if(error)throw error;entries=entries.filter(e=>e.id!==id);render('words');render('grammar');}
+async function remove(id){await login();const entry=entries.find(e=>e.id===id);if(!entry)return;if(entry.content?.type==='words'){await deleteWord(db,currentUser.id,id);}else{const {error}=await db.from('student_learning_entries').delete().eq('id',id).eq('user_id',currentUser.id).eq('module',MODULE);if(error)throw error;}entries=entries.filter(e=>e.id!==id);render('words');render('grammar');}
 function render(type){
  const isWord=type==='words',root=get(isWord?'word-stock-library':'grammar-stock-library'),count=get(isWord?'word-stock-count':'grammar-stock-count');if(!root||!count)return;
  root.replaceChildren();const list=items(type);count.textContent=list.length+(isWord?' expressions':' patterns');
  if(errorMessage){const p=text(root,'p',errorMessage+' ','stock-empty');const a=text(p,'a','Sign in to Webilang Global');a.href='/webilang-global/';return;}
- if(!list.length){text(root,'p',isWord?'No AI-module expressions saved yet. After ATLAS feedback, select expressions and save them here.':'No AI-module grammar patterns saved yet. Choose grammar items from your ATLAS feedback.','stock-empty');return;}
+ if(!list.length){text(root,'p',isWord?'No account expressions saved yet. Add vocabulary in Art Lab or save expressions after ATLAS feedback.':'No AI-module grammar patterns saved yet. Choose grammar items from your ATLAS feedback.','stock-empty');return;}
  list.forEach(item=>{const row=text(root,'div','','stock-library-item');const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=true;checkbox.dataset.cloudId=item.cloudId;checkbox.dataset.type=type;checkbox.setAttribute('aria-label','Include this item in practice');checkbox.style.marginRight='12px';row.append(checkbox);
  const body=text(row,'div','','stock-item-text');text(body,'strong',isWord?(item.word||item.phrase||item.text):(item.pattern||'Grammar pattern'));
  if(!isWord){text(body,'span',(item.original||'')+' → '+(item.corrected||''),'stock-example');if(item.rule)text(body,'small',item.rule);}
@@ -600,6 +604,6 @@ window.WebilangAIStocks={addMany,refresh};
 get('word-stock-refresh')?.addEventListener('click',refresh);get('grammar-stock-refresh')?.addEventListener('click',refresh);
 get('ai-word-practice')?.addEventListener('click',()=>generate('words'));get('ai-grammar-practice')?.addEventListener('click',()=>generate('grammar'));
 document.querySelectorAll('nav.tabs .tab').forEach(button=>button.addEventListener('click',()=>{if(['mystockwords','mystockgrammar'].includes(button.dataset.tab))refresh();}));
-db.auth.onAuthStateChange(()=>{queueMicrotask(refresh);});
+db.auth.onAuthStateChange((_event,session)=>{if(session?.user?.id===currentUser?.id)return;stockRevision++;currentUser=null;entries=[];render('words');render('grammar');queueMicrotask(refresh);});
 refresh();
 </script></body></html>

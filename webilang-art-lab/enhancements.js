@@ -22,12 +22,12 @@ mountQuiz('banksyQuiz',banksy);mountQuiz('bananaQuiz',reading);
 const segmenter=typeof Intl!=='undefined' && Intl.Segmenter ? new Intl.Segmenter('en',{granularity:'word'}):null;
 const pop=document.createElement('div');pop.className='word-action-pop hide';document.body.append(pop);
 let selection=null;
-function buildWordButtons(container){const walker=document.createTreeWalker(container,NodeFilter.SHOW_TEXT,{acceptNode(node){return node.parentElement.closest('button,a,script,style,textarea,input,.word-action-pop')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}});const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);nodes.forEach(node=>{const text=node.nodeValue;if(!text||!/[A-Za-z]/.test(text))return;const parts=segmenter?[...segmenter.segment(text)].map(x=>({word:x.segment,yes:x.isWordLike})):(text.match(/[A-Za-z]+(?:['’][A-Za-z]+)?|[^A-Za-z]+/g)||[]).map(x=>({word:x,yes:/^[A-Za-z]/.test(x)}));const frag=document.createDocumentFragment();for(const bit of parts){if(!bit.yes){frag.append(document.createTextNode(bit.word));continue}let b=document.createElement('button');b.type='button';b.className='selectable-word';b.textContent=bit.word;b.title='Add “'+bit.word+'” to My Word Stock';b.onclick=(event)=>{event.stopPropagation();showWord(bit.word,b)};frag.append(b)}node.replaceWith(frag)})}
+function buildWordButtons(container){const walker=document.createTreeWalker(container,NodeFilter.SHOW_TEXT,{acceptNode(node){return node.parentElement.closest('button,a,script,style,textarea,input,.word-action-pop')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}});const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);nodes.forEach(node=>{const text=node.nodeValue;if(!text||!/[A-Za-z]/.test(text))return;const parts=segmenter?[...segmenter.segment(text)].map(x=>({word:x.segment,yes:x.isWordLike})):(text.match(/[A-Za-z]+(?:['’][A-Za-z]+)?|[^A-Za-z]+/g)||[]).map(x=>({word:x,yes:/^[A-Za-z]/.test(x)}));const frag=document.createDocumentFragment();for(const bit of parts){if(!bit.yes){frag.append(document.createTextNode(bit.word));continue}let b=document.createElement('button');b.type='button';b.className='selectable-word';b.textContent=bit.word;b.title='Add “'+bit.word+'” to My Word Stock';b.onclick=(event)=>{event.stopPropagation();window.artAddSelectedWord(bit.word);showWord(bit.word,b)};frag.append(b)}node.replaceWith(frag)})}
 for(const container of document.querySelectorAll('#p0 .comic-dialogue p,#p0 .mural-context p,#p2 .article p'))buildWordButtons(container);
-function showWord(word,anchor){selection=word;pop.replaceChildren();let desc=document.createElement('div');desc.innerHTML='<strong></strong><p style="margin:5px 0;font-size:12px">Select this word for your personal practice.</p>';desc.querySelector('strong').textContent=word;let add=document.createElement('button');add.textContent='＋ Add to My Word Stock';add.onclick=()=>{window.artAddSelectedWord(word);pop.classList.add('hide')};let speak=document.createElement('button');speak.textContent='🔊 Listen';speak.onclick=()=>window.artSpeakWord(word);pop.append(desc,add,speak);const r=anchor.getBoundingClientRect();pop.style.left=Math.max(8,Math.min(innerWidth-330,r.left))+'px';pop.style.top=Math.max(6,Math.min(innerHeight-150,r.bottom+8))+'px';pop.classList.remove('hide')}
+function showWord(word,anchor){selection=word;pop.replaceChildren();let desc=document.createElement('div');desc.innerHTML='<strong></strong><p style="margin:5px 0;font-size:12px">This word is saved automatically when you are signed in.</p>';desc.querySelector('strong').textContent=word;let speak=document.createElement('button');speak.textContent='🔊 Listen';speak.onclick=()=>window.artSpeakWord(word);pop.append(desc,speak);const r=anchor.getBoundingClientRect();pop.style.left=Math.max(8,Math.min(innerWidth-330,r.left))+'px';pop.style.top=Math.max(6,Math.min(innerHeight-150,r.bottom+8))+'px';pop.classList.remove('hide')}
 document.addEventListener('click',e=>{if(!pop.contains(e.target)&&!e.target.closest('.selectable-word'))pop.classList.add('hide')});
 window.artSpeakWord=async function(word){try{const r=await fetch('/api/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:word,module:'art-lab',targetLanguage:'en'})});if(!r.ok)throw Error('No server voice');const blob=await r.blob();let a=new Audio(URL.createObjectURL(blob));a.onended=()=>URL.revokeObjectURL(a.src);await a.play()}catch{if('speechSynthesis'in window){let utter=new SpeechSynthesisUtterance(word);utter.lang='en-US';utter.rate=.9;speechSynthesis.cancel();speechSynthesis.speak(utter)}}};
-window.artAddSelectedWord=function(word){try{const key='webilang-art-lab-personal-stocks-v2';let stocks=JSON.parse(localStorage.getItem(key)||'{}');stocks.pending=stocks.pending||[];stocks.words=stocks.words||[];stocks.grammar=stocks.grammar||[];if(!stocks.pending.some(x=>x.toLowerCase()===word.toLowerCase())&&!stocks.words.some(x=>x.toLowerCase()===word.toLowerCase()))stocks.pending.push(word);localStorage.setItem(key,JSON.stringify(stocks));if(typeof artStocks!=='undefined'){artStocks.pending=stocks.pending;if(typeof renderStocks==='function')renderStocks()}else{const host=document.getElementById('pendingWords');if(host){let chip=document.createElement('span');chip.textContent=word;host.append(chip)}}document.getElementById('wordStockStatus').textContent='Selected “'+word+'”. Open My Word Stock and save your selections.'}catch(err){console.error(err)}};
+window.artAddSelectedWord=word=>artSaveWord(word);
 const blobs={};const recorders={};
 window.artRecordToggle=async function(task){const status=document.getElementById('recStatus-'+task),audio=document.getElementById('recAudio-'+task),button=document.querySelector('[onclick="artRecordToggle(\''+task+'\')"]');if(recorders[task]?.state==='recording'){recorders[task].stop();button.textContent='🎙 Record again';return}if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){status.textContent='Recording is unavailable. Type your answer instead.';return}try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});const chunks=[];let r=new MediaRecorder(stream);recorders[task]=r;r.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};r.onstop=async()=>{blobs[task]=new Blob(chunks,{type:r.mimeType||'audio/webm'});audio.src=URL.createObjectURL(blobs[task]);audio.classList.remove('hide');stream.getTracks().forEach(t=>t.stop());status.textContent='Recording saved on this device. Transcribing…';try{const raw=new Uint8Array(await blobs[task].arrayBuffer());if(raw.length>4500000)throw Error('Recording is too long; keep it under about 3 minutes.');let binary='';for(let i=0;i<raw.length;i+=8192)binary+=String.fromCharCode(...raw.subarray(i,i+8192));const audioBase64=btoa(binary);let response=await fetch('/api/artlab-transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audioBase64,mimeType:blobs[task].type})});let result=await response.json();if(!response.ok)throw Error(result.error||'Transcription unavailable');const box=document.getElementById(document.querySelector('[data-task="'+task+'"]').dataset.textarea);box.value=result.text;box.dispatchEvent(new Event('input',{bubbles:true}));status.textContent='AI transcription ready. Review or correct the text, then request AI feedback.'}catch(e){status.textContent='Audio recorded, but automatic transcription is unavailable: '+e.message+'. Type the answer above, or configure the AI service.'}};r.start();button.textContent='■ Stop recording';status.textContent='Recording… press Stop when finished.'}catch(e){status.textContent='Microphone permission denied or unavailable.'}};
 async function coach(payload){const r=await fetch('/api/artlab-coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const j=await r.json();if(!r.ok)throw Error(j.error||'AI service unavailable');return j}
@@ -317,65 +317,8 @@ function artRenderSixStep(){
  controls.append(check,hint,next);card.append(controls,feedback);holder.append(card);
  if(input&&input.tagName==='INPUT')input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();check.click()}});
 }
-async function artLegacyWordStockPractice(type,oneItem){
- const data=getArtGrammarStore();
- const items=type==='grammar'?(oneItem?[oneItem]:data.grammar):(data.words||[]);
- const holder=document.getElementById(type==='grammar'?'stockGrammarExercise':'wordExercise');
- if(!holder)return;
- holder.replaceChildren();
- if(!items.length){holder.textContent='Nothing saved yet. Save an item first.';return}
- const heading=document.getElementById('grammarPracticeHeading');
- if(type==='grammar'&&heading)heading.textContent=oneItem?'Practise: '+oneItem:'Practice all saved structures';
- const pending=document.createElement('p');pending.className='grammar-practice-status';
- pending.textContent='✨ Requesting new AI exercises…';pending.setAttribute('role','status');holder.append(pending);
- let questions=[];
- try{
-  const result=await coach({mode:'practice',stockType:type,items:items.slice(-20)});
-  if(!Array.isArray(result.questions))throw Error('The AI did not return a question list.');
-  questions=result.questions.filter(q=>q && typeof q.prompt==='string' && q.prompt.trim() && typeof q.answer==='string' && q.answer.trim()).slice(0,7);
-  if(!questions.length)throw Error('The AI returned no usable questions.');
- }catch(err){
-  holder.replaceChildren();
-  const fail=document.createElement('div');fail.className='grammar-practice-error';
-  fail.textContent='AI exercise generation failed: '+(err.message||'Connection error')+'. Your saved structures have not been deleted.';
-  const retry=document.createElement('button');retry.type='button';retry.className='action secondary';retry.textContent='↻ Retry AI practice';
-  retry.onclick=()=>window.artStockPractice(type,oneItem);fail.append(retry);holder.append(fail);return;
- }
- holder.replaceChildren();
- const intro=document.createElement('p');intro.className='grammar-practice-success';
- intro.textContent='✓ '+questions.length+' new exercises ready. Check every answer and try again if needed.';holder.append(intro);
- const stack=document.createElement('div');stack.className='generated-practice';
- questions.forEach((q,index)=>{
-  const box=document.createElement('div');box.className='task';
-  const title=document.createElement('p');title.className='grammar-task-prompt';title.textContent=(index+1)+'. '+q.prompt;
-  const input=document.createElement('input');input.type='text';input.autocomplete='off';input.placeholder='Type the missing word or phrase';
-  input.setAttribute('aria-label','Answer to grammar question '+(index+1));
-  const controls=document.createElement('div');controls.className='grammar-task-controls';
-  const check=document.createElement('button');check.type='button';check.className='action secondary';check.textContent='Check';
-  const hint=document.createElement('button');hint.type='button';hint.className='action secondary';hint.textContent='Hint';
-  const status=document.createElement('p');status.className='grammar-answer-status';status.setAttribute('aria-live','polite');
-  let attempts=0;
-  const normalize=s=>String(s||'').toLowerCase().replace(/[.!?,]/g,'').replace(/\s+/g,' ').trim();
-  check.onclick=()=>{
-   if(!input.value.trim()){status.textContent='Enter your answer first.';return}
-   attempts++;
-   if(normalize(input.value)===normalize(q.answer)){
-    status.textContent='✓ Correct!';status.className='grammar-answer-status correct';
-    input.disabled=true;check.disabled=true;
-   }else{
-    status.textContent=attempts>=2?'Try again. '+(q.hint||'Look at the structure.'):'Not quite. Try again.';
-    status.className='grammar-answer-status incorrect';
-   }
-  };
-  hint.onclick=()=>{status.textContent=q.hint||'Review your saved grammar pattern.'};
-  input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();check.click()}});
-  controls.append(check,hint);box.append(title,input,controls,status);stack.append(box);
- });
- holder.append(stack);
-};
-
 window.artStockPractice=async function(type,oneItem,remaining){
- if(type!=='grammar')return artLegacyWordStockPractice('words');
+ if(type!=='grammar')return window.artWordStock?.generate();
  const items=(getArtGrammarStore().grammar||[]).map(String);
  const item=oneItem||'';const rest=[]; // Always explicitly select ONE item.
  const holder=document.getElementById('stockGrammarExercise');if(!holder)return;
@@ -405,7 +348,7 @@ window.artResetCurrent=function(){
  active.querySelectorAll('.chosen,.selected,.correct,.incorrect').forEach(el=>el.classList.remove('chosen','selected','correct','incorrect'));
  active.querySelectorAll('.quiz-item button:disabled,.generated-practice button:disabled').forEach(el=>el.disabled=false);
  if(active.id==='p9')document.getElementById('stockGrammarExercise')?.replaceChildren();
- if(active.id==='p8')document.getElementById('wordExercise')?.replaceChildren();
+ if(active.id==='p8')window.artWordStock?.clear();
  // Clear only answers/progress for this section, preserving the two personal Stocks.
  const answerMap={p0:['mysteryWhy','mysteryChoice','riveraChoice','riveraReason'],p1:['banksySummary'],p2:['bananaOpinion'],p4:['roleDecision'],p5:['speakingReflection'],p6:['exhibitTitle','exhibitCase','auctionWorks'],p7:['artworkName','artworkLabel']};
  try{
