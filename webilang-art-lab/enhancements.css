@@ -53,3 +53,55 @@
 .generated-practice .task{padding:18px;background:#fff;border:2px solid #202020}.generated-practice .task>p:first-child{font-weight:800;font-size:16px;line-height:1.4}.practice-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
 .practice-item-feedback{min-height:20px;font-size:14px;font-weight:800}.practice-item-feedback.correct{color:#166a3d}.practice-item-feedback.incorrect{color:#9c3f23}
 @media(max-width:600px){.feedback-review{padding:12px}.review-section{padding:11px 12px}.review-section p{font-size:14px}}
+
+
+/* Compact illustrated story: no forced equal-height panels or tall blank cells. */
+#p0 .illustrated-comic{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:start;gap:16px}
+#p0 .illustrated-scene{align-self:start;height:auto;min-height:0;display:flex;flex-direction:column}
+#p0 .illustrated-scene .comic-image{aspect-ratio:4/3;object-fit:cover;width:100%;display:block}
+#p0 .illustrated-scene .comic-dialogue{flex:0 0 auto;gap:7px;padding:14px;min-height:0}
+#p0 .illustrated-scene .comic-dialogue p{font-size:clamp(13px,1.15vw,16px);line-height:1.38}
+#p0 .illustrated-scene .vocab-select{margin-top:7px}
+#p0 .decision-scene{grid-column:1/-1;align-self:start;min-height:0;display:grid;grid-template-columns:minmax(180px,26%) minmax(0,1fr);grid-template-rows:auto 1fr}
+#p0 .decision-scene>small{grid-column:1/-1}
+#p0 .decision-scene .decision-illustration{height:auto;min-height:200px;align-self:stretch;border-bottom:0;border-right:3px solid #191919}
+#p0 .decision-scene .comic-dialogue{padding:18px 22px;min-height:0;display:flex;gap:10px}
+#p0 .decision-scene .comic-dialogue p{margin:0}
+#p0 .decision-scene .oral-feedback{margin-top:10px}
+#p0 .decision-scene .oral-feedback .row{gap:8px}
+#p0 .decision-scene audio{max-width:100%}
+#p0 .decision-scene .suspect-options button{min-height:45px}
+@media(max-width:1180px){#p0 .illustrated-comic{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:820px){#p0 .illustrated-comic{grid-template-columns:repeat(2,minmax(0,1fr))}#p0 .decision-scene{grid-template-columns:1fr}#p0 .decision-scene .decision-illustration{min-height:130px;border-right:0;border-bottom:3px solid #191919}#p0 .decision-scene .question-mark{font-size:55px}}
+@media(max-width:520px){#p0 .illustrated-comic{grid-template-columns:1fr}#p0 .illustrated-scene{max-width:440px;margin:auto;width:100%}#p0 .illustrated-scene .comic-dialogue p{font-size:16px}#p0 .decision-scene .comic-dialogue{padding:13px}}
+
+/* Grammar Stock: one concise flow, matching the student-selected item approach. */
+.grammar-stock-v3{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+.grammar-stock-v3>.card{min-width:0;padding:22px}
+.grammar-stock-v3 .stock-headline{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.grammar-stock-v3 .stock-headline h3{margin:0 0 8px}
+.stock-counter{background:#fff;border:2px solid #222;border-radius:99px;padding:4px 11px;font-size:12px;font-weight:800}
+.grammar-card-list{display:grid;gap:12px;margin:16px 0}
+.saved-grammar-card{background:#fff;border:2px solid #1b1b1b;padding:14px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px 11px;align-items:center}
+.grammar-card-num{font-weight:800;font-size:12px;color:#7352b7}
+.saved-grammar-card strong{font-size:16px;line-height:1.4;overflow-wrap:anywhere}
+.saved-grammar-actions{grid-column:2;display:flex;gap:8px;flex-wrap:wrap}
+.grammar-practise-btn{background:#ffd54e;border:2px solid #222;padding:8px 13px;font-size:13px;font-weight:800}
+.grammar-remove-btn{background:transparent;border:1px solid #666;padding:7px 10px;font-size:12px}
+.grammar-stock-empty{background:#fffaf0;border:2px dashed #867ab1;padding:20px;font-size:14px;line-height:1.6}
+.grammar-manual{border-top:1px solid #a99cda;margin-top:18px;padding-top:14px}
+.grammar-manual summary{cursor:pointer;font-weight:800}
+.grammar-manual label{display:block;margin-top:12px;font-size:13px;font-weight:800}
+.grammar-add-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.grammar-add-row input{flex:1;min-width:160px;border:2px solid #222;padding:11px}
+.grammar-practice-v3{margin-top:18px;min-height:75px}
+.grammar-practice-status{background:#ede4ff;border-left:5px solid #7751ff;padding:13px;font-weight:800}
+.grammar-practice-error{background:#ffe5da;padding:14px;border-left:5px solid #a43c29;line-height:1.6;display:grid;gap:12px}
+.grammar-practice-success{color:#18603c;font-weight:800}
+.grammar-task-prompt{font-weight:800;font-size:16px}
+.grammar-task-controls{display:flex;gap:9px;flex-wrap:wrap}
+.grammar-answer-status{font-size:13px;font-weight:800;min-height:22px}
+.grammar-answer-status.correct{color:#196d41}.grammar-answer-status.incorrect{color:#ac4230}
+.grammar-stock-v3 .generated-practice .task{margin:10px 0}
+.grammar-stock-v3 .generated-practice input{max-width:100%}
+@media(max-width:850px){.grammar-stock-v3{grid-template-columns:1fr}}

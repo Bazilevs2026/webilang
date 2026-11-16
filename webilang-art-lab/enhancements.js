@@ -142,4 +142,122 @@ window.artStockPractice=async function(type){
 window.artResetPage=function(){if(!confirm('Reset this page? This clears progress, selections, My Word Stock, My Grammar Stock and saved answers on this device.'))return;['webilang-art-lab-v1','webilang-art-lab-personal-stocks-v2','webilang-art-lab-lesson-progress-v3'].forEach(k=>localStorage.removeItem(k));location.reload()};
 window.artShowKostya=function(force){let pane=document.getElementById('kostyaPane');pane.classList.toggle('hide',force===false?true:force===true?false:!pane.classList.contains('hide'))};
 window.artKostyaSend=async function(e){e.preventDefault();const inp=document.getElementById('kostyaQuestion'),log=document.getElementById('kostyaLog'),q=inp.value.trim();if(!q)return;inp.value='';let x=document.createElement('div');x.className='kostya-msg user';x.textContent=q;log.append(x);let pending=document.createElement('div');pending.className='kostya-msg';pending.textContent='Kostya is thinking…';log.append(pending);try{const selected=document.querySelector('.panel.active h2')?.textContent||'Art Lab';const result=await coach({mode:'kostya',text:q,context:selected});pending.textContent=result.answer||'No answer returned.'}catch(err){pending.textContent='Kostya needs an active AI connection on this site. '+err.message}log.scrollTop=log.scrollHeight};
+/* Grammar Stock v3: one clear save → practise workflow, based on Webilang's
+   per-pattern approach. No generic suggestion chips or silent empty results. */
+const artGrammarStoreKey='webilang-art-lab-personal-stocks-v2';
+function getArtGrammarStore(){
+ let data={};
+ try{data=JSON.parse(localStorage.getItem(artGrammarStoreKey)||'{}')||{}}catch{}
+ return {...data,grammar:Array.isArray(data.grammar)?data.grammar:[]};
+}
+function writeArtGrammarStore(data){
+ localStorage.setItem(artGrammarStoreKey,JSON.stringify(data));
+ try{if(typeof artStocks!=='undefined'){artStocks.grammar=data.grammar;renderStocks()}}catch(err){console.warn('Art Lab stock rendering:',err)}
+}
+function renderArtGrammarCards(){
+ const root=document.getElementById('grammarCards');if(!root)return;
+ const list=getArtGrammarStore().grammar;root.replaceChildren();
+ const counter=document.getElementById('grammarCount');
+ if(counter)counter.textContent=list.length+' saved';
+ if(!list.length){
+  const empty=document.createElement('div');empty.className='grammar-stock-empty';
+  empty.textContent='No saved patterns yet. Record or type an answer, request AI feedback, then save a grammar suggestion.';
+  root.append(empty);return;
+ }
+ list.forEach((entry,index)=>{
+  const item=typeof entry==='string'?entry:(entry.pattern||entry.rule||String(entry));
+  const card=document.createElement('div');card.className='saved-grammar-card';
+  const num=document.createElement('span');num.className='grammar-card-num';num.textContent=String(index+1).padStart(2,'0');
+  const label=document.createElement('strong');label.textContent=item;
+  const row=document.createElement('div');row.className='saved-grammar-actions';
+  const practise=document.createElement('button');practise.type='button';practise.textContent='▶ Practise';practise.className='grammar-practise-btn';
+  practise.onclick=()=>window.artStockPractice('grammar',item);
+  const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.className='grammar-remove-btn';
+  remove.onclick=()=>{
+   const data=getArtGrammarStore();data.grammar.splice(index,1);writeArtGrammarStore(data);renderArtGrammarCards();
+   const target=document.getElementById('grammarExercise');if(target)target.replaceChildren();
+  };
+  row.append(practise,remove);card.append(num,label,row);root.append(card);
+ });
+}
+window.artSaveGrammarItem=function(item,button){
+ const s=String(item||'').trim();if(!s)return;
+ const data=getArtGrammarStore();
+ const exists=data.grammar.some(x=>String(x).trim().toLowerCase()===s.toLowerCase());
+ if(!exists)data.grammar.push(s);
+ writeArtGrammarStore(data);renderArtGrammarCards();
+ if(button){
+   button.textContent='✓ Saved to My Grammar Stock';
+   button.classList.add('stock-saved');button.disabled=true;
+   button.setAttribute('aria-pressed','true');
+ }
+ const message=button?.closest('.feedback-grammar')?.querySelector('.stock-save-status');
+ if(message)message.textContent=exists?'Already saved.':'✓ Saved! Open My Grammar Stock to practise it.';
+};
+window.artSaveManualGrammar=function(){
+ const input=document.getElementById('grammarInput');if(!input)return;
+ const word=input.value.trim();if(!word){input.focus();return}
+ window.artSaveGrammarItem(word);
+ input.value='';
+ const msg=document.getElementById('grammarPracticeInstruction');
+ if(msg)msg.textContent='✓ Added '+word+'. Choose Practise next to the item to start.';
+};
+window.artStockPractice=async function(type,oneItem){
+ const data=getArtGrammarStore();
+ const items=type==='grammar'?(oneItem?[oneItem]:data.grammar):(data.words||[]);
+ const holder=document.getElementById(type==='grammar'?'grammarExercise':'wordExercise');
+ if(!holder)return;
+ holder.replaceChildren();
+ if(!items.length){holder.textContent='Nothing saved yet. Save an item first.';return}
+ const heading=document.getElementById('grammarPracticeHeading');
+ if(type==='grammar'&&heading)heading.textContent=oneItem?'Practise: '+oneItem:'Practice all saved structures';
+ const pending=document.createElement('p');pending.className='grammar-practice-status';
+ pending.textContent='✨ Creating personalized exercises…';pending.setAttribute('role','status');holder.append(pending);
+ let questions=[];
+ try{
+  const result=await coach({mode:'practice',stockType:type,items:items.slice(-20)});
+  if(!Array.isArray(result.questions))throw Error('The AI did not return a question list.');
+  questions=result.questions.filter(q=>q && typeof q.prompt==='string' && q.prompt.trim() && typeof q.answer==='string' && q.answer.trim()).slice(0,7);
+  if(!questions.length)throw Error('The AI returned no usable questions.');
+ }catch(err){
+  holder.replaceChildren();
+  const fail=document.createElement('div');fail.className='grammar-practice-error';
+  fail.textContent='AI exercises could not be generated: '+(err.message||'Connection error')+'. Your saved items are safe.';
+  const retry=document.createElement('button');retry.type='button';retry.className='action secondary';retry.textContent='↻ Retry AI practice';
+  retry.onclick=()=>window.artStockPractice(type,oneItem);fail.append(retry);holder.append(fail);return;
+ }
+ holder.replaceChildren();
+ const intro=document.createElement('p');intro.className='grammar-practice-success';
+ intro.textContent='✓ '+questions.length+' new exercises ready. Check every answer and try again if needed.';holder.append(intro);
+ const stack=document.createElement('div');stack.className='generated-practice';
+ questions.forEach((q,index)=>{
+  const box=document.createElement('div');box.className='task';
+  const title=document.createElement('p');title.className='grammar-task-prompt';title.textContent=(index+1)+'. '+q.prompt;
+  const input=document.createElement('input');input.type='text';input.autocomplete='off';input.placeholder='Type the missing word or phrase';
+  input.setAttribute('aria-label','Answer to grammar question '+(index+1));
+  const controls=document.createElement('div');controls.className='grammar-task-controls';
+  const check=document.createElement('button');check.type='button';check.className='action secondary';check.textContent='Check';
+  const hint=document.createElement('button');hint.type='button';hint.className='action secondary';hint.textContent='Hint';
+  const status=document.createElement('p');status.className='grammar-answer-status';status.setAttribute('aria-live','polite');
+  let attempts=0;
+  const normalize=s=>String(s||'').toLowerCase().replace(/[.!?,]/g,'').replace(/\s+/g,' ').trim();
+  check.onclick=()=>{
+   if(!input.value.trim()){status.textContent='Enter your answer first.';return}
+   attempts++;
+   if(normalize(input.value)===normalize(q.answer)){
+    status.textContent='✓ Correct!';status.className='grammar-answer-status correct';
+    input.disabled=true;check.disabled=true;
+   }else{
+    status.textContent=attempts>=2?'Try again. '+(q.hint||'Look at the structure.'):'Not quite. Try again.';
+    status.className='grammar-answer-status incorrect';
+   }
+  };
+  hint.onclick=()=>{status.textContent=q.hint||'Review your saved grammar pattern.'};
+  input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();check.click()}});
+  controls.append(check,hint);box.append(title,input,controls,status);stack.append(box);
+ });
+ holder.append(stack);
+};
+renderArtGrammarCards();
+
 })();
