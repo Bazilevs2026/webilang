@@ -63,10 +63,9 @@ and mobile, each supported entry URL, all eight 404/corrupt-image fallbacks,
 image recovery, and vocabulary selection with images present or missing.
 External fonts/APIs are blocked in these tests; AI behavior is outside their scope.
 
-The repository's `vercel.json` disables automatic deployment only for
-`fix/rivera-comic-images` so review can happen without deploying the PR branch.
-Other branches retain their existing deployment behavior. No merge or
-deployment is part of this fix's verification.
+The repository's existing Vercel deployment configuration is unchanged.
+No merge or manual deployment is part of this fix's verification; automatic
+Git deployments follow the project's existing settings.
 
 ## Functional limits
 
