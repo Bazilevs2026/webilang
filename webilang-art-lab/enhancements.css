@@ -105,3 +105,14 @@
 .grammar-stock-v3 .generated-practice .task{margin:10px 0}
 .grammar-stock-v3 .generated-practice input{max-width:100%}
 @media(max-width:850px){.grammar-stock-v3{grid-template-columns:1fr}}
+
+/* Reset button, present in every activity */
+.activity-reset{float:right;margin:8px 0 14px 12px;border:2px solid #191919;background:#ffe27c;box-shadow:3px 3px 0 #191919;border-radius:7px;padding:8px 12px;font-weight:800;font-size:12px;cursor:pointer}
+.reset-modal{position:fixed;inset:0;background:rgba(20,15,25,.58);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.reset-modal.hide{display:none!important}
+.reset-dialog{max-width:470px;width:100%;background:#fffaf1;border:3px solid #191919;box-shadow:8px 9px 0 #191919;padding:25px}
+.reset-dialog h3{font-size:25px;margin:0 0 10px}.reset-dialog p{line-height:1.5}
+.reset-dialog-actions{display:grid;gap:10px;margin-top:20px}
+.reset-dialog-actions button{padding:13px;border:2px solid #191919;background:#ffe27c;font-weight:800;text-align:left;cursor:pointer}
+.reset-dialog-actions .reset-danger{background:#ffbaba}.reset-dialog-actions .reset-cancel{background:#fff}
+@media(max-width:550px){.activity-reset{font-size:11px;padding:7px;float:none;display:block;margin:6px 0 16px}}

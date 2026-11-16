@@ -104,7 +104,7 @@ window.artStockPractice=async function(type){
  const key='webilang-art-lab-personal-stocks-v2';let stocks={};
  try{stocks=JSON.parse(localStorage.getItem(key)||'{}')}catch{}
  const items=type==='words'?(stocks.words||[]):(stocks.grammar||[]);
- const holder=document.getElementById(type==='words'?'wordExercise':'grammarExercise');if(!holder)return;
+ const holder=document.getElementById(type==='words'?'wordExercise':'stockGrammarExercise');if(!holder)return;
  holder.textContent=items.length?'Generating AI exercises for '+items.length+' saved item(s)…':'Save items to My '+(type==='words'?'Word':'Grammar')+' Stock first.';
  if(!items.length)return;
  let questions=[],error='';
@@ -175,7 +175,7 @@ function renderArtGrammarCards(){
   const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.className='grammar-remove-btn';
   remove.onclick=()=>{
    const data=getArtGrammarStore();data.grammar.splice(index,1);writeArtGrammarStore(data);renderArtGrammarCards();
-   const target=document.getElementById('grammarExercise');if(target)target.replaceChildren();
+   const target=document.getElementById('stockGrammarExercise');if(target)target.replaceChildren();
   };
   row.append(practise,remove);card.append(num,label,row);root.append(card);
  });
@@ -205,14 +205,14 @@ window.artSaveManualGrammar=function(){
 window.artStockPractice=async function(type,oneItem){
  const data=getArtGrammarStore();
  const items=type==='grammar'?(oneItem?[oneItem]:data.grammar):(data.words||[]);
- const holder=document.getElementById(type==='grammar'?'grammarExercise':'wordExercise');
+ const holder=document.getElementById(type==='grammar'?'stockGrammarExercise':'wordExercise');
  if(!holder)return;
  holder.replaceChildren();
  if(!items.length){holder.textContent='Nothing saved yet. Save an item first.';return}
  const heading=document.getElementById('grammarPracticeHeading');
  if(type==='grammar'&&heading)heading.textContent=oneItem?'Practise: '+oneItem:'Practice all saved structures';
  const pending=document.createElement('p');pending.className='grammar-practice-status';
- pending.textContent='✨ Creating personalized exercises…';pending.setAttribute('role','status');holder.append(pending);
+ pending.textContent='✨ Requesting new AI exercises…';pending.setAttribute('role','status');holder.append(pending);
  let questions=[];
  try{
   const result=await coach({mode:'practice',stockType:type,items:items.slice(-20)});
@@ -222,7 +222,7 @@ window.artStockPractice=async function(type,oneItem){
  }catch(err){
   holder.replaceChildren();
   const fail=document.createElement('div');fail.className='grammar-practice-error';
-  fail.textContent='AI exercises could not be generated: '+(err.message||'Connection error')+'. Your saved items are safe.';
+  fail.textContent='AI exercise generation failed: '+(err.message||'Connection error')+'. Your saved structures have not been deleted.';
   const retry=document.createElement('button');retry.type='button';retry.className='action secondary';retry.textContent='↻ Retry AI practice';
   retry.onclick=()=>window.artStockPractice(type,oneItem);fail.append(retry);holder.append(fail);return;
  }
@@ -259,5 +259,48 @@ window.artStockPractice=async function(type,oneItem){
  holder.append(stack);
 };
 renderArtGrammarCards();
+
+
+/* Reset is available on every lesson tab; never delete personal Stocks by default. */
+window.artOpenReset=function(){document.getElementById('artResetModal')?.classList.remove('hide')};
+window.artCloseReset=function(){document.getElementById('artResetModal')?.classList.add('hide')};
+window.artResetCurrent=function(){
+ const active=document.querySelector('.panel.active')||document.querySelector('.panel:not(.hide)');
+ if(!active){window.artCloseReset();return}
+ active.querySelectorAll('input,textarea').forEach(el=>{if(el.type==='checkbox'||el.type==='radio')el.checked=false;else if(!el.readOnly)el.value=''});
+ active.querySelectorAll('audio').forEach(el=>{try{el.pause();el.removeAttribute('src');el.load();el.classList.add('hide')}catch{}});
+ active.querySelectorAll('.quiz-feedback,.learning-feedback,.practice-item-feedback,.grammar-answer-status,.recording-status').forEach(el=>el.textContent='');
+ active.querySelectorAll('.chosen,.selected,.correct,.incorrect').forEach(el=>el.classList.remove('chosen','selected','correct','incorrect'));
+ active.querySelectorAll('.quiz-item button:disabled,.generated-practice button:disabled').forEach(el=>el.disabled=false);
+ if(active.id==='p9')document.getElementById('stockGrammarExercise')?.replaceChildren();
+ if(active.id==='p8')document.getElementById('wordExercise')?.replaceChildren();
+ // Clear only answers/progress for this section, preserving the two personal Stocks.
+ const answerMap={p0:['mysteryWhy','mysteryChoice','riveraChoice','riveraReason'],p1:['banksySummary'],p2:['bananaOpinion'],p4:['roleDecision'],p5:['speakingReflection'],p6:['exhibitTitle','exhibitCase','auctionWorks'],p7:['artworkName','artworkLabel']};
+ try{
+  const stateKey='webilang-art-lab-v1',saved=JSON.parse(localStorage.getItem(stateKey)||'{}');
+  saved.answers=saved.answers||{};for(const k of (answerMap[active.id]||[]))delete saved.answers[k];
+  const idx=Number(active.id.slice(1));saved.done=(saved.done||[]).filter(x=>x!==idx);
+  localStorage.setItem(stateKey,JSON.stringify(saved));
+  if(active.id==='p3'||active.id==='p10')localStorage.removeItem('webilang-art-lab-lesson-progress-v3');
+ }catch(e){console.warn('Could not clear stored activity results:',e)}
+ sessionStorage.setItem('artlab-return-tab',active.id);
+ window.artCloseReset();
+ location.reload();
+};
+window.artResetAllProgress=function(){
+ if(!confirm('Clear lesson answers and exercise progress, while keeping My Word Stock and My Grammar Stock?'))return;
+ for(const k of ['webilang-art-lab-v1','webilang-art-lab-lesson-progress-v3'])localStorage.removeItem(k);
+ window.artCloseReset();location.reload();
+};
+window.artResetEverything=function(){
+ if(!confirm('Permanently delete ALL Art Lab progress, saved words and grammar on this device?'))return;
+ for(const k of ['webilang-art-lab-v1','webilang-art-lab-lesson-progress-v3','webilang-art-lab-personal-stocks-v2'])localStorage.removeItem(k);
+ window.artCloseReset();location.reload();
+};
+// Reset buttons are available everywhere. The selected tab is restored after reload.
+const returnTab=sessionStorage.getItem('artlab-return-tab');
+if(returnTab){sessionStorage.removeItem('artlab-return-tab');const index=Number(returnTab.replace('p',''));
+ if(Number.isFinite(index)&&index>=0&&index<=10){try{if(typeof go==='function')go(index)}catch(e){console.warn('Could not restore tab:',e)}}
+}
 
 })();
