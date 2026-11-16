@@ -5,7 +5,61 @@ import { normal, wordOf, readWords, insertWord, deleteWord } from '/student-memo
 const db = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
 const $ = id => document.getElementById(id);
 let user = null, rows = [], selected = '', epoch = 0, revision = 0, controller = null, queue = Promise.resolve(), ready = false;
+const staged = new Map(); let savingStage = false;
 const status = message => { $('wordStockStatus').textContent = message; $('comicWordStatus').textContent = message; };
+function renderStaged(message) {
+  const list = $('comicSelectedWords'); if (!list) return;
+  list.replaceChildren(); $('readingSelectedWords')?.replaceChildren();
+  for (const [key, word] of staged) {
+    const chip = document.createElement('span'); chip.className = 'staged-word-chip';
+    const label = document.createElement('span'); label.textContent = word;
+    const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '×';
+    remove.setAttribute('aria-label', 'Remove '+word+' from selection');
+    remove.onclick = () => { staged.delete(key); renderStaged('Removed “'+word+'” from selection.'); };
+    chip.append(label,remove); list.append(chip);
+    if ($('readingSelectedWords')) {const clone=chip.cloneNode(true);clone.querySelector('button').onclick=()=>{staged.delete(key);renderStaged('Removed “'+word+'” from selection.');};$('readingSelectedWords').append(clone);}
+  }
+  $('comicSelectedCount').textContent = staged.size+' selected';
+  if ($('readingSelectedCount')) $('readingSelectedCount').textContent = staged.size+' selected';
+  $('comicSaveWords').disabled = !staged.size || savingStage || !ready;
+  $('comicClearSelection').disabled = !staged.size || savingStage;
+  if ($('readingSaveWords')) $('readingSaveWords').disabled = !staged.size || savingStage || !ready;
+  if ($('readingClearSelection')) $('readingClearSelection').disabled = !staged.size || savingStage;
+  document.querySelectorAll('.selectable-word,.vocab-select').forEach(button => { button.classList.toggle('word-staged', staged.has(normal(button.dataset.expression || button.textContent))); });
+  if (message !== undefined) { $('comicWordStatus').textContent = message; if ($('readingWordStatus')) $('readingWordStatus').textContent=message; }
+}
+function stageWord(value) {
+  const word = String(value||'').trim().replace(/\s+/g,' '), key = normal(word);
+  if (!key || word.length > 130) return;
+  if (!staged.has(key)) staged.set(key,word);
+  renderStaged('✓ “'+word+'” selected. '+staged.size+' word(s) ready. Press Save selected words.');
+  document.querySelectorAll('.selectable-word,.vocab-select').forEach(button => {
+    const active = staged.has(normal(button.dataset.expression||button.textContent));
+    button.classList.toggle('word-staged',active);
+    if (active) button.setAttribute('aria-pressed','true');
+  });
+}
+function clearStaged(){staged.clear();document.querySelectorAll('.word-staged').forEach(el=>el.classList.remove('word-staged'));renderStaged('Selection cleared. Saved vocabulary was not deleted.');}
+async function saveStaged(){
+  if(savingStage || !staged.size)return;
+  if(!ready || !user){ renderStaged('Sign in to Webilang Global to save words. Your selection is still here.');return; }
+  savingStage=true;const items=[...staged.values()];renderStaged('Saving '+items.length+' word(s)…');
+  try {
+    for (const word of items) {
+      // Add waits for the authenticated Supabase write; never clear on failed save.
+      await add(word);
+      staged.delete(normal(word));
+      renderStaged('Saved “'+word+'” to your account.');
+    }
+    renderStaged('✓ Saved '+items.length+' word(s) to My Word Stock. Open My Word Stock to practise.');
+  } catch(error){renderStaged('Could not save all words: '+(error.message||'Please retry.')+' Unsaved words remain selected.');}
+  finally{savingStage=false;renderStaged();}
+}
+$('comicSaveWords').addEventListener('click',saveStaged);
+$('comicClearSelection').addEventListener('click',clearStaged);
+$('readingSaveWords')?.addEventListener('click',saveStaged);
+$('readingClearSelection')?.addEventListener('click',clearStaged);
+window.artStageWord=stageWord;
 function clear() {
   revision++; controller?.abort(); controller = null;
   $('wordExercise').replaceChildren(); $('wordPracticeStatus').textContent = '';
@@ -45,7 +99,7 @@ function enqueue(fn) {
   const version = epoch;
   const result = queue.then(fn);
   queue = result.catch(error => { if (version === epoch) status(error.message || 'Word Stock is unavailable. Please retry.'); });
-  return queue;
+  return result;
 }
 async function verify(owner, version) {
   const { data, error } = await db.auth.getUser();
@@ -61,8 +115,8 @@ async function refresh() {
     user = data.user; ready = false;
     const loaded = await readWords(db, user.id);
     if (version !== epoch) return;
-    rows = loaded; ready = true; render(); status('Your account Word Stock · saved vocabulary from all connected modules.');
-  } catch (error) { if (version === epoch) { ready = false; rows = []; selected = ''; clear(); render(); status(error.message); } }
+    rows = loaded; ready = true; render(); renderStaged(); status('Your account Word Stock · saved vocabulary from all connected modules.');
+  } catch (error) { if (version === epoch) { ready = false; rows = []; selected = ''; clear(); render(); renderStaged(); status(error.message); } }
 }
 function add(value) {
   const word = String(value || '').trim().replace(/\s+/g, ' '), owner = user?.id, version = epoch;
@@ -118,10 +172,11 @@ async function generate() {
     if (version !== revision) return;
     const types = ['gap','meaning','collocation','completion','production'];
     if (!Array.isArray(result.exercises) || result.exercises.length !== 5 || result.exercises.some((q,i) => q.target !== target || q.type !== types[i] || !q.prompt || !q.answer || !q.hint || !q.explanation || !Array.isArray(q.options) || q.type === 'meaning' && !q.options.includes(q.answer))) throw Error('The AI returned an incomplete or mixed-target set. Please retry.');
-    showExercises(result.exercises, target, version); $('wordPracticeStatus').textContent = `Five exercises for “${target}”.`;
+    showExercises(result.exercises, target, version); $('wordPracticeStatus').textContent = `${result.source === 'offline-reviewed' ? 'Reviewed offline exercises (AI unavailable)' : 'Five AI exercises'} for “${target}”.`;
   } catch (error) { if (version === revision) $('wordPracticeStatus').textContent = `Could not generate practice: ${error.message}. Your words are unchanged.`; }
   finally { if (version === revision) $('wordPracticeGenerate').disabled = false; }
 }
+renderStaged();
 $('wordPracticeGenerate').onclick = generate; $('wordPracticeClear').onclick = clear; $('wordStockRefresh').onclick = () => enqueue(refresh);
 $('wordStockImport').onclick = async () => {
   if (!ready || !confirm('Import the older Art Lab vocabulary on this browser into YOUR signed-in account? Only continue if these words belong to you.')) return;
@@ -132,7 +187,7 @@ $('wordStockImport').onclick = async () => {
 window.artWordStock = { add, generate, clear, refresh };
 db.auth.onAuthStateChange((_event, session) => {
   if (session?.user?.id === user?.id) return;
-  epoch++; user = null; ready = false; rows = []; selected = ''; clear(); render(); status('Connecting to your account…');
+  epoch++; user = null; ready = false; rows = []; selected = ''; clear(); render(); renderStaged(); status('Connecting to your account…');
   setTimeout(refresh, 0);
 });
 refresh();
