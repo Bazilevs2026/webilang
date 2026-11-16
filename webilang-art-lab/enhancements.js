@@ -1,6 +1,9 @@
 /* Enhanced learning controls. AI requires configured server endpoints. */
 (()=>{
 'use strict';
+const grammarStyle=document.createElement('link');grammarStyle.rel='stylesheet';grammarStyle.href='grammar-stock-selected.css';document.head.append(grammarStyle);
+const allPracticeButton=document.getElementById('grammarPracticeAll');if(allPracticeButton)allPracticeButton.remove();
+const stockInstructions=document.getElementById('grammarPracticeInstruction');if(stockInstructions)stockInstructions.textContent='Choose Practise beside ONE saved grammar structure to create two Recognize, two Retrieve, and two Produce exercises.';
 const banksy=[
  ['What happened to Banksy’s Girl with Balloon after the auction?', ['It was partially shredded inside its frame.','The artist painted over it.','It was stolen.'],0,'A shredder hidden inside the frame partially cut the work.'],
  ['When did the shredding start?', ['Before the auction opened.','Immediately after the successful sale.','Several weeks after the sale.'],1,'The event happened just after the hammer fell.'],
@@ -171,13 +174,18 @@ function renderArtGrammarCards(){
   const label=document.createElement('strong');label.textContent=item;
   const row=document.createElement('div');row.className='saved-grammar-actions';
   const practise=document.createElement('button');practise.type='button';practise.textContent='▶ Practise';practise.className='grammar-practise-btn';
+  const state=document.createElement('span');state.className='grammar-card-state';state.setAttribute('aria-live','polite');
+  const current=artGrammarSession?.item===item;
+  const complete=completedGrammarPatterns.has(item);
+  if(current){card.classList.add('grammar-card-active');practise.textContent='● Practising now';practise.setAttribute('aria-pressed','true');state.textContent='In progress';}
+  else if(complete){card.classList.add('grammar-card-complete');practise.textContent='↻ Practise again';state.textContent='✓ Completed';}
   practise.onclick=()=>window.artStockPractice('grammar',item);
   const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.className='grammar-remove-btn';
   remove.onclick=()=>{
    const data=getArtGrammarStore();data.grammar.splice(index,1);writeArtGrammarStore(data);renderArtGrammarCards();
    const target=document.getElementById('stockGrammarExercise');if(target)target.replaceChildren();
   };
-  row.append(practise,remove);card.append(num,label,row);root.append(card);
+  row.append(practise,remove);card.append(num,label,row,state);root.append(card);
  });
 }
 window.artSaveGrammarItem=function(item,button){
@@ -204,6 +212,7 @@ window.artSaveManualGrammar=function(){
 };
 /* Six-step Stock practice: 2 recognize → 2 retrieve → 2 produce. */
 let artGrammarSession=null;
+const completedGrammarPatterns=new Set();
 async function artStockRequest(payload){
  const r=await fetch('/api/artlab-stock-practice',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
  let result;try{result=await r.json()}catch{throw Error('The server did not return JSON (HTTP '+r.status+').')}
@@ -298,9 +307,9 @@ function artRenderSixStep(){
  };
  next.onclick=()=>{
   if(i===5){holder.replaceChildren();const end=document.createElement('div');end.className='stock-six-complete';
-   end.textContent='✓ Six questions completed for '+session.item+'. Ready to practise another structure!';
+   end.textContent='✓ Six questions completed for '+session.item+'. Choose another structure to practise.';completedGrammarPatterns.add(session.item);artGrammarSession=null;
    const again=document.createElement('button');again.type='button';again.className='action violet';again.textContent='↻ New set';again.onclick=()=>window.artStockPractice('grammar',session.item);end.append(again);holder.append(end);
-   if(session.remaining.length){const following=document.createElement('button');following.type='button';following.className='action';following.textContent='Next saved structure →';following.onclick=()=>window.artStockPractice('grammar',session.remaining[0],session.remaining.slice(1));end.append(following)}
+   renderArtGrammarCards();
    return;
   }
   session.index++;artRenderSixStep();
@@ -368,18 +377,18 @@ async function artLegacyWordStockPractice(type,oneItem){
 window.artStockPractice=async function(type,oneItem,remaining){
  if(type!=='grammar')return artLegacyWordStockPractice('words');
  const items=(getArtGrammarStore().grammar||[]).map(String);
- const item=oneItem||items[0];const rest=remaining||(!oneItem?items.slice(1):[]);
+ const item=oneItem||'';const rest=[]; // Always explicitly select ONE item.
  const holder=document.getElementById('stockGrammarExercise');if(!holder)return;
  if(!item){holder.textContent='Save a grammar structure first.';return}
  const heading=document.getElementById('grammarPracticeHeading');if(heading)heading.textContent='Practise: '+item;
- holder.replaceChildren();const pending=document.createElement('div');pending.className='stock-six-loading';pending.textContent='✨ Generating 2 Recognize + 2 Retrieve + 2 Produce questions for this structure…';holder.append(pending);
+ holder.replaceChildren();artGrammarSession={item,questions:[],index:0,completed:{},remaining:[]};renderArtGrammarCards();const pending=document.createElement('div');pending.className='stock-six-loading';pending.textContent='✨ Generating 2 Recognize + 2 Retrieve + 2 Produce questions for this structure…';holder.append(pending);
  try{
   const result=await artStockRequest({mode:'generate',pattern:item});
   if(!Array.isArray(result.questions)||result.questions.length!==6)throw Error('Incorrect exercise count.');
   const expected=['recognize','recognize','retrieve','retrieve','produce','produce'];
   if(result.questions.some((q,i)=>!q||q.stage!==expected[i]))throw Error('Incorrect exercise structure.');
-  artGrammarSession={item,questions:result.questions,index:0,completed:{},remaining:rest};artRenderSixStep();
- }catch(err){holder.replaceChildren();const error=document.createElement('p');error.className='grammar-practice-error';error.textContent='Could not generate this six-question set: '+err.message;const retry=document.createElement('button');retry.type='button';retry.className='action secondary';retry.textContent='↻ Retry';retry.onclick=()=>window.artStockPractice(type,item,rest);holder.append(error,retry)}
+  artGrammarSession={item,questions:result.questions,index:0,completed:{},remaining:[]};renderArtGrammarCards();artRenderSixStep();
+ }catch(err){artGrammarSession=null;renderArtGrammarCards();holder.replaceChildren();const error=document.createElement('p');error.className='grammar-practice-error';error.textContent='Could not generate this six-question set: '+err.message;const retry=document.createElement('button');retry.type='button';retry.className='action secondary';retry.textContent='↻ Retry';retry.onclick=()=>window.artStockPractice(type,item,rest);holder.append(error,retry)}
 };
 renderArtGrammarCards();
 

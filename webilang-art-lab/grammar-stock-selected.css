@@ -1,0 +1,7 @@
+/* Grammar Stock: visibly indicate which individual structure is in practice. */
+.saved-grammar-card.grammar-card-active{background:#f0e8ff!important;border:3px solid #7349df!important;box-shadow:5px 5px 0 #221d29!important}
+.saved-grammar-card.grammar-card-active .grammar-practise-btn{background:#7349df!important;color:white!important}
+.saved-grammar-card.grammar-card-complete{border-left:7px solid #25815c!important}
+.grammar-card-state{display:inline-block;margin:7px 0 0 10px;font-size:.84rem;font-weight:800;color:#5530a0}
+.grammar-card-complete .grammar-card-state{color:#176842}
+#grammarPracticeAll{display:none!important}
