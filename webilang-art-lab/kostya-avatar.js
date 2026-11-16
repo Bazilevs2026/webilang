@@ -46,7 +46,7 @@ let activated=false, isText=false, minimized=false;
 oldPane.classList.remove('hide');oldPane.classList.add('artlab-avatar-text-pane');
 textContainer.append(oldPane);
 const hideWindow=()=>{windowEl.classList.add('artlab-avatar-hidden');windowEl.classList.remove('artlab-avatar-minimized');minimized=false;avatarBody.hidden=false;minFooter.hidden=true};
-const showWindow=()=>{windowEl.classList.remove('artlab-avatar-hidden');if(!activated){frame.src=DEFAULT_AVATAR;activated=true;}if(minimized)toggleMinimize(false)};
+const showWindow=()=>{windowEl.classList.remove('artlab-avatar-hidden');if(!activated){frame.src=DEFAULT_AVATAR;activated=true;}else sendArtLessonContext();if(minimized)toggleMinimize(false)};
 const toggleMinimize=(force)=>{minimized=force===undefined?!minimized:!!force;windowEl.classList.toggle('artlab-avatar-minimized',minimized);avatarBody.hidden=minimized;minFooter.hidden=!minimized;document.getElementById('artlabKostyaMin').textContent=minimized?'+':'−';};
 const changeTab=(text)=>{isText=!!text;document.getElementById('artlabAvatarView').hidden=isText;textContainer.hidden=!isText;document.getElementById('artlabAvatarTab').classList.toggle('selected',!isText);document.getElementById('artlabTextTab').classList.toggle('selected',isText);document.getElementById('artlabAvatarTab').setAttribute('aria-selected',String(!isText));document.getElementById('artlabTextTab').setAttribute('aria-selected',String(isText));if(isText)document.getElementById('kostyaQuestion')?.focus();};
 window.artShowKostya=function(force){if(force===false){hideWindow();return}if(force===true){showWindow();return}windowEl.classList.contains('artlab-avatar-hidden')?showWindow():hideWindow()};
@@ -87,6 +87,75 @@ function sendContext(){
  }
 }
 document.getElementById('artlabAvatarContextBtn').onclick=sendContext;
+
+/* Art Lab → Kostya live lesson context bridge.
+   Same-origin postMessage schema already implemented by realtime-english.html.
+   Send only student actions and verified checker feedback, never claim screen vision. */
+let lastArtCheck=null;
+let lastArtExercise=null;
+const artLessonSection=()=>document.querySelector('.panel.active')||document.querySelector('.panel:not([hidden])');
+const artCurrentTitle=()=>brief(artLessonSection()?.querySelector('h2')?.textContent||'Art Lab',160);
+function sendArtLessonContext(){
+ if(!activated||!frame.contentWindow)return;
+ const panel=artLessonSection();
+ const context={
+  source:'webilang-lesson',type:'context',version:1,
+  activeSection:brief(panel?.id||'art-lab',60),courseLanguage:'English',
+  title:artCurrentTitle(),url:location.pathname,
+  activeTask:brief(lastArtExercise?.question||panel?.querySelector('.lead')?.textContent||'',850),
+  currentExercise:lastArtExercise?{question:lastArtExercise.question,studentAnswer:lastArtExercise.studentAnswer,options:lastArtExercise.options||[],field:lastArtExercise.field||'grammar'}:null,
+  lastCheck:lastArtCheck
+ };
+ frame.contentWindow.postMessage(context,location.origin);
+}
+function artCheckedResult(container,button){
+ let task=container?.querySelector('.stock-six-prompt,.grammar-task-prompt,.quiz-item h4,.task h4,.task p')?.textContent||'';
+ let answer=container?.querySelector('.stock-six-options .selected,.quiz-options .chosen')?.textContent||'';
+ if(!answer)answer=container?.querySelector('textarea,input:not([type="hidden"]):not([type="radio"])')?.value||'';
+ const feedback=container?.querySelector('.stock-six-feedback,.quiz-feedback,.grammar-answer-status,.practice-item-feedback,.stock-six-voice-status')||null;
+ let verdict='unknown';
+ if(feedback?.classList.contains('correct')||/^✓\s*(correct|well done)/i.test(feedback?.textContent||''))verdict='correct';
+ else if(feedback?.classList.contains('incorrect')||/^(not quite|not yet|try again)/i.test(feedback?.textContent.trim()||''))verdict='incorrect';
+ // Never send a correctness claim until the checker has produced a result.
+ const options=[...(container?.querySelectorAll('.stock-six-options button,.quiz-options button')||[])].map(x=>brief(x.textContent,120));
+ if(!task)return;
+ lastArtExercise={question:brief(task,850),studentAnswer:brief(answer,450),options,field:'Art Lab exercise'};
+ lastArtCheck={kind:button.textContent.toLowerCase().includes('feedback')?'ai_review':'answer_check',button:brief(button.textContent,90),task:brief(task,650),studentAnswer:brief(answer,200),expectedAnswer:'',verifiedCorrectness:verdict,visibleFeedbackAfter:feedback?.textContent.trim()?[brief(feedback.textContent,1900)]:[],source:'Art Lab check button',at:Date.now()};
+ sendArtLessonContext();
+}
+function artWatchCheckButton(button){
+ const card=button.closest('.stock-six-task,.quiz-item,.task,.oral-feedback,.card')||button.parentElement;
+ if(!card)return;
+ const status=card.querySelector('.stock-six-feedback,.quiz-feedback,.grammar-answer-status,.practice-item-feedback');
+ // Check functions may be asynchronous. Observe feedback and send it only once it changes.
+ let observer=null;
+ if(status){
+  observer=new MutationObserver(()=>{if(status.textContent.trim()&&!/^(Checking|Choose or enter|Now check)/i.test(status.textContent.trim())){artCheckedResult(card,button);observer.disconnect()}});
+  observer.observe(status,{childList:true,characterData:true,subtree:true,attributes:true});
+  setTimeout(()=>observer.disconnect(),12000);
+ }
+ setTimeout(()=>{if(!status||status.textContent.trim()&&!/^(Checking|Choose or enter|Now check)/i.test(status.textContent.trim()))artCheckedResult(card,button)},100);
+}
+document.addEventListener('click',event=>{
+ const button=event.target.closest('button');if(!button)return;
+ const label=button.textContent.trim();
+ if(!/^(check answer|check|AI feedback|✓ checked)$/i.test(label))return;
+ if(button.closest('#artlabKostyaWindow'))return;
+ artWatchCheckButton(button);
+},true);
+// The parent already knows the exact checked result; sharing it doesn't trigger speech.
+frame.addEventListener('load',()=>{setTimeout(sendArtLessonContext,250)});
+window.addEventListener('message',event=>{
+ if(event.origin!==location.origin||event.source!==frame.contentWindow)return;
+ if(event.data?.source==='webilang-realtime-english'&&event.data.type==='lesson-context-ack'){
+  status.textContent=event.data.connected?'✓ Kostya is aware of your latest checked exercise. Ask him about it.':'✓ Exercise context received. Start Talk to Kostya for voice assistance.';
+ }
+});
+document.getElementById('artlabAvatarContextBtn').textContent='↗ Update Kostya with current exercise';
+document.getElementById('artlabAvatarContextBtn').onclick=()=>{
+ sendArtLessonContext();
+ status.textContent='Latest checked task sent to Kostya. You can ask about it directly.';
+};
 
 // Desktop drag; touch devices keep the window pinned so controls remain on-screen.
 const handle=document.getElementById('artlabKostyaDrag');
