@@ -1,0 +1,50 @@
+/* Compact, responsive Art Lab improvements */
+#p0>.lead{max-width:900px;font-size:clamp(16px,1.25vw,20px);line-height:1.55;margin-bottom:14px}
+#p0 .mural-context{padding:15px 20px;margin:12px 0 24px}
+#p0 .mural-context h3{font-size:21px;margin:0 0 6px}
+#p0 .mural-context p{font-size:16px;line-height:1.5;margin:0}
+.watch-video{width:100%;aspect-ratio:16/9;background:#151515;border:4px solid #191919;overflow:hidden}
+.watch-video iframe{width:100%;height:100%;border:0;display:block}
+#p1 .split,#p2 .split{align-items:start;gap:22px}
+#p1 .taskbox{max-width:100%;margin-top:24px}
+.artlab-speaking-task{max-width:100%}
+.artlab-speaking-task textarea{width:100%;min-height:90px}
+.artlab-speaking-task .row{display:flex;gap:10px;flex-wrap:wrap}
+.artlab-speaking-task audio{width:min(100%,480px);margin:12px 0}
+#p4 .lead{max-width:850px;margin-bottom:20px}
+.artlab-role-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:20px 0}
+.artlab-role-option{display:flex;flex-direction:column;gap:8px;text-align:left;padding:18px 23px;background:#fff;border:3px solid #222;box-shadow:5px 5px 0 #222;cursor:pointer}
+.artlab-role-option.active{background:#ffcf54}
+.artlab-role-option strong{font-size:24px;letter-spacing:.04em}
+.artlab-role-option small{font-size:14px;line-height:1.4}
+.artlab-role-layout{display:grid;grid-template-columns:minmax(260px,.82fr) minmax(350px,1.18fr);gap:18px;align-items:start}
+.artlab-role-persona,.artlab-role-chat{background:#fff;border:3px solid #191919;padding:17px;min-width:0}
+.artlab-avatar-display{height:330px;overflow:hidden;border:2px solid #111;background:#f1eee7;position:relative}
+.artlab-avatar-display iframe{width:calc(100% + 26px);height:670px;transform-origin:top left;transform:translateY(-175px);border:0;pointer-events:none}
+.artlab-role-persona h3{margin:12px 0 6px;font-size:22px}
+.artlab-role-persona p{line-height:1.5;margin:8px 0}
+.artlab-role-clock{display:flex;justify-content:space-between;align-items:center;padding:12px;margin:13px 0;background:#e4dbff;font-weight:800}
+.artlab-role-clock strong{font-variant-numeric:tabular-nums;font-size:27px}
+.artlab-role-actions{display:flex;gap:8px;flex-wrap:wrap}
+.artlab-role-actions button{font-size:13px;flex:1}
+.artlab-role-log{min-height:270px;max-height:370px;overflow-y:auto;background:#f7f4ed;border:2px solid #222;padding:12px;display:flex;flex-direction:column;gap:10px}
+.artlab-message{background:#e3f3ff;border:1px solid #222;padding:12px;max-width:92%;align-self:start;line-height:1.5}
+.artlab-message.mine{background:#e7d9ff;align-self:end}
+.artlab-message strong{display:block;font-size:13px;margin-bottom:4px}
+.artlab-message p{margin:0;font-size:15px;white-space:pre-wrap}
+#artlabRoleForm{padding-top:12px}
+#artlabRoleForm label{font-weight:800;display:block;margin-bottom:7px}
+#artlabRoleInput{width:100%;resize:vertical;min-height:83px;box-sizing:border-box}
+#artlabRoleForm .row{margin:10px 0;gap:9px;flex-wrap:wrap}
+#artlabRoleFeedbackBox{margin-top:22px}
+.artlab-feedback-row{border-left:6px solid #4381ba;padding:11px 15px;margin:8px 0;background:#e6f2ff}
+.artlab-feedback-grammar{border-color:#db923b;background:#fff1d5}
+.artlab-feedback-vocabulary{border-color:#7b52d8;background:#eee5ff}
+.artlab-feedback-nextStep{border-color:#27966b;background:#ddf7ea}
+.artlab-feedback-row p{margin:4px 0 0;line-height:1.5}
+#artlabRoleSaveGrammar{display:flex;gap:8px;flex-wrap:wrap;padding:12px 0}
+#p5 .artlab-speaking-task{margin:20px 0}
+@media(max-width:900px){.artlab-role-layout{grid-template-columns:1fr}.artlab-avatar-display{height:280px}.artlab-avatar-display iframe{transform:translateY(-190px)}#p1 .split{grid-template-columns:1fr}}
+@media(max-width:600px){.artlab-role-picker{grid-template-columns:1fr}.artlab-role-persona,.artlab-role-chat{padding:12px}.artlab-role-option strong{font-size:19px}.artlab-role-actions{flex-direction:column}#p0 .mural-context{padding:13px}#p0 .lead{font-size:16px}}
+
+.artlab-voice-opt{display:flex;gap:9px;align-items:flex-start;font-size:13px;font-weight:700;margin-top:12px;line-height:1.4}.artlab-voice-opt input{margin-top:3px}
