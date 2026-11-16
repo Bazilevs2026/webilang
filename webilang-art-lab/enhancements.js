@@ -202,7 +202,113 @@ window.artSaveManualGrammar=function(){
  const msg=document.getElementById('grammarPracticeInstruction');
  if(msg)msg.textContent='✓ Added '+word+'. Choose Practise next to the item to start.';
 };
-window.artStockPractice=async function(type,oneItem){
+/* Six-step Stock practice: 2 recognize → 2 retrieve → 2 produce. */
+let artGrammarSession=null;
+async function artStockRequest(payload){
+ const r=await fetch('/api/artlab-stock-practice',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+ let result;try{result=await r.json()}catch{throw Error('The server did not return JSON (HTTP '+r.status+').')}
+ if(!r.ok)throw Error(result.error||'The AI request failed (HTTP '+r.status+').');return result;
+}
+function artGrammarNormalize(value){return String(value||'').toLowerCase().normalize('NFKC').replace(/[’]/g,"'").replace(/\s+/g,' ').replace(/[.!?,]+$/g,'').trim()}
+async function artGrammarMic(input,status,player,mic){
+ if(mic._recorder?.state==='recording'){
+  mic._recorder.stop();mic.textContent='🎙 Record answer';return;
+ }
+ if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){status.textContent='Voice input is unavailable in this browser. Please type your answer.';return}
+  const recognizer=new SR();recognizer.lang='en-US';recognizer.onresult=e=>{input.value=e.results[0][0].transcript;status.textContent='Speech recognized. Check the words, then press Check.'};recognizer.onerror=e=>status.textContent='Microphone error: '+e.error;recognizer.start();return;
+ }
+ try{
+  const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+  const recorder=new MediaRecorder(stream);mic._recorder=recorder;
+  const chunks=[];recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+  recorder.onstop=async()=>{
+   stream.getTracks().forEach(t=>t.stop());
+   const blob=new Blob(chunks,{type:recorder.mimeType||'audio/webm'});
+   if(mic._previousUrl)URL.revokeObjectURL(mic._previousUrl);
+   const url=URL.createObjectURL(blob);mic._previousUrl=url;player.src=url;player.hidden=false;
+   status.textContent='Recording saved. Transcribing your answer…';
+   try{
+    const bytes=new Uint8Array(await blob.arrayBuffer());
+    if(bytes.length>4500000)throw Error('Please keep your recording shorter.');
+    let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
+    const r=await fetch('/api/artlab-transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audioBase64:btoa(binary),mimeType:blob.type})});
+    const data=await r.json();if(!r.ok||!data.text)throw Error(data.error||'No transcription returned');
+    input.value=data.text.trim();status.textContent='✓ Transcribed. You can correct the text before checking.';
+   }catch(e){status.textContent='Recording saved, but transcription failed: '+e.message+'. Type your answer to check it.'}
+  };
+  recorder.start();mic.textContent='■ Stop recording';status.textContent='Recording… press Stop when finished.';
+ }catch(e){status.textContent='Microphone unavailable: '+e.message}
+}
+function artRenderSixStep(){
+ const session=artGrammarSession,holder=document.getElementById('stockGrammarExercise');
+ if(!session||!holder)return;
+ holder.replaceChildren();
+ const q=session.questions[session.index],i=session.index;
+ const top=document.createElement('div');top.className='stock-six-progress';
+ const title=document.createElement('strong');title.textContent=session.item+' · Question '+(i+1)+' / 6';top.append(title);
+ const phases=document.createElement('div');phases.className='stock-six-stages';
+ [['Recognize',0],['Retrieve',2],['Produce',4]].forEach(([name,position])=>{
+  const pill=document.createElement('span');pill.textContent=name+' · '+(i<position?'up next':i>=position+2?'✓ completed':'in progress');pill.className='stock-six-stage '+(i>=position&&i<position+2?'active':'');phases.append(pill);
+ });top.append(phases);holder.append(top);
+ const card=document.createElement('section');card.className='stock-six-task';
+ const stage=document.createElement('div');stage.className='stock-six-label';
+ stage.textContent=q.stage==='recognize'?'01 / Recognize · Choose the correct answer':q.stage==='retrieve'?'02 / Retrieve · Recall the correct form':'03 / Produce · Express your own idea';card.append(stage);
+ const prompt=document.createElement('p');prompt.className='stock-six-prompt';prompt.textContent=q.prompt;card.append(prompt);
+ const response=document.createElement('div');response.className='stock-six-response';
+ let chosen='';let input=null;
+ if(q.stage==='recognize'){
+  const options=document.createElement('div');options.className='stock-six-options';
+  q.options.forEach(value=>{const b=document.createElement('button');b.type='button';b.textContent=value;b.onclick=()=>{chosen=value;options.querySelectorAll('button').forEach(x=>x.classList.toggle('selected',x===b))};options.append(b)});
+  response.append(options);
+ }else{
+  input=document.createElement(q.stage==='produce'?'textarea':'input');input.placeholder=q.stage==='produce'?'Write your own sentence using the structure…':'Type the missing form or phrase…';
+  if(q.stage==='produce')input.rows=3;input.setAttribute('aria-label','Your English response');
+  response.append(input);
+  const speech=document.createElement('div');speech.className='stock-six-speech';
+  const mic=document.createElement('button');mic.type='button';mic.textContent='🎙 Record answer';mic.className='stock-six-mic';
+  const player=document.createElement('audio');player.controls=true;player.hidden=true;player.setAttribute('aria-label','Play your recorded answer');
+  const st=document.createElement('p');st.className='stock-six-voice-status';st.setAttribute('aria-live','polite');st.textContent='You can type or record. Recorded speech is transcribed into the same field.';
+  mic.onclick=()=>artGrammarMic(input,st,player,mic);speech.append(mic,player,st);response.append(speech);
+ }
+ card.append(response);
+ const controls=document.createElement('div');controls.className='stock-six-controls';
+ const check=document.createElement('button');check.type='button';check.textContent='Check answer';check.className='action violet';
+ const hint=document.createElement('button');hint.type='button';hint.textContent='Hint';hint.className='action secondary';
+ const next=document.createElement('button');next.type='button';next.textContent=i===5?'Finish practice ✓':'Next question →';next.className='action';next.disabled=true;
+ const feedback=document.createElement('div');feedback.className='stock-six-feedback';feedback.setAttribute('aria-live','polite');
+ let attempts=0;
+ hint.onclick=()=>{feedback.textContent='Hint: '+(q.hint||'Use the saved grammar structure.');feedback.className='stock-six-feedback hint'};
+ check.onclick=async()=>{
+  const answer=q.stage==='recognize'?chosen:input.value.trim();
+  if(!answer){feedback.textContent='Choose or enter an answer first.';return}
+  attempts++;check.disabled=true;feedback.textContent=q.stage==='produce'?'Checking your sentence with AI…':'Checking…';
+  let correct=false,explanation='';
+  if(q.stage==='produce'){
+   try{const result=await artStockRequest({mode:'evaluate',pattern:session.item,prompt:q.prompt,modelAnswer:q.answer,studentAnswer:answer});correct=result.correct===true;explanation=result.feedback+(result.example&&!correct?' Example: '+result.example:'')}
+   catch(err){feedback.textContent='AI answer checking unavailable: '+err.message;check.disabled=false;return}
+  }else{
+   correct=artGrammarNormalize(answer)===artGrammarNormalize(q.answer);
+   explanation=correct?'Correct — well done.':attempts===1?'Not quite. Try again.':'Try again. Hint: '+(q.hint||'Look at the structure.');
+  }
+  feedback.textContent=(correct?'✓ ':'')+explanation;feedback.className='stock-six-feedback '+(correct?'correct':'incorrect');
+  if(correct){next.disabled=false;check.textContent='✓ Checked';if(input)input.readOnly=true;session.completed[i]=true}
+  else check.disabled=false;
+ };
+ next.onclick=()=>{
+  if(i===5){holder.replaceChildren();const end=document.createElement('div');end.className='stock-six-complete';
+   end.textContent='✓ Six questions completed for '+session.item+'. Ready to practise another structure!';
+   const again=document.createElement('button');again.type='button';again.className='action violet';again.textContent='↻ New set';again.onclick=()=>window.artStockPractice('grammar',session.item);end.append(again);holder.append(end);
+   if(session.remaining.length){const following=document.createElement('button');following.type='button';following.className='action';following.textContent='Next saved structure →';following.onclick=()=>window.artStockPractice('grammar',session.remaining[0],session.remaining.slice(1));end.append(following)}
+   return;
+  }
+  session.index++;artRenderSixStep();
+ };
+ controls.append(check,hint,next);card.append(controls,feedback);holder.append(card);
+ if(input&&input.tagName==='INPUT')input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();check.click()}});
+}
+async function artLegacyWordStockPractice(type,oneItem){
  const data=getArtGrammarStore();
  const items=type==='grammar'?(oneItem?[oneItem]:data.grammar):(data.words||[]);
  const holder=document.getElementById(type==='grammar'?'stockGrammarExercise':'wordExercise');
@@ -257,6 +363,23 @@ window.artStockPractice=async function(type,oneItem){
   controls.append(check,hint);box.append(title,input,controls,status);stack.append(box);
  });
  holder.append(stack);
+};
+
+window.artStockPractice=async function(type,oneItem,remaining){
+ if(type!=='grammar')return artLegacyWordStockPractice('words');
+ const items=(getArtGrammarStore().grammar||[]).map(String);
+ const item=oneItem||items[0];const rest=remaining||(!oneItem?items.slice(1):[]);
+ const holder=document.getElementById('stockGrammarExercise');if(!holder)return;
+ if(!item){holder.textContent='Save a grammar structure first.';return}
+ const heading=document.getElementById('grammarPracticeHeading');if(heading)heading.textContent='Practise: '+item;
+ holder.replaceChildren();const pending=document.createElement('div');pending.className='stock-six-loading';pending.textContent='✨ Generating 2 Recognize + 2 Retrieve + 2 Produce questions for this structure…';holder.append(pending);
+ try{
+  const result=await artStockRequest({mode:'generate',pattern:item});
+  if(!Array.isArray(result.questions)||result.questions.length!==6)throw Error('Incorrect exercise count.');
+  const expected=['recognize','recognize','retrieve','retrieve','produce','produce'];
+  if(result.questions.some((q,i)=>!q||q.stage!==expected[i]))throw Error('Incorrect exercise structure.');
+  artGrammarSession={item,questions:result.questions,index:0,completed:{},remaining:rest};artRenderSixStep();
+ }catch(err){holder.replaceChildren();const error=document.createElement('p');error.className='grammar-practice-error';error.textContent='Could not generate this six-question set: '+err.message;const retry=document.createElement('button');retry.type='button';retry.className='action secondary';retry.textContent='↻ Retry';retry.onclick=()=>window.artStockPractice(type,item,rest);holder.append(error,retry)}
 };
 renderArtGrammarCards();
 
