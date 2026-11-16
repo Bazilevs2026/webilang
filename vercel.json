@@ -3,5 +3,10 @@
     "api/feedback.js": {
       "maxDuration": 30
     }
+  },
+  "git": {
+    "deploymentEnabled": {
+      "fix/rivera-comic-images": false
+    }
   }
 }

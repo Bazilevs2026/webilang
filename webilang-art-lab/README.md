@@ -21,11 +21,52 @@ Standalone, colorful A2–B1 English module with illustrated history, interactiv
 
 ## Deployment
 
-1. Extract this ZIP. Upload **all files and the `assets` and `api` folders** to the root of the GitHub repository associated with your *Art Lab*, not the art gallery.
-2. Import that repository in Vercel, using framework **Other** and root directory `./`.
+1. In this Webilang repository, keep the complete `webilang-art-lab` directory, including its assets and scripts. Do not move the lesson to the repository root.
+2. Use Vercel framework **Other**, repository root directory `./`, and serve the repository's static files (no separate build/output directory is required). The lesson is at `/webilang-art-lab/`. Its `<base href="/webilang-art-lab/">` also supports Vercel serving `/webilang-art-lab` without a redirect. A standalone copy at a different mount path must update this base URL.
 3. Under Vercel → Project → Settings → Environment Variables, set `OPENAI_API_KEY` (secret). Optionally set `ARTLAB_AI_MODEL` to a model compatible with JSON mode; default is `gpt-4o-mini`.
 4. Redeploy. The deployed site must support the `/api/coach`, `/api/transcribe`, and `/api/speak` serverless routes; a GitHub Pages static-only deployment cannot serve AI endpoints.
 5. Before publicly promoting the site, configure access controls, abuse/rate limits, a usage budget, and an appropriate privacy notice for student audio and AI processing.
+
+### Rivera image diagnosis and regression checks
+
+The eight JPEGs are committed, valid 762×250 images. On the existing
+`webilang-git-test-qwen-webilang.vercel.app` deployment, all eight
+`/webilang-art-lab/assets/rivera-N.jpg` URLs returned `200 image/jpeg` and matched
+the repository bytes. All eight `/assets/rivera-N.jpg` URLs returned 404.
+Vercel served both `/webilang-art-lab` and `/webilang-art-lab/` with 200, without
+canonicalizing to the trailing slash. The former made the original relative
+image, script, and stylesheet URLs resolve outside the lesson directory.
+The lesson base URL fixes this without changing routing for other modules.
+No rewrite or image optimization service is needed; `vercel.json` has no
+custom output directory or asset exclusions. Dashboard build/root overrides
+were not accessible, but the deployed nested files are present and served.
+The production homepage `webilang.vercel.app` returned 404 for this lesson at
+investigation time; verification used the existing `test-qwen` branch alias.
+
+Each comic image now overlays an embedded SVG with the scene number/title.
+An image error makes only the failed image transparent, exposing the fallback;
+the original image alt text, dialogue, and vocabulary button remain intact.
+No external placeholder or retry loop is involved. A successful later image
+load restores the JPEG. The SVG remains available even if lesson scripts fail.
+
+Run the browser regression tests from the repository root (Node 22+ and Chromium):
+
+```sh
+npm install --prefix /tmp/webilang-browser-tests --no-save playwright@1.65.1
+NODE_PATH=/tmp/webilang-browser-tests/node_modules CHROMIUM_PATH=/usr/bin/chromium \
+  node --test tests/rivera-comic.test.cjs
+```
+
+The local test server deliberately serves the slashless lesson URL without a
+redirect. Tests cover all eight JPEG responses and decoded images on desktop
+and mobile, each supported entry URL, all eight 404/corrupt-image fallbacks,
+image recovery, and vocabulary selection with images present or missing.
+External fonts/APIs are blocked in these tests; AI behavior is outside their scope.
+
+The repository's `vercel.json` disables automatic deployment only for
+`fix/rivera-comic-images` so review can happen without deploying the PR branch.
+Other branches retain their existing deployment behavior. No merge or
+deployment is part of this fix's verification.
 
 ## Functional limits
 
