@@ -1,0 +1,26 @@
+/* Kostya avatar floats independently of the Art Lab learning panels. */
+.artlab-avatar-window{position:fixed;z-index:150;right:18px;bottom:76px;width:min(470px,calc(100vw - 24px));height:min(690px,calc(100dvh - 105px));display:flex;flex-direction:column;border:3px solid #171717;background:#fff9ef;box-shadow:7px 7px 0 #171717;font-family:inherit;overflow:hidden}
+.artlab-avatar-hidden{display:none!important}
+.artlab-avatar-titlebar{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#ffd44e;border-bottom:3px solid #171717;padding:9px 13px;cursor:move;touch-action:none;user-select:none}
+.artlab-avatar-title{font-size:17px;font-weight:900}
+.artlab-avatar-buttons{display:flex;gap:6px}
+.artlab-avatar-buttons button{width:32px;height:31px;border:2px solid #171717;background:#fff;font-size:22px;line-height:1;font-weight:800;cursor:pointer}
+.artlab-avatar-tabs{display:flex;border-bottom:2px solid #171717}
+.artlab-avatar-tabs button{flex:1;padding:9px 5px;border:0;background:#fff;font-weight:800;font-size:13px;cursor:pointer}
+.artlab-avatar-tabs button.selected{background:#ded1ff;box-shadow:inset 0 -4px #704bff}
+.artlab-avatar-body{flex:1;overflow:auto;min-height:0}
+#artlabAvatarView{height:100%;display:flex;flex-direction:column}
+#artlabAvatarFrame{height:min(500px,60vh);width:100%;min-height:320px;border:0;background:#f2f4ed;display:block}
+.artlab-avatar-toolbar{display:flex;gap:7px;align-items:center;padding:10px 11px 3px}
+.artlab-avatar-toolbar button{background:#dcf6e8;border:2px solid #171717;padding:9px;font-size:12px;font-weight:800;cursor:pointer}
+.artlab-avatar-toolbar button:first-child{flex:1}
+.artlab-avatar-status{margin:7px 11px 13px;color:#555;line-height:1.45;font-size:12px}
+#artlabTextView{padding:10px}
+#artlabTextView .kostya-pane.artlab-avatar-text-pane{position:static!important;display:block!important;z-index:auto!important;width:100%!important;max-height:none!important;overflow:visible!important;border:0!important;box-shadow:none!important;padding:8px!important;background:#fff9ef!important}
+#artlabTextView .kostya-pane.artlab-avatar-text-pane>div:first-child{display:none}
+#artlabTextView .kostya-pane.artlab-avatar-text-pane .kostya-log{max-height:260px}
+.artlab-avatar-minimized{height:auto!important;width:min(330px,calc(100vw - 24px))}
+.artlab-avatar-minimized .artlab-avatar-tabs{display:none}
+.artlab-avatar-min-footer{font-size:12px;padding:9px 12px}
+@media(max-width:700px){.artlab-avatar-window{right:9px!important;left:9px!important;top:auto!important;bottom:66px!important;width:auto!important;height:min(650px,calc(100dvh - 120px))}.artlab-avatar-titlebar{cursor:default;touch-action:auto}#artlabAvatarFrame{height:min(440px,55dvh);min-height:270px}.artlab-avatar-status{font-size:11px}}
+#artlabAvatarView[hidden], #artlabTextView[hidden], #artlabAvatarBody[hidden], #artlabKostyaMinFooter[hidden]{display:none!important}
