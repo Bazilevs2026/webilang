@@ -22,6 +22,48 @@ export default async function handler(req, res) {
       {stage:'produce',prompt:'Your team is discussing the Rivera mural. Offer a solution using “Let me” and a base verb. Write a complete sentence.',options:[],answer:'Let me suggest a compromise for the exhibition.',hint:'Offer an idea using “Let me” + suggest / explain / show / propose. Other natural answers are accepted by AI evaluation.'}
     ];
   }
+
+  // For recurring grammar patterns returned by AI feedback, use pedagogically
+  // reviewed, deterministic tasks rather than rejecting an entire AI batch.
+  function curatedPractice(pattern){
+    const p=pattern.toLowerCase().replace(/[’‘]/g,"'").replace(/\s+/g,' ');
+    if(isLetMe)return letMePractice();
+    const q=(stage,prompt,answer,options=[],hint='Focus on the grammar structure.')=>({stage,prompt,answer,options,hint});
+    if(/question formation|question word order|where are you from/.test(p)) return [
+      q('recognize','Which question has correct word order?','Where are you from?',['Where is you from?','Where are you from?','Where you are from?'],'Put are before you.'),
+      q('recognize','Choose the grammatically correct question.','Why does the artist disagree?',['Why the artist does disagree?','Why does the artist disagree?','Why does the artist disagrees?'],'Use does + subject + base verb.'),
+      q('retrieve','Complete with ONE word: Where ___ you from?','are',[],'Use the present form of be with you.'),
+      q('retrieve','Complete with ONE word: What ___ you think about the mural?','do',[],'Use the auxiliary for present-simple questions with you.'),
+      q('produce','Ask Nova where she grew up. Write one complete, correctly ordered English question.','Where did you grow up?',[],'Use question word + auxiliary + subject + verb.'),
+      q('produce','Ask Chaz what he thinks about the painting. Write one complete English question.','What do you think about the painting?',[],'Use what + do + you + base verb.')
+    ];
+    if(/subject.verb agreement|i am,? not i is|i am not i is/.test(p)) return [
+      q('recognize','Which sentence uses the correct form of be?','I am ready for the exhibition.',['I is ready for the exhibition.','I are ready for the exhibition.','I am ready for the exhibition.'],'Use am with I.'),
+      q('recognize','Choose the grammatically correct sentence.','The artist is nervous.',['The artist are nervous.','The artist is nervous.','The artist am nervous.'],'Use is with a singular subject.'),
+      q('retrieve','Complete with ONE word: I ___ interested in modern art.','am',[],'After I, use am.'),
+      q('retrieve','Complete with ONE word: My friend ___ an artist.','is',[],'A single friend takes is.'),
+      q('produce','Write a full sentence introducing yourself with “I am”.','I am interested in painting.',[],'Use I am + complement.'),
+      q('produce','Write a full sentence describing Nova using “she is”.','She is a gallery director.',[],'Use She is + complement.')
+    ];
+    if(/subject\s*\+\s*verb\s*\+\s*object|i think rivera should|opinion sentence/.test(p))return [
+      q('recognize','Choose the correct sentence for giving an opinion.','I think Rivera should explain his idea.',['I think Rivera should explains his idea.','I think Rivera should to explain his idea.','I think Rivera should explain his idea.'],'After should, use the base verb.'),
+      q('recognize','Which sentence expresses an opinion correctly?','I believe the artist should speak to Nova.',['I believe the artist should speaks to Nova.','I believe the artist should speak to Nova.','I believe the artist should to speak to Nova.'],'Use I believe + subject + should + base verb.'),
+      q('retrieve','Complete with ONE word: I think Rivera ___ explain his idea.','should',[],'Use a modal for advice before a base verb.'),
+      q('retrieve','Complete with ONE word: I ___ the artist should talk to the sponsor.','think',[],'Use the verb that introduces an opinion after I.'),
+      q('produce','Give your opinion about the mural. Begin with “I think…” and write a complete sentence.','I think Rivera should keep the portrait.',[],'I think + subject + verb phrase.'),
+      q('produce','Suggest how to resolve the conflict. Use “I believe…” in a complete sentence.','I believe the two sides should discuss the mural.',[],'I believe + a complete clause.')
+    ];
+    if(/adjectives? to describe opinions|using adjectives|describe opinions/.test(p))return [
+      q('recognize','Which sentence uses an adjective correctly after be?','The painting is beautiful.',['The painting is beautifully.','The painting is beautiful.','The painting is beauty.'],'After is, use an adjective.'),
+      q('recognize','Choose the correct sentence about an exhibition.','I find this exhibition interesting.',['I find this exhibition interest.','I find this exhibition interestingly.','I find this exhibition interesting.'],'Use an adjective to describe the exhibition.'),
+      q('retrieve','Complete with ONE word (use the adjective form of “beauty”): The painting is ___.','beautiful',[],'The adjective is not the noun beauty.'),
+      q('retrieve','Complete with ONE word (use the adjective form of “interest”): The exhibition seems ___.','interesting',[],'Describe the thing that creates interest.'),
+      q('produce','Describe an unusual painting using one opinion adjective in a complete sentence.','I think the painting is fascinating.',[],'Give a real opinion using an adjective.'),
+      q('produce','Tell Nova what you think about the exhibition. Include a descriptive adjective in a full sentence.','I find the exhibition exciting.',[],'Use an adjective such as exciting, unusual, or impressive.')
+    ];
+    return null;
+  }
+
   const evaluating = `You are a precise A2-B1 language teacher. Assess whether the learner's original sentence uses the specified grammar pattern and responds appropriately to the task. Accept correct, natural alternatives, including answers different from the sample. Distinguish form errors from personal opinions. If the task specifies “Let me” + base verb, accept an appropriate full sentence such as “Let me explain my idea.” Return JSON only: {"correct":boolean,"feedback":"brief constructive feedback","example":"one possible answer"}.`;
   const generating = `You write A2–B1 English practice for exactly one grammar pattern: ${JSON.stringify(pattern)}.
 Generate exactly SIX questions in this order: 2 recognize (multiple choice), 2 retrieve (constrained gaps), 2 produce (open-ended sentences).
@@ -68,7 +110,8 @@ Return JSON only with {"questions":[{"stage":"recognize|retrieve|produce","promp
     }
     // Guarantee a well-designed set for the common conversational pattern
     // even when the model returns ambiguity or the service times out.
-    if(isLetMe){const questions=letMePractice();const issue=validate(questions);if(issue)throw Error('Internal Let me template invalid: '+issue);return res.status(200).json({pattern,questions:format(questions),source:'curated-grammar-template'});}
+    const reviewed=curatedPractice(pattern);
+    if(reviewed){const issue=validate(reviewed);if(issue)throw Error('Internal grammar template invalid: '+issue);return res.status(200).json({pattern,questions:format(reviewed),source:'curated-grammar-template'});}
     let previousIssue='';
     for(let attempt=0;attempt<3;attempt++){
       const result=await requestModel(generating,{pattern,level:'A2-B1',count:{recognize:2,retrieve:2,produce:2},repair:previousIssue||undefined},0.35,2500);
@@ -76,6 +119,6 @@ Return JSON only with {"questions":[{"stage":"recognize|retrieve|produce","promp
       if(!previousIssue)return res.status(200).json({pattern,questions:format(result.questions),source:'ai-generated'});
       console.warn('Art Lab rejected stock questions:',previousIssue);
     }
-    return res.status(422).json({error:'Could not generate unambiguous exercises for this structure. Please retry.'});
+    return res.status(422).json({error:'AI did not create six reliably checkable exercises for this particular pattern. The saved structure is safe; try a more specific grammar rule.'});
   } catch(e){console.error('Art Lab stock practice:',e);return res.status(502).json({error:'AI practice service temporarily unavailable. Please retry.'})}
 }
