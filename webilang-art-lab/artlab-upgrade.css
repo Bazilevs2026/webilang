@@ -82,3 +82,15 @@
 #artlabRolePartnerAudio,#artlabRoleRecording{width:100%;max-height:45px;margin:6px 0}
 #artlabRoleMic:not(:disabled){background:#6a47dd;color:white}
 #artlabRoleMic:disabled{opacity:.45}
+
+/* Single-session realtime voice layout */
+#p4 .artlab-role-log{min-height:140px;max-height:270px}
+#p4 .artlab-role-chat{justify-content:flex-start}
+#p4 #artlabRoleForm{margin-top:10px!important;border-top:1px solid #ddd;padding-top:12px}
+#p4 #artlabRoleInput{min-height:46px}
+#p4 .artlab-voice-status{background:#ddf6e8;border-left:5px solid #238053;padding:11px;margin:12px 0;font-size:14px;font-weight:700}
+#p4 #artlabRolePartnerAudio{width:100%;margin:10px 0}
+#p4 #artlabEnableAudio{margin:4px 0;padding:8px 12px;font-size:13px}
+#p4 .artlab-role-persona>.tiny{margin-top:10px}
+#p4 .artlab-role-log .theirs{background:#e1effd}
+#p4 .artlab-role-log .mine{background:#e5dbff}
