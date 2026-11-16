@@ -61,6 +61,39 @@ export default async function handler(req, res) {
       q('produce','Describe an unusual painting using one opinion adjective in a complete sentence.','I think the painting is fascinating.',[],'Give a real opinion using an adjective.'),
       q('produce','Tell Nova what you think about the exhibition. Include a descriptive adjective in a full sentence.','I find the exhibition exciting.',[],'Use an adjective such as exciting, unusual, or impressive.')
     ];
+    // Common A2–B1 patterns must remain usable during a lesson even without AI.
+    if(/should|must|might|modal verbs?|advice/.test(p)) return [
+      q('recognize','Choose the grammatically correct advice.','You should ask the artist.',['You should to ask the artist.','You should ask the artist.','You should asking the artist.'],'After should, use the base verb.'),
+      q('recognize','Choose the correct sentence.','The museum must protect the artwork.',['The museum must protects the artwork.','The museum must to protect the artwork.','The museum must protect the artwork.'],'Modal + base verb.'),
+      q('retrieve','Complete with ONE word: You ___ listen to both sides.','should',[],'Use a modal verb for advice.'),
+      q('retrieve','Complete with ONE word: We ___ respect different opinions.','must',[],'Use a modal verb for obligation.'),
+      q('produce','Give the gallery director one piece of advice using should.','You should talk to Rivera.',[],'Use subject + should + base verb.'),
+      q('produce','Describe one rule for a museum using must.','Visitors must respect the artworks.',[],'Use subject + must + base verb.')
+    ];
+    if(/past simple|simple past|past tense/.test(p)) return [
+      q('recognize','Choose the correct Past Simple sentence.','Rivera painted the mural.',['Rivera paint the mural yesterday.','Rivera painted the mural.','Rivera painting the mural.'],'Use the past form.'),
+      q('recognize','Choose the correct past negative.','They did not agree.',['They did not agreed.','They did not agree.','They not agreed.'],'Did not + base verb.'),
+      q('retrieve','Complete with ONE word: He ___ (paint) a mural in 1933.','painted',[],'Use regular Past Simple.'),
+      q('retrieve','Complete with ONE word: The managers ___ (ask) Rivera to change it.','asked',[],'Use -ed for this regular verb.'),
+      q('produce','Write a complete sentence about what you did yesterday. Use Past Simple.','I visited a museum yesterday.',[],'Use a past verb.'),
+      q('produce','Write a Past Simple negative sentence about last weekend.','I did not visit a gallery.',[],'Use did not + base verb.')
+    ];
+    if(/present perfect|have \+ past participle|has \+ past participle/.test(p)) return [
+      q('recognize','Choose the correct Present Perfect sentence.','I have visited the gallery.',['I has visited the gallery.','I have visit the gallery.','I have visited the gallery.'],'Have + past participle.'),
+      q('recognize','Choose the correct Present Perfect question.','Have you seen this painting?',['Did you seen this painting?','Have you seen this painting?','Have you saw this painting?'],'Have + subject + participle.'),
+      q('retrieve','Complete with ONE word: She ___ never seen this picture.','has',[],'Use has with she.'),
+      q('retrieve','Complete with ONE word: We have ___ (finish) our project.','finished',[],'Use the past participle.'),
+      q('produce','Write one Present Perfect sentence about a museum you have visited.','I have visited a museum in my city.',[],'Use have/has + past participle.'),
+      q('produce','Ask your friend a Present Perfect question about art.','Have you ever painted a picture?',[],'Use Have you ever + past participle.')
+    ];
+    if(/first conditional|if \+ present|conditional type 1/.test(p)) return [
+      q('recognize','Choose the correct first conditional sentence.','If we agree, we will save the mural.',['If we will agree, we save the mural.','If we agree, we will save the mural.','If we agrees, we will save the mural.'],'If + present, will + base verb.'),
+      q('recognize','Choose the correct sentence.','If it rains, we will stay inside.',['If it will rain, we stay inside.','If it rains, we will stay inside.','If it rain, we will stays inside.'],'Use present simple in the if-clause.'),
+      q('retrieve','Complete with ONE word: If they agree, they ___ keep the mural.','will',[],'Use will for the result.'),
+      q('retrieve','Complete with ONE word: If he ___ (refuse), the managers will be angry.','refuses',[],'Third-person singular present.'),
+      q('produce','Write a first conditional sentence about your weekend.','If it is sunny, I will go for a walk.',[],'If + present, will + base verb.'),
+      q('produce','Give the gallery a first conditional warning.','If you destroy the mural, people will complain.',[],'Use the first conditional for a real possible result.')
+    ];
     return null;
   }
 
@@ -75,7 +108,7 @@ Return JSON only with {"questions":[{"stage":"recognize|retrieve|produce","promp
   async function requestModel(system, user, temperature, max_tokens) {
     if (!process.env.OPENAI_API_KEY) throw Error('OPENAI_API_KEY is not configured');
     const upstream = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',headers: {Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,'Content-Type':'application/json'},
+      method: 'POST',signal: AbortSignal.timeout(15000),headers: {Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,'Content-Type':'application/json'},
       body: JSON.stringify({model,temperature,max_tokens,response_format:{type:'json_object'},messages:[{role:'system',content:system},{role:'user',content:JSON.stringify(user)}]})
     });
     const data=await upstream.json();
@@ -113,12 +146,12 @@ Return JSON only with {"questions":[{"stage":"recognize|retrieve|produce","promp
     const reviewed=curatedPractice(pattern);
     if(reviewed){const issue=validate(reviewed);if(issue)throw Error('Internal grammar template invalid: '+issue);return res.status(200).json({pattern,questions:format(reviewed),source:'curated-grammar-template'});}
     let previousIssue='';
-    for(let attempt=0;attempt<3;attempt++){
+    for(let attempt=0;attempt<1;attempt++){
       const result=await requestModel(generating,{pattern,level:'A2-B1',count:{recognize:2,retrieve:2,produce:2},repair:previousIssue||undefined},0.35,2500);
       previousIssue=validate(result.questions);
       if(!previousIssue)return res.status(200).json({pattern,questions:format(result.questions),source:'ai-generated'});
       console.warn('Art Lab rejected stock questions:',previousIssue);
     }
-    return res.status(422).json({error:'AI did not create six reliably checkable exercises for this particular pattern. The saved structure is safe; try a more specific grammar rule.'});
+    return res.status(422).json({error:'AI could not make a reliable grammar exercise set. Please choose a more specific pattern or try again.'});
   } catch(e){console.error('Art Lab stock practice:',e);return res.status(502).json({error:'AI practice service temporarily unavailable. Please retry.'})}
 }
