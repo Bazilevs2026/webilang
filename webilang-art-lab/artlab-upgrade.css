@@ -76,3 +76,9 @@
 @media(max-width:1050px){#p4 .artlab-role-layout{grid-template-columns:1fr 1fr}}
 @media(max-width:800px){#p4 .artlab-role-layout{grid-template-columns:1fr}#p4 .artlab-avatar-display{height:310px}#p4 .artlab-role-picker{grid-template-columns:1fr 1fr}}
 @media(max-width:550px){#p4 .artlab-role-picker{grid-template-columns:1fr}#p4 .artlab-avatar-display{height:260px}#p4 .artlab-role-actions{flex-direction:row;flex-wrap:wrap}#p4 .artlab-role-actions button{flex:1 1 150px}}
+
+/* Clear turn-taking status and audio controls */
+#artlabRoleVoiceStatus{background:#d9f2e6;border-left:5px solid #277b57;padding:9px 12px;margin:12px 0 6px;font-size:14px;font-weight:700;line-height:1.4}
+#artlabRolePartnerAudio,#artlabRoleRecording{width:100%;max-height:45px;margin:6px 0}
+#artlabRoleMic:not(:disabled){background:#6a47dd;color:white}
+#artlabRoleMic:disabled{opacity:.45}
