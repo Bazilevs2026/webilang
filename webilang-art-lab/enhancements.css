@@ -35,3 +35,21 @@
 .generated-practice input{width:100%;padding:9px;border:1px solid #111;margin:7px 0}
 @media(max-width:1100px){.nav{display:flex;overflow-x:auto;flex-wrap:nowrap;scroll-snap-type:x mandatory;padding-bottom:6px}.tab{min-width:105px;flex:0 0 auto;font-size:11px;scroll-snap-align:start}}
 @media(max-width:650px){#artTools button{padding:9px;font-size:11px}.mural-context{padding:14px}.route{padding-inline:12px}}
+
+/* Art Lab feedback categories: separate colors and readable typography */
+.feedback-review{background:#fffaf1;border:2px solid #202020;padding:clamp(15px,2.4vw,26px);font-weight:400}
+.feedback-review>h3{margin:0 0 14px;font-size:clamp(23px,3vw,30px)}
+.review-section{padding:14px 17px;margin:11px 0;border:2px solid #202020;border-left-width:9px;background:#fff}
+.review-section .review-label{display:block;font-size:16px;font-weight:900;letter-spacing:.015em;margin-bottom:5px}
+.review-section p{margin:0;line-height:1.6;font-size:15px;font-weight:500;overflow-wrap:anywhere}
+.review-interaction{background:#d9f0ff;border-left-color:#2486cd}.review-interaction .review-label{color:#125a93}
+.review-grammar{background:#fff0c0;border-left-color:#d98a13}.review-grammar .review-label{color:#935609}
+.review-vocabulary{background:#e4d8ff;border-left-color:#7950d6}.review-vocabulary .review-label{color:#5a329d}
+.review-nextStep{background:#d8f5e3;border-left-color:#20874f}.review-nextStep .review-label{color:#19673b}
+.feedback-review h4{margin:20px 0 6px;font-size:17px}.stock-save-status{font-weight:600;font-size:13px;line-height:1.4;color:#4a4a4a}
+.review-save-actions{display:grid;gap:10px;margin-top:12px}.feedback-review .stock-save-button{font-size:14px;padding:12px 14px;text-align:left;background:#ffcf57;border:2px solid #202020;min-height:48px;transition:background .15s,color .15s}
+.feedback-review .stock-save-button.stock-saved,.feedback-review .stock-save-button.stock-saved:disabled{background:#bdebd0;color:#155a38;border-color:#22764b;opacity:1;cursor:default;box-shadow:none}
+.practice-heading{font-weight:900;font-size:18px;margin:16px 0}.practice-warning{background:#fff0bb;border-left:5px solid #c67e18;padding:12px;font-size:13px;line-height:1.5}
+.generated-practice .task{padding:18px;background:#fff;border:2px solid #202020}.generated-practice .task>p:first-child{font-weight:800;font-size:16px;line-height:1.4}.practice-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.practice-item-feedback{min-height:20px;font-size:14px;font-weight:800}.practice-item-feedback.correct{color:#166a3d}.practice-item-feedback.incorrect{color:#9c3f23}
+@media(max-width:600px){.feedback-review{padding:12px}.review-section{padding:11px 12px}.review-section p{font-size:14px}}

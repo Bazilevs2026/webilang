@@ -29,9 +29,116 @@ const blobs={};const recorders={};
 window.artRecordToggle=async function(task){const status=document.getElementById('recStatus-'+task),audio=document.getElementById('recAudio-'+task),button=document.querySelector('[onclick="artRecordToggle(\''+task+'\')"]');if(recorders[task]?.state==='recording'){recorders[task].stop();button.textContent='🎙 Record again';return}if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){status.textContent='Recording is unavailable. Type your answer instead.';return}try{const stream=await navigator.mediaDevices.getUserMedia({audio:true});const chunks=[];let r=new MediaRecorder(stream);recorders[task]=r;r.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};r.onstop=async()=>{blobs[task]=new Blob(chunks,{type:r.mimeType||'audio/webm'});audio.src=URL.createObjectURL(blobs[task]);audio.classList.remove('hide');stream.getTracks().forEach(t=>t.stop());status.textContent='Recording saved on this device. Transcribing…';try{const raw=new Uint8Array(await blobs[task].arrayBuffer());if(raw.length>4500000)throw Error('Recording is too long; keep it under about 3 minutes.');let binary='';for(let i=0;i<raw.length;i+=8192)binary+=String.fromCharCode(...raw.subarray(i,i+8192));const audioBase64=btoa(binary);let response=await fetch('/api/artlab-transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audioBase64,mimeType:blobs[task].type})});let result=await response.json();if(!response.ok)throw Error(result.error||'Transcription unavailable');const box=document.getElementById(document.querySelector('[data-task="'+task+'"]').dataset.textarea);box.value=result.text;box.dispatchEvent(new Event('input',{bubbles:true}));status.textContent='AI transcription ready. Review or correct the text, then request AI feedback.'}catch(e){status.textContent='Audio recorded, but automatic transcription is unavailable: '+e.message+'. Type the answer above, or configure the AI service.'}};r.start();button.textContent='■ Stop recording';status.textContent='Recording… press Stop when finished.'}catch(e){status.textContent='Microphone permission denied or unavailable.'}};
 async function coach(payload){const r=await fetch('/api/artlab-coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const j=await r.json();if(!r.ok)throw Error(j.error||'AI service unavailable');return j}
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-window.artSaveGrammarItem=function(item){const input=document.getElementById('grammarInput');if(!input)return;input.value=item;if(typeof saveGrammarStock==='function')saveGrammarStock();document.getElementById('recFeedback-banana')?.scrollIntoView({block:'nearest'})};
-window.artAnalyze=async function(task){const wrapper=document.querySelector('[data-task="'+task+'"]');const text=document.getElementById(wrapper.dataset.textarea).value.trim(),feedback=document.getElementById('recFeedback-'+task);if(text.length<15){feedback.textContent='Please speak or type at least two sentences first.';return}feedback.textContent='Checking your reasoning and English…';try{const result=await coach({mode:'feedback',text,task,prompt:wrapper.dataset.prompt});feedback.replaceChildren();const intro=document.createElement('div');intro.className='feedback-grammar';const h=document.createElement('strong');h.textContent='AI feedback';intro.append(h);for(const k of ['interaction','grammar','vocabulary','nextStep']){let p=document.createElement('p');p.textContent=k+': '+(result[k]||'');intro.append(p)}let head=document.createElement('strong');head.textContent='Save a grammar item to My Grammar Stock:';intro.append(head);(result.grammarItems||[]).forEach(item=>{let b=document.createElement('button');b.textContent='＋ '+item;b.onclick=()=>artSaveGrammarItem(item);intro.append(b)});feedback.append(intro)}catch(e){feedback.textContent='AI feedback not available: '+e.message+'. Your answer remains available for teacher review.'}};
-window.artStockPractice=async function(type){let key='webilang-art-lab-personal-stocks-v2',stocks={};try{stocks=JSON.parse(localStorage.getItem(key)||'{}')}catch{};const items=type==='words'?(stocks.words||[]):(stocks.grammar||[]);let holder=document.getElementById(type==='words'?'wordExercise':'grammarExercise');if(!items.length){holder.textContent='Save items to your Stock first.';return}holder.textContent='Generating personalized exercises…';try{const result=await coach({mode:'practice',stockType:type,items:items.slice(-20)});holder.replaceChildren();let wrap=document.createElement('div');wrap.className='generated-practice';(result.questions||[]).forEach((q,i)=>{let c=document.createElement('div');c.className='task';let title=document.createElement('p');title.textContent=(i+1)+'. '+q.prompt;let answer=document.createElement('input');answer.placeholder='Write your answer';let check=document.createElement('button');check.className='action secondary';check.textContent='Check';let feedback=document.createElement('div');check.onclick=()=>{let a=answer.value.trim().toLowerCase().replace(/[.!?]/g,'');let wanted=(q.answer||'').trim().toLowerCase().replace(/[.!?]/g,'');feedback.textContent=a===wanted?'✓ Correct!':('Try again. Hint: '+(q.hint||'Review the expression.'))};c.append(title,answer,check,feedback);wrap.append(c)});holder.append(wrap)}catch(e){holder.textContent='AI generation unavailable: '+e.message+'. Loading local practice instead.';setTimeout(()=>{type==='words'?window.makeWordExercise?.():window.makeGrammarExercise?.()},1000)}};
+window.artSaveGrammarItem=function(item,button){
+ const value=String(item||'').trim();if(!value)return;
+ const key='webilang-art-lab-personal-stocks-v2';let stocks={};
+ try{stocks=JSON.parse(localStorage.getItem(key)||'{}')}catch{}
+ stocks.grammar=Array.isArray(stocks.grammar)?stocks.grammar:[];
+ const exists=stocks.grammar.some(s=>String(s).toLowerCase()===value.toLowerCase());
+ if(!exists)stocks.grammar.push(value);
+ localStorage.setItem(key,JSON.stringify(stocks));
+ // Keep the module's existing Stock UI in sync with the saved value.
+ try{if(typeof artStocks!=='undefined'){artStocks.grammar=stocks.grammar;if(typeof renderStocks==='function')renderStocks()}}catch(e){console.warn('Stock refresh:',e)}
+ if(button){button.textContent='✓ Saved to My Grammar Stock';button.classList.add('stock-saved');button.disabled=true;button.setAttribute('aria-pressed','true')}
+ const message=button?.closest('.feedback-grammar')?.querySelector('.stock-save-status');
+ if(message)message.textContent=exists?'Already saved.':'✓ Saved! Open My Grammar Stock to practise it.';
+};
+window.artAnalyze=async function(task){
+ const wrapper=document.querySelector('[data-task="'+task+'"]');if(!wrapper)return;
+ const text=document.getElementById(wrapper.dataset.textarea).value.trim();
+ const feedback=document.getElementById('recFeedback-'+task);
+ if(text.length<15){feedback.textContent='Please speak or type at least two sentences first.';return}
+ feedback.textContent='Checking your reasoning and English…';
+ try{
+  const result=await coach({mode:'feedback',text,task,prompt:wrapper.dataset.prompt});
+  feedback.replaceChildren();
+  const intro=document.createElement('div');intro.className='feedback-grammar feedback-review';
+  const h=document.createElement('h3');h.textContent='AI feedback';intro.append(h);
+  for(const [k,label] of [['interaction','Interaction'],['grammar','Grammar'],['vocabulary','Vocabulary'],['nextStep','Next step']]){
+   if(!result[k])continue;
+   const row=document.createElement('section');row.className='review-section review-'+k;
+   const name=document.createElement('strong');name.className='review-label';name.textContent=label;
+   const body=document.createElement('p');body.textContent=String(result[k]);row.append(name,body);intro.append(row);
+  }
+  const items=Array.isArray(result.grammarItems)?[...new Set(result.grammarItems.filter(x=>typeof x==='string'&&x.trim()).map(x=>x.trim()))]:[];
+  if(items.length){
+   const heading=document.createElement('h4');heading.textContent='Save a grammar item to My Grammar Stock';intro.append(heading);
+   const status=document.createElement('p');status.className='stock-save-status';status.setAttribute('aria-live','polite');status.textContent='Click an expression to save it.';intro.append(status);
+   let saved=[];try{saved=JSON.parse(localStorage.getItem('webilang-art-lab-personal-stocks-v2')||'{}').grammar||[]}catch{}
+   const actions=document.createElement('div');actions.className='review-save-actions';
+   items.forEach(item=>{
+    const b=document.createElement('button');b.type='button';b.className='stock-save-button';
+    const exists=saved.some(x=>String(x).toLowerCase()===item.toLowerCase());
+    b.textContent=exists?'✓ Saved to My Grammar Stock':'＋ '+item;
+    if(exists){b.classList.add('stock-saved');b.disabled=true}
+    b.onclick=()=>artSaveGrammarItem(item,b);actions.append(b);
+   });intro.append(actions);
+  }
+  feedback.append(intro);
+ }catch(e){feedback.textContent='AI feedback not available: '+e.message+'. Your answer remains available for teacher review.'}
+};
+function artLocalPractice(type,items){
+ const grammarBank=[
+  {test:/should|suggest/i,prompt:'The gallery ___ listen to both sides.',answer:'should',hint:'Use a modal for advice.'},
+  {test:/because|reason/i,prompt:'Rivera refused ___ the portrait mattered to his message.',answer:'because',hint:'Introduce a reason.'},
+  {test:/present continuous|ongoing/i,prompt:'The artist ___ painting a mural right now.',answer:'is',hint:'Use the present continuous form of be.'},
+  {test:/might have|past participle/i,prompt:'The artist ___ have found another solution.',answer:'might',hint:'Use a modal of uncertain past possibility.'},
+  {test:/if|conditional|will/i,prompt:'If they agree, they ___ save the mural.',answer:'will',hint:'Use the first conditional.'},
+  {test:/past simple/i,prompt:'The managers ___ the mural in 1934. (destroy)',answer:'destroyed',hint:'Use the simple past tense.'},
+  {test:/must|obligation/i,prompt:'The artist ___ follow the safety rules.',answer:'must',hint:'Express an obligation.'}
+ ];
+ const vocabBank=[
+  {test:/mural/i,prompt:'A large painting made on a wall is a ___.',answer:'mural',hint:'Starts with m.'},
+  {test:/refuse/i,prompt:'To say no to a request is to ___.',answer:'refuse',hint:'Starts with r.'},
+  {test:/compromise/i,prompt:'An agreement in which both sides make changes is a ___.',answer:'compromise',hint:'Starts with c.'},
+  {test:/consequence/i,prompt:'The result of a decision is a ___.',answer:'consequence',hint:'Starts with c.'},
+  {test:/controversial/i,prompt:'A painting that causes a public debate is ___.',answer:'controversial',hint:'Starts with c.'}
+ ];
+ const bank=type==='grammar'?grammarBank:vocabBank;
+ const selected=items.map(item=>bank.find(b=>b.test.test(String(item)))).filter(Boolean);
+ const unique=[...new Set(selected)].slice(0,5);
+ // Local sample practice is explicitly marked: it is not presented as AI-generated practice.
+ return (unique.length?unique:bank.slice(0,3)).map(({prompt,answer,hint})=>({prompt,answer,hint}));
+}
+window.artStockPractice=async function(type){
+ const key='webilang-art-lab-personal-stocks-v2';let stocks={};
+ try{stocks=JSON.parse(localStorage.getItem(key)||'{}')}catch{}
+ const items=type==='words'?(stocks.words||[]):(stocks.grammar||[]);
+ const holder=document.getElementById(type==='words'?'wordExercise':'grammarExercise');if(!holder)return;
+ holder.textContent=items.length?'Generating AI exercises for '+items.length+' saved item(s)…':'Save items to My '+(type==='words'?'Word':'Grammar')+' Stock first.';
+ if(!items.length)return;
+ let questions=[],error='';
+ try{
+  const result=await coach({mode:'practice',stockType:type,items:items.slice(-20)});
+  if(!Array.isArray(result.questions)||!result.questions.length)throw Error('No questions returned.');
+  questions=result.questions.filter(q=>q&&typeof q.prompt==='string'&&q.prompt.trim()&&typeof q.answer==='string'&&q.answer.trim()).slice(0,7);
+  if(!questions.length)throw Error('The generated exercises were incomplete.');
+ }catch(e){error=e.message||'Request failed';questions=artLocalPractice(type,items)}
+ holder.replaceChildren();
+ const title=document.createElement('p');title.className='practice-heading';title.textContent=error?'Local sample practice':'✨ AI-generated practice · '+questions.length+' questions';holder.append(title);
+ if(error){const note=document.createElement('p');note.className='practice-warning';note.textContent='AI generation failed: '+error+'. Showing local sample questions instead.';holder.append(note)}
+ const wrap=document.createElement('div');wrap.className='generated-practice';
+ questions.forEach((q,i)=>{
+  const card=document.createElement('section');card.className='task';
+  const prompt=document.createElement('p');prompt.textContent=(i+1)+'. '+q.prompt;
+  const input=document.createElement('input');input.placeholder='Type your answer';input.setAttribute('aria-label','Answer '+(i+1));
+  const check=document.createElement('button');check.type='button';check.className='action secondary';check.textContent='Check answer';
+  const hint=document.createElement('button');hint.type='button';hint.className='action secondary';hint.textContent='Hint';
+  const status=document.createElement('p');status.className='practice-item-feedback';status.setAttribute('aria-live','polite');
+  let tries=0;
+  check.onclick=()=>{
+   tries++;const norm=t=>String(t||'').toLowerCase().replace(/[.!?,]/g,'').replace(/\s+/g,' ').trim();
+   const correct=norm(input.value)===norm(q.answer);
+   status.textContent=correct?'✓ Correct!':tries<2?'Not quite. Try again.':'Hint: '+(q.hint||'Review the expression.');
+   status.className='practice-item-feedback '+(correct?'correct':'incorrect');
+   if(correct){check.disabled=true;input.disabled=true}
+  };
+  hint.onclick=()=>{status.textContent=q.hint||'Review the expression.'};
+  input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();check.click()}});
+  const actions=document.createElement('div');actions.className='practice-actions';actions.append(check,hint);
+  card.append(prompt,input,actions,status);wrap.append(card);
+ });holder.append(wrap);
+};
 window.artResetPage=function(){if(!confirm('Reset this page? This clears progress, selections, My Word Stock, My Grammar Stock and saved answers on this device.'))return;['webilang-art-lab-v1','webilang-art-lab-personal-stocks-v2','webilang-art-lab-lesson-progress-v3'].forEach(k=>localStorage.removeItem(k));location.reload()};
 window.artShowKostya=function(force){let pane=document.getElementById('kostyaPane');pane.classList.toggle('hide',force===false?true:force===true?false:!pane.classList.contains('hide'))};
 window.artKostyaSend=async function(e){e.preventDefault();const inp=document.getElementById('kostyaQuestion'),log=document.getElementById('kostyaLog'),q=inp.value.trim();if(!q)return;inp.value='';let x=document.createElement('div');x.className='kostya-msg user';x.textContent=q;log.append(x);let pending=document.createElement('div');pending.className='kostya-msg';pending.textContent='Kostya is thinking…';log.append(pending);try{const selected=document.querySelector('.panel.active h2')?.textContent||'Art Lab';const result=await coach({mode:'kostya',text:q,context:selected});pending.textContent=result.answer||'No answer returned.'}catch(err){pending.textContent='Kostya needs an active AI connection on this site. '+err.message}log.scrollTop=log.scrollHeight};
