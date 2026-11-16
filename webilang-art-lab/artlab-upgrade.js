@@ -3,8 +3,8 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
 const roleInfo={
- nova:{name:'Nova',role:'Gallery director',brief:'You direct a gallery preparing a Rivera exhibition. The sponsor worries about controversy. Negotiate a fair decision with the learner.',hello:'Welcome. The sponsor wants us to remove Lenin’s portrait. What would you recommend, and why?',goal:'You are the gallery director. Ask about the sponsor’s concerns and decide how to protect artistic freedom while keeping the exhibition open.'},
- chaz:{name:'Chaz',role:'Independent artist',brief:'You are an independent painter whose work is criticized as too simple. Challenge the learner to explain artistic value without attacking personal opinions.',hello:'Someone said my painting looks like a child could make it. Do you think it can still be good art?',goal:'You are an independent artist. Discuss the meaning and value of unusual artworks. Decide together what the exhibition label should say.'}
+ nova:{name:'Nova',role:'Gallery director',brief:'You direct a gallery preparing a Rivera exhibition. The sponsor worries about controversy. Negotiate a fair decision with the learner.',hello:'Welcome. The sponsor wants us to remove Lenin’s portrait. What would you recommend, and why?',goal:'Nova wants to keep the sponsor but protect the artist. Your goal: agree on a fair solution.'},
+ chaz:{name:'Chaz',role:'Independent artist',brief:'You are an independent painter whose work is criticized as too simple. Challenge the learner to explain artistic value without attacking personal opinions.',hello:'Someone said my painting looks like a child could make it. Do you think it can still be good art?',goal:'Chaz believes art should communicate an idea. Your goal: challenge his view and agree on one sentence for the exhibition label.'}
 };
 let role='nova',roleStart=0,roleTick=null,roleHistory=[],roleBusy=false,roleRecorder=null,roleRecording=[],roleStream=null,roleRecordTimeout=null;
 const escapeHtml=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -12,8 +12,31 @@ function status(message){if($('artlabRoleStatus'))$('artlabRoleStatus').textCont
 function secsLeft(){return Math.max(0,300-Math.floor((Date.now()-roleStart)/1000))}
 function clock(){if(!roleStart)return;const s=secsLeft();$('artlabRoleTime').textContent=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;if(s===0)window.artlabEndRoleplay()}
 function append(who,text){roleHistory.push({who,text});const log=$('artlabRoleMessages');if(!log)return;const p=document.createElement('div');p.className='artlab-message '+(who==='You'?'mine':'theirs');const b=document.createElement('strong');b.textContent=who;const q=document.createElement('p');q.textContent=text;p.append(b,q);log.append(p);log.scrollTop=log.scrollHeight}
-function connectAvatar(){const frame=$('artlabRoleAvatar');if(!frame)return;const set=()=>{try{const doc=frame.contentDocument;const select=doc?.getElementById('modelMode');if(select){select.value=role;select.dispatchEvent(new Event('change',{bubbles:true}))}}catch(e){console.debug('Visual avatar selection unavailable:',e)}};frame.addEventListener('load',set,{once:false});set()}
-window.artlabChooseRole=function(next,btn){if(roleStart)return status('End the current roleplay before switching characters.');role=next==='chaz'?'chaz':'nova';document.querySelectorAll('.artlab-role-option').forEach(b=>b.classList.toggle('active',b.dataset.liveRole===role));$('artlabRoleName').textContent=roleInfo[role].name+' · '+roleInfo[role].role.toLowerCase();$('artlabRoleGoal').textContent=roleInfo[role].goal;$('artlabRoleMessages').replaceChildren();$('artlabRoleTime').textContent='05:00';$('artlabRoleFeedbackBox').hidden=true;status('Selected '+roleInfo[role].name+'. Press Start when ready.');connectAvatar()};
+function connectAvatar(){
+ const frame=$('artlabRoleAvatar');if(!frame)return;
+ // Reuse the existing Webilang 3D model, but display the stage ONLY.
+ // The old translated iframe showed a chopped face and inaccessible realtime buttons.
+ const set=()=>{try{
+  const doc=frame.contentDocument;if(!doc)return;
+  if(!doc.getElementById('artlab-portrait-only')){
+   const style=doc.createElement('style');style.id='artlab-portrait-only';
+   style.textContent=`html,body{margin:0!important;overflow:hidden!important;height:100%!important;background:#e2e8df!important}
+   body .wrap{padding:0!important;margin:0!important;max-width:none!important;width:100%!important}
+   body .wrap>header,body .wrap>h1,body .wrap>p,body .wrap>footer,body .layout>.panel,body .stageTag{display:none!important}
+   body .layout{display:block!important;margin:0!important;padding:0!important}
+   body .stage{display:block!important;width:100%!important;height:100vh!important;min-height:0!important;border:0!important;border-radius:0!important;overflow:hidden!important}
+   body #scene{height:100%!important;width:100%!important}
+   body .layout>.stage{margin:0!important}`;
+   doc.head.append(style);
+  }
+  const select=doc.getElementById('modelMode');
+  if(select&&select.value!==role){select.value=role;select.dispatchEvent(new Event('change',{bubbles:true}))}
+  const label=document.querySelector('.artlab-avatar-label');if(label)label.textContent=roleInfo[role].name.toUpperCase()+' · 3D CHARACTER';
+ }catch(e){console.debug('Art Lab avatar stage unavailable:',e)}};
+ if(!frame.dataset.artlabListener){frame.dataset.artlabListener='1';frame.addEventListener('load',set)}
+ if(frame.contentDocument?.readyState==='complete')set();
+}
+window.artlabChooseRole=function(next,btn){if(roleStart)return status('End the current roleplay before switching characters.');role=next==='chaz'?'chaz':'nova';document.querySelectorAll('.artlab-role-option').forEach(b=>b.classList.toggle('active',b.dataset.liveRole===role));$('artlabRoleName').textContent=roleInfo[role].name+' · '+roleInfo[role].role.toLowerCase();$('artlabRoleChatName').textContent=roleInfo[role].name;$('artlabRoleGoal').textContent=roleInfo[role].goal;$('artlabRoleMessages').replaceChildren();$('artlabRoleTime').textContent='05:00';$('artlabRoleFeedbackBox').hidden=true;status('Selected '+roleInfo[role].name+'. Press Start when ready.');connectAvatar()};
 window.artlabStartRoleplay=function(){if(roleStart)return;roleStart=Date.now();roleHistory=[];$('artlabRoleMessages').replaceChildren();$('artlabRoleFeedbackBox').hidden=true;append(roleInfo[role].name,roleInfo[role].hello);$('artlabRoleStart').disabled=true;$('artlabRoleEnd').disabled=false;$('artlabRoleSend').disabled=false;$('artlabRoleMic').disabled=false;$('artlabRoleInput').disabled=false;roleTick=setInterval(clock,1000);clock();status('Roleplay started. Max 5 minutes. You may speak or type.');};
 async function postJSON(url,payload){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});let data;try{data=await r.json()}catch{throw Error('Server returned an unreadable response')}if(!r.ok)throw Error(data.error||'AI service unavailable');return data}
 window.artlabSendRoleMessage=async function(ev){ev.preventDefault();const input=$('artlabRoleInput'),text=input.value.trim();if(!roleStart||roleBusy||!text||!secsLeft())return;input.value='';append('You',text);roleBusy=true;$('artlabRoleSend').disabled=true;status(roleInfo[role].name+' is responding…');

@@ -48,3 +48,31 @@
 @media(max-width:600px){.artlab-role-picker{grid-template-columns:1fr}.artlab-role-persona,.artlab-role-chat{padding:12px}.artlab-role-option strong{font-size:19px}.artlab-role-actions{flex-direction:column}#p0 .mural-context{padding:13px}#p0 .lead{font-size:16px}}
 
 .artlab-voice-opt{display:flex;gap:9px;align-items:flex-start;font-size:13px;font-weight:700;margin-top:12px;line-height:1.4}.artlab-voice-opt input{margin-top:3px}
+
+/* Roleplay usability repair: compact two-column layout, genuine full portrait stage,
+   never crop or overlay the avatar application's buttons. */
+#p4{overflow:visible}
+#p4 .artlab-role-picker{gap:12px;margin:14px 0 16px}
+#p4 .artlab-role-option{padding:12px 16px;gap:5px;min-height:86px}
+#p4 .artlab-role-option strong{font-size:21px}
+#p4 .artlab-role-option small{font-size:13px}
+#p4 .artlab-role-layout{grid-template-columns:minmax(290px,0.9fr) minmax(370px,1.1fr);align-items:stretch;gap:14px}
+#p4 .artlab-role-persona,#p4 .artlab-role-chat{padding:14px;min-width:0}
+#p4 .artlab-avatar-display{height:clamp(240px,26vw,350px);border:2px solid #222;overflow:hidden;position:relative;background:#e8e9db}
+#p4 .artlab-avatar-display iframe{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;transform:none!important;border:0!important;pointer-events:none!important}
+#p4 .artlab-avatar-label{position:absolute;left:9px;top:9px;background:#ffcf54;border:2px solid #222;padding:5px 9px;font-weight:800;font-size:12px;pointer-events:none}
+#p4 .artlab-role-persona h3{margin:9px 0 4px;font-size:18px}
+#p4 .artlab-role-persona p{font-size:14px;margin:6px 0}
+#p4 .artlab-role-clock{padding:8px 12px;margin:10px 0}
+#p4 .artlab-role-clock strong{font-size:22px}
+#p4 .artlab-role-actions button{min-width:0;font-size:12px;padding:10px 9px}
+#p4 .artlab-role-conversation-title{font-size:19px;margin:2px 0 10px}
+#p4 .artlab-role-log{min-height:210px;max-height:265px;gap:7px}
+#p4 #artlabRoleForm{padding-top:10px}
+#p4 #artlabRoleInput{min-height:68px}
+#p4 .artlab-role-chat{display:flex;flex-direction:column}
+#p4 .artlab-role-chat #artlabRoleForm{margin-top:auto}
+#p4 .artlab-role-persona .tiny{font-size:11px;line-height:1.4}
+@media(max-width:1050px){#p4 .artlab-role-layout{grid-template-columns:1fr 1fr}}
+@media(max-width:800px){#p4 .artlab-role-layout{grid-template-columns:1fr}#p4 .artlab-avatar-display{height:310px}#p4 .artlab-role-picker{grid-template-columns:1fr 1fr}}
+@media(max-width:550px){#p4 .artlab-role-picker{grid-template-columns:1fr}#p4 .artlab-avatar-display{height:260px}#p4 .artlab-role-actions{flex-direction:row;flex-wrap:wrap}#p4 .artlab-role-actions button{flex:1 1 150px}}
