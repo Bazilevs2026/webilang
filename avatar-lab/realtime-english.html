@@ -213,6 +213,15 @@ function resize(){
 }
 new ResizeObserver(resize).observe(host);resize();
 let nextBlink=2.5,blinkStart=-1;
+// Separate Art Lab WebRTC audio drives existing VRM mouth expression without owning the avatar's microphone.
+let artlabExternalLevel=0,artlabExternalAt=0;
+window.addEventListener('message',event=>{
+  if(event.origin!==location.origin||event.source!==window.parent)return;
+  const d=event.data;
+  if(d?.source!=='webilang-artlab'||d.type!=='avatar-audio-level')return;
+  artlabExternalLevel=Math.max(0,Math.min(1,Number(d.level)||0));
+  artlabExternalAt=Date.now();
+});
 function frame(){
  requestAnimationFrame(frame);
  const isKostya=document.body.classList.contains('kostya-teacher');
@@ -245,7 +254,8 @@ function frame(){
    }
    const em=currentVrm.expressionManager;
    if(em){
-     const talk=active?(.14+.57*Math.abs(Math.sin(t*10.5)*Math.cos(t*3.7))):0;
+     const externalRecent=Date.now()-artlabExternalAt<220;
+     const talk=externalRecent?artlabExternalLevel:(active?(.14+.57*Math.abs(Math.sin(t*10.5)*Math.cos(t*3.7))):0);
      em.setValue('aa',talk);em.setValue('blink',blink);
      // Keep the optional smile subtle and avoid overriding models without this expression.
      if(em.getExpression?.('happy'))em.setValue('happy',active?.055:.025);
