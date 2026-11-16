@@ -52,7 +52,15 @@ const status=el('div',{'aria-live':'polite'});const msg=el('div',{class:'learnin
 let entered='';let inp=null;let answerOk=false;let checks=0;
 if(item.options){const choices=el('div',{class:'exercise-choices'});item.options.forEach(val=>{const b=el('button',{type:'button'},val);b.onclick=()=>{entered=val;choices.querySelectorAll('button').forEach(x=>x.classList.toggle('selected',x===b))};choices.append(b)});host.append(choices)}else{const line=el('div',{class:'exercise-input'});inp=el('input',{type:'text',placeholder:'Type the missing word or expression','aria-label':'Your English answer',autocomplete:'off',spellcheck:'false'});inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();check.onclick()}};const mic=el('button',{type:'button',class:'learn-btn alt','aria-label':'Say your answer'},'🎤 Speak');mic.onclick=()=>recognition(inp,status,mic);line.append(inp,mic);host.append(line)}
 const controls=el('div',{class:'exercise-controls'});const hear=el('button',{type:'button',class:'learn-btn ghost'},'🔊 Listen');hear.onclick=()=>speak(item.audio,status);const hint=el('button',{type:'button',class:'learn-btn ghost'},'💡 Hint');hint.onclick=()=>{msg.className='learning-feedback info';msg.textContent=item.hint};const check=el('button',{type:'button',class:'learn-btn'},'Check answer');const next=el('button',{type:'button',class:'learn-btn alt'},'Next →');next.disabled=true;
-check.onclick=()=>{const value=inp?inp.value:entered;if(!value.trim()){msg.className='learning-feedback incorrect';msg.textContent='Enter or choose an answer first.';return}checks++;const good=norm(value)===norm(item.answer);if(good){answerOk=true;s.passed[key]=true;save();msg.className='learning-feedback';msg.textContent='Correct! “'+item.answer+'” — well done. Listen once more or continue.';next.disabled=false;check.disabled=true; if(inp)inp.disabled=true}else{msg.className='learning-feedback incorrect';msg.textContent=checks>=2?'Not yet. Hint: '+item.hint:'Not quite. Check the sentence and try again. You can use the Hint button.'}};
+check.onclick=()=>{const value=inp?inp.value:entered;if(!value.trim()){msg.className='learning-feedback incorrect';msg.textContent='Enter or choose an answer first.';return}checks++;const good=norm(value)===norm(item.answer);
+// A single, consistent checked-answer event for the Kostya lesson bridge.
+window.dispatchEvent(new CustomEvent('webilang-artlab-answer-checked',{detail:{
+ area,topic:area==='grammar'?GR[s.topic].title:'Vocabulary',stage:s.stage,
+ question:item.prompt,studentAnswer:value,expectedAnswer:item.answer,
+ verifiedCorrectness:good?'correct':'incorrect',hint:item.hint,
+ index:s.idx+1,total
+}}));
+if(good){answerOk=true;s.passed[key]=true;save();msg.className='learning-feedback';msg.textContent='Correct! “'+item.answer+'” — well done. Listen once more or continue.';next.disabled=false;check.disabled=true; if(inp)inp.disabled=true}else{msg.className='learning-feedback incorrect';msg.textContent=checks>=2?'Not yet. Hint: '+item.hint:'Not quite. Check the sentence and try again. You can use the Hint button.'}};
 next.onclick=()=>{s.idx++;s.answered=false;render(area)};controls.append(hear,hint,check,next);host.append(controls,msg,status);
 }
 renderFlash();render('vocab');render('grammar');

@@ -27,7 +27,6 @@ windowEl.innerHTML=`
    <div id="artlabAvatarView">
      <iframe id="artlabAvatarFrame" title="Kostya voice avatar" allow="microphone; autoplay" loading="lazy"></iframe>
      <div class="artlab-avatar-toolbar">
-       <button type="button" id="artlabAvatarContextBtn">↗ Prepare current exercise</button>
        <button type="button" id="artlabAvatarReloadBtn" title="Reload avatar">↻ Reload</button>
      </div>
      <p class="artlab-avatar-status" id="artlabAvatarStatus" aria-live="polite">Press “Talk to Kostya” inside the avatar to start voice. You can also use Text chat if realtime voice is unavailable.</p>
@@ -86,7 +85,7 @@ function sendContext(){
   status.textContent='Could not reach the embedded voice input. Text chat is available instead.';
  }
 }
-document.getElementById('artlabAvatarContextBtn').onclick=sendContext;
+
 
 /* Art Lab → Kostya live lesson context bridge.
    Same-origin postMessage schema already implemented by realtime-english.html.
@@ -109,40 +108,72 @@ function sendArtLessonContext(){
  frame.contentWindow.postMessage(context,location.origin);
 }
 function artCheckedResult(container,button){
- let task=container?.querySelector('.stock-six-prompt,.grammar-task-prompt,.quiz-item h4,.task h4,.task p')?.textContent||'';
- let answer=container?.querySelector('.stock-six-options .selected,.quiz-options .chosen')?.textContent||'';
+ let task=container?.querySelector('.stock-six-prompt,.grammar-task-prompt,.quiz-item h4,.practice-frame .prompt,.task h4,.task p')?.textContent||'';
+ let answer=container?.querySelector('.stock-six-options .selected,.quiz-options .chosen,.exercise-choices .selected')?.textContent||'';
  if(!answer)answer=container?.querySelector('textarea,input:not([type="hidden"]):not([type="radio"])')?.value||'';
- const feedback=container?.querySelector('.stock-six-feedback,.quiz-feedback,.grammar-answer-status,.practice-item-feedback,.stock-six-voice-status')||null;
+ const feedback=container?.querySelector('.stock-six-feedback,.quiz-feedback,.grammar-answer-status,.practice-item-feedback,.stock-six-voice-status,.learning-feedback')||null;
  let verdict='unknown';
- if(feedback?.classList.contains('correct')||/^✓\s*(correct|well done)/i.test(feedback?.textContent||''))verdict='correct';
+ if(feedback?.classList.contains('correct')||/^(?:✓\s*)?correct\b/i.test(feedback?.textContent||''))verdict='correct';
  else if(feedback?.classList.contains('incorrect')||/^(not quite|not yet|try again)/i.test(feedback?.textContent.trim()||''))verdict='incorrect';
  // Never send a correctness claim until the checker has produced a result.
- const options=[...(container?.querySelectorAll('.stock-six-options button,.quiz-options button')||[])].map(x=>brief(x.textContent,120));
+ const options=[...(container?.querySelectorAll('.stock-six-options button,.quiz-options button,.exercise-choices button')||[])].map(x=>brief(x.textContent,120));
  if(!task)return;
  lastArtExercise={question:brief(task,850),studentAnswer:brief(answer,450),options,field:'Art Lab exercise'};
  lastArtCheck={kind:button.textContent.toLowerCase().includes('feedback')?'ai_review':'answer_check',button:brief(button.textContent,90),task:brief(task,650),studentAnswer:brief(answer,200),expectedAnswer:'',verifiedCorrectness:verdict,visibleFeedbackAfter:feedback?.textContent.trim()?[brief(feedback.textContent,1900)]:[],source:'Art Lab check button',at:Date.now()};
  sendArtLessonContext();
 }
 function artWatchCheckButton(button){
- const card=button.closest('.stock-six-task,.quiz-item,.task,.oral-feedback,.card')||button.parentElement;
+ const card=button.closest('.stock-six-task,.quiz-item,.task,.oral-feedback,.card,.practice-frame')||button.parentElement;
  if(!card)return;
- const status=card.querySelector('.stock-six-feedback,.quiz-feedback,.grammar-answer-status,.practice-item-feedback');
- // Check functions may be asynchronous. Observe feedback and send it only once it changes.
+ const status=card.querySelector('.stock-six-feedback,.quiz-feedback,.grammar-answer-status,.practice-item-feedback,.learning-feedback');
+ // Listen for a changed checker response; never treat an old 'Try again' as a new check.
+ const initial=status?.textContent||'';
+ let sent=false;
+ const publish=()=>{
+  if(sent)return;
+  const txt=(status?.textContent||'').trim();
+  if(!txt||txt===initial.trim()||/^(checking|select an answer|choose or enter|now check)/i.test(txt))return;
+  sent=true;observer?.disconnect();artCheckedResult(card,button);
+ };
  let observer=null;
- if(status){
-  observer=new MutationObserver(()=>{if(status.textContent.trim()&&!/^(Checking|Choose or enter|Now check)/i.test(status.textContent.trim())){artCheckedResult(card,button);observer.disconnect()}});
+ if(status){observer=new MutationObserver(publish);
   observer.observe(status,{childList:true,characterData:true,subtree:true,attributes:true});
   setTimeout(()=>observer.disconnect(),12000);
  }
- setTimeout(()=>{if(!status||status.textContent.trim()&&!/^(Checking|Choose or enter|Now check)/i.test(status.textContent.trim()))artCheckedResult(card,button)},100);
+ setTimeout(publish,180);
 }
 document.addEventListener('click',event=>{
  const button=event.target.closest('button');if(!button)return;
  const label=button.textContent.trim();
  if(!/^(check answer|check|AI feedback|✓ checked)$/i.test(label))return;
  if(button.closest('#artlabKostyaWindow'))return;
+ // These two lessons publish their exact, verified result directly.
+ if(button.closest('#grammarExercise,#vocabExercise'))return;
  artWatchCheckButton(button);
 },true);
+// Authoritative results from the mandatory Grammar and Vocabulary lessons.
+// These are generated by the checker itself, not guessed from DOM text.
+window.addEventListener('webilang-artlab-answer-checked',event=>{
+ const d=event.detail||{};
+ if(!d.question || !d.studentAnswer)return;
+ const panel=artLessonSection();
+ const title=brief(d.topic||artCurrentTitle(),160);
+ lastArtExercise={question:brief(d.question,850),studentAnswer:brief(d.studentAnswer,450),
+   options:[],field:brief(d.area||'Art Lab',100)};
+ lastArtCheck={kind:'answer_check',task:brief(d.question,650),
+   studentAnswer:brief(d.studentAnswer,250),expectedAnswer:brief(d.expectedAnswer,250),
+   verifiedCorrectness:d.verifiedCorrectness==='correct'?'correct':'incorrect',
+   visibleFeedbackAfter:[d.verifiedCorrectness==='correct'?'Correct.': 'Incorrect. '+brief(d.hint,280)],
+   section:brief(panel?.id,60),topic:title,stage:brief(d.stage,80),
+   source:'verified Art Lab '+brief(d.area,50)+' checker',at:Date.now()};
+ sendArtLessonContext();
+});
+// When the student changes activities, announce the new section without
+// inventing a checked answer for it. Earlier results stay clearly labelled.
+window.addEventListener('webilang-artlab-activity-reset',()=>{
+ lastArtCheck=null;lastArtExercise=null;sendArtLessonContext();
+});
+
 // The parent already knows the exact checked result; sharing it doesn't trigger speech.
 frame.addEventListener('load',()=>{setTimeout(sendArtLessonContext,250)});
 window.addEventListener('message',event=>{
@@ -151,11 +182,8 @@ window.addEventListener('message',event=>{
   status.textContent=event.data.connected?'✓ Kostya is aware of your latest checked exercise. Ask him about it.':'✓ Exercise context received. Start Talk to Kostya for voice assistance.';
  }
 });
-document.getElementById('artlabAvatarContextBtn').textContent='↗ Update Kostya with current exercise';
-document.getElementById('artlabAvatarContextBtn').onclick=()=>{
- sendArtLessonContext();
- status.textContent='Latest checked task sent to Kostya. You can ask about it directly.';
-};
+// The learner never needs to update Kostya manually.
+// His voice session receives automatic, silent updates on every check.
 
 // Desktop drag; touch devices keep the window pinned so controls remain on-screen.
 const handle=document.getElementById('artlabKostyaDrag');
