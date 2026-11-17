@@ -136,46 +136,85 @@ async function request(payload, signal) {
   const response = await fetch('/api/artlab-word-practice', { method: 'POST', signal, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` }, body: JSON.stringify(payload) });
   const data = await response.json(); if (!response.ok) throw Error(data.error || 'AI practice is unavailable.'); return data;
 }
+function equivalentRetrieval(actual, expected) {
+  const tidy = value => normal(value).replace(/[.!?]+$/, '').replace(/\s+/g, ' ');
+  const got = tidy(actual), wanted = tidy(expected);
+  if (got === wanted) return true;
+  // Students may use a grammatically suitable inflection of the same English word.
+  if (wanted.length < 4) return false;
+  return [wanted+'s',wanted+'es',wanted.replace(/e$/,'')+'ing',wanted+'ing',wanted+'ed',wanted.replace(/e$/,'')+'ed'].includes(got);
+}
 function showExercises(exercises, target, version) {
   const holder = $('wordExercise');
+  const stageNames = ['1. Recognition — understand', '2. Retrieval — remember', '3. Production — make it yours'];
+  const cards = [];
+  const unlock = index => {
+    if (!cards[index]) return;
+    cards[index].hidden = false;
+    cards[index].scrollIntoView?.({block:'nearest',behavior:'smooth'});
+    $('wordPracticeStatus').textContent = stageNames[index]+' · '+target;
+  };
   exercises.forEach((q, index) => {
     const card = document.createElement('section'); card.className = 'word-exercise-card';
-    const label = document.createElement('label'); label.htmlFor = `word-answer-${index}`; label.textContent = `${index + 1}. ${q.prompt}`;
-    const input = document.createElement(q.type === 'meaning' ? 'select' : q.type === 'production' ? 'textarea' : 'input'); input.id = label.htmlFor;
-    if (q.type === 'meaning') { input.append(new Option('Choose an answer', '')); q.options.forEach(option => input.append(new Option(option, option))); }
+    card.hidden = index !== 0;
+    const heading = document.createElement('h4'); heading.textContent = stageNames[index];
+    const label = document.createElement('label'); label.htmlFor = `word-answer-${index}`; label.textContent = q.prompt;
+    const input = document.createElement(index===0 ? 'select' : index===2 ? 'textarea' : 'input'); input.id = label.htmlFor;
+    if(index===0){
+      input.append(new Option('Choose an answer', ''));
+      // Rotate option order by target and current timestamp, without changing the correct answer.
+      const options = [...q.options];
+      const indexOfAnswer = options.indexOf(q.answer);
+      if(indexOfAnswer===0) options.push(options.shift());
+      options.forEach(option=>input.append(new Option(option,option)));
+    }
+    if(index===2){input.rows=3;input.placeholder='Write 1–3 meaningful sentences…';}
+    else if(index===1){input.placeholder='Recall the missing word';input.autocomplete='off';}
     const controls = document.createElement('div'); controls.className = 'row';
-    const check = document.createElement('button'); check.type = 'button'; check.className = 'action secondary'; check.textContent = 'Check';
-    const hint = document.createElement('button'); hint.type = 'button'; hint.className = 'action secondary'; hint.textContent = 'Hint';
-    const feedback = document.createElement('p'); feedback.className = 'word-exercise-feedback'; feedback.setAttribute('role', 'status');
-    const hintText = document.createElement('p'); hintText.hidden = true; hintText.textContent = q.hint;
-    hint.onclick = () => { hintText.hidden = !hintText.hidden; hint.setAttribute('aria-expanded', String(!hintText.hidden)); };
-    hint.setAttribute('aria-expanded', 'false');
-    check.onclick = async () => {
-      if (!input.value.trim()) { feedback.textContent = 'Write or choose an answer first.'; return; }
-      if (q.type !== 'production') { const correct = normal(input.value).replace(/[.!?]$/, '') === normal(q.answer).replace(/[.!?]$/, ''); feedback.textContent = correct ? `✓ Correct. ${q.explanation}` : `Not yet. ${q.hint} Try again or open the hint.`; return; }
-      check.disabled = true; feedback.textContent = 'Checking your sentence…';
-      try { const result = await request({ mode: 'check', target, exercise: q, answer: input.value.slice(0,1200) }, controller?.signal); if (version === revision) feedback.textContent = `${result.correct ? '✓ ' : 'Try again. '}${result.feedback}`; }
-      catch (error) { if (version === revision) feedback.textContent = `Check unavailable: ${error.message}. Your answer remains here.`; }
-      finally { if (version === revision) check.disabled = false; }
+    const check = document.createElement('button'); check.type='button';check.className='action secondary';
+    check.textContent = index===2?'Review my answer':'Check';
+    const hint = document.createElement('button');hint.type='button';hint.className='action secondary';hint.textContent='Hint';
+    const feedback = document.createElement('p');feedback.className='word-exercise-feedback';feedback.setAttribute('role','status');
+    const hintText = document.createElement('p');hintText.hidden=true;hintText.textContent=q.hint;
+    hint.onclick=()=>{hintText.hidden=!hintText.hidden;hint.setAttribute('aria-expanded',String(!hintText.hidden));};
+    hint.setAttribute('aria-expanded','false');
+    let unlocked = false;
+    check.onclick=async()=>{
+      if(!input.value.trim()){feedback.textContent='Write or choose an answer first.';return;}
+      if(index!==2){
+        const correct = index===0 ? normal(input.value)===normal(q.answer) : equivalentRetrieval(input.value,q.answer);
+        feedback.textContent = correct ? '✓ Correct! '+q.explanation : 'Not quite. '+(index===0?'Look again at the context. ':'Check the situation and try recalling the word. ')+'You can use Hint.';
+        if(correct&&!unlocked){unlocked=true;unlock(index+1);}
+        return;
+      }
+      check.disabled=true;feedback.textContent='Reviewing your answer…';
+      try{
+        const result=await request({mode:'check',target,exercise:q,answer:input.value.slice(0,1200)},controller?.signal);
+        if(version===revision)feedback.textContent=`${result.correct===true?'✓ ':result.correct===false?'Try again. ':'Review pending. '}${result.feedback}`;
+      }catch(error){if(version===revision)feedback.textContent=`Review unavailable: ${error.message}. Your answer is still here.`;}
+      finally{if(version===revision)check.disabled=false;}
     };
-    input.addEventListener('keydown', event => { if (event.key === 'Enter' && input.tagName !== 'TEXTAREA') { event.preventDefault(); check.click(); } });
-    controls.append(check, hint); card.append(label, input, controls, hintText, feedback); holder.append(card);
+    input.addEventListener('keydown',e=>{if(e.key==='Enter'&&input.tagName!=='TEXTAREA'){e.preventDefault();check.click();}});
+    controls.append(check,hint);card.append(heading,label,input,controls,hintText,feedback);holder.append(card);cards.push(card);
   });
 }
 async function generate() {
-  if (!ready || !selected) return;
-  const target = wordOf(rows.find(row => normal(wordOf(row)) === selected));
-  clear(); const version = revision; controller = new AbortController();
-  $('wordPracticeGenerate').disabled = true; $('wordPracticeStatus').textContent = `Generating five exercises for “${target}”…`;
-  try {
-    const result = await request({ mode: 'generate', target }, controller.signal);
-    if (version !== revision) return;
-    const types = ['gap','meaning','collocation','completion','production'];
-    if (!Array.isArray(result.exercises) || result.exercises.length !== 5 || result.exercises.some((q,i) => q.target !== target || q.type !== types[i] || !q.prompt || !q.answer || !q.hint || !q.explanation || !Array.isArray(q.options) || q.type === 'meaning' && !q.options.includes(q.answer))) throw Error('The AI returned an incomplete or mixed-target set. Please retry.');
-    showExercises(result.exercises, target, version); $('wordPracticeStatus').textContent = `${result.source === 'offline-reviewed' ? 'Reviewed offline exercises (AI unavailable)' : 'Five AI exercises'} for “${target}”.`;
-  } catch (error) { if (version === revision) $('wordPracticeStatus').textContent = `Could not generate practice: ${error.message}. Your words are unchanged.`; }
-  finally { if (version === revision) $('wordPracticeGenerate').disabled = false; }
+  if(!ready||!selected)return;
+  const target=wordOf(rows.find(row=>normal(wordOf(row))===selected));
+  clear();const version=revision;controller=new AbortController();
+  $('wordPracticeGenerate').disabled=true;
+  $('wordPracticeStatus').textContent=`Preparing Recognition → Retrieval → Production for “${target}”…`;
+  try{
+    const result=await request({mode:'generate',target},controller.signal);
+    if(version!==revision)return;
+    const types=['recognition','retrieval','production'];
+    if(!Array.isArray(result.exercises)||result.exercises.length!==3||result.exercises.some((q,i)=>q.target!==target||q.type!==types[i]||!q.prompt||!q.answer||!q.hint||!q.explanation||!Array.isArray(q.options)||(i===0?!q.options.includes(q.answer):q.options.length!==0)))throw Error('The exercise set was incomplete. Please retry.');
+    showExercises(result.exercises,target,version);
+    $('wordPracticeStatus').textContent=`${result.source==='offline-reviewed'?'Reviewed offline practice (AI unavailable)':'AI practice'} · Begin with Recognition.`;
+  }catch(error){if(version===revision)$('wordPracticeStatus').textContent=`Practice unavailable: ${error.message}. No generic exercises were substituted; your saved words remain unchanged.`;}
+  finally{if(version===revision)$('wordPracticeGenerate').disabled=false;}
 }
+
 renderStaged();
 $('wordPracticeGenerate').onclick = generate; $('wordPracticeClear').onclick = clear; $('wordStockRefresh').onclick = () => enqueue(refresh);
 $('wordStockImport').onclick = async () => {
