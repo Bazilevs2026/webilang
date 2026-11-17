@@ -61,6 +61,9 @@ $('readingSaveWords')?.addEventListener('click',saveStaged);
 $('readingClearSelection')?.addEventListener('click',clearStaged);
 window.artStageWord=stageWord;
 function clear() {
+  stopDictation();
+  if('speechSynthesis' in window) window.speechSynthesis.cancel();
+  document.querySelectorAll('.word-stock-select').forEach(b=>{ if(b.dataset.visibleWord){b.textContent=b.dataset.visibleWord;delete b.dataset.visibleWord;} });
   revision++; controller?.abort(); controller = null;
   $('wordExercise').replaceChildren(); $('wordPracticeStatus').textContent = '';
   $('wordPracticeGenerate').disabled = !ready || !selected;
@@ -144,15 +147,66 @@ function equivalentRetrieval(actual, expected) {
   if (wanted.length < 4) return false;
   return [wanted+'s',wanted+'es',wanted.replace(/e$/,'')+'ing',wanted+'ing',wanted+'ed',wanted.replace(/e$/,'')+'ed'].includes(got);
 }
+// Speech controls are additive: the existing Word Stock playback and saving logic are untouched.
+// Browser-native speech recognition puts text into the same editable answer field as typing.
+let activeDictation = null;
+function stopDictation(){
+  if(activeDictation){ try { activeDictation.stop(); } catch {} activeDictation=null; }
+}
+function listenTo(text, feedback){
+  if(!('speechSynthesis' in window)){
+    feedback.textContent='Audio is unavailable in this browser. You can still read the question.';
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const voice=new SpeechSynthesisUtterance(text);
+  voice.lang='en-US'; voice.rate=0.82; voice.pitch=1;
+  window.speechSynthesis.speak(voice);
+}
+function addDictation(input, controls, feedback){
+  const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const button=document.createElement('button');
+  button.type='button';button.className='action secondary';
+  button.textContent='🎙 Speak answer';button.setAttribute('aria-label','Speak your answer instead of typing');
+  controls.append(button);
+  if(!Recognition){
+    button.disabled=true;
+    button.title='Speech recognition is not available in this browser. Type your answer instead.';
+    return;
+  }
+  button.onclick=()=>{
+    if(activeDictation){stopDictation();button.textContent='🎙 Speak answer';return;}
+    const recog=new Recognition();
+    recog.lang='en-US';recog.interimResults=false;recog.maxAlternatives=1;
+    activeDictation=recog;button.textContent='■ Stop listening';
+    feedback.textContent='Listening… Speak clearly. Your answer will appear in the text box.';
+    recog.onresult=event=>{
+      const spoken=event.results?.[0]?.[0]?.transcript||'';
+      if(spoken){input.value=input.tagName==='TEXTAREA'&&input.value.trim()?input.value.trim()+' '+spoken:spoken;input.dispatchEvent(new Event('input',{bubbles:true})); feedback.textContent='Speech captured. You can edit your answer before pressing Check.';}
+    };
+    recog.onerror=event=>{feedback.textContent='Microphone unavailable ('+(event.error||'unknown error')+'). You can type instead.';};
+    recog.onend=()=>{if(activeDictation===recog)activeDictation=null;button.textContent='🎙 Speak answer';};
+    try{recog.start();}catch{feedback.textContent='Could not start microphone. Type your answer instead.';activeDictation=null;button.textContent='🎙 Speak answer';}
+  };
+}
 function showExercises(exercises, target, version) {
   const holder = $('wordExercise');
-  const stageNames = ['1. Recognition — understand', '2. Retrieval — remember', '3. Production — make it yours'];
+  const stageNames = ['1. Recognition — understand', '2. Retrieval — remember', '3. Production — use it yourself'];
   const cards = [];
   const unlock = index => {
     if (!cards[index]) return;
     cards[index].hidden = false;
     cards[index].scrollIntoView?.({block:'nearest',behavior:'smooth'});
-    $('wordPracticeStatus').textContent = stageNames[index]+' · '+target;
+    // During Retrieval, conceal the answer in the header AND selected Stock chip.
+    const chosen=document.querySelector('.word-stock-select[aria-pressed="true"]');
+    if(index===1){
+      $('wordPracticeHeading').textContent='Retrieval — remember the word';
+      if(chosen&&!chosen.dataset.visibleWord){chosen.dataset.visibleWord=chosen.textContent;chosen.textContent='••• Hidden during recall';}
+    }else if(index===2){
+      $('wordPracticeHeading').textContent='Practise: '+target;
+      if(chosen?.dataset.visibleWord){chosen.textContent=chosen.dataset.visibleWord;delete chosen.dataset.visibleWord;}
+    }
+    $('wordPracticeStatus').textContent = stageNames[index];
   };
   exercises.forEach((q, index) => {
     const card = document.createElement('section'); card.className = 'word-exercise-card';
@@ -162,25 +216,25 @@ function showExercises(exercises, target, version) {
     const input = document.createElement(index===0 ? 'select' : index===2 ? 'textarea' : 'input'); input.id = label.htmlFor;
     if(index===0){
       input.append(new Option('Choose an answer', ''));
-      // Rotate option order by target and current timestamp, without changing the correct answer.
       const options = [...q.options];
-      const indexOfAnswer = options.indexOf(q.answer);
-      if(indexOfAnswer===0) options.push(options.shift());
+      if(options.indexOf(q.answer)===0) options.push(options.shift());
       options.forEach(option=>input.append(new Option(option,option)));
     }
-    if(index===2){input.rows=3;input.placeholder='Write 1–3 meaningful sentences…';}
-    else if(index===1){input.placeholder='Recall the missing word';input.autocomplete='off';}
+    if(index===2){input.rows=3;input.placeholder='Write or speak a short personal answer…';}
+    else if(index===1){input.placeholder='Type or say the missing word';input.autocomplete='off';}
     const controls = document.createElement('div'); controls.className = 'row';
     const check = document.createElement('button'); check.type='button';check.className='action secondary';
     check.textContent = index===2?'Review my answer':'Check';
     const hint = document.createElement('button');hint.type='button';hint.className='action secondary';hint.textContent='Hint';
+    const listen=document.createElement('button');listen.type='button';listen.className='action secondary';listen.textContent='🔊 Listen to question';
     const feedback = document.createElement('p');feedback.className='word-exercise-feedback';feedback.setAttribute('role','status');
     const hintText = document.createElement('p');hintText.hidden=true;hintText.textContent=q.hint;
     hint.onclick=()=>{hintText.hidden=!hintText.hidden;hint.setAttribute('aria-expanded',String(!hintText.hidden));};
     hint.setAttribute('aria-expanded','false');
+    listen.onclick=()=>listenTo(q.prompt,feedback);
     let unlocked = false;
     check.onclick=async()=>{
-      if(!input.value.trim()){feedback.textContent='Write or choose an answer first.';return;}
+      if(!input.value.trim()){feedback.textContent='Write, say or choose an answer first.';return;}
       if(index!==2){
         const correct = index===0 ? normal(input.value)===normal(q.answer) : equivalentRetrieval(input.value,q.answer);
         feedback.textContent = correct ? '✓ Correct! '+q.explanation : 'Not quite. '+(index===0?'Look again at the context. ':'Check the situation and try recalling the word. ')+'You can use Hint.';
@@ -195,15 +249,20 @@ function showExercises(exercises, target, version) {
       finally{if(version===revision)check.disabled=false;}
     };
     input.addEventListener('keydown',e=>{if(e.key==='Enter'&&input.tagName!=='TEXTAREA'){e.preventDefault();check.click();}});
-    controls.append(check,hint);card.append(heading,label,input,controls,hintText,feedback);holder.append(card);cards.push(card);
+    controls.append(check,hint,listen);
+    if(index>0)addDictation(input,controls,feedback);
+    const note=document.createElement('p');note.className='note';
+    note.textContent=index===0?'Listen or read, then choose the meaning.':index===1?'The target word is hidden in this task. Speak or type your answer.':'Speak or type a meaningful answer. Review the transcript before checking.';
+    card.append(heading,label,note,input,controls,hintText,feedback);holder.append(card);cards.push(card);
   });
 }
+
 async function generate() {
   if(!ready||!selected)return;
   const target=wordOf(rows.find(row=>normal(wordOf(row))===selected));
   clear();const version=revision;controller=new AbortController();
   $('wordPracticeGenerate').disabled=true;
-  $('wordPracticeStatus').textContent=`Preparing Recognition → Retrieval → Production for “${target}”…`;
+  $('wordPracticeStatus').textContent='Preparing Recognition → Retrieval → Production…';
   try{
     const result=await request({mode:'generate',target},controller.signal);
     if(version!==revision)return;
