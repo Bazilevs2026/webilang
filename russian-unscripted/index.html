@@ -90,9 +90,8 @@ header{background:#fff9f1f0;border-bottom:1px solid #e3d6d9}
 
 
 
-
 /* V2.7 — compact floating Kostya with visible grammar answers */
-.ru-kostya-drawer{width:min(390px,calc(100vw - 24px))!important;max-height:min(70dvh,590px)!important;overflow:auto!important;right:14px;bottom:70px;top:auto;}
+.ru-kostya-drawer{width:min(430px,calc(100vw - 24px))!important;max-height:min(76dvh,690px)!important;overflow:auto!important;right:14px;bottom:70px;top:auto;}
 .ru-kostya-drawer .ru-kostya-where{font-size:12px;max-height:45px;overflow:hidden;}
 .ru-kostya-drawer .ru-kostya-tabs{margin:7px 0 5px;}
 .ru-kostya-drawer .ru-kostya-tabs button{font-size:12px;padding:7px 9px}
@@ -361,9 +360,6 @@ function renderPractice(box,items){
      // Productive responses have multiple valid forms. Never mark a valid alternative wrong.
      status.textContent='Твой ответ сохранён здесь. Нажми «Показать ответ» для сравнения или попроси Костю проверить его по смыслу.';
     }else if(revealed){status.textContent='Ответ был открыт. Попробуй следующее упражнение без подсказки.';}
-    else if(/как (?:ты|вы) себя чувствуе|какое.*настроени|что (?:ты|вы) чувствуе/i.test(q.prompt||'')){
-     status.textContent='Здесь нет одного правильного ответа. Можно чувствовать себя по-разному. Задание составлено неудачно.';
-    }
     else if(norm(value)===norm(q.answer)){status.textContent='✓ Правильно!';}
     else status.textContent='Пока не совсем. Попробуй ещё или нажми «Подсказка».';
     ruScheduleKostyaContext?.();
@@ -524,6 +520,7 @@ const ruFilmCulturalGuide=`КОНТЕКСТ ПРОИЗВЕДЕНИЯ. «Ирон
 Различай ТРИ причины: 1) почему улетел не туда — выпивка и ошибка друзей, 2) почему открыл чужую квартиру — одинаковый адрес и подходящий ключ, 3) почему не заметил ошибку — опьянение и похожая обстановка. Это художественное преувеличение и шутка о типовой советской застройке.
 В АДАПТИРОВАННОМ ТЕКСТЕ написано «друзья ... выпили» и «Женя уже почти ничего не понимал», но прямого слова «пьяный» может не быть. Если студент спрашивает, ЧТО СКАЗАНО В ТЕКСТЕ, используй именно текст. Если спрашивает о фильме или причине событий, добавь общеизвестный КУЛЬТУРНЫЙ КОНТЕКСТ со словами «В фильме…». Не утверждай, что студент прочитал то, чего в тексте нет.
 Отвечай на русском A1–A2, кратко (обычно 1–3 предложения), либо по-английски по просьбе.`;
+const ruKostyaTeachingPrinciples=`ТЫ НЕ ТОЛЬКО ПРОВЕРЯЮЩИЙ, НО И ПРЕПОДАВАТЕЛЬ. Не считай ответ неверным просто потому, что он не совпал с ключом. Если вопрос неоднозначен (например, «Как ты себя чувствуешь, когда ждёшь поезд?» и варианты «спокойно», «весело», «грустно»), все варианты могут быть логичны. Вежливо признай проблему задания: «Ты прав: это неудачный вопрос. Все три ответа могут подойти! Давай исправим задание». Если ученик смеётся над нелепым заданием, можно коротко дружелюбно пошутить с ним. Не защищай ошибку теста и не приписывай ученику ошибку, которой нет. Различай проверку грамматической формы (один правильный ответ) и личное мнение (часто несколько правильных). В случае противоречия между ответом ученика и ключом проверяй СМЫСЛ и контекст, а не только ключ. Говори просто, естественно по-русски A1–A2, можешь переключиться на английский по просьбе.`;
 // Give Kostya current, observed lesson context, never fabricated correctness.
 let ruKostyaLastCheck=null;
 function ruBuildKostyaContext(){
@@ -558,12 +555,9 @@ function ruBuildKostyaContext(){
  const inputs=[...app.querySelectorAll('textarea,input[type=text],input:not([type])')].filter(e=>e.value?.trim()).slice(-5).map(e=>({field:e.id||e.placeholder||'ответ',value:e.value.trim().slice(0,400)}));
  const isFilmReading=active===2;
  const ctx={source:'webilang-lesson',type:'context',version:1,courseLanguage:'Russian',title:'Russian Unscripted · Module 01',url:location.href,activeSection:section,
-  activeTask:(heading+' · '+chosen+' · '+question+(isFilmReading?' · История по фильму «Ирония судьбы»; см. контекст произведения.':'')+' · Если задание неоднозначное, признай это: несколько ответов могут быть правильными. Никогда не защищай неверный ключ.').slice(0,850),focusedField:focus?.id||'',focusedPassage:isFilmReading?ruFilmCulturalGuide.slice(0,830):question.slice(0,650),
+  activeTask:(heading+' · '+chosen+' · '+question+(isFilmReading?' · История по фильму «Ирония судьбы»; см. контекст произведения.':'')).slice(0,850),focusedField:focus?.id||'',focusedPassage:(isFilmReading?ruFilmCulturalGuide.slice(0,550)+' · ':question.slice(0,500)+' · ')+ruKostyaTeachingPrinciples.slice(0,1100),
   culturalBackground:isFilmReading?ruFilmCulturalGuide:'',
   studentInputs:inputs,currentExercise:{question:question.slice(0,780),studentAnswer:String(answer).slice(0,450),options,field:focus?.id||''}};
- if(/как (?:ты|вы) себя чувствуе|какое.*настроени|что (?:ты|вы) чувствуе/i.test(question)){
-  ctx.currentExercise.question+=' [ОШИБКА ЗАДАНИЯ: чувства субъективны, разные варианты могут быть верны; не называй ответ студента ошибкой. Коротко признай нелепость задания, можешь доброжелательно пошутить.]';
- }
  if(ruKostyaLastCheck&&ruKostyaLastCheck.section===section)ctx.lastCheck=ruKostyaLastCheck.data;
  return ctx;
 }
@@ -589,9 +583,7 @@ function ruCompactKostyaEmbedded(){
 document.getElementById('ruKostyaFrame').addEventListener('load',ruCompactKostyaEmbedded);
 
 
-// Original working Kostya Qwen iframe owns microphone and session handling.
-// No injected microphone patches, reconnect controls or artificial status banners.
-
+// Kostya uses the original working Qwen WebRTC microphone pipeline (V2.5).
 app.addEventListener('input',ruScheduleKostyaContext);
 app.addEventListener('change',ruScheduleKostyaContext);
 app.addEventListener('focusin',ruScheduleKostyaContext);
