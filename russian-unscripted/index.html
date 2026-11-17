@@ -582,7 +582,57 @@ function ruSendKostyaContext(){
 }
 let ruKostyaSyncTimer=0;
 function ruScheduleKostyaContext(){clearTimeout(ruKostyaSyncTimer);ruKostyaSyncTimer=setTimeout(ruSendKostyaContext,350)}
-document.getElementById('ruKostyaFrame').addEventListener('load',ruScheduleKostyaContext);
+// The embedded Russian Kostya Qwen client formerly negotiated WebRTC with a
+// silent audio sender and only attached the microphone after session.updated.
+// If the Qwen acknowledgement never arrives, typed questions work but spoken
+// questions do not. Fix only THIS same-origin iframe, before its first offer.
+(function ruInstallKostyaMicrophoneFix(){
+ const frame=document.getElementById('ruKostyaFrame');
+ if(!frame)return;
+ function install(){
+  try{
+   const w=frame.contentWindow;
+   if(!w||w.location.href==='about:blank'||!w.location.search.includes('russian_kostya_teacher'))return;
+   const media=w.navigator?.mediaDevices;
+   const proto=w.RTCPeerConnection?.prototype;
+   if(!media?.getUserMedia||!proto?.addTransceiver||!proto?.createOffer)return;
+   if(w.__ruKostyaMicBeforeOfferInstalled)return;
+   let capturedStream=null;
+   let pending=[];
+   const originalGet=media.getUserMedia.bind(media);
+   const originalAdd=proto.addTransceiver;
+   const originalOffer=proto.createOffer;
+   media.getUserMedia=async function(constraints){
+    const stream=await originalGet(constraints);
+    if(constraints?.audio&&stream.getAudioTracks().length)capturedStream=stream;
+    return stream;
+   };
+   proto.addTransceiver=function(trackOrKind, init){
+    const trx=originalAdd.call(this,trackOrKind,init);
+    // Only intervene in Qwen's empty audio transceiver. Do not change other tracks.
+    if(trackOrKind==='audio'&&!trx.sender.track&&capturedStream){
+     const track=capturedStream.getAudioTracks().find(t=>t.readyState==='live');
+     if(track){
+      const p=trx.sender.replaceTrack(track);
+      if(p&&typeof p.then==='function')pending.push(p);
+     }
+    }
+    return trx;
+   };
+   proto.createOffer=async function(...args){
+    if(pending.length){
+     const done=pending.splice(0);
+     await Promise.all(done); // Fail visibly rather than establish a silent session.
+    }
+    return originalOffer.apply(this,args);
+   };
+   w.__ruKostyaMicBeforeOfferInstalled=true;
+   console.info('[Russian Unscripted] Kostya microphone attached before SDP offer; other modules unchanged.');
+  }catch(e){console.warn('[Russian Unscripted] Kostya microphone setup:',e)}
+ }
+ frame.addEventListener('load',()=>{install();ruScheduleKostyaContext()});
+ if(frame.contentDocument?.readyState==='complete')install();
+})();
 // Kostya uses the original working Qwen WebRTC microphone pipeline (V2.5).
 app.addEventListener('input',ruScheduleKostyaContext);
 app.addEventListener('change',ruScheduleKostyaContext);
