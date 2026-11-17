@@ -1,7 +1,19 @@
 /* Webilang Art Lab-style WebRTC live conversation, adapted to A1–A2 Russian. */
 (()=>{'use strict';
-const $=id=>document.getElementById(id), names=['Чаз','Нова'];
+const $=id=>document.getElementById(id), names=['Максим','Анна'];
 window.ruRoleChoice=0;
+window.ruConfigure3DAvatar=function(){
+ const f=$('ruLiveAvatarFrame');if(!f)return;
+ const mode=window.ruRoleChoice===1?'nova':'chaz';
+ const adjust=()=>{try{
+  const d=f.contentDocument;if(!d)return;
+  let style=d.getElementById('ruPortraitOnly');if(!style){style=d.createElement('style');style.id='ruPortraitOnly';style.textContent='body{overflow:hidden!important}.wrap,.layout{padding:0!important;margin:0!important;max-width:none!important;width:100%!important}.layout{display:block!important}.panel,header,footer,.stageTag{display:none!important}.stage{height:100vh!important;min-height:0!important;border:0!important;border-radius:0!important}';d.head.append(style)}
+  const select=d.getElementById('modelMode');if(select&&select.value!==mode){select.value=mode;select.dispatchEvent(new Event('change',{bubbles:true}))}
+  const cam=d.getElementById('cameraMode');if(cam&&cam.value!=='close'){cam.value='close';cam.dispatchEvent(new Event('change',{bubbles:true}))}
+ }catch(e){console.warn('3D portrait not ready',e)}};
+ f.addEventListener('load',adjust,{once:true});adjust();
+};
+
 let active=null,serial=0,transcriptVisible=false;window.ruRoleIsActive=()=>!!active;
 const pretty=n=>`${String(Math.floor(Math.max(0,n)/60)).padStart(2,'0')}:${String(Math.floor(Math.max(0,n)%60)).padStart(2,'0')}`;
 function note(s){if($('ruLiveState'))$('ruLiveState').textContent=s}
@@ -17,7 +29,7 @@ function event(s,e){if(active!==s)return;
  if(e.type==='conversation.item.input_audio_transcription.completed'&&e.transcript){const k='u:'+e.item_id;if(!s.seen.has(k)){s.seen.add(k);log(s,'student',e.transcript)}}
  if((e.type==='response.output_audio_transcript.done'||e.type==='response.audio_transcript.done')&&e.transcript){const k='a:'+(e.item_id||e.response_id||e.transcript);if(!s.seen.has(k)){s.seen.add(k);log(s,'agent',e.transcript)}}
 }
-window.ruChooseRole=function(index){if(active)return note('Сначала завершите текущий разговор.');window.ruRoleChoice=index===1?1:0;window.render()};
+window.ruChooseRole=function(index){if(active)return note('Сначала завершите текущий разговор.');window.ruRoleChoice=index===1?1:0;window.render();setTimeout(window.ruConfigure3DAvatar,150)};
 window.ruToggleCaptions=function(){transcriptVisible=!!$('ruCaptions')?.checked;const el=$('ruRoleTranscript');if(el)el.hidden=!transcriptVisible};
 window.ruToggleTranscript=function(){transcriptVisible=!transcriptVisible;if($('ruRoleTranscript'))$('ruRoleTranscript').hidden=!transcriptVisible;if($('ruCaptions'))$('ruCaptions').checked=transcriptVisible};
 window.ruEnableAudio=()=>{$('ruPartnerAudio')?.play().then(()=>{$('ruEnableAudio').hidden=true}).catch(e=>note(e.message))};
