@@ -125,7 +125,7 @@ async function speak(value){
 window.speak=speak;
 function addWord(word){const w=String(word||'').trim().replace(/[.,!?;:«»]/g,'');if(!w)return;selectedWords.set(w.toLowerCase(),w);updateSelectedWords();toast('Выбрано: '+w+' · сохрани ниже в Мои слова')}
 function updateSelectedWords(){document.querySelectorAll('.selected-words').forEach(host=>{host.replaceChildren();const h=document.createElement('b');h.textContent='Выбрано слов: '+selectedWords.size;host.append(h);for(const [key,word] of selectedWords){const b=document.createElement('button');b.className='btn small alt';b.textContent=word+' ×';b.onclick=()=>{selectedWords.delete(key);updateSelectedWords()};host.append(b)}const saveBtn=document.createElement('button');saveBtn.className='btn small';saveBtn.textContent='Сохранить выбранные слова → Мои слова';saveBtn.disabled=!selectedWords.size;saveBtn.onclick=async()=>{if(!window.ruStockBridge)return toast('Подключение Webilang Global ещё загружается');try{await window.ruStockBridge.saveWords([...selectedWords.values()]);selectedWords.clear();updateSelectedWords();toast('✓ Слова сохранены в аккаунте Webilang')}catch(e){toast('Не сохранено: '+e.message)}};host.append(saveBtn)})}
-async function addGrammar(value){if(!window.ruStockBridge)return toast('Войдите в Webilang Global');try{await window.ruStockBridge.saveGrammar(String(value));toast('✓ Конструкция сохранена в Мои правила')}catch(e){toast('Не удалось сохранить: '+e.message)}}
+async function addGrammar(value){value=ruGrammarItemText(value);if(!value)return toast('Нет грамматического правила для сохранения');if(!window.ruStockBridge)return toast('Войдите в Webilang Global');try{await window.ruStockBridge.saveGrammar(String(value));toast('✓ Конструкция сохранена в Мои правила')}catch(e){toast('Не удалось сохранить: '+e.message)}}
 function wordRows(){return V.map(([ru,en,ex])=>`<div class="vocab"><div><b>${ru}</b><br><small>${esc(en)} · ${esc(ex)}</small></div><div class="right"><button class="btn small alt" onclick="speak('${esc(ex).replaceAll('&#39;','\\\'')}')">▶</button><button class="btn small" onclick="addWord('${ru}')">+ Selected</button></div></div>`).join('')}
 function paintWords(text){return text.split(/(\s+)/).map(t=>t.trim()?`<span class="clickword" title="Выбрать слово для «Мои слова»" data-w="${esc(t.replace(/[.,!?;:«»]/g,''))}" onclick="addWord(this.dataset.w)">${esc(t)}</span>`:t).join('')}
 function picturePanel(){return `<div class="tiny">01 / Visual missions</div><h2 class="section-title">Описание картинок</h2><p class="intro">Опиши вокзал и метро. Запиши ответ, затем проверь транскрипт и грамматику.</p><div class="columns">${scenes.map((s,i)=>`<div class="card"><img class="scene-img" src="${s.src}" alt="${s.title}"><div class="tiny">RECORDER ${i+1}</div><h3>${s.title}</h3><p>${s.prompt}</p><button class="btn alt small" onclick="document.getElementById('h${i}').hidden=!document.getElementById('h${i}').hidden">Пример ответа</button><p hidden id="h${i}" class="notice">${s.hint}</p><div class="row" style="margin-top:14px"><button class="btn" id="start${i}" onclick="record(${i})">● Записать</button><button class="btn alt" disabled id="stop${i}" onclick="stopRecord()">■ Стоп</button></div><audio controls id="audio${i}" style="width:100%;margin-top:10px" hidden></audio><div class="status" id="recstatus${i}">Микрофон требует разрешения браузера.</div><button class="btn small" id="trans${i}" disabled onclick="transcribe(${i})">Получить транскрипт</button><textarea id="transcript${i}" placeholder="Транскрипт появится здесь. Его можно исправить вручную."></textarea><button class="btn alt" onclick="evaluateText('picture',${i})">AI: проверить грамматику</button><div id="feedback${i}" class="status"></div></div>`).join('')}</div><div class="selected-words card" aria-live="polite"></div>`}
@@ -299,6 +299,21 @@ async function record(i){
 }
 function stopRecord(){if(mediaRec&&mediaRec.state==='recording'){mediaRec.stop();return}}
 async function transcribe(i){const blob=recordings[i];if(!blob)return toast('Сначала запиши ответ.');const el=document.getElementById('recstatus'+i);el.textContent='Отправка аудио на распознавание...';try{const b64=await new Promise((ok,err)=>{let r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]);r.onerror=err;r.readAsDataURL(blob)});const r=await fetch('/api/russian-unscripted-transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audioBase64:b64,mimeType:blob.type})});if(!r.ok)throw Error('Серверная транскрипция русского языка пока не подключена');const data=await r.json();document.getElementById('transcript'+i).value=data.text||'';el.textContent='Транскрипт получен. Проверь его перед анализом.'}catch(e){el.textContent=e.message+'. Можно вписать транскрипт вручную.'}}
+function ruGrammarItemText(item){
+ if(typeof item==='string')return item.trim();
+ if(!item||typeof item!=='object'||Array.isArray(item))return '';
+ const fields=['pattern','rule','text','description','correction','correct','example','explanation','issue','error'];
+ const picked=[];
+ for(const field of fields){
+  const value=item[field];
+  if(typeof value==='string'&&value.trim()&&!picked.includes(value.trim()))picked.push(value.trim());
+ }
+ return picked.slice(0,2).join(' — ').trim();
+}
+function ruGrammarSuggestions(data){
+ const entries=Array.isArray(data?.grammarItems)?data.grammarItems:[];
+ return [...new Set(entries.map(ruGrammarItemText).filter(x=>x&&x!=='[object Object]'&&x.length<350))].slice(0,4);
+}
 function ruRenderFeedback(target,data){
  if(!target)return;
  target.replaceChildren();target.classList.add('ru-feedback-host');
@@ -311,12 +326,15 @@ function ruRenderFeedback(target,data){
   section.append(h,body);grid.append(section);
  }
  target.append(grid);
- if(Array.isArray(data?.grammarItems)&&data.grammarItems.length){
+ const suggestions=ruGrammarSuggestions(data);
+ if(suggestions.length){
   const actions=document.createElement('div');actions.className='ru-feedback-save';
-  data.grammarItems.slice(0,5).forEach(item=>{
+  suggestions.forEach(text=>{
    const button=document.createElement('button');button.className='btn alt small';
-   button.textContent='＋ В мои правила: '+String(item).slice(0,90);
-   button.onclick=()=>window.addGrammar?.(String(item));actions.append(button);
+   button.textContent='＋ В мои правила: '+text.slice(0,90);
+   button.title=text;
+   button.onclick=async()=>{await window.addGrammar?.(text);};
+   actions.append(button);
   });target.append(actions);
  }
 }
