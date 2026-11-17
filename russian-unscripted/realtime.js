@@ -4,10 +4,15 @@ const $=id=>document.getElementById(id), names=['Максим','Анна'];
 window.ruRoleChoice=0;
 window.ruConfigure3DAvatar=function(){
  const f=$('ruLiveAvatarFrame');if(!f)return;
- const mode=window.ruRoleChoice===1?'nova':'chaz';
+ const isAnna=window.ruRoleChoice===1;
+ const mode=isAnna?'nova':'chaz';
+ const background=isAnna?'/russian-unscripted/assets/bus-stop-background.jpg':'/russian-unscripted/assets/station-background.jpg';
  const adjust=()=>{try{
   const d=f.contentDocument;if(!d)return;
-  let style=d.getElementById('ruPortraitOnly');if(!style){style=d.createElement('style');style.id='ruPortraitOnly';style.textContent='body{overflow:hidden!important}.wrap,.layout{padding:0!important;margin:0!important;max-width:none!important;width:100%!important}.layout{display:block!important}.panel,header,footer,.stageTag{display:none!important}.stage{height:100vh!important;min-height:0!important;border:0!important;border-radius:0!important}';d.head.append(style)}
+  let style=d.getElementById('ruPortraitOnly');
+  if(!style){style=d.createElement('style');style.id='ruPortraitOnly';d.head.append(style)}
+  // The style exists solely within the Russian Unscripted iframe; Art Lab and Gender Roles are unchanged.
+  style.textContent=`body{overflow:hidden!important}.wrap,.layout{padding:0!important;margin:0!important;max-width:none!important;width:100%!important}.layout{display:block!important}.panel,header,footer,.stageTag{display:none!important}.stage{height:100vh!important;min-height:0!important;border:0!important;border-radius:0!important;background:#dedbd5 url("${background}") center center / cover no-repeat!important}`;
   const select=d.getElementById('modelMode');if(select&&select.value!==mode){select.value=mode;select.dispatchEvent(new Event('change',{bubbles:true}))}
   const cam=d.getElementById('cameraMode');if(cam&&cam.value!=='close'){cam.value='close';cam.dispatchEvent(new Event('change',{bubbles:true}))}
  }catch(e){console.warn('3D portrait not ready',e)}};
