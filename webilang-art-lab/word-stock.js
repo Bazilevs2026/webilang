@@ -88,8 +88,12 @@ function render() {
         if (version === epoch) { rows = rows.filter(r => !records.some(item => item.id === r.id)); render(); status(`Removed “${word}”.`); }
       });
     };
-    const source = document.createElement('span'); source.className = 'word-stock-source'; source.textContent = [...new Set(records.map(r => r.module || 'Saved vocabulary'))].join(' · ');
-    row.append(choose, remove, source); $('savedWords').append(row);
+    // Pronunciation replaces the repeated module name. Listening never changes selection.
+    const audio = document.createElement('button'); audio.type='button'; audio.className='word-stock-audio';
+    audio.textContent='🔊 Listen'; audio.setAttribute('aria-label', 'Hear the pronunciation of '+word);
+    audio.title='Listen to '+word;
+    audio.onclick=()=>listenTo(word, $('wordPracticeStatus'));
+    row.append(choose, audio, remove); $('savedWords').append(row);
   }
   $('wordPracticeHeading').textContent = selected ? `Practise: ${wordOf(groups.get(selected)[0])}` : 'Select one word to practise';
   $('wordPracticeGenerate').disabled = !ready || !selected;
@@ -191,30 +195,43 @@ function addDictation(input, controls, feedback){
 }
 function showExercises(exercises, target, version) {
   const holder = $('wordExercise');
-  const stageNames = ['1. Recognition — understand', '2. Retrieval — remember', '3. Production — use it yourself'];
+  const stageNames = ['1. Recognition', '2. Retrieval', '3. Production'];
   const cards = [];
   const unlock = index => {
     if (!cards[index]) return;
     cards[index].hidden = false;
     cards[index].scrollIntoView?.({block:'nearest',behavior:'smooth'});
-    // During Retrieval, temporarily conceal the selected Word Stock row.
-    // Never replace it with confusing purple labels or delete student data.
-    const chosen=document.querySelector('.word-stock-select[aria-pressed="true"]');
-    const selectedRow=chosen?.closest('.word-stock-row');
-    if(index===1){
-      $('wordPracticeHeading').textContent='Retrieval — remember';
-      if(selectedRow){selectedRow.hidden=true;selectedRow.setAttribute('data-temporarily-hidden','');}
-    }else if(index===2){
-      $('wordPracticeHeading').textContent='Practise: '+target;
-      if(selectedRow){selectedRow.hidden=false;selectedRow.removeAttribute('data-temporarily-hidden');}
-    }
+    // Keep the chosen word visible in Word Stock throughout: hiding it looked like deletion.
+    $('wordPracticeHeading').textContent='Practise: '+target;
     $('wordPracticeStatus').textContent = stageNames[index];
+  };
+  // Emphasise the target within Recognition's actual source sentence.
+  // Use DOM text nodes, never innerHTML from an AI response.
+  const highlightTarget=(element, sentence, word)=>{
+    const escape=value=>value.replace(/[^a-zA-Z0-9\s]/g,'\\$&');
+    const escaped=escape(word);
+    const expression=new RegExp('\\b'+escaped+'(?:s|ed|d|ing)?\\b','gi');
+    let match,last=0,found=false;
+    while((match=expression.exec(sentence))!==null){
+      element.append(document.createTextNode(sentence.slice(last,match.index)));
+      const strong=document.createElement('strong'); strong.className='practice-target-highlight';
+      strong.textContent=match[0]; element.append(strong);
+      last=match.index+match[0].length;found=true;
+      if(!match[0].length)break;
+    }
+    element.append(document.createTextNode(sentence.slice(last)));
+    return found;
   };
   exercises.forEach((q, index) => {
     const card = document.createElement('section'); card.className = 'word-exercise-card';
     card.hidden = index !== 0;
     const heading = document.createElement('h4'); heading.textContent = stageNames[index];
-    const label = document.createElement('label'); label.htmlFor = `word-answer-${index}`; label.textContent = q.prompt;
+    const label = document.createElement('label'); label.htmlFor = `word-answer-${index}`;
+    if(index===0){
+      const focus=document.createElement('p');focus.className='practice-focus-word';
+      focus.textContent='Focus word: '+target; card.append(focus);
+      highlightTarget(label,q.prompt,target);
+    }else label.textContent=q.prompt;
     const input = document.createElement(index===0 ? 'select' : index===2 ? 'textarea' : 'input'); input.id = label.htmlFor;
     if(index===0){
       input.append(new Option('Choose an answer', ''));
@@ -293,7 +310,7 @@ async function generate() {
     const types=['recognition','retrieval','production'];
     if(!Array.isArray(result.exercises)||result.exercises.length!==3||result.exercises.some((q,i)=>q.target!==target||q.type!==types[i]||!q.prompt||!q.answer||!q.hint||!q.explanation||!Array.isArray(q.options)||(i===0?!q.options.includes(q.answer):q.options.length!==0)))throw Error('The exercise set was incomplete. Please retry.');
     showExercises(result.exercises,target,version);
-    $('wordPracticeStatus').textContent=`${result.source==='offline-reviewed'?'Reviewed offline practice (AI unavailable)':'AI practice'} · Begin with Recognition.`;
+    $('wordPracticeStatus').textContent=`${result.source==='offline-reviewed'?'Reviewed classroom practice':'AI practice'} · Begin with Recognition.`;
   }catch(error){if(version===revision)$('wordPracticeStatus').textContent=`Practice unavailable: ${error.message}. No generic exercises were substituted; your saved words remain unchanged.`;}
   finally{if(version===revision)$('wordPracticeGenerate').disabled=false;}
 }

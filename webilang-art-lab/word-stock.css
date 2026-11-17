@@ -10,3 +10,10 @@
 .word-exercise-card input,.word-exercise-card select,.word-exercise-card textarea{width:100%;max-width:100%;padding:12px;border:2px solid #191919;margin-bottom:12px;min-height:44px}
 .word-exercise-card .row button{min-height:44px}
 .word-exercise-feedback{line-height:1.5}
+
+/* 2026-11: Keep Word Stock layout, replace duplicate module-name labels with pronunciation. */
+#savedWords .word-stock-audio{min-height:44px;padding:9px 12px;background:#fff;border:2px solid #191919;box-shadow:3px 3px 0 #191919;color:#191919;font-weight:700;cursor:pointer}
+#savedWords .word-stock-audio:focus-visible{outline:3px solid #7751ff;outline-offset:3px}
+.word-exercise-card .practice-focus-word{font-weight:700;font-size:1rem;margin:0 0 12px;color:#352276}
+.word-exercise-card .practice-target-highlight{background:#fff4ac;border-bottom:3px solid #7751ff;padding:0 2px;border-radius:2px}
+@media(max-width:640px){#savedWords .word-stock-audio{padding:8px 9px;font-size:.9rem}}
