@@ -63,7 +63,7 @@ window.artStageWord=stageWord;
 function clear() {
   stopDictation();
   if('speechSynthesis' in window) window.speechSynthesis.cancel();
-  document.querySelectorAll('.word-stock-select').forEach(b=>{ if(b.dataset.visibleWord){b.textContent=b.dataset.visibleWord;delete b.dataset.visibleWord;} });
+  document.querySelectorAll('.word-stock-row[data-temporarily-hidden]').forEach(row=>{ row.hidden=false; row.removeAttribute('data-temporarily-hidden'); });
   revision++; controller?.abort(); controller = null;
   $('wordExercise').replaceChildren(); $('wordPracticeStatus').textContent = '';
   $('wordPracticeGenerate').disabled = !ready || !selected;
@@ -197,14 +197,16 @@ function showExercises(exercises, target, version) {
     if (!cards[index]) return;
     cards[index].hidden = false;
     cards[index].scrollIntoView?.({block:'nearest',behavior:'smooth'});
-    // During Retrieval, conceal the answer in the header AND selected Stock chip.
+    // During Retrieval, temporarily conceal the selected Word Stock row.
+    // Never replace it with confusing purple labels or delete student data.
     const chosen=document.querySelector('.word-stock-select[aria-pressed="true"]');
+    const selectedRow=chosen?.closest('.word-stock-row');
     if(index===1){
-      $('wordPracticeHeading').textContent='Retrieval — remember the word';
-      if(chosen&&!chosen.dataset.visibleWord){chosen.dataset.visibleWord=chosen.textContent;chosen.textContent='••• Hidden during recall';}
+      $('wordPracticeHeading').textContent='Retrieval — remember';
+      if(selectedRow){selectedRow.hidden=true;selectedRow.setAttribute('data-temporarily-hidden','');}
     }else if(index===2){
       $('wordPracticeHeading').textContent='Practise: '+target;
-      if(chosen?.dataset.visibleWord){chosen.textContent=chosen.dataset.visibleWord;delete chosen.dataset.visibleWord;}
+      if(selectedRow){selectedRow.hidden=false;selectedRow.removeAttribute('data-temporarily-hidden');}
     }
     $('wordPracticeStatus').textContent = stageNames[index];
   };
@@ -226,6 +228,13 @@ function showExercises(exercises, target, version) {
     const check = document.createElement('button'); check.type='button';check.className='action secondary';
     check.textContent = index===2?'Review my answer':'Check';
     const hint = document.createElement('button');hint.type='button';hint.className='action secondary';hint.textContent='Hint';
+    // Learners may always opt out of an unclear activity. Revealed answers are NOT scored as mastered.
+    const reveal = document.createElement('button');reveal.type='button';reveal.className='action secondary';
+    reveal.textContent=index===2?'Show example answer':'Reveal answer';
+    reveal.setAttribute('aria-label',index===2?'Show an example and finish practice':'Reveal the correct answer and allow continuing');
+    const continueButton = document.createElement('button');continueButton.type='button';
+    continueButton.className='action secondary';continueButton.textContent=index===2?'Finish practice':'Continue →';continueButton.hidden=true;
+    const revealInfo = document.createElement('p');revealInfo.className='word-exercise-feedback';revealInfo.setAttribute('role','status');
     const listen=document.createElement('button');listen.type='button';listen.className='action secondary';listen.textContent='🔊 Listen to question';
     const feedback = document.createElement('p');feedback.className='word-exercise-feedback';feedback.setAttribute('role','status');
     const hintText = document.createElement('p');hintText.hidden=true;hintText.textContent=q.hint;
@@ -233,6 +242,21 @@ function showExercises(exercises, target, version) {
     hint.setAttribute('aria-expanded','false');
     listen.onclick=()=>listenTo(q.prompt,feedback);
     let unlocked = false;
+    reveal.onclick=()=>{
+      if(version!==revision)return;
+      const displayed=q.answer;
+      revealInfo.textContent=(index===2?'Example answer: ':'Answer: ')+displayed+'. This was revealed, not marked correct.';
+      continueButton.hidden=false;
+      reveal.disabled=true;
+      feedback.textContent='You can continue without completing this task.';
+    };
+    continueButton.onclick=()=>{
+      if(version!==revision || unlocked)return;
+      unlocked=true;
+      if(index<2){unlock(index+1);}
+      else{feedback.textContent='Practice finished. You can choose another word or clear the exercises.';}
+      continueButton.hidden=true;
+    };
     check.onclick=async()=>{
       if(!input.value.trim()){feedback.textContent='Write, say or choose an answer first.';return;}
       if(index!==2){
@@ -249,11 +273,11 @@ function showExercises(exercises, target, version) {
       finally{if(version===revision)check.disabled=false;}
     };
     input.addEventListener('keydown',e=>{if(e.key==='Enter'&&input.tagName!=='TEXTAREA'){e.preventDefault();check.click();}});
-    controls.append(check,hint,listen);
+    controls.append(check,hint,listen,reveal,continueButton);
     if(index>0)addDictation(input,controls,feedback);
     const note=document.createElement('p');note.className='note';
-    note.textContent=index===0?'Listen or read, then choose the meaning.':index===1?'The target word is hidden in this task. Speak or type your answer.':'Speak or type a meaningful answer. Review the transcript before checking.';
-    card.append(heading,label,note,input,controls,hintText,feedback);holder.append(card);cards.push(card);
+    note.textContent=index===0?'Listen or read, then choose the meaning.':index===1?'Try to remember without looking at the saved word. You can reveal the answer and continue at any time.':'Speak or type a meaningful answer. Review the transcript before checking.';
+    card.append(heading,label,note,input,controls,hintText,revealInfo,feedback);holder.append(card);cards.push(card);
   });
 }
 
@@ -276,12 +300,6 @@ async function generate() {
 
 renderStaged();
 $('wordPracticeGenerate').onclick = generate; $('wordPracticeClear').onclick = clear; $('wordStockRefresh').onclick = () => enqueue(refresh);
-$('wordStockImport').onclick = async () => {
-  if (!ready || !confirm('Import the older Art Lab vocabulary on this browser into YOUR signed-in account? Only continue if these words belong to you.')) return;
-  let old; try { old = JSON.parse(localStorage.getItem('webilang-art-lab-personal-stocks-v2') || '{}'); } catch { status('The older browser list could not be read.'); return; }
-  const version = epoch;
-  for (const word of [...(old.words || []), ...(old.pending || [])]) { if (version !== epoch) break; await add(word); }
-};
 window.artWordStock = { add, generate, clear, refresh };
 db.auth.onAuthStateChange((_event, session) => {
   if (session?.user?.id === user?.id) return;
