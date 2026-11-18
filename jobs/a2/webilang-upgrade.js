@@ -33,9 +33,71 @@ window.JOBS_A2_ORIGINAL_JOBS=[...speaking.querySelectorAll('.dream-card')].map(c
  return {title:heading,description:sourceText,image:image?.getAttribute('src')||''};
 }).filter(j=>j.title&&j.image);
 speaking.replaceChildren();
-speaking.innerHTML='<div class="section-head"><span class="tag">SPEAKING · A2</span><h2>Jobs Roulette · 8 challenges</h2><p>20 seconds to prepare, 45 seconds to speak. Different kinds of prompts, one at a time.</p></div><div class="jobs-v3"><div class="jrow"><button id="jSpin" class="primary">🎲 Spin</button><span id="jCount">0 / 8</span></div><div id="jQuestion" class="jprompt">Spin for a challenge.</div><div class="jhelp" id="jHint" hidden></div><div class="jrow"><button id="jShowHint">💡 One hint</button><button id="jPrep">⏱ Prepare 20s</button><button id="jSpeak">🎙 Speak 45s</button><span id="jTimer"></span></div><textarea id="jAnswer" placeholder="Speak, dictate, or type your answer."></textarea><div class="jrow"><button id="jDictate">🎤 Dictate</button><button id="jFeedback" class="primary">Get AI feedback</button></div><div id="jResult"></div></div>';
-let seen=[],current=-1,ticker=null;
-function spin(){if(seen.length===8)seen=[];const remaining=topics.map((_,i)=>i).filter(i=>!seen.includes(i));current=remaining[Math.floor(Math.random()*remaining.length)];seen.push(current);const t=topics[current];$('jCount').textContent=seen.length+' / 8';$('jQuestion').innerHTML='<h2>'+t[0]+' '+escape(t[1])+'</h2><p>'+escape(t[2])+'</p>';$('jHint').textContent=t[3];$('jHint').hidden=true;$('jAnswer').value='';$('jResult').textContent='';clearInterval(ticker);$('jTimer').textContent=''}
+
+const rouletteNames=['Tools','History','Tester','Mosquitoes','Freedom','Boss','Workplace','Pay'];
+const rouletteColors=['#f97373','#fbad55','#f5cf5a','#74c99a','#4fc8ca','#74acf1','#9e92e9','#e493c9'];
+const wheelSegments=rouletteColors.map((color,i)=>color+' '+(i*45)+'deg '+((i+1)*45)+'deg').join(', ');
+speaking.innerHTML='<div class="section-head"><span class="tag">SPEAKING · A2</span><h2>Jobs Roulette · Spin & Speak</h2><p>Spin the wheel, prepare for 20 seconds and speak for 45 seconds. Eight original speaking challenges.</p></div>'+
+'<div class="jobs-v3 jroulette-layout">'+
+'<div class="jroulette-side"><div class="jroulette-frame"><div class="jroulette-arrow" aria-hidden="true"></div><div class="jroulette-wheel" id="jWheel" role="img" aria-label="Colourful eight-part speaking challenge wheel" style="background:conic-gradient('+wheelSegments+')">'+
+rouletteNames.map((name,i)=>'<span class="jroulette-label" style="--sector:'+i+';--counter:'+(22.5+i*45)+'deg">'+escape(name)+'</span>').join('')+
+'</div><button type="button" id="jSpin" class="jroulette-hub" aria-label="Spin the roulette wheel">SPIN</button></div>'+
+'<div class="jroulette-progress"><span>🎡 Spin the wheel</span><strong id="jCount">0 / 8</strong></div><p class="jroulette-help">All 8 challenges appear once before a new round.</p></div>'+
+'<div class="jroulette-activity"><div id="jQuestion" class="jprompt" aria-live="polite">Spin for a challenge.</div><div class="jhelp" id="jHint" hidden></div><div class="jrow"><button id="jShowHint">💡 One hint</button><button id="jPrep">⏱ Prepare 20s</button><button id="jSpeak">🎙 Speak 45s</button><span id="jTimer" aria-live="polite"></span></div><textarea id="jAnswer" placeholder="Speak, dictate, or type your answer."></textarea><div class="jrow"><button id="jDictate">🎤 Dictate</button><button id="jFeedback" class="primary">Get AI feedback</button></div><div id="jResult"></div></div></div>';
+const rouletteStyle=document.createElement('style');
+rouletteStyle.textContent=\`
+#panel-opinion .jroulette-layout{display:grid;grid-template-columns:minmax(285px,340px) minmax(0,1fr);align-items:center;gap:24px;padding:24px}
+#panel-opinion .jroulette-side{display:flex;flex-direction:column;align-items:center;min-width:0}
+#panel-opinion .jroulette-frame{width:min(100%,330px);aspect-ratio:1;position:relative;display:grid;place-items:center;isolation:isolate}
+#panel-opinion .jroulette-wheel{position:absolute;inset:8px;border-radius:50%;border:8px solid #fff;box-shadow:0 0 0 3px #243750,0 13px 30px #233a5236;transition:transform 5s cubic-bezier(.12,.78,.14,1);will-change:transform;overflow:hidden}
+#panel-opinion .jroulette-wheel::before{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.78) 0deg .55deg,transparent .55deg 45deg);pointer-events:none}
+#panel-opinion .jroulette-label{position:absolute;left:50%;top:50%;width:100px;text-align:center;transform:translate(-50%,-50%) rotate(var(--counter)) translateY(-110px) rotate(calc(-1 * var(--counter)));font-size:13px;line-height:1.1;font-weight:900;color:#1a3045;text-shadow:0 1px 1px #fffd;pointer-events:none;white-space:nowrap}
+#panel-opinion .jroulette-arrow{position:absolute;top:0;left:50%;transform:translate(-50%,-2px);width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-top:29px solid #233750;filter:drop-shadow(0 2px 2px #18304444);z-index:5}
+#panel-opinion .jroulette-hub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;width:90px;height:90px;border-radius:50%;border:6px solid #fff;background:#1d3044;color:#fff;box-shadow:0 4px 17px #1a304570;font-size:17px;font-weight:900;letter-spacing:.03em;cursor:pointer}
+#panel-opinion .jroulette-hub:hover{background:#145e57}
+#panel-opinion .jroulette-hub:disabled{opacity:.75;cursor:wait}
+#panel-opinion .jroulette-progress{display:flex;justify-content:center;align-items:center;gap:17px;margin-top:15px;font-size:15px}
+#panel-opinion .jroulette-progress strong{background:#e4f6ee;color:#116a49;border-radius:99px;padding:5px 11px}
+#panel-opinion .jroulette-help{font-size:12px;color:#64748b;text-align:center;margin:10px 0 0}
+#panel-opinion .jroulette-activity{min-width:0;display:flex;flex-direction:column;justify-content:center;gap:5px}
+#panel-opinion .jroulette-activity .jprompt{min-height:100px;font-size:20px}
+#panel-opinion .jroulette-activity .jprompt h2{margin:0 0 8px;font-size:28px}
+#panel-opinion .jroulette-activity .jprompt p{margin:0;line-height:1.5}
+#panel-opinion .jroulette-activity .jrow{margin:9px 0}
+#panel-opinion .jroulette-activity textarea{min-height:125px}
+@media(max-width:830px){#panel-opinion .jroulette-layout{grid-template-columns:1fr;gap:20px;padding:16px}#panel-opinion .jroulette-frame{width:min(100%,300px)}#panel-opinion .jroulette-label{transform:translate(-50%,-50%) rotate(var(--counter)) translateY(-99px) rotate(calc(-1 * var(--counter)));font-size:12px}#panel-opinion .jroulette-activity .jprompt{min-height:0}}
+@media(prefers-reduced-motion:reduce){#panel-opinion .jroulette-wheel{transition-duration:.25s}}
+\`;
+document.head.append(rouletteStyle);
+let seen=[],current=-1,ticker=null,wheelDegrees=0,spinning=false;
+function spin(){
+ if(spinning)return;
+ if(seen.length===8)seen=[];
+ const remaining=topics.map((_,i)=>i).filter(i=>!seen.includes(i));
+ const picked=remaining[Math.floor(Math.random()*remaining.length)];
+ const sectorCenter=picked*45+22.5;
+ const normalized=((wheelDegrees%360)+360)%360;
+ const destination=(360-sectorCenter)%360;
+ const adjustment=(destination-normalized+360)%360;
+ wheelDegrees+=360*5+adjustment;
+ spinning=true;
+ $('jSpin').disabled=true;
+ $('jQuestion').textContent='🎡 Spinning…';
+ $('jHint').hidden=true;
+ $('jWheel').style.transform='rotate('+wheelDegrees+'deg)';
+ const reveal=()=>{
+  if(!spinning)return;
+  spinning=false;$('jSpin').disabled=false;current=picked;seen.push(current);
+  const t=topics[current];
+  $('jCount').textContent=seen.length+' / 8';
+  $('jQuestion').innerHTML='<h2>'+t[0]+' '+escape(rouletteNames[current])+'</h2><p>'+escape(t[2])+'</p>';
+  $('jHint').textContent=t[3];$('jHint').hidden=true;
+  $('jAnswer').value='';$('jResult').textContent='';clearInterval(ticker);$('jTimer').textContent='';
+ };
+ const wheel=$('jWheel');wheel.addEventListener('transitionend',function finished(e){if(e.propertyName!=='transform')return;wheel.removeEventListener('transitionend',finished);reveal()},{once:true});
+ // Reduced-motion and hidden-tab fallback.
+ setTimeout(reveal,5200);
+}
 $('jSpin').onclick=spin;$('jShowHint').onclick=()=>{$('jHint').hidden=!$('jHint').hidden};
 function count(seconds){clearInterval(ticker);$('jTimer').textContent=seconds+'s';ticker=setInterval(()=>{seconds--;$('jTimer').textContent=seconds>0?seconds+'s':'Time is up!';if(seconds<=0)clearInterval(ticker)},1000)}
 $('jPrep').onclick=()=>count(20);$('jSpeak').onclick=()=>count(45);
