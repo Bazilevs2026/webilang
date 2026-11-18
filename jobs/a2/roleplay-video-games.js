@@ -41,7 +41,7 @@ if(start)setTimeout(()=>$('jvrBegin').click(),100);
 }
 const p1=document.createElement('button');p1.id='jvsPrepVoice';p1.className='jvs-prep-btn';p1.textContent='🎙 Start Voice Interview →';
 const p2=document.createElement('button');p2.id='jvsPrepVideo';p2.className='jvs-prep-btn';p2.textContent='🎥 Start Live Avatar Interview →';
-$('jvrPrep').after(p1,p2);
+/* Preparation is embedded directly in each scenario card; no extra start buttons. */
 p1.onclick=()=>showScreen(true);
 p2.onclick=()=>showScreen(true);
 $('jvsReturn').onclick=()=>{if($('jvrBegin').disabled){$('jvsState').textContent='End the conversation before returning.';return}screen.hidden=true;work.hidden=false;work.scrollIntoView({behavior:'smooth',block:'start'})};
@@ -52,7 +52,8 @@ $('jvsEdit').onclick=()=>$('jvsReturn').click();
 /* Card-based preparation exactly following Video Games: keep both scenarios
    on the chooser, with their own job choices, collapsible preparation, AI check,
    save notes, and two functional interview-start buttons. */
-const jobs=['NASA Curiosity Driver','Professional Criminal (ethical security tester)','Island Caretaker','Ice Cream Taster'];
+const originals=window.JOBS_A2_ORIGINAL_JOBS||[];
+const jobs=originals.length===4?originals.map(j=>j.title):['NASA Curiosity Driver','Professional Criminal','Island Caretaker','Ice Cream Taster'];
 const descriptions=[
 'Explore Mars using cameras, computers and a robotic arm.',
 'Test security legally and explain weaknesses to a company.',
@@ -72,6 +73,7 @@ cardsArray.forEach((card,i)=>{
  const oldStart=card.querySelector('.jvr-start');oldStart.hidden=true;
  const body=card.querySelector('.jvr-card-body');
  const holder=document.createElement('div');holder.className='jvs-card-form';
+const imagePreview=document.createElement('div');imagePreview.className='jvs-original-job-preview';
  holder.innerHTML='<label class="jvs-job-label">Choose your curious job<select data-job-select>'+
  jobs.map((j,k)=>'<option value="'+k+'">'+j+'</option>').join('')+'</select></label>'+
  '<details class="jvs-prep-accordion"><summary><b>🧩 '+(applicant?'Prepare for my job interview':'Prepare my questions')+'</b><small>'+(applicant?'Choose ideas · Practise English · Check with AI':'Write your own questions · Check with AI · Save for interview')+'</small></summary>'+
@@ -83,9 +85,21 @@ cardsArray.forEach((card,i)=>{
  '<div class="jvs-prepare-actions"><button data-check>✨ Check my English with AI</button><button data-save>✓ Save my interview notes</button></div><div data-prep-status aria-live="polite"></div><div data-feedback></div><p class="jvs-prep-small">Your original ideas stay yours. The avatar can ask unexpected questions.</p></div></details>'+
  '<button data-start-voice class="jvs-card-voice">🎙 Start Voice Interview →</button><p class="jvs-caption">Speak at your own pace. No student video.</p>'+
  '<button data-start-video class="jvs-card-video">🎥 Start Live Avatar Interview →</button><p class="jvs-caption">Large live 3D character · up to five minutes.</p>';
- body.append(holder);forms[key]=holder;
+ body.append(holder);const selection=holder.querySelector('.jvs-job-label');selection.after(imagePreview);forms[key]=holder;
  const jobSelect=holder.querySelector('[data-job-select]');
- const updateIdeas=()=>{holder.querySelector('[data-ideas]').textContent=ideaBanks[Number(jobSelect.value)]};
+ const updateIdeas=()=>{
+ const idx=Number(jobSelect.value),item=originals[idx],cover=card.querySelector('.jvr-cover');
+ holder.querySelector('[data-ideas]').textContent=ideaBanks[idx];
+ if(item?.image){
+    imagePreview.replaceChildren();
+    const img=document.createElement('img');img.src=item.image;img.alt=item.title;img.loading='lazy';
+    const p=document.createElement('p');p.textContent=item.description||'';
+    imagePreview.append(img,p);
+    cover?.style.setProperty('background-image','linear-gradient(0deg,rgba(15,35,51,.85),transparent 85%),url("'+item.image+'")','important');
+    cover?.style.setProperty('background-size','cover','important');
+    cover?.style.setProperty('background-position','center','important');
+ }else{imagePreview.textContent=descriptions[idx]||''}
+};
  jobSelect.onchange=updateIdeas;updateIdeas();
  const getNotes=()=>[...holder.querySelectorAll('textarea[data-note]')].map(x=>x.value.trim());
  const fillWorkspace=()=>{
@@ -107,14 +121,18 @@ cardsArray.forEach((card,i)=>{
    }catch(e){status.textContent=e.message}
  };
  const launch=()=>{
-  const entries=getNotes();if(!entries.some(Boolean)){holder.querySelector('details').open=true;status.textContent='Prepare at least one answer or question first.';return}
+  const entries=getNotes();/* Preparation is recommended, not compulsory. */
   fillWorkspace();showScreen(true);
  };
- holder.querySelector('[data-start-voice]').onclick=launch;
+ holder.querySelector('[data-start-voice]').remove();
+holder.querySelector('.jvs-card-voice + .jvs-caption')?.remove();
  holder.querySelector('[data-start-video]').onclick=launch;
 });
 const moreStyle=document.createElement('style');moreStyle.textContent='#jobsVideoRoleplays .jvr-card-body>.jvr-start[hidden]{display:none!important}#jobsVideoRoleplays .jvs-job-label{font-size:13px;font-weight:850;display:block;margin:15px 0 10px}#jobsVideoRoleplays .jvs-job-label select{width:100%;padding:12px;margin-top:7px;border-radius:10px;border:1px solid #c5d6e8;background:#f0f5ff;font:inherit;box-sizing:border-box}#jobsVideoRoleplays .jvs-prep-accordion{background:#f1eafb;border-radius:15px;margin:16px 0;padding:0;border:1px solid #e7dafa}#jobsVideoRoleplays .jvs-prep-accordion summary{cursor:pointer;list-style:none;padding:17px;display:block;color:#5b428b}#jobsVideoRoleplays .jvs-prep-accordion summary small{display:block;margin-top:4px;color:#716489;font-size:12px}#jobsVideoRoleplays .jvs-prep-inside{padding:16px;background:#fff;line-height:1.55;border-radius:0 0 14px 14px}#jobsVideoRoleplays .jvs-prep-inside h3{font-size:17px}#jobsVideoRoleplays .jvs-prep-inside p{font-size:13px;color:#536779;min-height:0}#jobsVideoRoleplays .jvs-prep-stages{display:flex;gap:5px;flex-wrap:wrap;margin:12px 0}#jobsVideoRoleplays .jvs-prep-stages span{font-size:11px;padding:7px;border-radius:9px;background:#e6f1ff;color:#35648e;font-weight:800}#jobsVideoRoleplays .jvs-prep-stages span:nth-child(2){background:#efe5ff;color:#67418d}#jobsVideoRoleplays .jvs-prep-stages span:nth-child(3){background:#e6f7eb;color:#2c7446}#jobsVideoRoleplays .jvs-idea-bank{background:#fff6e0;border:1px solid #f1d38c;padding:12px;border-radius:12px;font-size:13px}#jobsVideoRoleplays .jvs-toolbox{font-size:12px!important}#jobsVideoRoleplays .jvs-prep-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#jobsVideoRoleplays .jvs-prep-fields label{font-size:12px;font-weight:850}#jobsVideoRoleplays .jvs-prep-fields textarea{width:100%;height:64px;resize:vertical;box-sizing:border-box;border:1px solid #bed1e2;border-radius:9px;padding:9px;font:inherit;margin-top:5px}#jobsVideoRoleplays .jvs-prepare-actions{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}#jobsVideoRoleplays .jvs-prepare-actions button{border:1px solid #bccee0;border-radius:9px;background:#fff;padding:9px;color:#455981;font-weight:800;cursor:pointer}#jobsVideoRoleplays .jvs-prepare-actions button:first-child{background:#eae2fd;color:#5e408c}#jobsVideoRoleplays .jvs-prep-small{font-size:11px!important}#jobsVideoRoleplays .jvs-card-voice,#jobsVideoRoleplays .jvs-card-video{width:100%;display:block;border-radius:11px;padding:14px;font-size:14px;font-weight:850;cursor:pointer}#jobsVideoRoleplays .jvs-card-voice{background:#e8f1ff;border:1px solid #cddff6;color:#225b99;margin-top:12px}#jobsVideoRoleplays .jvs-card-video{background:#6745bd;color:white;border:0;margin-top:16px}#jobsVideoRoleplays .jvs-caption{text-align:center;font-size:12px!important;color:#60778c;min-height:0!important;margin:7px 0 12px!important}@media(max-width:570px){#jobsVideoRoleplays .jvs-prep-fields{grid-template-columns:1fr}}';document.head.append(moreStyle);
 
+const fixStyle=document.createElement('style');
+fixStyle.textContent='#jobsVideoRoleplays .jvs-original-job-preview{display:grid;grid-template-columns:130px 1fr;gap:10px;align-items:start;padding:10px;background:#f7fafc;border:1px solid #dce7ef;border-radius:12px;margin:10px 0}#jobsVideoRoleplays .jvs-original-job-preview img{display:block;width:130px;height:110px;object-fit:cover;border-radius:9px}#jobsVideoRoleplays .jvs-original-job-preview p{font-size:12px!important;line-height:1.55;margin:0!important;color:#4b6478;min-height:0!important}#jobsVideoRoleplays .jvs-card-voice,#jobsVideoRoleplays #jvsPrepVoice,#jobsVideoRoleplays #jvsPrepVideo{display:none!important}@media(max-width:600px){#jobsVideoRoleplays .jvs-original-job-preview{grid-template-columns:1fr}#jobsVideoRoleplays .jvs-original-job-preview img{width:100%;height:160px}}';document.head.append(fixStyle);
+document.querySelector('.audio-dock')?.remove();
 const mirror=()=>{$('jvsState').textContent=$('jvrStatus').textContent||'Ready.';$('jvsClock').textContent=$('jvrClock').textContent||'05:00';$('jvsTurns').textContent=$('jvrTurns').textContent||'0 / 15 turns';$('jvsConnection').textContent=$('jvrBegin').disabled?'🟢 In progress':'🔴 Ready'};
 ['jvrStatus','jvrClock','jvrTurns'].forEach(id=>new MutationObserver(mirror).observe($(id),{childList:true,subtree:true,characterData:true}));mirror();configurePortrait();
 })();
