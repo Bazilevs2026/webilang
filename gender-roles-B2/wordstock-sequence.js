@@ -8,7 +8,7 @@
  if(!root)return;
  const $=id=>document.getElementById(id);
  const list=$('wl-word-items'),out=$('wl-word-exercises'),msg=$('wl-word-message'),go=$('wl-word-practice'),clear=$('wl-word-clear');
- const selected=new Set(),sessions=new Map();let activeKey='',building=false;
+ const selected=new Set(),sessions=new Map();let activeKey='',building=false;let generationIndex=0;
  const emitContext=(session,extra={})=>{
   if(!session)return;
   window.genderWordStockContext={section:'My Word Stock',target:session.word,stage:['Recognition','Retrieval','Production'][session.stage],task:session.questions?.[session.stage]?.prompt||'',context:session.questions?.[session.stage]?.context||'',studentAnswer:session.answers?.[session.stage]||'',lastFeedback:session.lastFeedback||'',...extra};
@@ -85,6 +85,49 @@
    if(stage===1)input.type='text';else input.rows=4;
    input.value=session.answers[stage]||'';input.oninput=()=>{session.answers[stage]=input.value;emitContext(session)};
    section.append(input);
+   if(stage===1){
+    const voice=node('div','wl6-audio-controls');
+    const mic=button('🎙 Say your answer',async()=>{
+     const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
+     if(Speech){
+      try{
+       const rec=new Speech();rec.lang='en-US';rec.interimResults=false;rec.maxAlternatives=1;
+       mic.disabled=true;mic.textContent='🔴 Listening…';status.textContent='Say the English expression.';
+       rec.onresult=e=>{const heard=String(e.results?.[0]?.[0]?.transcript||'').trim();if(heard){input.value=heard;session.answers[1]=heard;emitContext(session);status.textContent='Heard: '+heard+'. Check or edit your answer.'}};
+       rec.onerror=e=>{status.textContent='Speech recognition unavailable ('+e.error+'). Try again or type your answer.'};
+       rec.onend=()=>{mic.disabled=false;mic.textContent='🎙 Say your answer'};
+       rec.start();return;
+      }catch(e){mic.disabled=false;mic.textContent='🎙 Say your answer'}
+     }
+     if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){status.textContent='Microphone recognition is unavailable. You can type your answer.';return}
+     try{
+      const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+      const mime=['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(t=>MediaRecorder.isTypeSupported(t));
+      const recorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined),chunks=[];
+      mic.disabled=true;mic.textContent='■ Stop recording';status.textContent='Recording. Press Stop when finished.';
+      recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+      recorder.onstop=async()=>{
+       stream.getTracks().forEach(t=>t.stop());
+       mic.disabled=true;mic.textContent='Transcribing…';
+       try{
+        const blob=new Blob(chunks,{type:recorder.mimeType||'audio/webm'});
+        if(blob.size>4_000_000)throw Error('Recording too long');
+        const bytes=new Uint8Array(await blob.arrayBuffer());let binary='';
+        for(let i=0;i<bytes.length;i+=32768)binary+=String.fromCharCode(...bytes.subarray(i,i+32768));
+        const response=await fetch('/api/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:btoa(binary),mime:blob.type})});
+        const data=await response.json().catch(()=>({}));
+        if(!response.ok||!data.text)throw Error(data.error||'No speech recognized');
+        input.value=data.text.trim();session.answers[1]=input.value;emitContext(session);
+        status.textContent='Heard: '+input.value+'. Check or edit your answer.';
+       }catch(e){status.textContent='Could not transcribe: '+e.message+'. You can type the answer.'}
+       finally{mic.disabled=false;mic.textContent='🎙 Say your answer'}
+      };
+      mic.onclick=()=>{if(recorder.state==='recording')recorder.stop()};
+      recorder.start();
+     }catch(e){mic.disabled=false;mic.textContent='🎙 Say your answer';status.textContent='Microphone unavailable: '+e.message}
+    },'wl6-mini');
+    voice.append(mic);section.append(voice);
+   }
    if(stage===2){
     const voice=node('div','wl6-audio-controls');
     const record=button('🎙 Record answer',async()=>{
@@ -169,6 +212,19 @@
   actions.append(check);
   actions.append(button('Hint',()=>{let h=section.querySelector('.wl6-hint');if(h){h.remove();return}section.insertBefore(node('p','wl6-hint',q.hint||'Use the context for clues.'),actions)},'wl6-mini'));
   if(stage>0)actions.append(button('← Previous',()=>{session.stage=stage-1;drawPractice(session)},'wl6-mini'));
+  actions.append(button('↻ New version',async()=>{
+   if(building)return;
+   building=true;escStatus('Generating a different short B2 exercise…');
+   try{
+    const d=await request({action:'build',item:session.word,variation:generationIndex++});
+    if(!Array.isArray(d.questions)||d.questions.length!==3)throw Error('Practice sequence incomplete');
+    if(session.audioUrl)URL.revokeObjectURL(session.audioUrl);
+    const fresh={word:session.word,questions:d.questions,stage:0,maxStage:0,attempted:[false,false,false],answers:['','','']};
+    sessions.set(norm(session.word),fresh);drawPractice(fresh);
+    escStatus('New practice ready.');
+   }catch(e){escStatus(e.message||'Could not regenerate. Existing answers are preserved.','error')}
+   finally{building=false}
+  },'wl6-mini'));
   section.append(actions,status);out.append(section);
  }
  async function request(body){
@@ -188,11 +244,11 @@
   for(const w of words){
    const b=button(w.value,async()=>{
     const k=norm(w.value);activeKey=k;const existing=sessions.get(k);
-    if(existing){drawPractice(existing);return}
+    if(existing){drawPractice(existing);escStatus('Your current sequence is preserved. Choose “New version” to generate different tasks.');return}
     building=true;for(const el of strip.querySelectorAll('button'))el.disabled=true;
     escStatus('Building contextual B2 exercises for “'+w.value+'”…');
     try{
-      const d=await request({action:'build',item:w.value});
+      const d=await request({action:'build',item:w.value,variation:generationIndex++});
       if(k!==activeKey)return;
       if(!Array.isArray(d.questions)||d.questions.length!==3)throw Error('The practice sequence is incomplete.');
       const session={word:w.value,questions:d.questions,stage:0,maxStage:0,attempted:[false,false,false],answers:['','','']};
