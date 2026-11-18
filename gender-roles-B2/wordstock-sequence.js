@@ -9,6 +9,11 @@
  const $=id=>document.getElementById(id);
  const list=$('wl-word-items'),out=$('wl-word-exercises'),msg=$('wl-word-message'),go=$('wl-word-practice'),clear=$('wl-word-clear');
  const selected=new Set(),sessions=new Map();let activeKey='',building=false;
+ const emitContext=(session,extra={})=>{
+  if(!session)return;
+  window.genderWordStockContext={section:'My Word Stock',target:session.word,stage:['Recognition','Retrieval','Production'][session.stage],task:session.questions?.[session.stage]?.prompt||'',context:session.questions?.[session.stage]?.context||'',studentAnswer:session.answers?.[session.stage]||'',lastFeedback:session.lastFeedback||'',...extra};
+  window.dispatchEvent(new Event('gender-wordstock-context-updated'));
+ };
  const word=w=>typeof w==='string'?w.trim():String(w?.word||w?.text||w?.phrase||'').trim();
  const norm=s=>String(s||'').toLowerCase().replace(/[’‘]/g,"'").replace(/[^a-z0-9' ]/g,' ').replace(/\s+/g,' ').trim();
  const read=()=>{try{const v=JSON.parse(localStorage.getItem(KEY)||'{}');return Array.isArray(v.words)?v.words:[]}catch{return []}};
@@ -55,6 +60,7 @@
  }
  function drawPractice(session){
   const q=session.questions[session.stage],stage=session.stage;
+  emitContext(session);
   out.replaceChildren();const section=node('section','wl6-practice-card');
   const head=node('div','wl6-head');
   head.append(node('div','wl6-eyebrow',(stage===0?'MEANING':stage===1?'RECALL':'COMMUNICATION')+' · '+(stage+1)+' OF 3'));
@@ -70,14 +76,14 @@
    q.options.forEach(opt=>{
     const label=node('label','wl6-option');const radio=document.createElement('input');
     radio.type='radio';radio.name='wl6-recognition';radio.value=opt;radio.checked=session.answers[stage]===opt;
-    radio.onchange=()=>{session.answers[stage]=opt;status.textContent='';};
+    radio.onchange=()=>{session.answers[stage]=opt;status.textContent='';emitContext(session)};
     label.append(radio,node('span','',opt));opts.append(label);
    });
    section.append(opts);
   }else{
    const input=document.createElement(stage===1?'input':'textarea');input.className='wl6-answer';input.placeholder=stage===1?'Recall the precise expression':'Type your response or record it below…';
    if(stage===1)input.type='text';else input.rows=4;
-   input.value=session.answers[stage]||'';input.oninput=()=>{session.answers[stage]=input.value};
+   input.value=session.answers[stage]||'';input.oninput=()=>{session.answers[stage]=input.value;emitContext(session)};
    section.append(input);
    if(stage===2){
     const voice=node('div','wl6-audio-controls');
@@ -110,7 +116,7 @@
         if(!response.ok)throw Error(data.error||'Transcription unavailable');
         const transcript=String(data.text||'').trim();
         if(!transcript)throw Error('No speech was recognized');
-        input.value=transcript;session.answers[2]=transcript;
+        input.value=transcript;session.answers[2]=transcript;emitContext(session);
         status.textContent='✓ Transcript ready. Review or correct it, then select Get AI feedback.';
        }catch(e){status.textContent='You can replay the audio, but transcription failed: '+e.message+'. Type the response to request AI feedback.'}
       };
@@ -135,6 +141,7 @@
       if(ok)session.maxStage=Math.max(session.maxStage,stage+1);
       status.textContent=ok?'✓ Correct — this stage is complete.':'Not quite. '+(stage===0?'Compare the three definitions carefully.':'Think about the meaning of the situation and try again.');
       status.dataset.correct=String(ok);
+      session.lastFeedback=status.textContent;emitContext(session,{verifiedCorrectness:ok?'correct':'incorrect'});
       const previous=section.querySelector('.wl6-model');if(previous)previous.remove();
       actions.replaceChildren();
       actions.append(button('Try again',()=>{session.answers[stage]='';drawPractice(session)},'wl6-mini'));
@@ -151,6 +158,7 @@
        const d=await request({action:'assess',item:session.word,prompt:q.prompt,answer});
        session.attempted[2]=true;status.textContent=(d.appropriate?'✓ ':'↻ ')+d.feedback+(d.suggestion?' Suggested phrasing: '+d.suggestion:'');
        status.dataset.correct=String(d.appropriate);
+       session.lastFeedback=status.textContent;emitContext(session,{verifiedCorrectness:d.appropriate?'correct':'needs-revision'});
        const model=node('p','wl6-model','One possible answer: '+q.modelAnswer);
        const old=section.querySelector('.wl6-model');if(old)old.remove();section.append(model);
        if(!section.querySelector('.wl6-another'))actions.append(button('Practise another word →',()=>{out.replaceChildren();escStatus('Choose a saved expression and build another practice sequence.')},'wl6-next wl6-another'));
