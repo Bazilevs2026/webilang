@@ -13,6 +13,7 @@ const topics=[
 ];
 const style=document.createElement('style');style.textContent='#panel-home,.progress,.adaptive-top-strip{display:none!important}.jobs-v3{background:#fff;border:1px solid #d8e4df;border-radius:18px;padding:18px;margin:13px 0}.jobs-v3 textarea{display:block;width:100%;min-height:88px;padding:11px;border:1px solid #bfcfc7;border-radius:11px;font:inherit;box-sizing:border-box}.jobs-v3 .jrow{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.jobs-v3 .jrow button,.jobs-v3 select{padding:10px 13px;border-radius:9px;border:1px solid #c5d6cf;background:#fff;cursor:pointer}.jobs-v3 button.primary{background:#15935f!important;color:white!important}.jobs-v3 .jhelp{padding:13px;background:#edf8f2;border-left:4px solid #15935f;margin:10px 0;line-height:1.65}.jobs-v3 .jprompt{font-size:18px;line-height:1.6}.jobs-v3 .jreply{padding:10px;background:#eaf6ed;border-radius:10px;margin:8px 0;white-space:pre-wrap}.jobs-v3 .jreply.ai{background:#eaf1f8}.jobs-v3 iframe{display:block;width:100%;height:220px;border:0;border-radius:14px;background:#dbe9ec}.jfloat{position:fixed;right:17px;bottom:17px;z-index:9999;background:#f3a22f;color:#16252e;border:0;border-radius:30px;padding:13px 17px;box-shadow:0 5px 18px #0003;font-weight:800}.jcoach{position:fixed;z-index:10000;right:15px;bottom:15px;width:min(385px,calc(100vw - 30px));background:white;border-radius:17px;padding:18px;box-shadow:0 12px 65px #1235;max-height:80vh;overflow:auto}.jcoach[hidden]{display:none}';document.head.append(style);
 document.querySelectorAll('[data-tab="home"]').forEach(x=>x.remove());
+$('panel-home')?.remove();
 document.querySelectorAll('.header-actions button').forEach(x=>{if((x.getAttribute('onclick')||'').includes("showPanel('home')"))x.remove()});
 $('panel-home')?.classList.remove('active');$('panel-story')?.classList.add('active');document.querySelector('[data-tab="story"]')?.classList.add('active');
 const nav=document.querySelector('header nav');if(!nav)return;
@@ -49,7 +50,7 @@ const float=document.createElement('button');float.className='jfloat';float.text
 let coachHistory=[];$('jCoachAsk').onclick=async()=>{const q=$('jQuestionCoach').value.trim();if(!q)return;coachHistory.push({role:'user',content:JSON.stringify({question:q,context:snapshot()})});$('jCoachStatus').textContent='Kostya is thinking…';try{const r=await ask('teacher',{history:coachHistory.slice(-8)});coachHistory.push({role:'assistant',content:r.answer});$('jCoachReply').textContent=r.answer;$('jCoachStatus').textContent='Ready.'}catch(e){$('jCoachStatus').textContent=e.message}};
 $('jCoachSpeak').onclick=()=>{speechSynthesis.cancel();const x=new SpeechSynthesisUtterance($('jCoachReply').textContent);x.lang='en-US';speechSynthesis.speak(x)};
 function closeLive(){const s=live;live=null;if(!s)return;try{s.peer?.close()}catch(e){}try{s.channel?.close()}catch(e){}s.stream?.getTracks().forEach(t=>t.stop())}
-async function startLive(coachMode){if(live)throw Error('Finish the current conversation first.');if(!RTCPeerConnection||!navigator.mediaDevices?.getUserMedia)throw Error('This browser cannot connect a realtime microphone.');try{if(typeof releaseSharedMicrophone==='function')releaseSharedMicrophone()}catch(e){}
+async function startLive(coachMode){if(live)throw Error('Finish the current conversation first.');if(!window.RTCPeerConnection||!navigator.mediaDevices?.getUserMedia)throw Error('This browser cannot connect a realtime microphone.');try{if(typeof releaseSharedMicrophone==='function')releaseSharedMicrophone()}catch(e){}
 const r=await fetch('/api/qwen-voice-session',{cache:'no-store'});if(!r.ok)throw Error('Voice configuration unavailable');const conf=await r.json();
 const p=coachMode?'You are Kostya, a supportive A2 English tutor with the verified page state '+JSON.stringify(snapshot())+'. Answer one short clear question at a time. Do not invent actions.':'You are '+(role==='applicant'?'Nova, a professional job INTERVIEWER. The student applies. Ask concise questions.':'Chaz, a JOB APPLICANT. The student is the employer. Let them ask you interview questions.')+' The job is '+jobs[+$('jJob').value]+'. Student preparation notes: '+$('jNotes').value.slice(0,850)+'. Speak natural A2 English in 1-2 short sentences, with at most one question. Stop and wait after each turn. Do not give feedback during the interview.';
 const state=coachMode?$('jCoachStatus'):$('jStatus');state.textContent='Connecting…';
@@ -64,4 +65,32 @@ try{s.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:
 $('jStart').onclick=async()=>{if(!$('jNotes').value.trim())return alert('Prepare at least two sentences or questions first.');lines=[];$('jTranscript').innerHTML='';$('jStart').disabled=true;$('jEnd').disabled=false;try{await startLive(false)}catch(e){$('jStatus').textContent=e.message;$('jStart').disabled=false;$('jEnd').disabled=true}};
 $('jEnd').onclick=async()=>{closeLive();$('jStart').disabled=false;$('jEnd').disabled=true;const text=lines.filter(x=>x.role==='student').map(x=>x.text).join('\n');if(!text){$('jStatus').textContent='No speech transcript received; feedback cannot be generated.';return}try{showFeedback(await ask('feedback',{transcript:text,scene:'Job interview '+jobs[+$('jJob').value]}),$('jInterviewFeedback'))}catch(e){$('jStatus').textContent=e.message}};
 $('jCoachLive').onclick=async()=>{try{await startLive(true)}catch(e){$('jCoachStatus').textContent=e.message}};$('jCoachStop').onclick=closeLive;
+
+/* Optional evidence-based feedback for existing, otherwise unchanged activities. */
+['story','reading','watching','writing'].forEach(tab=>{
+ const section=$('panel-'+tab);if(!section)return;
+ section.querySelectorAll('.recorder').forEach((rec,i)=>{
+   const actions=rec.querySelector('.rec-extra')||rec;
+   const btn=document.createElement('button');btn.className='tiny';btn.type='button';btn.textContent='✨ AI feedback + Stocks';
+   const out=document.createElement('div');out.className='jobs-v3';out.hidden=true;
+   btn.onclick=async()=>{
+     const transcript=rec.querySelector('textarea.transcript')?.value?.trim()||'';
+     if(!transcript){out.hidden=false;out.textContent='Please record or enter your own words before requesting feedback.';return}
+     out.hidden=false;out.textContent='Reviewing your speech…';
+     try{showFeedback(await ask('feedback',{transcript,scene:'Jobs & Money A2 · '+tab+' · '+(rec.dataset.label||rec.dataset.task||i)}),out)}
+     catch(e){out.textContent=e.message}
+   };
+   actions.append(btn);rec.after(out);
+ });
+ if(tab==='writing'){
+   const area=[...section.querySelectorAll('textarea')].find(x=>!x.classList.contains('transcript'));
+   if(area){
+     const row=document.createElement('div');row.className='jobs-v3';
+     const btn=document.createElement('button');btn.textContent='✨ AI writing feedback + save useful language';btn.className='primary';
+     const result=document.createElement('div');
+     btn.onclick=async()=>{const transcript=area.value.trim();if(!transcript){result.textContent='Write your application first.';return}result.textContent='Reviewing your own text…';try{showFeedback(await ask('feedback',{transcript,scene:'A2 job application writing task'}),result)}catch(e){result.textContent=e.message}};
+     row.append(btn,result);area.after(row);
+   }
+ }
+});
 })();
