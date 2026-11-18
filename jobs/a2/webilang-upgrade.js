@@ -37,7 +37,7 @@ navOrder.forEach(([tab,label])=>{
  if(button){button.textContent=label;nav.appendChild(button)}
 });
 const navStyle=document.createElement('style');
-navStyle.textContent='header nav{width:100%;max-width:1600px;box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;justify-content:center;gap:5px;overflow-x:auto;scrollbar-width:thin;padding:0 12px 10px;margin:0 auto}header nav .tab{flex:0 0 auto;white-space:nowrap;padding:9px 9px;font-size:13px;line-height:1.2;border-radius:10px}@media(min-width:1380px){header nav{gap:7px}header nav .tab{font-size:14px;padding:9px 11px}}@media(max-width:1150px){header nav{justify-content:flex-start;gap:5px}header nav .tab{font-size:12px;padding:9px 8px}}';
+navStyle.textContent='header nav{width:100%;max-width:1600px;box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;justify-content:center;gap:5px;overflow-x:auto;scrollbar-width:thin;padding:0 12px 10px;margin:0 auto}header nav .tab{flex:0 0 auto;white-space:nowrap;padding:9px 9px;font-size:14px;line-height:1.2;border-radius:10px}@media(min-width:1380px){header nav{gap:7px}header nav .tab{font-size:15px;padding:9px 11px}}@media(max-width:1150px){header nav{justify-content:flex-start;gap:5px}header nav .tab{font-size:13px;padding:9px 8px}}';
 document.head.append(navStyle);
 
 /* Keep microphone support, remove the unnecessary page-wide setup banner.
@@ -583,6 +583,29 @@ get('jvrReset').onclick=()=>{if(get('jvrBegin').disabled){get('jvrFinish').click
 const storyRecorderStyle=document.createElement('style');
 storyRecorderStyle.textContent='#panel-story .recorder[data-task="baz-story"] .rec-extra> :not(.jobs-story-feedback){display:none!important}#panel-story .recorder[data-task="baz-story"] .rec-extra{display:flex;align-items:center;gap:8px;margin-top:12px}#panel-story .recorder[data-task="baz-story"] .jobs-story-feedback{border:0;background:#188755;color:#fff;border-radius:11px;font-weight:800;padding:12px 18px;cursor:pointer;font-size:15px}#panel-story .recorder[data-task="baz-story"] .jobs-story-feedback:hover{background:#126d45}#panel-story .recorder[data-task="baz-story"] .rec-note{font-size:12px}';
 document.head.append(storyRecorderStyle);
+
+/* All story/reading/watching recorder extra actions are replaced by the single
+   feedback action. Keep Record / Pause / Stop / timer in .rec-controls untouched. */
+const cleanRecorderStyle=document.createElement('style');
+cleanRecorderStyle.textContent=[
+ '#panel-story .recorder .rec-extra > :not(.jobs-stock-feedback-only)',
+ '#panel-reading .recorder .rec-extra > :not(.jobs-stock-feedback-only)',
+ '#panel-watching .recorder .rec-extra > :not(.jobs-stock-feedback-only)',
+ '#panel-story .recorder .whatsapp-rec',
+ '#panel-reading .recorder .whatsapp-rec',
+ '#panel-watching .recorder .whatsapp-rec',
+ '#panel-story .recorder .share-rec',
+ '#panel-reading .recorder .share-rec',
+ '#panel-watching .recorder .share-rec',
+ '#panel-story .recorder .share-email',
+ '#panel-reading .recorder .share-email',
+ '#panel-watching .recorder .share-email'
+].join(',')+'{display:none!important}'+
+'#panel-story .recorder .rec-extra,#panel-reading .recorder .rec-extra,#panel-watching .recorder .rec-extra{display:flex!important;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}'+
+'#panel-story .recorder .jobs-stock-feedback-only,#panel-reading .recorder .jobs-stock-feedback-only,#panel-watching .recorder .jobs-stock-feedback-only{display:inline-flex!important;align-items:center;justify-content:center;background:#188755!important;color:#fff!important;border:0!important;border-radius:10px;padding:11px 16px;font-size:14px;font-weight:800;cursor:pointer}'+
+'#panel-story .recorder .jobs-stock-feedback-only:hover,#panel-reading .recorder .jobs-stock-feedback-only:hover,#panel-watching .recorder .jobs-stock-feedback-only:hover{background:#116f46!important}';
+document.head.append(cleanRecorderStyle);
+
 const bazRecorder=$('panel-story')?.querySelector('.recorder[data-task="baz-story"]');
 if(bazRecorder){bazRecorder.dataset.limit='120';const t=bazRecorder.querySelector('.timer');if(t&&t.textContent.trim()==='03:00')t.textContent='02:00';}
 
@@ -591,7 +614,7 @@ if(bazRecorder){bazRecorder.dataset.limit='120';const t=bazRecorder.querySelecto
  const section=$('panel-'+tab);if(!section)return;
  section.querySelectorAll('.recorder').forEach((rec,i)=>{
    const actions=rec.querySelector('.rec-extra')||rec;
-   const btn=document.createElement('button');btn.className=tab==='story'?'jobs-story-feedback':'tiny';btn.type='button';btn.textContent='✨ AI Feedback + Stocks';
+   const btn=document.createElement('button');btn.className=['story','reading','watching'].includes(tab)?'jobs-stock-feedback-only':'tiny';btn.type='button';btn.textContent='✨ AI Feedback + Stocks';
    const out=document.createElement('div');out.className='jobs-v3';out.hidden=true;
    btn.onclick=async()=>{
      const transcript=rec.querySelector('textarea.transcript')?.value?.trim()||'';
