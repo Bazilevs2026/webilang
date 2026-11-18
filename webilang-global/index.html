@@ -16,6 +16,28 @@
 #mission-partners .mission-bridge-tile p{margin:0 0 12px;font-size:13px;color:#546d7d;line-height:1.5}
 #mission-partners .mission-bridge-tile a{font-weight:760}
 @media(max-width:720px){#mission-partners .mission-bridge-grid{grid-template-columns:1fr}}
+</style><style id="webilang-russian-module-gallery-v1">
+#russian-modules{background:linear-gradient(135deg,#fffaf4,#f6f0ff);border:1px solid #e3d8ea}
+.ru-modules-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:17px}
+.ru-modules-heading h2{margin:2px 0 5px}.ru-modules-heading .muted{margin:0}
+.ru-modules-eyebrow{font-size:11px;font-weight:900;letter-spacing:.13em;color:#745d85;margin:0}
+.ru-modules-language{background:#ffcf58;color:#211d28;font-weight:900;padding:7px 11px;border-radius:9px}
+.ru-modules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:18px}
+.ru-module-tile{display:block;overflow:hidden;border-radius:19px;border:1px solid #ddd0e4;background:#fff;text-decoration:none;color:#25222c;box-shadow:0 5px 14px #35214510;transition:transform .16s,box-shadow .16s}
+.ru-module-tile:hover,.ru-module-tile:focus-visible{transform:translateY(-3px);box-shadow:0 12px 24px #35214523}
+.ru-module-cover{height:190px;position:relative;background-position:center;background-size:cover;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:15px;color:white}
+.ru-module-cover:before{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#160e27c9 0%,#271c3699 32%,#0505050b 80%)}
+.ru-module-cover>*{position:relative;z-index:1}
+.ru-module-cover.transportation{background-image:url('/russian-unscripted/assets/station-background.jpg');background-position:center}
+.ru-module-cover.cafe{background-image:url('/avatar-lab/backgrounds/university-cafe-michael.jpg')}
+.ru-cover-brand{font-weight:900;font-size:14px;letter-spacing:.04em}
+.ru-cover-brand b{background:#ffd15d;color:#26212e;padding:4px 6px;border-radius:3px}
+.ru-cover-title{font-size:clamp(25px,3vw,35px);font-weight:950;letter-spacing:.035em;line-height:1.02;max-width:100%;overflow-wrap:anywhere;text-shadow:0 2px 8px #0007}
+.ru-cover-level{display:inline-block;align-self:flex-start;background:#ffcf58;color:#211d28;border-radius:6px;padding:5px 8px;font-size:12px;font-weight:900;letter-spacing:.1em}
+.ru-module-info{display:flex;flex-direction:column;gap:5px;padding:14px 17px 18px}
+.ru-module-info strong{font-size:20px}.ru-module-info span{font-size:12px;font-weight:800;color:#634e7c}
+.ru-module-info small{color:#62596b;font-size:13px;line-height:1.4}
+@media(max-width:580px){.ru-module-cover{height:180px}.ru-cover-title{font-size:27px}}
 </style></head><body>
 <main class="shell"><div class="top"><div class="brand">🌐 Webilang <span>Global</span></div><div class="row"><span class="muted small" id="email-label"></span><button id="sign-out" class="secondary hide">Sign out</button></div></div>
 <section id="loading" class="login panel"><h1>Welcome to Webilang Global</h1><p class="muted">Connecting to your learning space…</p></section>
@@ -35,7 +57,20 @@
   </div>
   <p class="muted small" style="margin:13px 0 0">Your login and assigned lessons stay here. Partner invitations and private text chat are available inside Missions after opting in. The story examples are still previews.</p>
 </section>
-<section class="panel section" id="assigned-lessons"><h2>📖 My Lessons</h2><p class="muted" id="assigned-message" role="status">Loading…</p><div class="assigned-list" id="assigned-list"></div></section><section class="panel section tutor-panel"><div class="tutor-icon" aria-hidden="true">🎙️</div><div class="tutor-content"><h2>Meet Kostya</h2><p class="muted">Your personal AI English tutor. Speak, practise pronunciation, ask grammar questions or discuss your lessons.</p><button class="tutor-action" id="activate-kostya" type="button" aria-controls="kostya-floating-panel" aria-expanded="false">🎤 Activate Kostya →</button><p class="dashboard-hint">Kostya opens on the right. Press Start in his window to begin speaking.</p></div></section>
+<section class="panel section" id="assigned-lessons"><h2>📖 My Lessons</h2><p class="muted" id="assigned-message" role="status">Loading…</p><div class="assigned-list" id="assigned-list"></div></section><section class="panel section" id="russian-modules" aria-labelledby="russian-modules-title">
+  <div class="ru-modules-heading"><div><p class="ru-modules-eyebrow">WEBILANG GLOBAL · RUSSIAN</p><h2 id="russian-modules-title">Russian Modules</h2><p class="muted">Learn Russian through real-life communication.</p></div><span class="ru-modules-language">RU</span></div>
+  <div class="ru-modules-grid">
+    <a class="ru-module-tile" href="/russian-unscripted/" aria-label="Open Transportation, Russian A1 to A2">
+      <div class="ru-module-cover transportation"><span class="ru-cover-brand">WEBILANG <b>RU</b></span><span class="ru-cover-title">TRANSPORTATION</span><span class="ru-cover-level">RUSSIAN · A1–A2</span></div>
+      <div class="ru-module-info"><strong>Transportation</strong><span>Russian · A1–A2</span><small>Travel, stations, tickets, speaking with AI characters and Kostya</small></div>
+    </a>
+    <a class="ru-module-tile" href="/russian-03/" aria-label="Open Russian Café A1">
+      <div class="ru-module-cover cafe"><span class="ru-cover-brand">WEBILANG <b>RU</b></span><span class="ru-cover-title">RUSSIAN CAFÉ</span><span class="ru-cover-level">RUSSIAN · A1</span></div>
+      <div class="ru-module-info"><strong>Russian Café</strong><span>Russian · A1</span><small>Ordering and communicating in a café</small></div>
+    </a>
+  </div>
+</section>
+<section class="panel section tutor-panel"><div class="tutor-icon" aria-hidden="true">🎙️</div><div class="tutor-content"><h2>Meet Kostya</h2><p class="muted">Your personal AI English tutor. Speak, practise pronunciation, ask grammar questions or discuss your lessons.</p><button class="tutor-action" id="activate-kostya" type="button" aria-controls="kostya-floating-panel" aria-expanded="false">🎤 Activate Kostya →</button><p class="dashboard-hint">Kostya opens on the right. Press Start in his window to begin speaking.</p></div></section>
 <div id="kostya-floating-panel" class="kostya-floating-panel hide" role="dialog" aria-label="Talk with Kostya" aria-modal="false"><div class="kostya-floating-head"><strong>🎤 Kostya · AI English Tutor</strong><button id="close-kostya" class="secondary" type="button" aria-label="Close Kostya">✕</button></div><div class="kostya-floating-body" id="kostya-floating-body"></div><p class="kostya-floating-note">Press Start in Kostya’s window and allow microphone access.</p></div>
 <section class="panel section top-recommendation"><div class="priority-heading"><span class="priority-symbol">🎯</span><div><h2>Kostya Recommends</h2><p class="priority-eyebrow">YOUR MOST RECENT ACTIONABLE PRIORITY</p></div></div><p id="next-step" class="priority-text">Your latest actionable recommendation will appear after AI feedback.</p><p id="recommendation-date" class="dashboard-hint"></p><p class="dashboard-hint">Your latest learning tip will appear here when your teacher or AI feedback identifies a clear next step.</p></section>
 <div class="grid"><section class="panel section"><h2>📚 My practice</h2><div class="cards"><div class="tile"><strong>Conversations</strong><div class="metric" id="count-conversations">0</div></div><div class="tile"><strong>AI reviews</strong><div class="metric" id="count-reviews">0</div></div><div class="tile"><strong>English level</strong><div class="metric" id="level-value">A2</div></div></div></section><section class="panel section"><h2>✅ My strengths</h2><p id="strengths" class="muted">As you practise, this space will highlight specific skills supported by your learning activities.</p></section><section class="panel section"><h2>🧩 What I'm practising</h2><p id="practice-focus" class="muted">Your next learning target will appear here after your first AI review.</p></section></div>
@@ -66,7 +101,7 @@ async function loadDashboard(){
  $('strengths').textContent=progress.length?'Your progress is being recorded. Confirmed strengths will appear after comparable practice tasks.':'Strengths will appear after you complete learning activities.';
 }
 
-const assignCatalog={'gender-roles-b2':['Gender Roles B2','/gender-roles-B2/'],'video-games-a2':['Video Games · A2','/'],'russian-a1':['Russian A1 · Café','/russian-03/']};
+const assignCatalog={'gender-roles-b2':['Gender Roles B2','/gender-roles-B2/'],'video-games-a2':['Video Games · A2','/'],'russian-a1':['Russian A1 · Café','/russian-03/'],'russian-transportation-a1a2':['Transportation · A1–A2','/russian-unscripted/']};
 let assignedLoadSequence=0;
 async function loadAssignedLessons(){
  const sequence=++assignedLoadSequence;
