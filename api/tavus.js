@@ -56,20 +56,16 @@ async function reclaimEndedReservation(){
  await redis(["EVAL",'if redis.call("GET", KEYS[1]) == ARGV[1] then return redis.call("DEL", KEYS[1]) else return 0 end',1,`${PREFIX}:active`,token]);
  return true;
 }
-function safeMatch(a,b){
- if(typeof a!=="string"||typeof b!=="string")return false;
- const ab=Buffer.from(a),bb=Buffer.from(b);
- return ab.length===bb.length&&ab.length>0&&crypto.timingSafeEqual(ab,bb);
-}
-function checkRussianAccess(req,body){
- // Access code is deliberately separate from the Tavus API key. Never put TAVUS_API_KEY in the browser.
- const secret=process.env.TAVUS_RUSSIAN_ACCESS_CODE;
- if(!secret||secret.length<12)return "Russian roleplay is not enabled. Configure TAVUS_RUSSIAN_ACCESS_CODE (12+ characters).";
- if(!safeMatch(String(body.accessCode||""),secret))return "Incorrect roleplay access code.";
- // Restrict ordinary browser calls to intended site. This is not a replacement for the access code.
- const expected=process.env.WEBILANG_ALLOWED_ORIGIN||"https://webilang.vercel.app";
- const origin=req.headers.origin;
- if(origin!==expected)return "Open the lesson on the published Webilang site.";
+// Public student roleplays require no teacher password. Keep strict browser
+// origins, per-session tokens, a five-minute session cap and monthly quota.
+function checkRussianAccess(req){
+ const origin=String(req.headers.origin||"");
+ const permitted=new Set([
+  "https://webilang.vercel.app",
+  "https://webilang-git-test-qwen-webilang.vercel.app",
+  process.env.WEBILANG_ALLOWED_ORIGIN||""
+ ].filter(Boolean));
+ if(!permitted.has(origin))return "Open the lesson on a published Webilang site.";
  return null;
 }
 export default async function handler(req,res){
@@ -83,7 +79,7 @@ export default async function handler(req,res){
    const russian=scenario==="russian_michael"||scenario==="russian_anna";
    if(!["creator","job","russian_michael","russian_anna","atlas"].includes(scenario))return json(res,400,{error:"Unknown scenario"});
    if(russian){
-    const problem=checkRussianAccess(req,body);
+    const problem=checkRussianAccess(req);
     if(problem)return json(res,403,{error:problem});
    }
    const game=String(body.game||"").trim().slice(0,80);
@@ -160,7 +156,7 @@ export default async function handler(req,res){
    const saved=JSON.parse(raw);
    if(saved.id!==id||!["russian_michael","russian_anna","atlas"].includes(saved.scenario))return json(res,403,{error:"Session mismatch"});
    if(saved.scenario!=="atlas"){
-    const problem=checkRussianAccess(req,body);
+    const problem=checkRussianAccess(req);
     if(problem)return json(res,403,{error:problem});
    }
    const data=await tavus(`/${encodeURIComponent(id)}?verbose=true`,"GET");
@@ -240,7 +236,7 @@ No markdown, no unsupported conclusions or scores derived from avatar persuasion
    if(!raw)return json(res,403,{error:"Session expired. Feedback is unavailable."});
    const saved=JSON.parse(raw);
    if(saved.id!==id||!["russian_michael","russian_anna"].includes(saved.scenario))return json(res,403,{error:"Session mismatch"});
-   const problem=checkRussianAccess(req,body);
+   const problem=checkRussianAccess(req);
    if(problem)return json(res,403,{error:problem});
    const transcript=String(body.transcript||"").trim();
    if(transcript.length<20||transcript.length>8000)return json(res,400,{error:"Enter at least 20 and at most 8000 characters of your Russian lines."});
