@@ -35,6 +35,47 @@ const rp=$('panel-roleplays');rp.innerHTML='<div class="section-head"><span clas
 let role='applicant',lines=[],live=null;
 function scaffold(){const job=jobs[Number($('jJob').value)];$('jApply').classList.toggle('primary',role==='applicant');$('jHire').classList.toggle('primary',role==='employer');$('jScaffold').innerHTML=role==='applicant'?'<b>Your job: '+escape(job)+'</b><br>Useful phrases:<br><b>I want this job because…<br>I am good at…<br>I can…<br>I have experience with… / I am ready to learn…<br>Could you tell me about the working hours?</b><br>Goal: describe two skills and ask one question.':'<b>You are interviewing an applicant for '+escape(job)+'</b><br>Useful questions:<br><b>Why do you want this job?<br>Are you good at…?<br>Can you…?<br>Do you have any experience?<br>When can you start?<br>Why should we hire you?</b><br>Goal: ask three questions, listen and decide.';const f=$('jAvatar');const change=()=>{try{const sel=f.contentDocument?.getElementById('modelMode');if(sel){sel.value=role==='applicant'?'nova':'chaz';sel.dispatchEvent(new Event('change',{bubbles:true}))}}catch(e){}};f.addEventListener('load',change,{once:true});change()}
 $('jApply').onclick=()=>{role='applicant';scaffold()};$('jHire').onclick=()=>{role='employer';scaffold()};$('jJob').onchange=scaffold;scaffold();
+
+/* Guided A2 preparation: recognition, paraphrase, retrieval and independent notes. */
+const preparation=document.createElement('div');preparation.className='jobs-v3';preparation.id='jGuidedPrep';
+$('jScaffold').after(preparation);
+let prepChoice=-1,prepRecall='';
+function prepExercise(){
+ const applying=role==='applicant';
+ const correct=applying?'I am good at working with people.':'Do you have any experience with computers?';
+ const wrong=applying?['I am good in working with people.','I good at working with people.']:['Are you have experience with computers?','You have any experienced with computers?'];
+ const choices=[correct,...wrong];const order=[2,0,1];
+ preparation.innerHTML='<h3>Before the interview · three small steps</h3><p><b>Step 1 — Recognition:</b> Choose the most suitable and grammatically correct sentence.</p>'+
+ order.map((ix,n)=>'<label style="display:block;margin:8px 0"><input type="radio" name="jPrepChoice" value="'+ix+'"> '+escape(choices[ix])+'</label>').join('')+
+ '<button id="jPrepCheck">Check + explain</button><div id="jPrepExplanation" class="jhelp" hidden></div>'+
+ '<p><b>Step 2 — Paraphrase:</b> Say the same idea in a different way.</p>'+
+ '<p>'+escape(applying?'I am good at working with people.':'Do you have any experience with computers?')+'</p>'+
+ '<textarea id="jParaphrase" placeholder="'+(applying?'I work well with people.':'Have you worked with computers before?')+'"></textarea>'+
+ '<button id="jParaphraseCheck">Check my paraphrase with Kostya</button><div id="jParaphraseResult"></div>'+
+ '<p><b>Step 3 — Retrieval:</b> Hide the support above and write your own interview questions or answers in the notes below.</p>'+
+ '<button id="jPrepHide">Hide example phrases</button>';
+ preparation.querySelector('#jPrepCheck').onclick=()=>{
+  const selected=preparation.querySelector('input[name=jPrepChoice]:checked');
+  const msg=preparation.querySelector('#jPrepExplanation');msg.hidden=false;
+  if(!selected){msg.textContent='Select one answer first.';return}
+  msg.innerHTML=(Number(selected.value)===0?'✅ Correct. ':'Try again. ')+
+  (applying?'Use “good at” + -ing: “good at working”. “I good” needs “am”. Русский: после good at используем глагол с -ing; в английском предложении нужен am.':
+  'Use “Do you have…?” for a Present Simple question. “Are you have” combines incompatible question structures. Русский: в вопросе Present Simple с have нужен вспомогательный do.')};
+ preparation.querySelector('#jParaphraseCheck').onclick=async()=>{
+   const answer=preparation.querySelector('#jParaphrase').value.trim();
+   if(!answer){preparation.querySelector('#jParaphraseResult').textContent='Write a paraphrase first.';return}
+   const response=preparation.querySelector('#jParaphraseResult');response.textContent='Checking…';
+   try{const r=await ask('teacher',{history:[{role:'user',content:'For A2 interview preparation, check if this is a natural paraphrase of "'+correct+'": "'+answer+'". Say whether meaning is preserved; give one clear correction if necessary. Explain briefly in English and Russian.'}]});response.textContent=r.answer}catch(e){response.textContent=e.message}
+ };
+ preparation.querySelector('#jPrepHide').onclick=()=>{
+   const el=$('jScaffold');el.hidden=!el.hidden;
+   preparation.querySelector('#jPrepHide').textContent=el.hidden?'Show example phrases':'Hide example phrases';
+ };
+}
+const oldScaffold=scaffold;
+scaffold=function(){oldScaffold();prepExercise()};
+prepExercise();
+
 let actions=[];
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const sect=b.closest('main section.panel');if(!sect)return;actions.push({tab:sect.id,action:(b.textContent||'').trim().slice(0,75)});actions=actions.slice(-10)},true);
 function snapshot(){const panel=document.querySelector('main>.panel.active');return {module:'Jobs & Money A2',activeTab:panel?.id,heading:panel?.querySelector('h2')?.textContent,job:jobs[Number($('jJob').value)],role,inputs:[...panel?.querySelectorAll('textarea,input,select')||[]].filter(x=>!x.disabled&&x.offsetParent).slice(0,12).map(x=>({label:x.placeholder||x.id,value:String(x.value||'').slice(0,350)})),recentActions:actions,interviewSpeech:lines.filter(x=>x.role==='student').slice(-4)}}
@@ -93,4 +134,12 @@ $('jCoachLive').onclick=async()=>{try{await startLive(true)}catch(e){$('jCoachSt
    }
  }
 });
+
+/* Keep live Kostya aware of recent in-page actions without claiming omniscience. */
+document.addEventListener('click',()=>{
+ const active=live;
+ if(active?.coachMode&&active.ready&&active.channel?.readyState==='open'){
+  try{active.channel.send(JSON.stringify({type:'session.update',session:{instructions:'You are Kostya, A2 Webilang tutor. CURRENT verified page state: '+JSON.stringify(snapshot()).slice(0,4500)+'. Respond to the student’s latest utterance with one helpful short answer. Never invent actions or hidden data.'}}))}catch(e){}
+ }
+},false);
 })();
