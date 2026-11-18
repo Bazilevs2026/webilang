@@ -64,7 +64,7 @@
   out.replaceChildren();const section=node('section','wl6-practice-card');
   const head=node('div','wl6-head');
   head.append(node('div','wl6-eyebrow',(stage===0?'MEANING':stage===1?'RECALL':'COMMUNICATION')+' · '+(stage+1)+' OF 3'));
-  head.append(node('h3','',stage===0?session.word:stage===1?'Choose the most precise expression':'Respond to the situation'));
+  head.append(node('h3','',stage===0?session.word:stage===1?'Translate into English':'Respond to the situation'));
   if(stage===0||stage===2)head.append(button('▶ Pronounce',()=>say(session.word),'wl6-mini'));
   section.append(head,progressBar(session));
   if(stage===0&&q.context)section.append(node('p','wl6-context',q.context));
@@ -81,7 +81,7 @@
    });
    section.append(opts);
   }else{
-   const input=document.createElement(stage===1?'input':'textarea');input.className='wl6-answer';input.placeholder=stage===1?'Recall the precise expression':'Type your response or record it below…';
+   const input=document.createElement(stage===1?'input':'textarea');input.className='wl6-answer';input.placeholder=stage===1?'Translate the whole sentence using the target expression':'Type your response or record it below…';
    if(stage===1)input.type='text';else input.rows=4;
    input.value=session.answers[stage]||'';input.oninput=()=>{session.answers[stage]=input.value;emitContext(session)};
    section.append(input);
@@ -92,7 +92,7 @@
      if(Speech){
       try{
        const rec=new Speech();rec.lang='en-US';rec.interimResults=false;rec.maxAlternatives=1;
-       mic.disabled=true;mic.textContent='🔴 Listening…';status.textContent='Say the English expression.';
+       mic.disabled=true;mic.textContent='🔴 Listening…';status.textContent='Say your complete English translation.';
        rec.onresult=e=>{const heard=String(e.results?.[0]?.[0]?.transcript||'').trim();if(heard){input.value=heard;session.answers[1]=heard;emitContext(session);status.textContent='Heard: '+heard+'. Check or edit your answer.'}};
        rec.onerror=e=>{status.textContent='Speech recognition unavailable ('+e.error+'). Try again or type your answer.'};
        rec.onend=()=>{mic.disabled=false;mic.textContent='🎙 Say your answer'};
@@ -184,23 +184,36 @@
     let answer=session.answers[stage]||'';
     if(!answer.trim()){status.textContent='Please give an answer first.';return}
     if(stage===0||stage===1){
-      const ok=norm(answer)===norm(q.answer);
-      session.attempted[stage]=true;
-      if(stage===1){const listen=section.querySelector('.wl6-audio-controls button:nth-child(2)');if(listen)listen.hidden=false}
-      if(ok)session.maxStage=Math.max(session.maxStage,stage+1);
-      status.textContent=ok?'✓ Correct — this stage is complete.':'Not quite. '+(stage===0?'Compare the three definitions carefully.':'Think about the meaning of the situation and try again.');
-      status.dataset.correct=String(ok);
-      session.lastFeedback=status.textContent;emitContext(session,{verifiedCorrectness:ok?'correct':'incorrect'});
-      const previous=section.querySelector('.wl6-model');if(previous)previous.remove();
-      actions.replaceChildren();
-      actions.append(button('Try again',()=>{session.answers[stage]='';drawPractice(session)},'wl6-mini'));
-      if(ok){
-       section.append(node('p','wl6-model','Target answer: '+q.answer));
-       actions.append(button('Next →',()=>{session.stage=Math.min(2,stage+1);drawPractice(session)},'wl6-next'));
-      }else{
-       actions.append(button('Hint',()=>{const prior=section.querySelector('.wl6-hint');if(prior){prior.remove();return}section.insertBefore(node('p','wl6-hint',q.hint||'Use the context for clues.'),actions)},'wl6-mini'));
-      }
-      section.replaceChild(progressBar(session),section.querySelector('.wl6-progress'));
+      check.disabled=true;
+      let ok=false,feedback='';
+      try{
+       if(stage===0){
+        ok=norm(answer)===norm(q.answer);
+        feedback=ok?'✓ Correct definition.':'Not quite. Compare the definitions and try again.';
+       }else{
+        status.textContent='AI is checking your translation and target-word usage…';
+        const d=await request({action:'assess_retrieval',item:session.word,prompt:q.prompt,modelAnswer:q.answer,answer});
+        ok=!!d.appropriate;
+        feedback=(ok?'✓ ':'↻ ')+(d.feedback||'')+(d.suggestion&&!ok?' Suggested translation: '+d.suggestion:'');
+       }
+       session.attempted[stage]=true;
+       if(stage===1){const listen=section.querySelector('.wl6-audio-controls button:nth-child(2)');if(listen)listen.hidden=false}
+       if(ok)session.maxStage=Math.max(session.maxStage,stage+1);
+       status.textContent=feedback;status.dataset.correct=String(ok);
+       session.lastFeedback=feedback;emitContext(session,{verifiedCorrectness:ok?'correct':'needs-revision'});
+       const previous=section.querySelector('.wl6-model');if(previous)previous.remove();
+       actions.replaceChildren();
+       actions.append(button('Try again',()=>{session.answers[stage]='';drawPractice(session)},'wl6-mini'));
+       if(ok){
+        section.append(node('p','wl6-model',(stage===1?'One possible translation: ':'Correct definition: ')+q.answer));
+        if(stage===1)section.append(button('🔊 Listen to model sentence',()=>say(q.answer),'wl6-mini'));
+        actions.append(button('Next →',()=>{session.stage=Math.min(2,stage+1);drawPractice(session)},'wl6-next'));
+       }else{
+        actions.append(button('Hint',()=>{const prior=section.querySelector('.wl6-hint');if(prior){prior.remove();return}section.insertBefore(node('p','wl6-hint',q.hint||'Use the context for clues.'),actions)},'wl6-mini'));
+       }
+       section.replaceChild(progressBar(session),section.querySelector('.wl6-progress'));
+      }catch(e){status.textContent=e.message||'Could not check your answer. It is preserved.'}
+      finally{check.disabled=false;}
     }else{
       check.disabled=true;status.textContent='Checking your B2 response…';
       try{
