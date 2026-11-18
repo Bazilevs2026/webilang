@@ -24,6 +24,22 @@ nav.querySelector('[data-tab="career"]').textContent='🎮 Game';
 const tabs=[['roleplays','🎭 Roleplays'],['mywords','📚 My Word Stock'],['mygrammar','🧩 My Grammar Stock']];
 const main=document.querySelector('main');
 tabs.forEach(([id,name])=>{const b=document.createElement('button');b.className='tab';b.dataset.tab=id;b.textContent=name;nav.append(b);b.addEventListener('click',()=>{if(typeof showPanel==='function')showPanel(id);if(id!=='roleplays')loadStocks()});const section=document.createElement('section');section.className='panel';section.id='panel-'+id;main.append(section)});
+
+/* Compact single-row navigation: preserve the original panel IDs and click handlers. */
+const navOrder=[
+ ['story','📖 Story'],['reading','📖 Reading'],['vocab','🧠 Vocab'],
+ ['grammar','🧩 Grammar'],['watching','▶ Watching'],['roleplays','🎭 Roleplays'],
+ ['opinion','🎡 Speaking'],['writing','✍ Writing'],['mywords','📚 My Words'],
+ ['mygrammar','🧩 My Grammar'],['career','🎮 Game']
+];
+navOrder.forEach(([tab,label])=>{
+ const button=nav.querySelector('[data-tab="'+tab+'"]');
+ if(button){button.textContent=label;nav.appendChild(button)}
+});
+const navStyle=document.createElement('style');
+navStyle.textContent='header nav{max-width:1600px;width:100%;box-sizing:border-box;display:flex;flex-wrap:nowrap;gap:clamp(3px,.45vw,7px);justify-content:space-between;overflow-x:auto;scrollbar-width:thin;padding:0 clamp(10px,1.4vw,20px) 9px}header nav .tab{flex:0 0 auto;white-space:nowrap;padding:9px clamp(6px,.72vw,11px);font-size:clamp(11px,.87vw,14px);line-height:1.2;border-radius:10px}@media(min-width:1100px){header nav .tab{flex:0 1 auto;min-width:0}}@media(max-width:1099px){header nav{justify-content:flex-start;overflow-x:auto}header nav .tab{font-size:13px;padding:9px 10px}}';
+document.head.append(navStyle);
+
 const speaking=$('panel-opinion');
 /* Capture authentic speaking-card content before replacing the old roulette view. */
 window.JOBS_A2_ORIGINAL_JOBS=[...speaking.querySelectorAll('.dream-card')].map(card=>{
