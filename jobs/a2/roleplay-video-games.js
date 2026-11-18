@@ -89,7 +89,7 @@ cardsArray.forEach((card,i)=>{
  jobSelect.onchange=updateIdeas;updateIdeas();
  const getNotes=()=>[...holder.querySelectorAll('textarea[data-note]')].map(x=>x.value.trim());
  const fillWorkspace=()=>{
-    oldStart.click();$('jJob').value=jobSelect.value;$('jJob').dispatchEvent(new Event('change'));
+    oldStart.click();$('jvrJobs').querySelector('[data-job="'+jobSelect.value+'"]')?.click();
     [...$('jvrFields').querySelectorAll('textarea')].forEach((input,n)=>input.value=getNotes()[n]||'');
     $('jvrSave').click();
  };
