@@ -96,14 +96,18 @@ cardsArray.forEach((card,i)=>{
  const applicant=i===0,key=applicant?'applicant':'employer';
  const hero=card.querySelector('.jvr-cover');
  if(hero){
-   const visuals=document.createElement('div');visuals.className='jvs-dual-cover';visuals.setAttribute('aria-label','Two example jobs for this interview');
-   for(const idx of COVER_GROUPS[i]){
-     const tile=document.createElement('div');tile.className='jvs-dual-tile';
-     const img=document.createElement('img');img.src=jobPhoto(idx);img.alt=JOB_COVER_IMAGES[idx].title;img.loading='lazy';
-     const caption=document.createElement('small');caption.textContent=JOB_COVER_IMAGES[idx].title;
-     tile.append(img,caption);visuals.append(tile);
-   }
-   hero.prepend(visuals);hero.style.setProperty('background-image','none','important');
+   const portrait=document.createElement('iframe');
+   portrait.className='jvs-character-cover';
+   portrait.title=applicant?'Nova · Hiring Manager':'Chaz · Job Candidate';
+   portrait.src='/avatar-lab/realtime-english.html?pilot='+(applicant?'job':'creator')+'&cover=1';
+   portrait.loading='lazy';portrait.tabIndex=-1;portrait.setAttribute('aria-hidden','true');
+   portrait.addEventListener('load',()=>{
+     try{const d=portrait.contentDocument;if(!d)return;const st=d.createElement('style');
+     st.textContent='html,body,.wrap,.layout{width:100%!important;height:100%!important;margin:0!important;padding:0!important;max-width:none!important;overflow:hidden!important;background:transparent!important}.wrap{position:absolute!important;inset:0!important}.layout{position:absolute!important;inset:0!important;display:block!important}.layout>.panel,.stageTag,header,h1,footer{display:none!important}.layout>.stage{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;border-radius:0!important;overflow:hidden!important}#scene,#scene canvas{width:100%!important;height:100%!important}';d.head.append(st);
+     const cam=d.getElementById('cameraMode');if(cam){cam.value='close';cam.dispatchEvent(new Event('change',{bubbles:true}))}
+     }catch(e){console.warn('Portrait cover setup unavailable',e)}
+   });
+   hero.prepend(portrait);hero.style.setProperty('background-image','none','important');
  }
  const oldStart=card.querySelector('.jvr-start');oldStart.hidden=true;
  const body=card.querySelector('.jvr-card-body');
@@ -121,6 +125,7 @@ const imagePreview=document.createElement('div');imagePreview.className='jvs-ori
  '<button data-start-voice class="jvs-card-voice">🎙 Start Voice Interview →</button><p class="jvs-caption">Speak at your own pace. No student video.</p>'+
  '<button data-start-video class="jvs-card-video">🎥 Start Live Avatar Interview →</button><p class="jvs-caption">Large live 3D character · up to five minutes.</p>';
  body.append(holder);const selection=holder.querySelector('.jvs-job-label');selection.after(imagePreview);forms[key]=holder;
+ const intro=body.querySelector('p');
  const jobSelect=holder.querySelector('[data-job-select]');
  const updateIdeas=()=>{
  const idx=Number(jobSelect.value),item=originals[idx]||ORIGINAL_DESCRIPTIONS[idx];
@@ -129,6 +134,10 @@ const imagePreview=document.createElement('div');imagePreview.className='jvs-ori
  const img=document.createElement('img');img.src=jobPhoto(idx);img.alt=JOB_COVER_IMAGES[idx].title;img.loading='lazy';
  const p=document.createElement('p');p.textContent=item?.description||descriptions[idx]||'';
  imagePreview.append(img,p);
+ const job=jobs[idx];
+ intro.textContent=applicant
+   ? 'You are applying for the '+job+' position. Nova is the hiring manager. Tell her what you can do, give examples of your skills and experience, and convince her to hire you.'
+   : 'You are recruiting a '+job+'. Chaz is the candidate. Ask him about his skills and experience, listen to his answers, then decide whether to offer him the job and explain why.';
  // The two hero-cover images stay fixed by scenario. Only this job preview changes.
 };
  jobSelect.onchange=updateIdeas;updateIdeas();
@@ -160,7 +169,9 @@ const imagePreview=document.createElement('div');imagePreview.className='jvs-ori
 });
 const moreStyle=document.createElement('style');moreStyle.textContent='#jobsVideoRoleplays .jvr-card-body>.jvr-start[hidden]{display:none!important}#jobsVideoRoleplays .jvs-job-label{font-size:13px;font-weight:850;display:block;margin:15px 0 10px}#jobsVideoRoleplays .jvs-job-label select{width:100%;padding:12px;margin-top:7px;border-radius:10px;border:1px solid #c5d6e8;background:#f0f5ff;font:inherit;box-sizing:border-box}#jobsVideoRoleplays .jvs-prep-accordion{background:#f1eafb;border-radius:15px;margin:16px 0;padding:0;border:1px solid #e7dafa}#jobsVideoRoleplays .jvs-prep-accordion summary{cursor:pointer;list-style:none;padding:17px;display:block;color:#5b428b}#jobsVideoRoleplays .jvs-prep-accordion summary small{display:block;margin-top:4px;color:#716489;font-size:12px}#jobsVideoRoleplays .jvs-prep-inside{padding:16px;background:#fff;line-height:1.55;border-radius:0 0 14px 14px}#jobsVideoRoleplays .jvs-prep-inside h3{font-size:17px}#jobsVideoRoleplays .jvs-prep-inside p{font-size:13px;color:#536779;min-height:0}#jobsVideoRoleplays .jvs-prep-stages{display:flex;gap:5px;flex-wrap:wrap;margin:12px 0}#jobsVideoRoleplays .jvs-prep-stages span{font-size:11px;padding:7px;border-radius:9px;background:#e6f1ff;color:#35648e;font-weight:800}#jobsVideoRoleplays .jvs-prep-stages span:nth-child(2){background:#efe5ff;color:#67418d}#jobsVideoRoleplays .jvs-prep-stages span:nth-child(3){background:#e6f7eb;color:#2c7446}#jobsVideoRoleplays .jvs-idea-bank{background:#fff6e0;border:1px solid #f1d38c;padding:12px;border-radius:12px;font-size:13px}#jobsVideoRoleplays .jvs-toolbox{font-size:12px!important}#jobsVideoRoleplays .jvs-prep-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#jobsVideoRoleplays .jvs-prep-fields label{font-size:12px;font-weight:850}#jobsVideoRoleplays .jvs-prep-fields textarea{width:100%;height:64px;resize:vertical;box-sizing:border-box;border:1px solid #bed1e2;border-radius:9px;padding:9px;font:inherit;margin-top:5px}#jobsVideoRoleplays .jvs-prepare-actions{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}#jobsVideoRoleplays .jvs-prepare-actions button{border:1px solid #bccee0;border-radius:9px;background:#fff;padding:9px;color:#455981;font-weight:800;cursor:pointer}#jobsVideoRoleplays .jvs-prepare-actions button:first-child{background:#eae2fd;color:#5e408c}#jobsVideoRoleplays .jvs-prep-small{font-size:11px!important}#jobsVideoRoleplays .jvs-card-voice,#jobsVideoRoleplays .jvs-card-video{width:100%;display:block;border-radius:11px;padding:14px;font-size:14px;font-weight:850;cursor:pointer}#jobsVideoRoleplays .jvs-card-voice{background:#e8f1ff;border:1px solid #cddff6;color:#225b99;margin-top:12px}#jobsVideoRoleplays .jvs-card-video{background:#6745bd;color:white;border:0;margin-top:16px}#jobsVideoRoleplays .jvs-caption{text-align:center;font-size:12px!important;color:#60778c;min-height:0!important;margin:7px 0 12px!important}@media(max-width:570px){#jobsVideoRoleplays .jvs-prep-fields{grid-template-columns:1fr}}';document.head.append(moreStyle);
 
-const coversStyle=document.createElement('style');coversStyle.textContent="#jobsVideoRoleplays .jvr-cover.applicant,#jobsVideoRoleplays .jvr-cover.employer{background-image:none!important;background:#1b3040!important;position:relative;overflow:hidden;isolation:isolate}\n#jobsVideoRoleplays .jvs-dual-cover{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;z-index:0;pointer-events:none}\n#jobsVideoRoleplays .jvs-dual-tile{position:relative;overflow:hidden;min-width:0}\n#jobsVideoRoleplays .jvs-dual-tile img{display:block;width:100%;height:100%;object-fit:cover;object-position:center center;filter:brightness(.82)}\n#jobsVideoRoleplays .jvs-dual-tile:after{content:\"\";position:absolute;inset:0;background:linear-gradient(0deg,rgba(8,24,36,.57),transparent 72%);pointer-events:none}\n#jobsVideoRoleplays .jvs-dual-tile small{position:absolute;bottom:13px;left:10px;z-index:1;color:#fff;font-size:11px;font-weight:700;text-shadow:0 1px 4px #000b}\n#jobsVideoRoleplays .jvr-cover>span{position:relative;z-index:2;margin-bottom:27px;background:#132e40b0;padding:6px 10px;border-radius:9px}\n@media(max-width:680px){#jobsVideoRoleplays .jvs-dual-tile small{font-size:10px;bottom:8px;left:6px}}\n";document.head.append(coversStyle);
+const coversStyle=document.createElement('style');
+coversStyle.textContent='#jobsVideoRoleplays .jvr-cover.applicant,#jobsVideoRoleplays .jvr-cover.employer{background:#d8e3e2!important;position:relative;overflow:hidden;isolation:isolate}#jobsVideoRoleplays .jvs-character-cover{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none;z-index:0;background:transparent}#jobsVideoRoleplays .jvr-cover:after{content:"";position:absolute;inset:55% 0 0;background:linear-gradient(transparent,rgba(8,24,36,.65));pointer-events:none;z-index:1}#jobsVideoRoleplays .jvr-cover>span{position:relative;z-index:2;margin-bottom:12px;background:#132e40b0;padding:6px 10px;border-radius:9px}';
+document.head.append(coversStyle);
 const fixStyle=document.createElement('style');
 fixStyle.textContent='#jobsVideoRoleplays .jvs-original-job-preview{display:grid;grid-template-columns:130px 1fr;gap:10px;align-items:start;padding:10px;background:#f7fafc;border:1px solid #dce7ef;border-radius:12px;margin:10px 0}#jobsVideoRoleplays .jvs-original-job-preview img{display:block;width:130px;height:110px;object-fit:cover;border-radius:9px}#jobsVideoRoleplays .jvs-original-job-preview p{font-size:12px!important;line-height:1.55;margin:0!important;color:#4b6478;min-height:0!important}#jobsVideoRoleplays .jvs-card-voice,#jobsVideoRoleplays #jvsPrepVoice,#jobsVideoRoleplays #jvsPrepVideo{display:none!important}@media(max-width:600px){#jobsVideoRoleplays .jvs-original-job-preview{grid-template-columns:1fr}#jobsVideoRoleplays .jvs-original-job-preview img{width:100%;height:160px}}';document.head.append(fixStyle);
 document.querySelector('.audio-dock')?.remove();
