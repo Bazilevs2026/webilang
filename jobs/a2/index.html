@@ -635,6 +635,10 @@ body.baz-modal-open{overflow:hidden}
   .header-actions .head-btn{padding:7px 8px;font-size:11px}
 }
 
+
+.jobs-own-idea-card .jobs-own-idea-symbol{display:grid;place-items:center;width:72px;height:60px;border-radius:12px;background:linear-gradient(135deg,#e1efe8,#e6e5d4);color:#397c6c;font-size:35px;margin-bottom:10px}
+.jobs-own-idea-card .jobs-own-job-input{width:100%;max-width:360px;display:block;margin:11px 0 2px;padding:10px 13px;border:1px solid #bacdc4;border-radius:10px;background:#fff;font:inherit;font-size:14px}
+.jobs-own-idea-card .jobs-own-job-input:focus{outline:2px solid #51a58a;outline-offset:1px}
 </style></head>
 <body>
 <header><div class="head"><div class="brand"><div class="logo">💸</div><div>Jobs &amp; Money<br/><small style="color:#758397">MISSION · A2</small></div></div><div class="header-actions">
@@ -1263,8 +1267,7 @@ body.baz-modal-open{overflow:hidden}
 <section class="panel" id="panel-grammar">
 <div class="section-head">
 <span class="tag">GRAMMAR + PRONUNCIATION</span>
-<h2>Past Simple — mission grammar</h2>
-<p>Two-stage checking: first prove you know the correct form and spelling, then pronounce it. Word order works the same way: build/write first, then speak.</p>
+<h2>Past Simple</h2>
 </div>
 <div class="card">
 <h3>1. Past Simple forms — 10 items</h3>
@@ -3831,11 +3834,11 @@ newGame();
 <b>Video-game tester</b><small>You play new games before they are released. You look for problems, test different levels and write clear reports. It sounds fun, but you may repeat the same part many times and must notice small mistakes.</small>
 </span>
 </label>
-<label class="job-apply-card">
-<input name="applyJob" onchange="selectApplyJob(this.value)" type="radio" value="Wildlife photographer"/>
-<span>
-<button class="apply-img-btn" onclick="event.preventDefault();event.stopPropagation();openImage(this.querySelector('img').src," photographer")"="" type="button" wildlife=""><img alt="Wildlife photographer" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MjAgMzIwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9InMiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjOGFkOGZmIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZjZkNjliIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjUyMCIgaGVpZ2h0PSIzMjAiIHJ4PSIzNCIgZmlsbD0idXJsKCNzKSIvPjxjaXJjbGUgY3g9IjQzMCIgY3k9IjY2IiByPSIzNCIgZmlsbD0iI2ZmZjRhOCIvPjxwYXRoIGQ9Ik0wIDIzMCBROTAgMTYwIDE2NSAyMTggUTI0MCAxMzAgMzI2IDIyMCBRNDAyIDE1MCA1MjAgMjE5IFYzMjAgSDBaIiBmaWxsPSIjNDQ2ZjRkIi8+PGVsbGlwc2UgY3g9IjQxMCIgY3k9IjIzMCIgcng9IjQyIiByeT0iMjYiIGZpbGw9IiNiODc5NDUiLz48Y2lyY2xlIGN4PSI0NDMiIGN5PSIyMTMiIHI9IjE4IiBmaWxsPSIjYjg3OTQ1Ii8+PHBhdGggZD0iTTQ1NSAyMDEgbDEwLTI1IG0tOCAxOCAxNy0xMiBtLTI3IDE3LTgtMjMgbTcgMTYtMTYtMTAiIHN0cm9rZT0iIzc1NDIyNSIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48Y2lyY2xlIGN4PSIxNDIiIGN5PSIxMDQiIHI9IjM4IiBmaWxsPSIjZWFiMThmIi8+PHBhdGggZD0iTTEwNSAxMDMgUTExMSA1NSAxNTAgNjAgUTE3NSA2NCAxODIgOTggUTE1NiA4MCAxMzIgODEgUTExNiA4MiAxMDUgMTAzIiBmaWxsPSIjNTMzNzJhIi8+PHJlY3QgeD0iMTA1IiB5PSIxMzkiIHdpZHRoPSI4NiIgaGVpZ2h0PSI5MiIgcng9IjI0IiBmaWxsPSIjMmY3NDU3Ii8+PHBhdGggZD0iTTExOCAyMjUgTDk3IDMwNSBIMTM4IEwxNTQgMjM4IEwxNzMgMzA1IEgyMTMgTDE5MCAyMjRaIiBmaWxsPSIjMjczNDQ5Ii8+PHBhdGggZD0iTTE4MCAxNTkgUTIyMiAxNTggMjUzIDE0NSIgc3Ryb2tlPSIjZWFiMThmIiBzdHJva2Utd2lkdGg9IjIxIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cmVjdCB4PSIyMjEiIHk9IjExOSIgd2lkdGg9IjkzIiBoZWlnaHQ9IjYzIiByeD0iMTAiIGZpbGw9IiMxZjI5MzciLz48Y2lyY2xlIGN4PSIyNjgiIGN5PSIxNTAiIHI9IjI1IiBmaWxsPSIjNGI1NTYzIi8+PGNpcmNsZSBjeD0iMjY4IiBjeT0iMTUwIiByPSIxNCIgZmlsbD0iIzllZDVmZiIvPjwvc3ZnPg=="/><i>⛶</i></button>
-<b>Wildlife photographer</b><small>You travel to natural places and photograph animals. You need patience, camera skills and respect for wildlife. Sometimes you wait for hours for one good photo. The job is exciting, but weather and travel can be difficult.</small>
+<label class="job-apply-card jobs-own-idea-card">
+<input name="applyJob" onchange="selectApplyJob(this.value)" type="radio" value="Your idea"/>
+<span><span class="jobs-own-idea-symbol" aria-hidden="true">✦</span>
+<b>Your idea</b><small>Choose any job you would like to apply for. Write the job title below.</small>
+<input id="jobsOwnJobTitle" class="jobs-own-job-input" type="text" placeholder="Your job title…" maxlength="90" autocomplete="off" onclick="event.stopPropagation()" oninput="updateOwnJobIdea(this.value)"/>
 </span>
 </label>
 <label class="job-apply-card">
@@ -4113,8 +4116,9 @@ async function recordVideoAnswer(i){
 }
 
 let selectedApply=state.applyJob||'';
-function selectApplyJob(v){selectedApply=v;state.applyJob=v;document.getElementById('selectedJob').textContent='Selected: '+v;saveState()}
-if(selectedApply){document.getElementById('selectedJob').textContent='Selected: '+selectedApply;const radio=[...document.querySelectorAll('input[name="applyJob"]')].find(x=>x.value===selectedApply);if(radio)radio.checked=true}
+function selectApplyJob(v){if(v==='Your idea'){const entry=document.getElementById('jobsOwnJobTitle')?.value.trim();v=entry||'Your idea'}selectedApply=v;state.applyJob=v;document.getElementById('selectedJob').textContent='Selected: '+v;saveState()}
+function updateOwnJobIdea(v){const radio=document.querySelector('input[name="applyJob"][value="Your idea"]');if(radio)radio.checked=true;selectedApply=v.trim()||'Your idea';state.applyJob=selectedApply;document.getElementById('selectedJob').textContent='Selected: '+selectedApply;saveState()}
+if(selectedApply){document.getElementById('selectedJob').textContent='Selected: '+selectedApply;const radio=[...document.querySelectorAll('input[name="applyJob"]')].find(x=>x.value===selectedApply);if(radio)radio.checked=true;else{const custom=document.querySelector('input[name="applyJob"][value="Your idea"]'),field=document.getElementById('jobsOwnJobTitle');if(custom)custom.checked=true;if(field&&selectedApply!=='Your idea')field.value=selectedApply}}
 const wt=document.getElementById('writingText');if(state.writing)wt.value=state.writing;
 function countWords(t){return (String(t).trim().match(/\b[\w’'-]+\b/g)||[]).length}
 function updateWordCount(){const n=countWords(wt.value),e=document.getElementById('wordCount');e.textContent=n+' words';e.className='wordcount '+(n>=80&&n<=100?'good':'bad')}
