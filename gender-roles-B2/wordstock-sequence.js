@@ -58,11 +58,12 @@
   out.replaceChildren();const section=node('section','wl6-practice-card');
   const head=node('div','wl6-head');
   head.append(node('div','wl6-eyebrow',(stage===0?'MEANING':stage===1?'RECALL':'COMMUNICATION')+' · '+(stage+1)+' OF 3'));
-  head.append(node('h3','',stage===0?session.word:stage===1?'Which expression fits this situation?':'Your response'));
-  if(stage===0)head.append(button('▶ Pronounce',()=>say(session.word),'wl6-mini'));
+  head.append(node('h3','',stage===0?session.word:stage===1?'Choose the most precise expression':'Respond to the situation'));
+  if(stage===0||stage===2)head.append(button('▶ Pronounce',()=>say(session.word),'wl6-mini'));
   section.append(head,progressBar(session));
   if(stage===0&&q.context)section.append(node('p','wl6-context',q.context));
   section.append(node('p','wl6-prompt',q.prompt));
+  if(stage===2)section.append(node('p','wl6-target-instruction','🎯 Use your target expression “'+session.word+'” naturally and appropriately in your response. There is no prescribed sentence length.'));
   const status=node('p','wl6-feedback');status.setAttribute('role','status');
   if(stage===0){
    const opts=node('div','wl6-options');
@@ -74,10 +75,55 @@
    });
    section.append(opts);
   }else{
-   const input=document.createElement(stage===1?'input':'textarea');input.className='wl6-answer';input.placeholder=stage===1?'Recall the English expression':'Respond naturally to the speaker';
+   const input=document.createElement(stage===1?'input':'textarea');input.className='wl6-answer';input.placeholder=stage===1?'Recall the precise expression':'Type your response or record it below…';
    if(stage===1)input.type='text';else input.rows=4;
    input.value=session.answers[stage]||'';input.oninput=()=>{session.answers[stage]=input.value};
    section.append(input);
+   if(stage===2){
+    const voice=node('div','wl6-audio-controls');
+    const record=button('🎙 Record answer',async()=>{
+     if(voice._recording)return;
+     if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){status.textContent='Audio recording is not supported in this browser. You can type your response.';return}
+     try{
+      const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true},video:false});
+      const preferred=['audio/webm;codecs=opus','audio/webm','audio/mp4'].find(t=>MediaRecorder.isTypeSupported(t));
+      const recorder=new MediaRecorder(stream,preferred?{mimeType:preferred}:undefined),chunks=[];
+      voice._recording={stream,recorder};
+      record.disabled=true;stop.disabled=false;status.textContent='Recording… Speak naturally, then press Stop & transcribe.';
+      recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+      recorder.onerror=()=>{status.textContent='Recording failed. You can type your answer.'};
+      recorder.onstop=async()=>{
+       stream.getTracks().forEach(t=>t.stop());voice._recording=null;
+       record.disabled=false;stop.disabled=true;
+       const blob=new Blob(chunks,{type:recorder.mimeType||'audio/webm'});
+       if(blob.size<500){status.textContent='Recording was too short. Try again.';return}
+       if(blob.size>5_000_000){status.textContent='Recording is too large. Please keep your answer shorter.';return}
+       if(session.audioUrl)URL.revokeObjectURL(session.audioUrl);
+       session.audioUrl=URL.createObjectURL(blob);
+       player.src=session.audioUrl;player.hidden=false;
+       status.textContent='Recording saved for replay. Transcribing your English response…';
+       try{
+        const bytes=new Uint8Array(await blob.arrayBuffer());let binary='';
+        for(let i=0;i<bytes.length;i+=32768)binary+=String.fromCharCode(...bytes.subarray(i,i+32768));
+        const response=await fetch('/api/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:btoa(binary),mime:blob.type||'audio/webm'})});
+        const data=await response.json().catch(()=>({}));
+        if(!response.ok)throw Error(data.error||'Transcription unavailable');
+        const transcript=String(data.text||'').trim();
+        if(!transcript)throw Error('No speech was recognized');
+        input.value=transcript;session.answers[2]=transcript;
+        status.textContent='✓ Transcript ready. Review or correct it, then select Get AI feedback.';
+       }catch(e){status.textContent='You can replay the audio, but transcription failed: '+e.message+'. Type the response to request AI feedback.'}
+      };
+      recorder.start();
+     }catch(e){record.disabled=false;stop.disabled=true;status.textContent='Microphone unavailable: '+e.message}
+    },'wl6-mini');
+    const stop=button('■ Stop & transcribe',()=>{const current=voice._recording;if(current?.recorder?.state==='recording')current.recorder.stop()},'wl6-mini');
+    stop.disabled=true;
+    const player=document.createElement('audio');player.controls=true;player.hidden=!session.audioUrl;player.preload='metadata';
+    if(session.audioUrl)player.src=session.audioUrl;
+    voice.append(record,stop,player);
+    section.append(voice);
+   }
   }
   const actions=node('div','wl6-actions');
   const check=button(stage===2?'✨ Get AI feedback':'✓ Check my answer',async()=>{
