@@ -22,18 +22,23 @@ try{
  const want=($('jvrRoleLabel')?.textContent||'').toLowerCase().includes('you hire')?'chaz':'nova';
  if(sel&&sel.value!==want){sel.value=want;sel.dispatchEvent(new Event('change',{bubbles:true}))}
  const camera=d.getElementById('cameraMode');if(camera&&camera.value!=='close'){camera.value='close';camera.dispatchEvent(new Event('change',{bubbles:true}))}
- // The 3D canvas has an alpha channel. Reuse the selected original Speaking photo
- // as an actual interview setting behind the close-up avatar, not a blank lab stage.
- const index=Number($('jJob')?.value||0),original=window.JOBS_A2_ORIGINAL_JOBS?.[index];
+ // Use the same realistic settings as the Video Games roleplays:
+ // Nova interviews from a welcoming office/home environment, Chaz applies from a game studio.
+ // The selected JOB PHOTO belongs to the job cards; do not paste a rover, vault or ice cream
+ // directly behind a speaking person's face.
  const stage=d.querySelector('.layout>.stage');
+ const scene=d.getElementById('scene');
+ const isHiring=want==='chaz';
+ const background=isHiring?'/avatar-lab/backgrounds/game-studio.jpg':'/avatar-lab/backgrounds/family-home.jpg';
  if(stage){
-   const url=original?.image||'';
-   if(url){
-     stage.style.setProperty('background-image','linear-gradient(90deg,rgba(235,240,236,.48),rgba(235,240,236,.64)),url("'+url+'")','important');
-     stage.style.setProperty('background-size','cover','important');
-     stage.style.setProperty('background-position','center center','important');
-   }else stage.style.setProperty('background','#dce8e3','important');
+   stage.style.setProperty('background-image','url("'+background+'")','important');
+   stage.style.setProperty('background-size','cover','important');
+   stage.style.setProperty('background-position','center center','important');
+   stage.style.setProperty('background-repeat','no-repeat','important');
  }
+ if(scene){scene.style.setProperty('background','transparent','important')}
+ // Keep head and shoulders in the frame and let the existing avatar idle animation run.
+ // Neither the cloned teacher voice nor any generic Avatar Lab UI is used here.
 }catch(e){}
 }
 avatar.addEventListener('load',()=>{configurePortrait();setTimeout(configurePortrait,400)});
@@ -51,11 +56,7 @@ function showScreen(start){
 $('jvrSave').click();refresh();screen.hidden=false;work.hidden=true;cards.hidden=true;screen.scrollIntoView({behavior:'smooth',block:'start'});
 if(start){$('jvsState').textContent='Connecting to Qwen…';$('jvrBegin').click();}
 }
-const p1=document.createElement('button');p1.id='jvsPrepVoice';p1.className='jvs-prep-btn';p1.textContent='🎙 Start Voice Interview →';
-const p2=document.createElement('button');p2.id='jvsPrepVideo';p2.className='jvs-prep-btn';p2.textContent='🎥 Start Live Avatar Interview →';
-/* Preparation is embedded directly in each scenario card; no extra start buttons. */
-p1.onclick=()=>showScreen(true);
-p2.onclick=()=>showScreen(true);
+/* One interview launch button is rendered inside each job card. */
 $('jvsReturn').onclick=()=>{if($('jvrBegin').disabled){$('jvsState').textContent='End the conversation before returning.';return}screen.hidden=true;work.hidden=false;work.scrollIntoView({behavior:'smooth',block:'start'})};
 $('jvsEnd').onclick=()=>{if(!$('jvrFinish').disabled){$('jvrFinish').click();screen.querySelector('.jvs-transcript').open=true}else{$('jvsState').textContent='Start the interview first.'}};
 $('jvsReset').onclick=()=>{if(!$('jvrFinish').disabled)$('jvrFinish').click();screen.hidden=true;work.hidden=true;cards.hidden=false;$('jvrReset').click();cards.scrollIntoView({behavior:'smooth',block:'start'})};
