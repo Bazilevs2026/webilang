@@ -57,9 +57,9 @@
   const q=session.questions[session.stage],stage=session.stage;
   out.replaceChildren();const section=node('section','wl6-practice-card');
   const head=node('div','wl6-head');
-  head.append(node('div','wl6-eyebrow','YOUR WORD · '+(session.stage+1)+' OF 3'));
-  head.append(node('h3','',stage===1?'Recall the missing expression':session.word));
-  if(stage!==1)head.append(button('▶ Pronounce',()=>say(session.word),'wl6-mini'));
+  head.append(node('div','wl6-eyebrow',(stage===0?'MEANING':stage===1?'RECALL':'COMMUNICATION')+' · '+(stage+1)+' OF 3'));
+  head.append(node('h3','',stage===0?session.word:stage===1?'Which expression fits this situation?':'Your response'));
+  if(stage===0)head.append(button('▶ Pronounce',()=>say(session.word),'wl6-mini'));
   section.append(head,progressBar(session));
   if(stage===0&&q.context)section.append(node('p','wl6-context',q.context));
   section.append(node('p','wl6-prompt',q.prompt));
@@ -74,7 +74,7 @@
    });
    section.append(opts);
   }else{
-   const input=document.createElement(stage===1?'input':'textarea');input.className='wl6-answer';input.placeholder=stage===1?'Complete the gap without looking at the heading':'Write 1–3 natural sentences';
+   const input=document.createElement(stage===1?'input':'textarea');input.className='wl6-answer';input.placeholder=stage===1?'Recall the English expression':'Respond naturally to the speaker';
    if(stage===1)input.type='text';else input.rows=4;
    input.value=session.answers[stage]||'';input.oninput=()=>{session.answers[stage]=input.value};
    section.append(input);
@@ -87,7 +87,7 @@
       const ok=norm(answer)===norm(q.answer);
       session.attempted[stage]=true;
       if(ok)session.maxStage=Math.max(session.maxStage,stage+1);
-      status.textContent=ok?'✓ Correct — this stage is complete.':'Not quite. '+(stage===0?'Use the situation and compare what each option means.':'Look at the sentence context and try again.');
+      status.textContent=ok?'✓ Correct — this stage is complete.':'Not quite. '+(stage===0?'Compare the three definitions carefully.':'Think about the meaning of the situation and try again.');
       status.dataset.correct=String(ok);
       const previous=section.querySelector('.wl6-model');if(previous)previous.remove();
       actions.replaceChildren();
@@ -107,7 +107,7 @@
        status.dataset.correct=String(d.appropriate);
        const model=node('p','wl6-model','One possible answer: '+q.modelAnswer);
        const old=section.querySelector('.wl6-model');if(old)old.remove();section.append(model);
-       actions.append(button('Practise another word →',()=>{out.replaceChildren();escStatus('Choose a saved expression and build another practice sequence.')},'wl6-next'));
+       if(!section.querySelector('.wl6-another'))actions.append(button('Practise another word →',()=>{out.replaceChildren();escStatus('Choose a saved expression and build another practice sequence.')},'wl6-next wl6-another'));
       }catch(e){status.textContent=e.message||'AI feedback unavailable. Your answer is preserved.'}
       finally{check.disabled=false;}
     }
