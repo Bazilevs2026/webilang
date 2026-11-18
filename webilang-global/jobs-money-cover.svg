@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="t d"><title id="t">Jobs and Money</title><desc id="d">Minimalist leather briefcase, document folder and brass coins on a sage-green background</desc><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#87918a"/><stop offset=".57" stop-color="#788780"/><stop offset="1" stop-color="#687b74"/></linearGradient>
+<linearGradient id="case" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a66b42"/><stop offset=".58" stop-color="#935537"/><stop offset="1" stop-color="#70402a"/></linearGradient>
+<linearGradient id="flap" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#bd7c4b"/><stop offset="1" stop-color="#955934"/></linearGradient>
+<linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffdb8e"/><stop offset=".48" stop-color="#d3a656"/><stop offset="1" stop-color="#a67a31"/></linearGradient>
+<linearGradient id="folder" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f1e4c9"/><stop offset="1" stop-color="#dac5a2"/></linearGradient>
+<filter id="blur"><feGaussianBlur stdDeviation="23"/></filter>
+<filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="14" stdDeviation="10" flood-color="#263f38" flood-opacity=".3"/></filter>
+<pattern id="grain" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="2" cy="3" r=".45" fill="#ffffff" opacity=".12"/><circle cx="6" cy="7" r=".5" fill="#203a32" opacity=".08"/></pattern>
+</defs>
+<rect width="1200" height="675" fill="url(#bg)"/><rect width="1200" height="675" fill="url(#grain)"/><path d="M0 455H1200V675H0Z" fill="#677d73" opacity=".36"/>
+<ellipse cx="655" cy="540" rx="400" ry="49" fill="#18392d" opacity=".24" filter="url(#blur)"/>
+<g filter="url(#shadow)">
+<path d="M471 210Q472 185 502 185H850Q879 186 881 213L886 476Q884 503 857 503H495Q467 502 465 475Z" fill="url(#case)" stroke="#5b382a" stroke-width="5"/>
+<path d="M590 200V164Q590 131 626 131H712Q747 131 747 163V200" fill="none" stroke="#6c4229" stroke-width="35" stroke-linecap="round"/><path d="M590 199V164Q590 131 626 131H712Q747 131 747 163V199" fill="none" stroke="#bc8457" stroke-width="20" stroke-linecap="round"/>
+<path d="M472 211Q472 190 492 190H858Q880 193 882 214L878 343Q873 369 850 374Q665 421 491 369Q470 365 468 342Z" fill="url(#flap)" stroke="#6d442c" stroke-width="4"/>
+<path d="M491 359Q665 408 857 359" fill="none" stroke="#d59c6b" stroke-width="3" stroke-dasharray="5 8" opacity=".9"/>
+<rect x="648" y="355" width="56" height="70" rx="6" fill="url(#gold)" stroke="#906a31" stroke-width="4"/><rect x="640" y="344" width="72" height="19" rx="4" fill="#d9ad68" stroke="#865d29" stroke-width="3"/><circle cx="676" cy="394" r="9" fill="#936527"/>
+</g>
+<g filter="url(#shadow)" transform="translate(130 47) rotate(-9 380 485)"><path d="M155 419L490 402L598 480L556 590L185 580Z" fill="url(#folder)" stroke="#c7af89" stroke-width="5"/><path d="M155 419L381 513L598 480" fill="none" stroke="#c7ae87" stroke-width="4"/><path d="M381 513L377 549" stroke="#c1a57d" stroke-width="4"/><circle cx="379" cy="503" r="16" fill="url(#gold)" stroke="#a47a38" stroke-width="3"/><circle cx="378" cy="548" r="14" fill="url(#gold)" stroke="#a47a38" stroke-width="3"/><path d="M379 518L378 534" stroke="#997136" stroke-width="4"/></g>
+<g filter="url(#shadow)"><ellipse cx="320" cy="545" rx="84" ry="22" fill="#9e732f"/><path d="M239 511V543Q320 573 402 542V510" fill="#c99d4d"/><ellipse cx="320" cy="511" rx="82" ry="22" fill="url(#gold)" stroke="#aa7c2b" stroke-width="4"/><path d="M241 523Q320 547 400 524M242 533Q322 557 399 534" fill="none" stroke="#a7742d" stroke-width="4"/><ellipse cx="438" cy="566" rx="54" ry="20" fill="url(#gold)" stroke="#a47b32" stroke-width="4"/><ellipse cx="507" cy="581" rx="49" ry="17" fill="url(#gold)" stroke="#a47b32" stroke-width="3"/></g></svg>
