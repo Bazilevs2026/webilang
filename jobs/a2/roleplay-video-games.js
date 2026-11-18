@@ -40,10 +40,10 @@ $('jvrSave').click();refresh();screen.hidden=false;work.hidden=true;cards.hidden
 if(start)setTimeout(()=>$('jvrBegin').click(),100);
 }
 const p1=document.createElement('button');p1.id='jvsPrepVoice';p1.className='jvs-prep-btn';p1.textContent='🎙 Start Voice Interview →';
-const p2=document.createElement('button');p2.id='jvsPrepVideo';p2.className='jvs-prep-btn';p2.textContent='🎥 Start Live Video Interview →';
+const p2=document.createElement('button');p2.id='jvsPrepVideo';p2.className='jvs-prep-btn';p2.textContent='🎥 Start Live Avatar Interview →';
 $('jvrPrep').after(p1,p2);
 p1.onclick=()=>showScreen(true);
-p2.onclick=()=>{showScreen(false);$('jvsState').textContent='The live 3D avatar is ready. Press Start Voice Interview to connect.'};
+p2.onclick=()=>showScreen(true);
 $('jvsReturn').onclick=()=>{if($('jvrBegin').disabled){$('jvsState').textContent='End the conversation before returning.';return}screen.hidden=true;work.hidden=false;work.scrollIntoView({behavior:'smooth',block:'start'})};
 $('jvsEnd').onclick=()=>{if(!$('jvrFinish').disabled){$('jvrFinish').click();screen.querySelector('.jvs-transcript').open=true}else{$('jvsState').textContent='Start the interview first.'}};
 $('jvsReset').onclick=()=>{if(!$('jvrFinish').disabled)$('jvrFinish').click();screen.hidden=true;work.hidden=true;cards.hidden=false;$('jvrReset').click();cards.scrollIntoView({behavior:'smooth',block:'start'})};
