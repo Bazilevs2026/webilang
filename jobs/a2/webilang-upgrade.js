@@ -325,12 +325,12 @@ async function loadStocks(){
  for(const [panelId,kind] of [['mywords','words'],['mygrammar','grammar']]){
   const panel=$('panel-'+panelId);panel.replaceChildren();
   const h=document.createElement('h2');h.textContent=kind==='words'?'My Words':'My Grammar';panel.append(h);
-  const intro=document.createElement('p');intro.textContent='Choose up to six items you want to practise. AI will create four original A2 exercises about jobs and money.';panel.append(intro);
+  const intro=document.createElement('p');intro.textContent='Choose one '+(kind==='words'?'word or phrase':'grammar rule')+' to practise. AI will create four A2 exercises focused on that item.';panel.append(intro);
   const saved=[...new Map(data.filter(row=>row.content?.type===kind&&row.content?.text).map(row=>[String(row.content.text).toLowerCase(),String(row.content.text)])).values()];
   const pool=document.createElement('div');pool.className='jobs-stock-picker';
   for(const target of saved){
    const label=document.createElement('label');label.className='jobs-stock-target';
-   const input=document.createElement('input');input.type='checkbox';input.value=target;
+   const input=document.createElement('input');input.type='radio';input.name=panelId+'-selected-target';input.value=target;
    const text=document.createElement('span');text.textContent=target;label.append(input,text);pool.append(label);
   }
   panel.append(pool);
@@ -340,12 +340,12 @@ async function loadStocks(){
   const output=document.createElement('div');output.className='jobs-practice-results';panel.append(output);
   button.onclick=async()=>{
    const selected=[...pool.querySelectorAll('input:checked')].map(input=>input.value);
-   if(!selected.length||selected.length>6){status.textContent='Select between 1 and 6 items.';return}
+   if(selected.length!==1){status.textContent='Select one item to practise.';return}
    button.disabled=true;status.textContent='AI is creating your A2 practice…';output.replaceChildren();
    try{
     const response=await ask('practice',{kind,items:selected});
     if(!Array.isArray(response.exercises))throw Error('Invalid practice response');
-    status.textContent='Four exercises created using your selected '+(kind==='words'?'words':'grammar patterns')+'.';
+    status.textContent='Four exercises created for '+selected[0]+'.';
     for(const [index,exercise] of response.exercises.entries()){
      const card=document.createElement('article');card.className='jobs-practice-card';
      const heading=document.createElement('h3');heading.textContent=(index+1)+'. '+(exercise.type==='choice'?'Choose':exercise.type==='open'?'Your own words':'Complete');card.append(heading);
