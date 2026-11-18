@@ -360,12 +360,44 @@ async function loadStocks(){
      }else if(exercise.type==='open'){input=document.createElement('textarea');input.placeholder='Write 2–3 original sentences…';input.rows=3}
      else{input=document.createElement('input');input.type='text';input.placeholder='Type the missing word or phrase…'}
      card.append(input);
-     const check=document.createElement('button');check.type='button';check.textContent=exercise.type==='open'?'Show an example':'Check answer';check.className='jobs-check-exercise';card.append(check);
-     const feedback=document.createElement('p');feedback.className='jobs-practice-explanation';feedback.setAttribute('role','status');card.append(feedback);
-     check.onclick=()=>{
-      if(exercise.type==='open'){feedback.textContent='Example: '+exercise.answer+'. '+exercise.explanation;return}
+     const actionRow=document.createElement('div');actionRow.className='jobs-practice-actions';card.append(actionRow);
+     const check=document.createElement('button');check.type='button';check.textContent=exercise.type==='open'?'✨ Get AI Feedback':'Check answer';check.className='jobs-check-exercise';actionRow.append(check);
+     const feedback=document.createElement('div');feedback.className='jobs-practice-explanation';feedback.setAttribute('role','status');card.append(feedback);
+     if(exercise.type==='gap'){
+      const say=document.createElement('button');say.type='button';say.className='jobs-practice-say';say.textContent='🎙 Say Answer';actionRow.prepend(say);
+      say.onclick=()=>{
+       const Rec=window.SpeechRecognition||window.webkitSpeechRecognition;
+       if(!Rec){feedback.textContent='Speech recognition is not available in this browser. You can still type your answer.';return}
+       const recognition=new Rec();recognition.lang='en-US';recognition.interimResults=false;recognition.maxAlternatives=3;
+       say.disabled=true;say.textContent='🎙 Listening…';feedback.textContent='Say the missing word or the complete sentence.';
+       recognition.onresult=e=>{
+        const alternatives=[...e.results[0]].map(x=>x.transcript.trim());
+        const norm=x=>String(x||'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+        const target=norm(exercise.answer);
+        const matched=alternatives.find(x=>norm(x)===target||(' '+norm(x)+' ').includes(' '+target+' '));
+        input.value=matched?exercise.answer:alternatives[0];
+        input.dispatchEvent(new Event('input',{bubbles:true}));
+        feedback.textContent=matched?'✓ Recognised: '+alternatives[0]+'. Press Check answer to confirm.':'Heard: '+alternatives[0]+'. Edit the answer if necessary, then press Check answer.';
+       };
+       recognition.onerror=e=>{feedback.textContent=e.error==='not-allowed'?'Please allow microphone access in your browser.':'Speech recognition error: '+e.error};
+       recognition.onend=()=>{say.disabled=false;say.textContent='🎙 Say Answer'};
+       try{recognition.start()}catch(e){say.disabled=false;say.textContent='🎙 Say Answer';feedback.textContent='Microphone unavailable. You can type the answer.'}
+      };
+     }
+     check.onclick=async()=>{
+      if(exercise.type==='open'){
+       const answer=input.value.trim();
+       if(!answer){feedback.textContent='Write your own answer before requesting AI feedback.';return}
+       check.disabled=true;feedback.textContent='Analysing your own sentences…';
+       try{
+        const result=await ask('feedback',{transcript:answer,scene:'A2 personal response about jobs. Task: '+exercise.prompt.slice(0,160)+'. Target vocabulary/grammar: '+selected.join(', ').slice(0,200)});
+        showFeedback(result,feedback);
+       }catch(e){feedback.textContent=e.message||'AI feedback is unavailable right now.'}
+       finally{check.disabled=false}
+       return;
+      }
       const value=exercise.type==='choice'?input.querySelector('input:checked')?.value:input.value;
-      if(!value){feedback.textContent='Choose or write an answer first.';return}
+      if(!value){feedback.textContent='Choose, say or write an answer first.';return}
       const norm=x=>String(x||'').trim().toLocaleLowerCase('en').replace(/[.!?]+$/,'');
       feedback.textContent=(norm(value)===norm(exercise.answer)?'✓ Correct! ':'Not quite. Answer: '+exercise.answer+'. ')+(exercise.explanation||'');
      };
@@ -381,6 +413,7 @@ const stockFlowStyle=document.createElement('style');
 stockFlowStyle.textContent='.jobs-feedback{background:#fff;border:1px solid #d7e2eb;border-radius:16px;padding:17px;margin:10px 0}.jobs-feedback h3{margin:0 0 13px;color:#24384b}.jobs-feedback-section{border-left:4px solid;padding:12px 15px;margin:10px 0;border-radius:0 12px 12px 0}.jobs-feedback-section h4{font-size:17px;margin:0 0 5px}.jobs-feedback-section p{margin:0 0 9px;line-height:1.55}.jobs-feedback-interaction{border-color:#5b9adb;background:#ebf4ff}.jobs-feedback-vocabulary{border-color:#25a67c;background:#e8f7ef}.jobs-feedback-grammar{border-color:#a178de;background:#f2ebff}.jobs-feedback-select{font-size:12px;font-weight:750;margin:8px 0}.jobs-feedback-options{display:grid;gap:7px}.jobs-feedback-option{display:flex;align-items:flex-start;gap:9px;background:#ffffffc9;border:1px solid #d5e2e9;border-radius:9px;padding:8px;cursor:pointer}.jobs-feedback-option input{margin-top:4px;accent-color:#277d63}.jobs-feedback-option strong,.jobs-feedback-option small{display:block}.jobs-feedback-option small{font-size:12px;margin-top:4px;color:#5f7182}.jobs-save-selected,.jobs-practice-generate{border:0;background:#178658;color:#fff;border-radius:9px;padding:10px 12px;font-weight:800;cursor:pointer;margin:10px 7px 5px 0}.jobs-stock-status{font-size:12px;color:#23654b}.jobs-feedback-next{font-weight:700;color:#46586e;margin-top:13px}.jobs-reading-guide{font-size:13px;background:#ebf6ee;padding:10px 13px;border-radius:11px;margin:9px 0}.jobs-selection-toolbar{position:fixed;z-index:10050;background:#fff;border:1px solid #a7cfc0;box-shadow:0 10px 32px #142c3d33;padding:7px 9px;border-radius:12px;display:flex;align-items:center;gap:8px;max-width:min(440px,95vw)}.jobs-selection-toolbar[hidden]{display:none!important}.jobs-selection-toolbar button{background:#19885a;color:#fff;border:0;padding:9px;border-radius:8px;white-space:nowrap;cursor:pointer}.jobs-selection-toolbar small{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#panel-reading .story-text::selection,#panel-reading .story-copy p::selection{background:#ffe39d}';
 document.head.append(stockFlowStyle);
 const exerciseStyle=document.createElement('style');exerciseStyle.textContent='.jobs-stock-picker{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin:15px 0}.jobs-stock-target{display:flex;gap:9px;align-items:center;background:#fff;border:1px solid #dce7ef;border-radius:10px;padding:10px;font-weight:650;cursor:pointer}.jobs-stock-target input{accent-color:#16865e}.jobs-practice-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}.jobs-practice-card{padding:16px;border:1px solid #dce6e9;background:#fff;border-radius:14px;min-width:0}.jobs-practice-card h3{margin:0 0 9px;font-size:17px}.jobs-practice-card p{line-height:1.55}.jobs-practice-card input[type=text],.jobs-practice-card textarea{display:block;width:100%;box-sizing:border-box;border:1px solid #b9cddd;border-radius:9px;padding:9px;font:inherit}.jobs-practice-choices{display:grid;gap:7px}.jobs-practice-choices label{display:flex;gap:8px;align-items:start;padding:8px;border:1px solid #dce6e9;border-radius:8px;cursor:pointer}.jobs-check-exercise{margin-top:10px;border:0;border-radius:8px;background:#e9effc;padding:9px 12px;font-weight:750;cursor:pointer}.jobs-practice-explanation{font-size:13px;color:#315f56}.jobs-practice-status{font-size:13px;color:#52667d}@media(max-width:760px){.jobs-practice-results{grid-template-columns:1fr}}';document.head.append(exerciseStyle);
+const spokenPracticeStyle=document.createElement('style');spokenPracticeStyle.textContent='.jobs-practice-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}.jobs-practice-actions .jobs-check-exercise{margin:0}.jobs-practice-say{border:1px solid #abc8e9;background:#eaf4ff;color:#185b96;padding:9px 12px;border-radius:8px;font-weight:750;cursor:pointer}.jobs-practice-say:disabled,.jobs-check-exercise:disabled{opacity:.65;cursor:wait}.jobs-practice-card .jobs-feedback{margin-top:12px}';document.head.append(spokenPracticeStyle);
 const readingPanel=$('panel-reading');
 if(readingPanel){
  const guide=document.createElement('p');guide.className='jobs-reading-guide';guide.textContent='📚 Find an unfamiliar word or phrase? Select it in the story, then choose “Save to My Words”. You can practise saved words with AI.';
