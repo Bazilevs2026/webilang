@@ -21,7 +21,19 @@ try{
  const sel=d.getElementById('modelMode');
  const want=($('jvrRoleLabel')?.textContent||'').toLowerCase().includes('you hire')?'chaz':'nova';
  if(sel&&sel.value!==want){sel.value=want;sel.dispatchEvent(new Event('change',{bubbles:true}))}
- const camera=d.getElementById('cameraMode');if(camera&&camera.value!=='half'){camera.value='half';camera.dispatchEvent(new Event('change',{bubbles:true}))}
+ const camera=d.getElementById('cameraMode');if(camera&&camera.value!=='close'){camera.value='close';camera.dispatchEvent(new Event('change',{bubbles:true}))}
+ // The 3D canvas has an alpha channel. Reuse the selected original Speaking photo
+ // as an actual interview setting behind the close-up avatar, not a blank lab stage.
+ const index=Number($('jJob')?.value||0),original=window.JOBS_A2_ORIGINAL_JOBS?.[index];
+ const stage=d.querySelector('.layout>.stage');
+ if(stage){
+   const url=original?.image||'';
+   if(url){
+     stage.style.setProperty('background-image','linear-gradient(90deg,rgba(235,240,236,.48),rgba(235,240,236,.64)),url("'+url+'")','important');
+     stage.style.setProperty('background-size','cover','important');
+     stage.style.setProperty('background-position','center center','important');
+   }else stage.style.setProperty('background','#dce8e3','important');
+ }
 }catch(e){}
 }
 avatar.addEventListener('load',()=>{configurePortrait();setTimeout(configurePortrait,400)});
