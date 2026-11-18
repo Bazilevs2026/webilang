@@ -20,10 +20,12 @@ function validate(items,target){
    
   }
   if(i===1){
-   if(!text(q.answer)||(!targetNorm.includes(norm(q.answer))&&!norm(q.answer).includes(targetNorm)))throw Error('Retrieval target mismatch');
-   if(norm(q.prompt).includes(targetNorm)||norm(q.hint).includes(targetNorm))throw Error('Retrieval gives away answer');
-   if(q.prompt.length>175||norm(q.prompt).includes(targetNorm))throw Error('Retrieval must be short and must not reveal the answer');
-   if(q.prompt.includes('___')&&!/_{3,}/.test(q.prompt))throw Error('Malformed gap');
+   // Retrieval now means translating one complete short Russian sentence,
+   // using the selected English target naturally in a complete translation.
+   if(!/[А-Яа-яЁё]/.test(q.prompt)||q.prompt.length>210||q.prompt.length<22)throw Error('Retrieval needs a concise Russian sentence');
+   if(/___|\.\.\./.test(q.prompt)||norm(q.prompt).includes(targetNorm))throw Error('Retrieval reveals or omits the language task');
+   if(!text(q.answer)||!norm(q.answer).includes(targetNorm))throw Error('English model translation must contain the selected expression');
+   if(q.answer.split(/\s+/).length<5||q.answer.length>260)throw Error('Expected a meaningful full-sentence English translation');
   }
   if(i===2){
    if(!text(q.modelAnswer)||!norm(q.modelAnswer).includes(targetNorm))throw Error('Production model must naturally use target');
@@ -43,12 +45,7 @@ async function chat(key,messages,maxTokens=1250){
 const system=`You are a specialist B2 English materials designer. Design three NON-REDUNDANT micro-tasks for ONE selected expression. Use precise idiomatic English and realistic professional, family and social contexts. Avoid stereotypes and ambiguous multiple-choice answers.
 
 1 RECOGNITION / MEANING: The learner's saved expression is visible as the heading. Ask which definition or explanation BEST captures its meaning. Supply exactly three FULL explanatory definitions (NOT three substitute words in a sentence). Exactly ONE must match the expression's specific meaning. Other two definitions should be plausible but clearly different, not near-synonyms. "answer" is an exact option. "context" can state the situation in which the word is used, without giving its definition. Do not show the target word in any options or the question; it is displayed separately as the heading.
-2 RETRIEVAL / ACTIVE RECALL: Use ONE of FOUR compact formats, selected based on lexical type and the requested variation. Never exceed 140 characters for the prompt; NO paragraphs. Always require the selected target expression as the short English answer. Choose the pedagogically best type:
-(A) TRANSLATE: short precise Russian cue, e.g. "Переведи: «сравнимы»".
-(B) COLLOCATION: a single natural B2 English sentence with ONE "___" where the target expression fits exactly, and the other words make the grammatical pattern and appropriate collocation clear. This is an option, NOT the default for every word.
-(C) EDIT: a single concise English phrase containing a DIFFERENT but subtly inappropriate word (semantic, register or collocation problem); prompt "Replace [inappropriate phrase] with a more accurate word". The intended answer must be exactly the selected target, avoiding ambiguity.
-(D) REPHRASE: one short English idea and ask the student to express the same distinction with a single word/expression. Avoid cases with many equally valid solutions.
-Do NOT disguise a long story as a difficult task. Focus on retrieval, collocations, and lexical precision; avoid repeating recognition definitions. Never include the target or its first letters in the prompt or hint. Target is hidden in the exercise header. Answer must be the original target verbatim. If lexical ambiguity would make a non-translation format unfair, choose (A). Distinct generation requests should vary formats where feasible.
+2 RETRIEVAL / TRANSLATION: Generate ONE short complete RUSSIAN sentence for the student to translate INTO ENGLISH. It should use the Russian equivalent of the selected target meaningfully and naturally, with a realistic B2 collocation/relationship. Limit to 8-16 Russian words, never a long story or only one word. Format "Переведи предложение: «... .»" (under 175 characters). Example for comparable: "Переведи предложение: «Их опыт вполне сравним, хотя они работали в разных сферах.»" Correct "answer" is a COMPLETE idiomatic English translation containing the exact target expression "comparable", e.g. "Their experience is quite comparable, although they worked in different fields." NEVER set answer to a bare word. Do not put the English target in the Russian prompt or the hint. Other accurate English translations using the target are acceptable; the frontend will ask AI to assess them, never exact-match the model. No blanks, riddles, synonym identification or single-word translation.
 3 PRODUCTION / INTERACTION: Provide a believable nuanced disagreement, professional decision, or dilemma involving a colleague, interviewer, or friend and ask the learner to RESPOND and justify their stance in their own words. The interface explicitly asks the learner to use the target expression NATURALLY and APPROPRIATELY; do not mention it or repeat this instruction in the prompt. No half-finished answer, word-insertion task, fixed number of sentences, gaps, or model answer in the prompt. "modelAnswer" is ONE natural possible response containing the target expression, for post-attempt reflection only. The learner should aim to use the selected expression; assess communicative appropriateness separately from whether the expression is used accurately. The learner's response can be any natural length.
 Return exactly JSON {"questions":[{"stage":"Recognition","context":"...","prompt":"Which definition best explains this expression?","options":["...","...","..."],"answer":"...","hint":"..."},{"stage":"Retrieval","prompt":"...","answer":"...","hint":"..."},{"stage":"Production","prompt":"...","modelAnswer":"...","hint":"..."}]}.
 Before returning, check for leaked answers, artificial repetition, subjective distractors, and forced phrase insertion. Never generate a 'complete the gap' task in this module.`;
@@ -64,19 +61,31 @@ export default async function handler(req,res){
    // is down or returns a format the strict parser cannot use.
    const known=norm(item)==='comparable'?[
     {stage:'Recognition',context:'An interviewer needs to evaluate qualifications across different professional backgrounds.',prompt:'Which definition best describes this word?',options:['Similar enough in relevant qualities to allow a fair comparison, without being identical.','Exactly the same in every detail, so no comparison is necessary.','Impossible to evaluate against one another because the criteria cannot be shared.'],answer:'Similar enough in relevant qualities to allow a fair comparison, without being identical.',hint:'Think about whether two things must be identical to be meaningfully compared.'},
-    {stage:'Retrieval',prompt:'Переведи: «сравнимы»',answer:'comparable',hint:'Think of an adjective used when different things can be assessed on the same basis.'},
+    {stage:'Retrieval',prompt:'Переведи предложение: «Их опыт вполне сравним, хотя они работали в разных сферах.»',answer:'Their experience is quite comparable, although they worked in different fields.',hint:'The English target describes things that can reasonably be compared.'},
     {stage:'Production',prompt:'Your colleague argues: “We should automatically rank applicants with university degrees above applicants who learned on the job.” Respond professionally and explain how the evidence should be evaluated.',modelAnswer:'Their experience may be comparable in the skills that matter for this position, so we should assess both against the same criteria.',hint:'You can challenge the assumption while focusing on relevant skills.'}
    ]:null;
    let qs=null;
    for(let attempt=0;attempt<2;attempt++){
     try{
-     const result=await chat(process.env.OPENAI_API_KEY,[{role:'system',content:system},{role:'user',content:JSON.stringify({selectedExpression:item,level:'B2',attempt:attempt+1,preferredRetrievalFormat:['translate','collocation','edit','rephrase'][(Number(data.variation)||0)%4]})}],1500);
+     const result=await chat(process.env.OPENAI_API_KEY,[{role:'system',content:system},{role:'user',content:JSON.stringify({selectedExpression:item,level:'B2',attempt:attempt+1,retrievalFormat:'translate_short_russian_sentence',variation:Number(data.variation)||0})}],1500);
      qs=validate(result.questions,item);break;
     }catch(e){console.warn('Gender Word Stock generation attempt '+(attempt+1)+': '+String(e.message||e));}
    }
    if(!qs&&known)qs=known;
    if(!qs)return res.status(503).json({error:'AI did not generate a reliable B2 practice sequence. Try again; your saved words are unchanged.'});
    return res.status(200).json({questions:qs});
+  }
+  if(data.action==='assess_retrieval'){
+   const answer=text(data.answer).slice(0,900),prompt=text(data.prompt).slice(0,450),model=text(data.modelAnswer).slice(0,450);
+   if(!answer||!prompt||!model)return res.status(400).json({error:'Translation, source sentence and model are required.'});
+   try{
+    const result=await chat(process.env.OPENAI_API_KEY,[
+     {role:'system',content:`You assess the FORMAL ACCURACY of a B2 learner's English translation of ONE short Russian sentence. Evaluate: (a) whether the meaning of the entire Russian sentence is preserved, including qualifications, contrasts and negation; (b) grammar, tense, articles, prepositions and natural phrasing; (c) especially whether the required target English expression is USED naturally and correctly. The target can be inflected as grammar requires. Accept diverse idiomatic translations; the model answer is only ONE possibility. Do not demand exact wording, do not evaluate political opinions, and do not infer pronunciation from text. If target is missing or incorrect, point this out specifically. Return ONLY JSON {"appropriate":boolean,"feedback":"1-3 specific concise sentences on accuracy and target usage","suggestion":"optional improved translation that uses the target, or empty string"}. appropriate is true only when the meaning is substantially accurate, English grammar natural, AND target appropriately used.`},
+     {role:'user',content:JSON.stringify({russianSentence:prompt,targetExpression:item,modelTranslation:model,learnerTranslation:answer})}
+    ],470);
+    if(typeof result.appropriate!=='boolean'||typeof result.feedback!=='string')throw Error('Invalid assessment format');
+    return res.status(200).json({appropriate:result.appropriate,feedback:result.feedback.slice(0,600),suggestion:String(result.suggestion||'').slice(0,350)});
+   }catch(e){return res.status(503).json({error:'Translation feedback is temporarily unavailable. Your answer has been preserved.'});}
   }
   if(data.action==='assess'){
    const answer=text(data.answer).slice(0,1200),prompt=text(data.prompt).slice(0,600);
