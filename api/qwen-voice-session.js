@@ -22,7 +22,7 @@ export default async function handler(req, res) {
       voices: {
         en: 'qwen-omni-vc-kostya_en-voice-20261028012830649-fab3',
         kostya: 'qwen-omni-vc-kostya_en-voice-20261028012830649-fab3',
-        nova: process.env.ALIBABA_QWEN_NOVA_VOICE_ID || 'Tina',
+        nova: process.env.ALIBABA_QWEN_NOVA_MATURE_VOICE_ID || 'Katerina',
         chaz: process.env.ALIBABA_QWEN_CHAZ_VOICE_ID || 'Aiden',
         ru: process.env.ALIBABA_QWEN_RU_VOICE_ID || ''
       }
