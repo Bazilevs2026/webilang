@@ -22,7 +22,8 @@ function validate(items,target){
   if(i===1){
    if(!text(q.answer)||(!targetNorm.includes(norm(q.answer))&&!norm(q.answer).includes(targetNorm)))throw Error('Retrieval target mismatch');
    if(norm(q.prompt).includes(targetNorm)||norm(q.hint).includes(targetNorm))throw Error('Retrieval gives away answer');
-   if(q.prompt.includes('___')||q.prompt.length>100||!/[А-Яа-яЁё]/.test(q.prompt))throw Error('Retrieval must be a brief Russian-to-English translation prompt');
+   if(q.prompt.length>175||norm(q.prompt).includes(targetNorm))throw Error('Retrieval must be short and must not reveal the answer');
+   if(q.prompt.includes('___')&&!/_{3,}/.test(q.prompt))throw Error('Malformed gap');
   }
   if(i===2){
    if(!text(q.modelAnswer)||!norm(q.modelAnswer).includes(targetNorm))throw Error('Production model must naturally use target');
@@ -42,7 +43,12 @@ async function chat(key,messages,maxTokens=1250){
 const system=`You are a specialist B2 English materials designer. Design three NON-REDUNDANT micro-tasks for ONE selected expression. Use precise idiomatic English and realistic professional, family and social contexts. Avoid stereotypes and ambiguous multiple-choice answers.
 
 1 RECOGNITION / MEANING: The learner's saved expression is visible as the heading. Ask which definition or explanation BEST captures its meaning. Supply exactly three FULL explanatory definitions (NOT three substitute words in a sentence). Exactly ONE must match the expression's specific meaning. Other two definitions should be plausible but clearly different, not near-synonyms. "answer" is an exact option. "context" can state the situation in which the word is used, without giving its definition. Do not show the target word in any options or the question; it is displayed separately as the heading.
-2 RETRIEVAL / RECALL: Show ONLY the short Russian translation of the selected English word or phrase as the task. Prompt must be in Russian Cyrillic, with format "Переведи на английский: «сравнимы»" for target "comparable", or a similarly short, contextually accurate Russian equivalent for other words. STRICT maximum 75 characters. Do not use a story, dialogue, definition, a question asking to name a synonym, a blank or an example sentence. "answer" must be the original English target word or expression verbatim. The expression is hidden in the screen header for this stage. Hint can be brief and must not contain the English answer.
+2 RETRIEVAL / ACTIVE RECALL: Use ONE of FOUR compact formats, selected based on lexical type and the requested variation. Never exceed 140 characters for the prompt; NO paragraphs. Always require the selected target expression as the short English answer. Choose the pedagogically best type:
+(A) TRANSLATE: short precise Russian cue, e.g. "Переведи: «сравнимы»".
+(B) COLLOCATION: a single natural B2 English sentence with ONE "___" where the target expression fits exactly, and the other words make the grammatical pattern and appropriate collocation clear. This is an option, NOT the default for every word.
+(C) EDIT: a single concise English phrase containing a DIFFERENT but subtly inappropriate word (semantic, register or collocation problem); prompt "Replace [inappropriate phrase] with a more accurate word". The intended answer must be exactly the selected target, avoiding ambiguity.
+(D) REPHRASE: one short English idea and ask the student to express the same distinction with a single word/expression. Avoid cases with many equally valid solutions.
+Do NOT disguise a long story as a difficult task. Focus on retrieval, collocations, and lexical precision; avoid repeating recognition definitions. Never include the target or its first letters in the prompt or hint. Target is hidden in the exercise header. Answer must be the original target verbatim. If lexical ambiguity would make a non-translation format unfair, choose (A). Distinct generation requests should vary formats where feasible.
 3 PRODUCTION / INTERACTION: Provide a believable nuanced disagreement, professional decision, or dilemma involving a colleague, interviewer, or friend and ask the learner to RESPOND and justify their stance in their own words. The interface explicitly asks the learner to use the target expression NATURALLY and APPROPRIATELY; do not mention it or repeat this instruction in the prompt. No half-finished answer, word-insertion task, fixed number of sentences, gaps, or model answer in the prompt. "modelAnswer" is ONE natural possible response containing the target expression, for post-attempt reflection only. The learner should aim to use the selected expression; assess communicative appropriateness separately from whether the expression is used accurately. The learner's response can be any natural length.
 Return exactly JSON {"questions":[{"stage":"Recognition","context":"...","prompt":"Which definition best explains this expression?","options":["...","...","..."],"answer":"...","hint":"..."},{"stage":"Retrieval","prompt":"...","answer":"...","hint":"..."},{"stage":"Production","prompt":"...","modelAnswer":"...","hint":"..."}]}.
 Before returning, check for leaked answers, artificial repetition, subjective distractors, and forced phrase insertion. Never generate a 'complete the gap' task in this module.`;
@@ -58,13 +64,13 @@ export default async function handler(req,res){
    // is down or returns a format the strict parser cannot use.
    const known=norm(item)==='comparable'?[
     {stage:'Recognition',context:'An interviewer needs to evaluate qualifications across different professional backgrounds.',prompt:'Which definition best describes this word?',options:['Similar enough in relevant qualities to allow a fair comparison, without being identical.','Exactly the same in every detail, so no comparison is necessary.','Impossible to evaluate against one another because the criteria cannot be shared.'],answer:'Similar enough in relevant qualities to allow a fair comparison, without being identical.',hint:'Think about whether two things must be identical to be meaningfully compared.'},
-    {stage:'Retrieval',prompt:'Переведи на английский: «сравнимы»',answer:'comparable',hint:'Think of an adjective used when different things can be assessed on the same basis.'},
+    {stage:'Retrieval',prompt:'Переведи: «сравнимы»',answer:'comparable',hint:'Think of an adjective used when different things can be assessed on the same basis.'},
     {stage:'Production',prompt:'Your colleague argues: “We should automatically rank applicants with university degrees above applicants who learned on the job.” Respond professionally and explain how the evidence should be evaluated.',modelAnswer:'Their experience may be comparable in the skills that matter for this position, so we should assess both against the same criteria.',hint:'You can challenge the assumption while focusing on relevant skills.'}
    ]:null;
    let qs=null;
    for(let attempt=0;attempt<2;attempt++){
     try{
-     const result=await chat(process.env.OPENAI_API_KEY,[{role:'system',content:system},{role:'user',content:JSON.stringify({selectedExpression:item,level:'B2',attempt:attempt+1})}],1500);
+     const result=await chat(process.env.OPENAI_API_KEY,[{role:'system',content:system},{role:'user',content:JSON.stringify({selectedExpression:item,level:'B2',attempt:attempt+1,preferredRetrievalFormat:['translate','collocation','edit','rephrase'][(Number(data.variation)||0)%4]})}],1500);
      qs=validate(result.questions,item);break;
     }catch(e){console.warn('Gender Word Stock generation attempt '+(attempt+1)+': '+String(e.message||e));}
    }
