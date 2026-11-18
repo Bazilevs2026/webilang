@@ -189,7 +189,7 @@ render();
     card.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
 
     card.querySelector('h2,h3,h4').textContent =
-      'AI: Opportunities & Risks · C1';
+      'AI: Opportunities & Risks';
 
     const description = card.querySelector('p');
     if (description) description.textContent =
@@ -206,7 +206,7 @@ render();
     });
 
     card.querySelectorAll('.tag').forEach(tag => {
-      if (tag.textContent.trim() === 'B2') tag.textContent = 'C1';
+      if (/English\s*·\s*B2|^B2$/i.test(tag.textContent.trim())) tag.textContent = 'English · C1';
     });
 
     original.after(card);
