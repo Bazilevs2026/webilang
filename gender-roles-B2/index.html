@@ -426,7 +426,28 @@ header nav .tab{flex:0 0 auto;min-width:0;white-space:nowrap;padding:10px clamp(
 #wl-wordstock-repaired .wl6-audio-controls audio{max-width:100%;height:38px}
 #wl-wordstock-repaired .wl6-target-instruction{background:#eef7f2;border-left:4px solid #308362;padding:10px 14px;border-radius:7px;line-height:1.5}
 </style>
-</head>
+<style id="gender-grammar-four-stage-style">
+#gender-grammar-two-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start;margin-top:20px}
+.gg-rule-column{min-width:0;background:#fff;border:1px solid #dce5ed;border-radius:20px;padding:17px;box-shadow:0 8px 23px #17233c0b}
+.gg-rule-column>.rule{margin-bottom:16px;min-height:225px}
+.gg-steps{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 18px}
+.gg-step{background:#ebf4ef;color:#1b684b;border:1px solid #afd0c0;border-radius:9px;padding:8px 10px;font:700 13px/1.3 system-ui;cursor:pointer}
+.gg-step.selected{background:#1d7a57;color:#fff}.gg-step:disabled{opacity:.4;cursor:not-allowed}
+.gg-work h4{font-size:19px;margin:5px 0 13px}.gg-prompt{font-weight:650;line-height:1.55;margin:0 0 12px}
+.gg-instruction{font-size:14px;color:#52637b;line-height:1.5;margin:4px 0 15px}
+.gg-item{background:#fafdff;border:1px solid #d9e4eb;border-radius:12px;padding:13px;margin:10px 0 14px}
+.gg-answer,.gg-translation{width:100%;padding:10px;font:inherit;border:1px solid #afc3d9;border-radius:8px;background:white;box-sizing:border-box}
+.gg-translation{resize:vertical;min-height:78px;line-height:1.5}
+.gg-item button,.gg-work>button,.gg-next button{margin:8px 7px 5px 0;padding:9px 13px;border:1px solid #95bbac;border-radius:10px;background:#e5f4ec;color:#185d45;font-weight:800;cursor:pointer}
+.gg-item button:disabled,.gg-work>button:disabled{opacity:.55;cursor:wait}
+.gg-item .gg-primary,.gg-work>.gg-primary,.gg-next .gg-primary{color:#fff;background:#228459}
+.gg-options{display:grid;gap:7px}.gg-option{display:flex;align-items:flex-start;gap:9px;padding:11px;border:1px solid #d9e5ed;border-radius:9px;line-height:1.45;cursor:pointer;background:#fff}
+.gg-option input{margin-top:4px;accent-color:#257b58}
+.gg-note{margin-top:10px;padding:10px 12px;background:#fff4e8;border-left:4px solid #d58945;border-radius:8px;line-height:1.5}
+.gg-note.good{background:#e8f7ee;border-color:#278a60}.gg-note p{margin:3px 0}.gg-note .gg-russian{color:#53647e}
+.gg-status{color:#237c58;font-weight:750;line-height:1.5;margin:12px 0}.gg-next{margin-top:9px}
+@media(max-width:950px){#gender-grammar-two-columns{grid-template-columns:1fr}.gg-rule-column>.rule{min-height:0}}
+</style></head>
 <body>
 <a class="skip-ai" href="#module-main">Skip to main content</a>
 <header>
@@ -538,20 +559,24 @@ header nav .tab{flex:0 0 auto;min-width:0;white-space:nowrap;padding:10px clamp(
 </section>
 
 <section class="panel" id="panel-grammar">
-  <div class="section-head"><span class="tag">GRAMMAR</span><h2>Two structures for discussing gender roles</h2><p>One recycled structure + one argumentation structure.</p></div>
-  <div class="grid2">
-    <div class="card rule"><h3>Rule 1: preposition + -ing</h3>
-      <p>After a preposition, a verb normally takes <b>-ing</b>.</p>
-      <p><code>by + -ing</code> · <code>without + -ing</code> · <code>after + -ing</code> · <code>instead of + -ing</code></p>
-      <p><i>Women gained independence <b>by entering</b> higher education.</i></p>
-    </div>
-    <div class="card rule"><h3>Rule 2: concession and contrast</h3>
-      <p><b>although / even though + clause</b><br><b>despite / in spite of + noun or -ing</b><br><b>whereas / while + contrasting clause</b></p>
-      <p><i>Although both parents worked, she did more domestic work.</i></p>
-    </div>
-  </div>
-  <div class="card"><h3>Practice A — choose the correct form</h3><div id="grammarA"></div></div>
-  <div class="card"><h3>Practice B — choose the best connector</h3><div id="grammarB"></div></div>
+ <div class="section-head"><span class="tag">GRAMMAR · B2</span><h2>Two structures for discussing gender roles</h2><p>For each rule: Recognition → Paraphrase → Retrieval (translation) → Production. Explanations are in English and Russian.</p></div>
+ <div class="gg-two-columns" id="gender-grammar-two-columns">
+  <article class="gg-rule-column" id="gg-ing">
+   <div class="rule"><h3>Rule 1 · Preposition + -ing</h3><p>After a preposition, use the gerund: <b>verb-ing</b>.</p>
+    <p><code>by + -ing</code> · <code>without + -ing</code> · <code>after + -ing</code> · <code>instead of + -ing</code></p>
+    <p><em>Women gained independence <b>by entering</b> higher education.</em></p>
+   </div>
+  </article>
+  <article class="gg-rule-column" id="gg-contrast">
+   <div class="rule"><h3>Rule 2 · Concession and contrast</h3>
+    <p><b>although / even though + clause</b></p>
+    <p><b>despite / in spite of + noun or -ing</b></p>
+    <p><b>whereas / while + contrasting clause</b></p>
+    <p><em>Although both parents worked, she did more domestic work.</em></p>
+   </div>
+  </article>
+ </div>
+ <div id="grammarA" hidden></div><div id="grammarB" hidden></div>
 </section>
 
 <section class="panel" id="panel-listening">
@@ -2058,4 +2083,5 @@ bar.addEventListener('pointerup',()=>move=null);bar.addEventListener('pointercan
 #wordPracticePanel{display:none!important}
 </style>
 <script defer src="/gender-roles-B2/wordstock-sequence.js"></script>
+<script defer src="/gender-roles-B2/grammar-sequence.js"></script>
 </body></html>
