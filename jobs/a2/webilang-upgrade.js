@@ -66,7 +66,7 @@ speaking.innerHTML='<div class="section-head"><span class="tag">SPEAKING · A2</
 rouletteNames.map((name,i)=>'<span class="jroulette-label" style="--sector:'+i+';--counter:'+(22.5+i*45)+'deg">'+escape(name)+'</span>').join('')+
 '</div><button type="button" id="jSpin" class="jroulette-hub" aria-label="Spin the roulette wheel">SPIN</button></div>'+
 '<div class="jroulette-progress"><span>🎡 Spin the wheel</span><strong id="jCount">0 / 8</strong></div><p class="jroulette-help">All 8 challenges appear once before a new round.</p></div>'+
-'<div class="jroulette-activity"><div id="jQuestion" class="jprompt" aria-live="polite">Spin for a challenge.</div><div class="jrow"><button id="jShowHint">💡 One hint</button></div><div class="jhelp" id="jHint" hidden></div>'+
+'<div class="jroulette-activity"><div id="jQuestion" class="jprompt" aria-live="polite"></div><div class="jrow"><button id="jShowHint">💡 One hint</button></div><div class="jhelp" id="jHint" hidden></div>'+
 '<p class="jroulette-instruction">How to answer: 2–4 short sentences. Use your own words.</p><div id="jTimer" class="jroulette-clock" aria-live="off">00:45</div>'+
 '<div class="jroulette-controls"><button id="jRecord" class="jroulette-record">🎙 Record Answer</button><button id="jPause" disabled>Ⅱ Pause</button><button id="jFinish" disabled>■ Finish</button><button id="jRestart">↺ Restart</button></div>'+
 '<div id="jRecordStatus" class="jroulette-status" role="status" aria-live="polite">Spin the wheel, then select Record Answer.</div>'+
@@ -88,7 +88,7 @@ rouletteStyle.textContent=`
 #panel-opinion .jroulette-progress strong{background:#e4f6ee;color:#116a49;border-radius:99px;padding:5px 11px}
 #panel-opinion .jroulette-help{font-size:12px;color:#64748b;text-align:center;margin:10px 0 0}
 #panel-opinion .jroulette-activity{min-width:0;display:flex;flex-direction:column;justify-content:center;gap:5px}
-#panel-opinion .jroulette-activity .jprompt{min-height:100px;font-size:20px}
+#panel-opinion .jroulette-activity .jprompt{min-height:0;font-size:20px;margin:0;padding:0}#panel-opinion .jroulette-activity .jprompt:empty{display:none}
 #panel-opinion .jroulette-activity .jprompt h2{margin:0 0 8px;font-size:28px}
 #panel-opinion .jroulette-activity .jprompt p{margin:0;line-height:1.5}
 #panel-opinion .jroulette-activity .jrow{margin:9px 0}
