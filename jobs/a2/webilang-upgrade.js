@@ -579,12 +579,19 @@ document.head.append(css);
 get('jvrReset').onclick=()=>{if(get('jvrBegin').disabled){get('jvrFinish').click()}clearInterval(clockTimer);lastTextHistory=[];lines=[];get('jTranscript').replaceChildren();get('jInterviewFeedback').replaceChildren();get('jvrWorkspace').hidden=true;get('jvrCards').hidden=false;get('jvrBegin').disabled=false;get('jvrFinish').disabled=true;get('jvrStatus').textContent='Ready.'};
 })();
 
+/* Story: one focused action after the transcript; retain recording controls above. */
+const storyRecorderStyle=document.createElement('style');
+storyRecorderStyle.textContent='#panel-story .recorder[data-task="baz-story"] .rec-extra> :not(.jobs-story-feedback){display:none!important}#panel-story .recorder[data-task="baz-story"] .rec-extra{display:flex;align-items:center;gap:8px;margin-top:12px}#panel-story .recorder[data-task="baz-story"] .jobs-story-feedback{border:0;background:#188755;color:#fff;border-radius:11px;font-weight:800;padding:12px 18px;cursor:pointer;font-size:15px}#panel-story .recorder[data-task="baz-story"] .jobs-story-feedback:hover{background:#126d45}#panel-story .recorder[data-task="baz-story"] .rec-note{font-size:12px}';
+document.head.append(storyRecorderStyle);
+const bazRecorder=$('panel-story')?.querySelector('.recorder[data-task="baz-story"]');
+if(bazRecorder){bazRecorder.dataset.limit='120';const t=bazRecorder.querySelector('.timer');if(t&&t.textContent.trim()==='03:00')t.textContent='02:00';}
+
 /* Optional evidence-based feedback for existing, otherwise unchanged activities. */
 ['story','reading','watching','writing'].forEach(tab=>{
  const section=$('panel-'+tab);if(!section)return;
  section.querySelectorAll('.recorder').forEach((rec,i)=>{
    const actions=rec.querySelector('.rec-extra')||rec;
-   const btn=document.createElement('button');btn.className='tiny';btn.type='button';btn.textContent='✨ AI feedback + Stocks';
+   const btn=document.createElement('button');btn.className=tab==='story'?'jobs-story-feedback':'tiny';btn.type='button';btn.textContent='✨ AI Feedback + Stocks';
    const out=document.createElement('div');out.className='jobs-v3';out.hidden=true;
    btn.onclick=async()=>{
      const transcript=rec.querySelector('textarea.transcript')?.value?.trim()||'';
