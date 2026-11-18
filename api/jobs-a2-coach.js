@@ -1,0 +1,27 @@
+export default async function handler(req,res){
+ res.setHeader('Cache-Control','no-store');
+ if(req.method!=='POST')return res.status(405).json({error:'POST required'});
+ const b=typeof req.body==='string'?JSON.parse(req.body):req.body||{};
+ const type=b.type==='feedback'?'feedback':'chat';
+ const transcript=String(b.transcript||'').slice(0,6500);
+ const scene=String(b.scene||'job interview').slice(0,120);
+ const history=Array.isArray(b.history)?b.history.slice(-12).map(x=>({role:x.role==='assistant'?'assistant':'user',content:String(x.content||'').slice(0,700)})):[];
+ if(!process.env.OPENAI_API_KEY)return res.status(503).json({error:'AI service not configured'});
+ const scenes={
+  interview:'You are a friendly but realistic interviewer recruiting a part-time assistant. Start: "Hello! Thanks for coming. Can you tell me a little about yourself?" Ask about experience, skills, availability and why they want the job. Do not assume the student has work experience.',
+  salary:'You are a manager discussing working hours and salary with a new employee. Start: "Hello! What would you like to know about this job?" Do not promise specific real-world legal rights or invent company policies.',
+  firstday:'You are an experienced colleague helping a new employee on their first day. Start: "Hi! Welcome to the team. Is there anything you need help with?"',
+  colleague:'You are a colleague who misunderstood the student’s work schedule. Start: "Hi, I thought you were working on Saturday. Is that right?" Be open to clarification.'
+ };
+ try{
+  const system=type==='chat'?('You are a realistic roleplay partner in an A2 English lesson about Jobs & Money. '+(scenes[b.scene]||scenes.interview)+' Use simple, natural English. Respond to the learner\'s last utterance, usually 1-2 short sentences and AT MOST ONE question. Never give a lesson, explanations, scores or a list during a roleplay. Never make up learner biography. If the learner asks for help, give one brief hint and continue.'):('You are Kostya, an English language teacher assessing a Jobs & Money A2 learner. Assess ONLY the student utterances, never attribute agent speech to student. Return valid JSON object with fields interaction, grammar, vocabulary, nextStep, grammarItems, vocabularyItems. Each item: original (EXACT quote found in student speech), corrected, explanation, practice. Correct real errors only; no invented quotations. If there is no actual error, use empty arrays. vocabularyItems may include a useful correctly used expression with original=corrected. Simple A2-level clear actionable feedback. No grading without evidence.');
+  const messages=[{role:'system',content:system},...(type==='chat'?history:[{role:'user',content:JSON.stringify({scene,transcript})}])];
+  const r=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{Authorization:'Bearer '+process.env.OPENAI_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({model:process.env.JOBS_A2_MODEL||'gpt-4o-mini',temperature:type==='chat'?.6:.2,max_tokens:type==='chat'?160:1100,...(type==='feedback'?{response_format:{type:'json_object'}}:{}),messages})});
+  const d=await r.json();if(!r.ok)throw Error('AI provider error '+r.status);
+  const content=d.choices?.[0]?.message?.content||'';
+  if(type==='chat')return res.status(200).json({answer:String(content).slice(0,800)});
+  const out=JSON.parse(content||'{}'),student=history.length?history.filter(x=>x.role==='user').map(x=>x.content).join(' '):transcript;
+  const filterItems=(v,grammar)=>Array.isArray(v)?v.filter(x=>x&&typeof x.original==='string'&&typeof x.corrected==='string'&&student.toLowerCase().includes(x.original.toLowerCase())&&(!grammar||x.original.trim().toLowerCase()!==x.corrected.trim().toLowerCase())).slice(0,5).map(x=>({original:x.original.slice(0,180),corrected:x.corrected.slice(0,180),explanation:String(x.explanation||'').slice(0,280),practice:String(x.practice||'').slice(0,180)})):[];
+  return res.status(200).json({interaction:String(out.interaction||'').slice(0,900),grammar:String(out.grammar||'').slice(0,900),vocabulary:String(out.vocabulary||'').slice(0,900),nextStep:String(out.nextStep||'').slice(0,400),grammarItems:filterItems(out.grammarItems,true),vocabularyItems:filterItems(out.vocabularyItems,false)});
+ }catch(e){console.error('Jobs A2',e);return res.status(502).json({error:'AI service temporarily unavailable. Please try again.'})}
+}
