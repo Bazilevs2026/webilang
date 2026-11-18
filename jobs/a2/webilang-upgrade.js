@@ -59,7 +59,12 @@ speaking.innerHTML='<div class="section-head"><span class="tag">SPEAKING · A2</
 rouletteNames.map((name,i)=>'<span class="jroulette-label" style="--sector:'+i+';--counter:'+(22.5+i*45)+'deg">'+escape(name)+'</span>').join('')+
 '</div><button type="button" id="jSpin" class="jroulette-hub" aria-label="Spin the roulette wheel">SPIN</button></div>'+
 '<div class="jroulette-progress"><span>🎡 Spin the wheel</span><strong id="jCount">0 / 8</strong></div><p class="jroulette-help">All 8 challenges appear once before a new round.</p></div>'+
-'<div class="jroulette-activity"><div id="jQuestion" class="jprompt" aria-live="polite">Spin for a challenge.</div><div class="jhelp" id="jHint" hidden></div><div class="jrow"><button id="jShowHint">💡 One hint</button><button id="jPrep">⏱ Prepare 20s</button><button id="jSpeak">🎙 Speak 45s</button><span id="jTimer" aria-live="polite"></span></div><textarea id="jAnswer" placeholder="Speak, dictate, or type your answer."></textarea><div class="jrow"><button id="jDictate">🎤 Dictate</button><button id="jFeedback" class="primary">Get AI feedback</button></div><div id="jResult"></div></div></div>';
+'<div class="jroulette-activity"><div id="jQuestion" class="jprompt" aria-live="polite">Spin for a challenge.</div><div class="jrow"><button id="jShowHint">💡 One hint</button></div><div class="jhelp" id="jHint" hidden></div>'+
+'<p class="jroulette-instruction">How to answer: 2–4 short sentences. Use your own words.</p><div id="jTimer" class="jroulette-clock" aria-live="off">00:45</div>'+
+'<div class="jroulette-controls"><button id="jRecord" class="jroulette-record">🎙 Record Answer</button><button id="jPause" disabled>Ⅱ Pause</button><button id="jFinish" disabled>■ Finish</button><button id="jRestart">↺ Restart</button></div>'+
+'<div id="jRecordStatus" class="jroulette-status" role="status" aria-live="polite">Spin the wheel, then select Record Answer.</div>'+
+'<label for="jAnswer" class="jroulette-transcript-label">YOUR SPEECH · TRANSCRIPT</label><textarea id="jAnswer" placeholder="Recognized words will appear here as you speak. You can edit the transcript before checking."></textarea>'+
+'<button id="jFeedback" class="jroulette-check">✦ Check My Speech</button><div class="jroulette-caption">Live transcription uses browser speech recognition when supported. You can correct the transcript before AI feedback.</div><div id="jResult"></div></div></div>';
 const rouletteStyle=document.createElement('style');
 rouletteStyle.textContent=`
 #panel-opinion .jroulette-layout{display:grid;grid-template-columns:minmax(285px,340px) minmax(0,1fr);align-items:center;gap:24px;padding:24px}
@@ -85,6 +90,8 @@ rouletteStyle.textContent=`
 @media(prefers-reduced-motion:reduce){#panel-opinion .jroulette-wheel{transition-duration:.25s}}
 `;
 document.head.append(rouletteStyle);
+const rouletteControlsStyle=document.createElement('style');
+rouletteControlsStyle.textContent='#panel-opinion .jroulette-instruction{font-size:15px;color:#5a5970;margin:2px 0 0}#panel-opinion .jroulette-clock{font-size:clamp(50px,6vw,77px);font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.045em;line-height:1.15;color:#20202a;margin:3px 0 9px}#panel-opinion .jroulette-controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:0 0 4px}#panel-opinion .jroulette-controls button,#panel-opinion .jroulette-check{font-size:15px;font-weight:800;border:1px solid #29313b;border-radius:13px;padding:12px 15px;cursor:pointer;background:#fff;color:#20242c;box-shadow:0 3px 0 #0003}#panel-opinion .jroulette-controls button:disabled{opacity:.32;cursor:not-allowed;box-shadow:none}#panel-opinion #jRecord,#panel-opinion .jroulette-check{background:#ffd05b;color:#121212}#panel-opinion #jRecord.recording{background:#ef7e70}#panel-opinion .jroulette-status{font-size:13px;color:#665f57;min-height:20px;margin:3px 0 10px}#panel-opinion .jroulette-transcript-label{font-size:12px;font-weight:900;letter-spacing:.12em;color:#615b72;margin:7px 0 0}#panel-opinion .jroulette-activity textarea{width:100%;min-height:130px;border:1.5px solid #b7b3af;border-radius:12px;padding:12px;resize:vertical;box-sizing:border-box}#panel-opinion .jroulette-check{align-self:flex-start;margin:7px 0}#panel-opinion .jroulette-caption{font-size:12px;color:#777180;line-height:1.45}#panel-opinion .jroulette-controls button:focus-visible,#panel-opinion .jroulette-check:focus-visible{outline:3px solid #2472d7;outline-offset:2px}@media(max-width:520px){#panel-opinion .jroulette-controls{gap:7px}#panel-opinion .jroulette-controls button{font-size:13px;padding:10px}}';document.head.append(rouletteControlsStyle);
 let seen=[],current=-1,ticker=null,wheelDegrees=0,spinning=false;
 function spin(){
  if(spinning)return;
@@ -108,17 +115,94 @@ function spin(){
   $('jCount').textContent=seen.length+' / 8';
   $('jQuestion').innerHTML='<h2>'+t[0]+' '+escape(rouletteNames[current])+'</h2><p>'+escape(t[2])+'</p>';
   $('jHint').textContent=t[3];$('jHint').hidden=true;
-  $('jAnswer').value='';$('jResult').textContent='';clearInterval(ticker);$('jTimer').textContent='';
+  resetSpeaking();$('jResult').textContent='';$('jRecordStatus').textContent='Situation selected. Press Record Answer.';
  };
  const wheel=$('jWheel');wheel.addEventListener('transitionend',function finished(e){if(e.propertyName!=='transform')return;wheel.removeEventListener('transitionend',finished);reveal()},{once:true});
  // Reduced-motion and hidden-tab fallback.
  setTimeout(reveal,5200);
 }
 $('jSpin').onclick=spin;$('jShowHint').onclick=()=>{$('jHint').hidden=!$('jHint').hidden};
-function count(seconds){clearInterval(ticker);$('jTimer').textContent=seconds+'s';ticker=setInterval(()=>{seconds--;$('jTimer').textContent=seconds>0?seconds+'s':'Time is up!';if(seconds<=0)clearInterval(ticker)},1000)}
-$('jPrep').onclick=()=>count(20);$('jSpeak').onclick=()=>count(45);
-function dictate(target){const Rec=window.SpeechRecognition||window.webkitSpeechRecognition;if(!Rec){alert('Speech recognition is unavailable in this browser.');return}const r=new Rec();r.lang='en-US';r.onresult=e=>{target.value=(target.value+' '+e.results[0][0].transcript).trim();target.dispatchEvent(new Event('input',{bubbles:true}))};r.start()}
-$('jDictate').onclick=()=>dictate($('jAnswer'));
+
+let remainingSeconds=45,recordState='idle',speechRec=null,mediaStream=null,mediaRecorder=null,audioParts=[],speechFinal='',speechDraft='',speechWanted=false,recordSession=0;
+const showTime=()=>{$('jTimer').textContent='00:'+String(remainingSeconds).padStart(2,'0')};
+function setRecordButtons(){
+ const active=recordState==='recording',paused=recordState==='paused';
+ $('jRecord').disabled=active||paused||current<0||spinning;
+ $('jRecord').classList.toggle('recording',active);
+ $('jPause').disabled=!active&&!paused;
+ $('jPause').textContent=paused?'▶ Resume':'Ⅱ Pause';
+ $('jFinish').disabled=!active&&!paused;
+}
+function stopSpeech(){speechWanted=false;if(speechRec){try{speechRec.stop()}catch(e){}speechRec=null}}
+function closeMicrophone(){if(mediaRecorder&&mediaRecorder.state!=='inactive'){try{mediaRecorder.stop()}catch(e){}}mediaRecorder=null;if(mediaStream){mediaStream.getTracks().forEach(track=>track.stop());mediaStream=null}}
+function resetSpeaking(){
+ recordSession++;clearInterval(ticker);stopSpeech();closeMicrophone();recordState='idle';remainingSeconds=45;showTime();
+ speechFinal='';speechDraft='';audioParts=[];$('jAnswer').value='';$('jRecordStatus').textContent='Spin the wheel, then press Record Answer.';
+ setRecordButtons();
+}
+function startSpeech(session){
+ const Rec=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!Rec){$('jRecordStatus').textContent='Recording started. Live transcript is unavailable in this browser; type your response below after finishing.';return}
+ function launch(){
+  if(session!==recordSession||!speechWanted||recordState!=='recording')return;
+  try{
+   const r=new Rec();speechRec=r;r.lang='en-US';r.continuous=true;r.interimResults=true;
+   r.onresult=e=>{
+    if(session!==recordSession)return;
+    for(let i=e.resultIndex;i<e.results.length;i++){
+     const phrase=e.results[i][0]?.transcript||'';
+     if(e.results[i].isFinal){speechFinal+=(speechFinal?' ':'')+phrase.trim();speechDraft=''}
+     else speechDraft=phrase.trim();
+    }
+    $('jAnswer').value=[speechFinal,speechDraft].filter(Boolean).join(' ');
+   };
+   r.onerror=e=>{if(session===recordSession&&e.error==='not-allowed'){$('jRecordStatus').textContent='Speech recognition permission denied. You can edit or type your transcript.';speechWanted=false}};
+   r.onend=()=>{if(speechRec===r)speechRec=null;if(session===recordSession&&speechWanted&&recordState==='recording')launch()};
+   r.start();
+  }catch(e){speechWanted=false}
+ }
+ speechWanted=true;launch();
+}
+function finishSpeaking(){
+ if(recordState!=='recording'&&recordState!=='paused')return;
+ clearInterval(ticker);stopSpeech();closeMicrophone();recordState='finished';setRecordButtons();
+ $('jRecordStatus').textContent='Recording finished. Review your transcript, then select Check My Speech.';
+}
+function tickRecording(){clearInterval(ticker);ticker=setInterval(()=>{if(recordState!=='recording')return;remainingSeconds=Math.max(0,remainingSeconds-1);showTime();if(remainingSeconds===0)finishSpeaking()},1000)}
+$('jRecord').onclick=async()=>{
+ if(current<0||spinning){$('jRecordStatus').textContent='Spin the wheel to select a challenge first.';return}
+ if(recordState==='recording'||recordState==='paused')return;
+ resetSpeaking();recordState='starting';setRecordButtons();const session=recordSession;
+ $('jRecordStatus').textContent='Requesting microphone…';
+ try{
+  if(!navigator.mediaDevices?.getUserMedia)throw Error('Microphone capture is not available in this browser');
+  const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+  if(session!==recordSession){stream.getTracks().forEach(track=>track.stop());return}
+  mediaStream=stream;
+  if(typeof MediaRecorder!=='undefined'){
+   mediaRecorder=new MediaRecorder(stream);audioParts=[];mediaRecorder.ondataavailable=e=>{if(e.data.size)audioParts.push(e.data)};mediaRecorder.start();
+  }
+  recordState='recording';setRecordButtons();$('jRecordStatus').textContent='Recording… Speak naturally for up to 45 seconds.';
+  startSpeech(session);tickRecording();
+ }catch(e){if(session!==recordSession)return;recordState='idle';setRecordButtons();$('jRecordStatus').textContent='Microphone unavailable: '+(e.message||e)+'. You can type your answer in the transcript.'}
+};
+$('jPause').onclick=()=>{
+ if(recordState==='recording'){
+  recordState='paused';clearInterval(ticker);speechWanted=false;
+  if(speechRec){try{speechRec.stop()}catch(e){}speechRec=null}
+  if(mediaRecorder?.state==='recording')mediaRecorder.pause();
+  $('jRecordStatus').textContent='Paused.';setRecordButtons();
+ }else if(recordState==='paused'){
+  recordState='recording';
+  if(mediaRecorder?.state==='paused')mediaRecorder.resume();
+  speechFinal=$('jAnswer').value.trim();speechDraft='';startSpeech(recordSession);
+  $('jRecordStatus').textContent='Recording resumed.';tickRecording();setRecordButtons();
+ }
+};
+$('jFinish').onclick=finishSpeaking;
+$('jRestart').onclick=()=>{resetSpeaking();$('jResult').textContent='';$('jRecordStatus').textContent=current>=0?'Ready. Press Record Answer to try again.':'Spin the wheel to select a challenge.'};
+showTime();setRecordButtons();
+window.addEventListener('pagehide',()=>{clearInterval(ticker);stopSpeech();closeMicrophone()});
 const rp=$('panel-roleplays');rp.innerHTML='<div class="section-head"><span class="tag">ROLEPLAY · A2</span><h2>Job Interview — Two Perspectives</h2><p>Prepare your language first, then interview with your AI partner.</p></div><div class="jobs-v3"><h3>1 · Select your role</h3><div class="jrow"><button id="jApply" class="primary">I am applying · Nova interviews me</button><button id="jHire">I am hiring · Chaz applies</button></div><h3>2 · Choose a curious job</h3><select id="jJob" aria-label="Choose the job">'+jobs.map((x,i)=>'<option value="'+i+'">'+escape(x)+'</option>').join('')+'</select><div class="jhelp" id="jScaffold"></div><h3>3 · Prepare your own answers / questions</h3><p>Choose helpful chunks, build 2–3 sentences, and check them before you talk.</p><textarea id="jNotes" placeholder="I am good at…"></textarea><div class="jrow"><button id="jCheckNotes">✓ Check my preparation</button><button class="primary" id="jStart">🎙 Start live interview</button><button id="jEnd" disabled>■ End & feedback</button></div><p id="jStatus" aria-live="polite"></p><iframe id="jAvatar" src="/avatar-lab/index.html" title="Job interview avatar" loading="lazy"></iframe><audio id="jAudio" autoplay playsinline></audio><div id="jTranscript"></div><div id="jInterviewFeedback"></div></div>';
 let role='applicant',lines=[],live=null;
 function scaffold(){const job=jobs[Number($('jJob').value)];$('jApply').classList.toggle('primary',role==='applicant');$('jHire').classList.toggle('primary',role==='employer');$('jScaffold').innerHTML=role==='applicant'?'<b>Your job: '+escape(job)+'</b><br>Useful phrases:<br><b>I want this job because…<br>I am good at…<br>I can…<br>I have experience with… / I am ready to learn…<br>Could you tell me about the working hours?</b><br>Goal: describe two skills and ask one question.':'<b>You are interviewing an applicant for '+escape(job)+'</b><br>Useful questions:<br><b>Why do you want this job?<br>Are you good at…?<br>Can you…?<br>Do you have any experience?<br>When can you start?<br>Why should we hire you?</b><br>Goal: ask three questions, listen and decide.';const f=$('jAvatar');const change=()=>{try{const sel=f.contentDocument?.getElementById('modelMode');if(sel){sel.value=role==='applicant'?'nova':'chaz';sel.dispatchEvent(new Event('change',{bubbles:true}))}}catch(e){}};f.addEventListener('load',change,{once:true});change()}
