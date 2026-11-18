@@ -85,13 +85,19 @@
     if(!answer.trim()){status.textContent='Please give an answer first.';return}
     if(stage===0||stage===1){
       const ok=norm(answer)===norm(q.answer);
-      session.attempted[stage]=true;session.maxStage=Math.max(session.maxStage,stage+1);
-      status.textContent=ok?'✓ Correct — well done.':'Not quite. '+(stage===0?'Read the context carefully and try again.':'Check the context and try another form.');
+      session.attempted[stage]=true;
+      if(ok)session.maxStage=Math.max(session.maxStage,stage+1);
+      status.textContent=ok?'✓ Correct — this stage is complete.':'Not quite. '+(stage===0?'Use the situation and compare what each option means.':'Look at the sentence context and try again.');
       status.dataset.correct=String(ok);
-      const reveal=node('p','wl6-model','Target answer: '+q.answer);const previous=section.querySelector('.wl6-model');if(previous)previous.remove();section.append(reveal);
+      const previous=section.querySelector('.wl6-model');if(previous)previous.remove();
       actions.replaceChildren();
       actions.append(button('Try again',()=>{session.answers[stage]='';drawPractice(session)},'wl6-mini'));
-      actions.append(button('Next →',()=>{session.stage=Math.min(2,stage+1);drawPractice(session)},'wl6-next'));
+      if(ok){
+       section.append(node('p','wl6-model','Target answer: '+q.answer));
+       actions.append(button('Next →',()=>{session.stage=Math.min(2,stage+1);drawPractice(session)},'wl6-next'));
+      }else{
+       actions.append(button('Hint',()=>{const prior=section.querySelector('.wl6-hint');if(prior){prior.remove();return}section.insertBefore(node('p','wl6-hint',q.hint||'Use the context for clues.'),actions)},'wl6-mini'));
+      }
       section.replaceChild(progressBar(session),section.querySelector('.wl6-progress'));
     }else{
       check.disabled=true;status.textContent='Checking your B2 response…';
