@@ -637,12 +637,12 @@ body.baz-modal-open{overflow:hidden}
 
 </style></head>
 <body>
-<header><div class="head"><div class="brand"><div class="logo">💸</div><div>Jobs &amp; Money<br/><small style="color:#758397">MISSION · A2</small></div></div><div class="progress"><div class="bar"><i id="progressBar"></i></div><span class="pct" id="progressText">0% complete</span></div><div class="header-actions">
-<button class="head-btn" onclick="showPanel('home')" type="button">🏠 Home</button>
+<header><div class="head"><div class="brand"><div class="logo">💸</div><div>Jobs &amp; Money<br/><small style="color:#758397">MISSION · A2</small></div></div><div class="header-actions">
+
 <button class="head-btn reset-page-btn" onclick="resetWholePage()" type="button">↺ Reset page</button>
 </div></div>
 <nav>
-<button class="tab active" data-tab="home">🏠 Home</button><button class="tab" data-tab="story">🎙 Speaking (Story)</button><button class="tab" data-tab="reading">📖 Reading</button><button class="tab" data-tab="vocab">🧠 Vocabulary</button><button class="tab" data-tab="grammar">🧩 Grammar</button><button class="tab" data-tab="watching">▶ Watching</button><button class="tab" data-tab="opinion">💬 Speaking (Opinion)</button><button class="tab" data-tab="career">🕵️ Career Ladder Games</button><button class="tab" data-tab="writing">✍️ Writing</button>
+<button class="tab active" data-tab="story">📖 Story</button><button class="tab" data-tab="reading">📖 Reading</button><button class="tab" data-tab="vocab">🧠 Vocabulary</button><button class="tab" data-tab="grammar">🧩 Grammar</button><button class="tab" data-tab="watching">▶ Watching</button><button class="tab" data-tab="opinion">💬 Speaking (Opinion)</button><button class="tab" data-tab="career">🕵️ Career Ladder Games</button><button class="tab" data-tab="writing">✍️ Writing</button>
 </nav></header>
 <div class="mic-setup-bar" id="micSetupBar">
 <div class="mic-setup-inner">
@@ -3873,11 +3873,11 @@ newGame();
 
 const STATE_KEY='jobs_money_mission_a2_v2';
 let state={done:{},reading:{},transcripts:{},writing:'',applyJob:'',translation:{},video:{}};
-try{state=Object.assign(state,JSON.parse(localStorage.getItem(STATE_KEY)||'{}'))}catch(e){}
+/* Old progress no longer loaded. */
 const STEPS=['story','reading','readingSpeak','vocab','translation','past','order','video','summary','dream','current','writing'];
-function saveState(){try{localStorage.setItem(STATE_KEY,JSON.stringify(state))}catch(e){}updateProgress()}
+function saveState(){ /* no progress database */ }
 function complete(k){state.done[k]=true;saveState()}
-function updateProgress(){const n=STEPS.filter(k=>state.done&&state.done[k]).length,p=Math.round(n/STEPS.length*100);document.getElementById('progressBar').style.width=p+'%';document.getElementById('progressText').textContent=p+'% complete · '+n+'/'+STEPS.length}
+function updateProgress(){ /* retired */ }
 function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');clearTimeout(window.__toast);window.__toast=setTimeout(()=>e.classList.remove('show'),2600)}
 function showCareerGame(n){
   const a=document.getElementById('careerGame1'),b=document.getElementById('careerGame2');
@@ -4325,10 +4325,7 @@ function updatePastVoiceProgress(){
 /* === persistent Student Activity Report === */
 const ACTIVITY_KEY='jobs_money_mission_activity_v1';
 let activityLog={sessionId:'',studentName:'',startedAt:'',updatedAt:'',events:[]};
-try{
-  const savedActivity=JSON.parse(localStorage.getItem(ACTIVITY_KEY)||'null');
-  if(savedActivity && typeof savedActivity==='object') activityLog=Object.assign(activityLog,savedActivity);
-}catch(e){}
+/* Activity database disabled. */
 function activityStamp(){
   const d=new Date(),p=n=>String(n).padStart(2,'0');
   return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'_'+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds());
@@ -4340,7 +4337,7 @@ if(!Array.isArray(activityLog.events)) activityLog.events=[];
 function saveActivity(){
   activityLog.updatedAt=new Date().toISOString();
   if(activityLog.events.length>5000) activityLog.events=activityLog.events.slice(-5000);
-  try{localStorage.setItem(ACTIVITY_KEY,JSON.stringify(activityLog))}catch(e){}
+  /* No activity database persistence. */
   updateActivityDashboard();
 }
 function activityAttemptNumber(section,item,type){
@@ -4430,6 +4427,7 @@ async function buildActivityReportHTML(){
   <h2>Writing</h2><div class="box"><b>Selected job:</b> ${reportEsc(snap.applyJob||'Not selected')}<br><br><div class="writing">${reportEsc(snap.writing||'No writing saved.')}</div></div>
   <h2>Detailed activity log</h2><table><tr><th>#</th><th>Time</th><th>Section</th><th>Item</th><th>Action</th><th>Student answer / speech</th><th>Result / hint</th></tr>${eventRows||'<tr><td colspan="7">No events yet.</td></tr>'}</table>
   
+<script src="/jobs/a2/webilang-upgrade.js"></script>
 </body></html>`;
 }
 function activityReportFilename(ext='html'){return 'Jobs_Money_'+activitySafeFile(activityLog.studentName||'student')+'_'+activitySafeFile(activityLog.sessionId)+'.'+ext}
