@@ -313,12 +313,74 @@ $('jFeedback').onclick=async()=>{const t=$('jAnswer').value.trim();if(current<0|
 $('jCheckNotes').onclick=async()=>{const t=$('jNotes').value.trim();if(!t)return alert('Write your preparation notes first.');$('jStatus').textContent='Checking your notes…';try{showFeedback(await ask('feedback',{transcript:t,scene:role+' '+jobs[+$('jJob').value]}),$('jInterviewFeedback'));$('jStatus').textContent='Preparation checked. Edit your notes if needed.'}catch(e){$('jStatus').textContent=e.message}};
 let db=null;async function getDb(){if(db)return db;const [{createClient},c]=await Promise.all([import('https://esm.sh/@supabase/supabase-js@2'),import('/student-memory/config.js')]);return db=createClient(c.SUPABASE_URL,c.SUPABASE_PUBLISHABLE_KEY)}
 async function saveStock(item){const client=await getDb(),u=(await client.auth.getUser()).data.user;if(!u)throw Error('Sign in to Webilang Global first.');const value=item.corrected;const {error}=await client.from('student_learning_entries').insert({user_id:u.id,module:'Jobs & Money A2',kind:'memory_note',content:{source:'webilang-ai-stock-v1',type:item.kind,text:value,item:item.kind==='words'?{word:value,source:'Jobs & Money A2'}:{pattern:value,source:'Jobs & Money A2'}}});if(error)throw Error(error.message)}
-async function loadStocks(){try{const client=await getDb(),u=(await client.auth.getUser()).data.user;if(!u)throw Error('Please sign in to Webilang Global.');const {data,error}=await client.from('student_learning_entries').select('content').eq('user_id',u.id).eq('module','Jobs & Money A2').eq('kind','memory_note').order('created_at',{ascending:false}).limit(300);if(error)throw Error(error.message);for(const [id,kind] of [['mywords','words'],['mygrammar','grammar']]){const p=$('panel-'+id);p.innerHTML='<h2>'+((kind==='words')?'My Word Stock':'My Grammar Stock')+'</h2><p>Select an expression, retrieve it and use it in an original workplace sentence.</p>';const arr=(data||[]).filter(x=>x.content?.type===kind).map(x=>x.content.text);arr.forEach(x=>{const b=document.createElement('button');b.textContent=x;b.onclick=()=>{p.querySelector('.jobs-v3')?.remove();const area=document.createElement('div');area.className='jobs-v3';area.innerHTML='<h3>Recognition → Retrieval → Production</h3><p>Study: <b>'+escape(x)+'</b></p><p>Now write the expression without looking:</p><input id="jRecall"><button id="jTest">Check</button><p>Use it in a new sentence about work:</p><textarea></textarea><button id="jAskStock">Ask Kostya to review</button><p id="jRecallReply"></p>';p.append(area);area.querySelector('#jTest').onclick=()=>area.querySelector('#jRecallReply').textContent=area.querySelector('#jRecall').value.trim().toLowerCase()===x.toLowerCase()?'Correct!':'Try again. Check the spelling.';area.querySelector('#jAskStock').onclick=()=>{openKostya();$('jQuestionCoach').value='Please check my use of '+x+': '+area.querySelector('textarea').value}};p.append(b)});if(!arr.length)p.innerHTML+='<p>No saved expressions yet. Save them from AI feedback.</p>'}}catch(e){$('panel-mywords').textContent=e.message;$('panel-mygrammar').textContent=e.message}}
-
+async function loadStocks(){
+ let data;
+ try{
+  const client=await getDb(),user=(await client.auth.getUser()).data.user;
+  if(!user)throw Error('Please sign in to Webilang Global to access your private Stocks.');
+  const response=await client.from('student_learning_entries').select('content').eq('user_id',user.id).eq('module','Jobs & Money A2').eq('kind','memory_note').order('created_at',{ascending:false}).limit(300);
+  if(response.error)throw Error(response.error.message);
+  data=response.data||[];
+ }catch(e){for(const name of ['mywords','mygrammar']){$('panel-'+name).textContent=e.message}return}
+ for(const [panelId,kind] of [['mywords','words'],['mygrammar','grammar']]){
+  const panel=$('panel-'+panelId);panel.replaceChildren();
+  const h=document.createElement('h2');h.textContent=kind==='words'?'My Words':'My Grammar';panel.append(h);
+  const intro=document.createElement('p');intro.textContent='Choose up to six items you want to practise. AI will create four original A2 exercises about jobs and money.';panel.append(intro);
+  const saved=[...new Map(data.filter(row=>row.content?.type===kind&&row.content?.text).map(row=>[String(row.content.text).toLowerCase(),String(row.content.text)])).values()];
+  const pool=document.createElement('div');pool.className='jobs-stock-picker';
+  for(const target of saved){
+   const label=document.createElement('label');label.className='jobs-stock-target';
+   const input=document.createElement('input');input.type='checkbox';input.value=target;
+   const text=document.createElement('span');text.textContent=target;label.append(input,text);pool.append(label);
+  }
+  panel.append(pool);
+  if(!saved.length){const empty=document.createElement('p');empty.textContent='No saved items yet. Highlight words in Reading or save useful language from AI feedback.';panel.append(empty);continue}
+  const button=document.createElement('button');button.type='button';button.className='jobs-practice-generate';button.textContent='✦ Generate AI exercises';panel.append(button);
+  const status=document.createElement('p');status.setAttribute('role','status');status.className='jobs-practice-status';panel.append(status);
+  const output=document.createElement('div');output.className='jobs-practice-results';panel.append(output);
+  button.onclick=async()=>{
+   const selected=[...pool.querySelectorAll('input:checked')].map(input=>input.value);
+   if(!selected.length||selected.length>6){status.textContent='Select between 1 and 6 items.';return}
+   button.disabled=true;status.textContent='AI is creating your A2 practice…';output.replaceChildren();
+   try{
+    const response=await ask('practice',{kind,items:selected});
+    if(!Array.isArray(response.exercises))throw Error('Invalid practice response');
+    status.textContent='Four exercises created using your selected '+(kind==='words'?'words':'grammar patterns')+'.';
+    for(const [index,exercise] of response.exercises.entries()){
+     const card=document.createElement('article');card.className='jobs-practice-card';
+     const heading=document.createElement('h3');heading.textContent=(index+1)+'. '+(exercise.type==='choice'?'Choose':exercise.type==='open'?'Your own words':'Complete');card.append(heading);
+     const question=document.createElement('p');question.textContent=exercise.prompt;card.append(question);
+     let input;
+     if(exercise.type==='choice'){
+      input=document.createElement('div');input.className='jobs-practice-choices';
+      (exercise.options||[]).forEach(option=>{
+       const label=document.createElement('label');const radio=document.createElement('input');radio.type='radio';radio.name=panelId+'-exercise-'+index;radio.value=option;
+       const span=document.createElement('span');span.textContent=option;label.append(radio,span);input.append(label);
+      });
+     }else if(exercise.type==='open'){input=document.createElement('textarea');input.placeholder='Write 2–3 original sentences…';input.rows=3}
+     else{input=document.createElement('input');input.type='text';input.placeholder='Type the missing word or phrase…'}
+     card.append(input);
+     const check=document.createElement('button');check.type='button';check.textContent=exercise.type==='open'?'Show an example':'Check answer';check.className='jobs-check-exercise';card.append(check);
+     const feedback=document.createElement('p');feedback.className='jobs-practice-explanation';feedback.setAttribute('role','status');card.append(feedback);
+     check.onclick=()=>{
+      if(exercise.type==='open'){feedback.textContent='Example: '+exercise.answer+'. '+exercise.explanation;return}
+      const value=exercise.type==='choice'?input.querySelector('input:checked')?.value:input.value;
+      if(!value){feedback.textContent='Choose or write an answer first.';return}
+      const norm=x=>String(x||'').trim().toLocaleLowerCase('en').replace(/[.!?]+$/,'');
+      feedback.textContent=(norm(value)===norm(exercise.answer)?'✓ Correct! ':'Not quite. Answer: '+exercise.answer+'. ')+(exercise.explanation||'');
+     };
+     output.append(card);
+    }
+   }catch(e){status.textContent=e.message||'Unable to generate exercises.'}
+   finally{button.disabled=false}
+  };
+ }
+}
 /* Reading → learner-selected words → Stock; feedback categories match Webilang. */
 const stockFlowStyle=document.createElement('style');
 stockFlowStyle.textContent='.jobs-feedback{background:#fff;border:1px solid #d7e2eb;border-radius:16px;padding:17px;margin:10px 0}.jobs-feedback h3{margin:0 0 13px;color:#24384b}.jobs-feedback-section{border-left:4px solid;padding:12px 15px;margin:10px 0;border-radius:0 12px 12px 0}.jobs-feedback-section h4{font-size:17px;margin:0 0 5px}.jobs-feedback-section p{margin:0 0 9px;line-height:1.55}.jobs-feedback-interaction{border-color:#5b9adb;background:#ebf4ff}.jobs-feedback-vocabulary{border-color:#25a67c;background:#e8f7ef}.jobs-feedback-grammar{border-color:#a178de;background:#f2ebff}.jobs-feedback-select{font-size:12px;font-weight:750;margin:8px 0}.jobs-feedback-options{display:grid;gap:7px}.jobs-feedback-option{display:flex;align-items:flex-start;gap:9px;background:#ffffffc9;border:1px solid #d5e2e9;border-radius:9px;padding:8px;cursor:pointer}.jobs-feedback-option input{margin-top:4px;accent-color:#277d63}.jobs-feedback-option strong,.jobs-feedback-option small{display:block}.jobs-feedback-option small{font-size:12px;margin-top:4px;color:#5f7182}.jobs-save-selected,.jobs-practice-generate{border:0;background:#178658;color:#fff;border-radius:9px;padding:10px 12px;font-weight:800;cursor:pointer;margin:10px 7px 5px 0}.jobs-stock-status{font-size:12px;color:#23654b}.jobs-feedback-next{font-weight:700;color:#46586e;margin-top:13px}.jobs-reading-guide{font-size:13px;background:#ebf6ee;padding:10px 13px;border-radius:11px;margin:9px 0}.jobs-selection-toolbar{position:fixed;z-index:10050;background:#fff;border:1px solid #a7cfc0;box-shadow:0 10px 32px #142c3d33;padding:7px 9px;border-radius:12px;display:flex;align-items:center;gap:8px;max-width:min(440px,95vw)}.jobs-selection-toolbar[hidden]{display:none!important}.jobs-selection-toolbar button{background:#19885a;color:#fff;border:0;padding:9px;border-radius:8px;white-space:nowrap;cursor:pointer}.jobs-selection-toolbar small{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#panel-reading .story-text::selection,#panel-reading .story-copy p::selection{background:#ffe39d}';
 document.head.append(stockFlowStyle);
+const exerciseStyle=document.createElement('style');exerciseStyle.textContent='.jobs-stock-picker{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin:15px 0}.jobs-stock-target{display:flex;gap:9px;align-items:center;background:#fff;border:1px solid #dce7ef;border-radius:10px;padding:10px;font-weight:650;cursor:pointer}.jobs-stock-target input{accent-color:#16865e}.jobs-practice-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}.jobs-practice-card{padding:16px;border:1px solid #dce6e9;background:#fff;border-radius:14px;min-width:0}.jobs-practice-card h3{margin:0 0 9px;font-size:17px}.jobs-practice-card p{line-height:1.55}.jobs-practice-card input[type=text],.jobs-practice-card textarea{display:block;width:100%;box-sizing:border-box;border:1px solid #b9cddd;border-radius:9px;padding:9px;font:inherit}.jobs-practice-choices{display:grid;gap:7px}.jobs-practice-choices label{display:flex;gap:8px;align-items:start;padding:8px;border:1px solid #dce6e9;border-radius:8px;cursor:pointer}.jobs-check-exercise{margin-top:10px;border:0;border-radius:8px;background:#e9effc;padding:9px 12px;font-weight:750;cursor:pointer}.jobs-practice-explanation{font-size:13px;color:#315f56}.jobs-practice-status{font-size:13px;color:#52667d}@media(max-width:760px){.jobs-practice-results{grid-template-columns:1fr}}';document.head.append(exerciseStyle);
 const readingPanel=$('panel-reading');
 if(readingPanel){
  const guide=document.createElement('p');guide.className='jobs-reading-guide';guide.textContent='📚 Find an unfamiliar word or phrase? Select it in the story, then choose “Save to My Words”. You can practise saved words with AI.';
