@@ -1,4 +1,6 @@
 (()=>{'use strict';
+/* Remove retired Home/progress data; personal Supabase Stocks are not affected. */
+try{localStorage.removeItem('jobs_money_mission_a2_v2');localStorage.removeItem('jobs_money_mission_activity_v1')}catch(e){}
 const $=id=>document.getElementById(id), escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const jobs=['NASA Curiosity Driver','Professional Criminal (ethical security tester)','Island Caretaker','Ice Cream Taster'];
 const topics=[
