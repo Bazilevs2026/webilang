@@ -2099,7 +2099,7 @@ root.closest("#tab-vocab").addEventListener("webilang:reset-vocabulary",()=>{
 "use strict";
 const $=id=>document.getElementById(id);
 const videoBox=$("avatarVideoBox"),frame=$("avatarVideoFrame"),endButton=$("avatarEndCall"),topControls=$("avatarCallControlsTop"),topEndButton=$("avatarEndAndFeedback"),callStatus=$("avatarCallStatus");
-let activeId=null,activeToken=null,creating=false,startedAt=null,activeRole=null,accessForFeedback="";
+let activeId=null,activeToken=null,creating=false,startedAt=null,activeRole=null;
 let lastFeedbackSession=null;
 let transcriptRequestSerial=0;
 const RECOVERY_KEY="webilang:russian03:pending-avatar-end";
@@ -2153,7 +2153,7 @@ async function endCall(){
  try{
   await api({action:"end",conversationId:old,token:oldToken});
   if(oldRole){
-    lastFeedbackSession={conversationId:old,token:oldToken,role:oldRole,accessCode:accessForFeedback};
+    lastFeedbackSession={conversationId:old,token:oldToken,role:oldRole};
     $("avatarPostFeedback").hidden=false;
     $("avatarFeedbackStatus").textContent="Разговор завершён. Запрашиваем транскрипцию Tavus…";
   }
@@ -2183,10 +2183,7 @@ document.querySelectorAll("[data-avatar-launch]").forEach(btn=>btn.addEventListe
  creating=true;btn.disabled=true;
  message(role,"Создаём индивидуальный видеозвонок Tavus…");
  try{
-  const accessCode=window.prompt("Код доступа к русским ролевым играм (получите у преподавателя):");
-  if(!accessCode){message(role,"Запуск отменён. Нужен код доступа преподавателя.");return;}
-  accessForFeedback=accessCode;
-  const d=await api({action:"start",scenario:role==="michael"?"russian_michael":"russian_anna",accessCode});
+  const d=await api({action:"start",scenario:role==="michael"?"russian_michael":"russian_anna"});
   if(!urlSafe(d.url)||!/^[a-zA-Z0-9_-]{5,100}$/.test(d.conversationId||"")||!/^[0-9a-f]{48}$/.test(d.token||""))throw Error("Сервер прислал неверные данные разговора.");
   activeId=d.conversationId;activeToken=d.token;activeRole=role;startedAt=Date.now();rememberCall();
   $("avatarVideoTitle").textContent=role==="michael"?"🎭 Разговор с Майклом · Вы — Анна":"🎭 Разговор с Анной · Вы — Майкл";
