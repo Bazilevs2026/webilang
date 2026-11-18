@@ -37,8 +37,15 @@ navOrder.forEach(([tab,label])=>{
  if(button){button.textContent=label;nav.appendChild(button)}
 });
 const navStyle=document.createElement('style');
-navStyle.textContent='header nav{max-width:1600px;width:100%;box-sizing:border-box;display:flex;flex-wrap:nowrap;gap:clamp(3px,.45vw,7px);justify-content:space-between;overflow-x:auto;scrollbar-width:thin;padding:0 clamp(10px,1.4vw,20px) 9px}header nav .tab{flex:0 0 auto;white-space:nowrap;padding:9px clamp(6px,.72vw,11px);font-size:clamp(11px,.87vw,14px);line-height:1.2;border-radius:10px}@media(min-width:1100px){header nav .tab{flex:0 1 auto;min-width:0}}@media(max-width:1099px){header nav{justify-content:flex-start;overflow-x:auto}header nav .tab{font-size:13px;padding:9px 10px}}';
+navStyle.textContent='header nav{max-width:1600px;width:100%;box-sizing:border-box;display:flex;flex-wrap:nowrap;gap:7px;justify-content:flex-start;overflow-x:auto;scrollbar-width:thin;padding:0 14px 9px}header nav .tab{flex:0 0 auto;white-space:nowrap;padding:9px 10px;font-size:13px;line-height:1.2;border-radius:10px}@media(min-width:1300px){header nav{gap:8px}header nav .tab{font-size:14px;padding:9px 11px}}@media(max-width:1099px){header nav{gap:6px;overflow-x:auto}header nav .tab{font-size:13px;padding:9px 9px}}';
 document.head.append(navStyle);
+
+/* Keep microphone support, remove the unnecessary page-wide setup banner.
+   Recording controls request permission when the student actually starts speaking. */
+const micBannerStyle=document.createElement('style');
+micBannerStyle.textContent='#micSetupBar,.mic-setup-bar{display:none!important}';
+document.head.append(micBannerStyle);
+
 
 const speaking=$('panel-opinion');
 /* Capture authentic speaking-card content before replacing the old roulette view. */
