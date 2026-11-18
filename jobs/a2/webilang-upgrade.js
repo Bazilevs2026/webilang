@@ -45,7 +45,7 @@ rouletteNames.map((name,i)=>'<span class="jroulette-label" style="--sector:'+i+'
 '<div class="jroulette-progress"><span>🎡 Spin the wheel</span><strong id="jCount">0 / 8</strong></div><p class="jroulette-help">All 8 challenges appear once before a new round.</p></div>'+
 '<div class="jroulette-activity"><div id="jQuestion" class="jprompt" aria-live="polite">Spin for a challenge.</div><div class="jhelp" id="jHint" hidden></div><div class="jrow"><button id="jShowHint">💡 One hint</button><button id="jPrep">⏱ Prepare 20s</button><button id="jSpeak">🎙 Speak 45s</button><span id="jTimer" aria-live="polite"></span></div><textarea id="jAnswer" placeholder="Speak, dictate, or type your answer."></textarea><div class="jrow"><button id="jDictate">🎤 Dictate</button><button id="jFeedback" class="primary">Get AI feedback</button></div><div id="jResult"></div></div></div>';
 const rouletteStyle=document.createElement('style');
-rouletteStyle.textContent=\`
+rouletteStyle.textContent=`
 #panel-opinion .jroulette-layout{display:grid;grid-template-columns:minmax(285px,340px) minmax(0,1fr);align-items:center;gap:24px;padding:24px}
 #panel-opinion .jroulette-side{display:flex;flex-direction:column;align-items:center;min-width:0}
 #panel-opinion .jroulette-frame{width:min(100%,330px);aspect-ratio:1;position:relative;display:grid;place-items:center;isolation:isolate}
@@ -67,7 +67,7 @@ rouletteStyle.textContent=\`
 #panel-opinion .jroulette-activity textarea{min-height:125px}
 @media(max-width:830px){#panel-opinion .jroulette-layout{grid-template-columns:1fr;gap:20px;padding:16px}#panel-opinion .jroulette-frame{width:min(100%,300px)}#panel-opinion .jroulette-label{transform:translate(-50%,-50%) rotate(var(--counter)) translateY(-99px) rotate(calc(-1 * var(--counter)));font-size:12px}#panel-opinion .jroulette-activity .jprompt{min-height:0}}
 @media(prefers-reduced-motion:reduce){#panel-opinion .jroulette-wheel{transition-duration:.25s}}
-\`;
+`;
 document.head.append(rouletteStyle);
 let seen=[],current=-1,ticker=null,wheelDegrees=0,spinning=false;
 function spin(){
