@@ -5,27 +5,30 @@ const clean=s=>String(s||'').trim().slice(0,MAX_WORD_LENGTH);
 const norm=s=>String(s||'').toLowerCase().replace(/[’‘]/g,"'").replace(/[^a-z0-9' ]/g,' ').replace(/\s+/g,' ').trim();
 const text=s=>String(s||'').trim();
 function validate(items,target){
- if(!Array.isArray(items)||items.length!==3)throw Error('Incomplete exercise sequence');
- const stages=['Recognition','Retrieval','Production'];
- const bad=/saved (word|expression)|selected (word|expression)|repeat the (word|expression)|write the exact|use the expression|meaning of this expression|which word did you save|think of a sentence with/i;
+ if(!Array.isArray(items)||items.length!==3)throw Error('Incomplete sequence');
+ const targetNorm=norm(target);
+ const labels=['Recognition','Retrieval','Production'];
+ const generic=/saved (word|expression)|selected (word|expression)|repeat the (word|expression)|write the exact|use the expression|which word did you save|think of a sentence with|target vocabulary|insert the word/i;
  for(let i=0;i<3;i++){
   const q=items[i];
-  if(q?.stage!==stages[i]||!text(q.prompt)||!text(q.hint))throw Error('Missing task context');
-  if(text(q.prompt).length<38||text(q.prompt).length>480||bad.test(q.prompt))throw Error('Generic or malformed prompt');
+  if(q?.stage!==labels[i]||!text(q.prompt)||!text(q.hint))throw Error('Missing stage or context');
+  if(q.prompt.length<20||q.prompt.length>450||generic.test(q.prompt))throw Error('Generic prompt');
   if(i===0){
-   if(!Array.isArray(q.options)||q.options.length!==3||new Set(q.options.map(norm)).size!==3||!q.options.some(x=>norm(x)===norm(q.answer)))throw Error('Recognition must have one unique answer');
-   if(q.options.some(x=>!text(x)||text(x).length>150)||!text(q.answer))throw Error('Invalid choices');
-   if(!text(q.context)||text(q.context).length<25)throw Error('Recognition requires context');
-   if(![...q.options].some(x=>norm(x).includes(norm(target))||norm(target).includes(norm(x))))throw Error('Target expression not represented');
+   if(!Array.isArray(q.options)||q.options.length!==3||new Set(q.options.map(norm)).size!==3||!q.options.some(x=>norm(x)===norm(q.answer)))throw Error('Exactly one matching definition required');
+   if(q.options.some(x=>text(x).length<12||text(x).length>190||norm(x).includes(targetNorm)))throw Error('Invalid or revealing definition');
+   if(/\b(?:complete|fill|blank|gap|which expression|which word)\b/i.test(q.prompt))throw Error('Recognition must ask for meaning');
+   if(!/\b(?:meaning|definition|explanation|description|describe|means)\b/i.test(q.prompt))throw Error('Meaning question required');
   }
   if(i===1){
-   if(!text(q.answer)||!q.prompt.includes('___'))throw Error('Retrieval must have a contextual gap');
-   if(norm(q.prompt).includes(norm(target)))throw Error('Retrieval prompt reveals its answer');
-   if(!norm(q.answer).includes(norm(target))&&!norm(target).includes(norm(q.answer)))throw Error('Retrieval target mismatch');
+   if(!text(q.answer)||(!targetNorm.includes(norm(q.answer))&&!norm(q.answer).includes(targetNorm)))throw Error('Retrieval target mismatch');
+   if(norm(q.prompt).includes(targetNorm)||norm(q.hint).includes(targetNorm))throw Error('Retrieval gives away answer');
+   if(q.prompt.includes('___')||/\b(?:gap|blank|complete the sentence|fill in)\b/i.test(q.prompt))throw Error('Retrieval must use a meaning clue, not a gap');
   }
   if(i===2){
-   if(!text(q.modelAnswer)||!norm(q.modelAnswer).includes(norm(target)))throw Error('Production model must use the target');
-   if(!/(?:ask|explain|respond|reply|write|tell|challenge|persuade|disagree|suggest|negotiate|clarify|justify|address|propose|convince|discuss)/i.test(q.prompt))throw Error('Production requires communicative action');
+   if(!text(q.modelAnswer)||!norm(q.modelAnswer).includes(targetNorm))throw Error('Production model must naturally use target');
+   if(norm(q.prompt).includes(targetNorm)||q.prompt.includes('___'))throw Error('Production gives away the target');
+   if(/\b(?:complete|fill|blank|gap|target word|target expression|vocabulary item|use the word|use the phrase|include the word|include the phrase|three sentences|1-3 sentences|sentence using)\b/i.test(q.prompt))throw Error('Production is forced wording, not conversation');
+   if(!/(?:ask|explain|respond|reply|write|tell|challenge|persuade|disagree|suggest|negotiate|clarify|justify|address|propose|convince|discuss|answer|react)/i.test(q.prompt))throw Error('Production needs a realistic interaction');
   }
  }
  return items;
@@ -36,12 +39,13 @@ async function chat(key,messages,maxTokens=1250){
  const data=await resp.json();
  return JSON.parse(data.choices?.[0]?.message?.content||'{}');
 }
-const system=`You are a specialist B2-C1 English language teacher designing pedagogically valid personal vocabulary practice for Webilang Gender Roles. The selected expression must be the focus, with realistic contexts from work, care work, family responsibility, education, gender expectations, equal opportunities and social roles. Avoid stereotyping; reasonable contrasting views are valid. Generate three DISTINCT learning steps in order:
-1 Recognition: provide a concrete 1-2 sentence realistic micro-situation as "context"; "prompt" asks which exact wording best completes the exchange or explains the situation; exactly three plausible short expressions in "options", one and only one defensibly correct; "answer" exactly equals one option; the correct option contains the selected phrase verbatim, not a synonym. All distractors should be plausible English yet semantically distinct; never offer several defensible answers.
-2 Retrieval: provide a different, natural context with one gap "___" and no occurrence of the selected expression anywhere in the prompt. Correct answer must be the selected expression verbatim. Provide a short semantic hint that does NOT contain or reveal the expression.
-3 Production: specify a realistic communicative goal (ask, disagree, explain, justify, persuade, suggest, etc.) and an interlocutor (colleague, interviewer, friend, employer) that naturally elicits the expression in 1-3 sentences. "modelAnswer" uses the expression verbatim; it is ONE model, not the only correct formulation. Never ask merely "use the saved expression in a sentence".
-Prompts and answers must be appropriate to the precise expression and avoid forcing an unnatural use. Use natural idiomatic English, not generic grammar-theory tasks. B2 level.
-Return ONLY JSON {"questions":[{"stage":"Recognition","context":"...","prompt":"...","options":["...","...","..."],"answer":"...","hint":"..."},{"stage":"Retrieval","prompt":"... ___ ...","answer":"...","hint":"..."},{"stage":"Production","prompt":"...","modelAnswer":"...","hint":"..."}]}. Never reveal the target in the retrieval prompt.`;
+const system=`You are a specialist B2 English materials designer. Design three NON-REDUNDANT micro-tasks for ONE selected expression. Use precise idiomatic English and realistic professional, family and social contexts. Avoid stereotypes and ambiguous multiple-choice answers.
+
+1 RECOGNITION / MEANING: The learner's saved expression is visible as the heading. Ask which definition or explanation BEST captures its meaning. Supply exactly three FULL explanatory definitions (NOT three substitute words in a sentence). Exactly ONE must match the expression's specific meaning. Other two definitions should be plausible but clearly different, not near-synonyms. "answer" is an exact option. "context" can state the situation in which the word is used, without giving its definition. Do not show the target word in any options or the question; it is displayed separately as the heading.
+2 RETRIEVAL / RECALL: Hide the expression from the learner's view. Present a SHORT realistic scenario or meaning clue that points unambiguously to the saved expression. Ask for an English word or phrase with that meaning. NO blank, underscore, half-completed sentence, first letter, target word, or multiple-choice options. "answer" is the exact target expression. Do not repeat the recognition definition verbatim. No hint may contain its spelling.
+3 PRODUCTION / INTERACTION: A brief realistic comment or objection from a colleague, interviewer, or friend; ask the learner to RESPOND in their own words. Make the target expression naturally useful, but do NOT prescribe any vocabulary item, half-finished answer, number of sentences, blanks or a model answer. "modelAnswer" is ONE natural possible response containing the target expression, for post-attempt reflection only. Alternatives without the word can still communicate effectively; assess word use separately from communicative appropriateness. The learner's response can be any natural length.
+Return exactly JSON {"questions":[{"stage":"Recognition","context":"...","prompt":"Which definition best explains this expression?","options":["...","...","..."],"answer":"...","hint":"..."},{"stage":"Retrieval","prompt":"...","answer":"...","hint":"..."},{"stage":"Production","prompt":"...","modelAnswer":"...","hint":"..."}]}.
+Before returning, check for leaked answers, artificial repetition, subjective distractors, and forced phrase insertion. Never generate a 'complete the gap' task in this module.`
 export default async function handler(req,res){
  res.setHeader('Cache-Control','no-store');
  if(req.method!=='POST')return res.status(405).json({error:'POST only'});
@@ -61,7 +65,7 @@ export default async function handler(req,res){
    if(answer.length<8)return res.status(400).json({error:'Write a meaningful response before requesting feedback.'});
    if(!prompt)return res.status(400).json({error:'Missing task context.'});
    const result=await chat(process.env.OPENAI_API_KEY,[
-    {role:'system',content:`You assess a B2 student's short original English response to a communicative roleplay prompt involving a target expression. Evaluate only the supplied student text, do not invent speech, grammar errors, attitudes or background. Semantically appropriate variants are valid, even if different from the model answer. Report whether the selected expression or a clear grammatical inflection is used naturally; be concise and constructive. Return only JSON {"appropriate":boolean,"feedback":"1-2 sentences, specific to the actual answer","suggestion":"a short optional improved alternative, only if useful"}. Do not claim to have heard pronunciation.`},
+    {role:'system',content:`You assess a B2 student's short original English response to a communicative roleplay prompt involving a target expression. Evaluate only the supplied student text, do not invent speech, grammar errors, attitudes or background. Semantically appropriate variants are valid, even if different from the model answer. Judge whether the learner's response appropriately addresses the conversation even if they naturally use another expression. Separately comment on whether the target word or an appropriate inflection was used; do not say the reply is communicatively wrong merely because the target word is absent. Be concise and constructive. Return only JSON {"appropriate":boolean,"feedback":"1-2 sentences with task relevance and vocabulary precision","suggestion":"a short optional version using the target expression, only if useful"}. Do not claim to have heard pronunciation.`},
     {role:'user',content:JSON.stringify({target:item,prompt,studentAnswer:answer})}
    ],400);
    if(typeof result.appropriate!=='boolean'||typeof result.feedback!=='string')throw Error('AI feedback format error');
