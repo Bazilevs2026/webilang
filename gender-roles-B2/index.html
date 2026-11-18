@@ -416,7 +416,17 @@ nav .tab{white-space:normal}
 .wl6-model{background:#eef7ee;padding:10px 13px;border-radius:10px;line-height:1.6}
 .wl6-hint{padding:10px 13px;background:#fff7dd;border-radius:10px;color:#6a4e0c}
 @media(max-width:700px){.wl6-stock .wl6-practice-card{padding:13px}.wl6-word-row{align-items:flex-start}}
-</style></head>
+</style><style id="gender-roles-single-line-nav-v1">
+/* A single navigational row, horizontally scrollable when space is limited. */
+header nav{display:flex!important;flex-wrap:nowrap!important;max-width:none!important;width:100%;overflow-x:auto!important;overflow-y:hidden;gap:5px!important;scrollbar-width:thin;padding:0 clamp(8px,1.1vw,18px) 10px!important;justify-content:center;box-sizing:border-box}
+header nav .tab{flex:0 1 auto;min-width:0;white-space:nowrap;padding:10px clamp(4px,.55vw,9px)!important;font-size:clamp(10px,.86vw,14px)!important;letter-spacing:-.025em}
+@media(max-width:1250px){header nav{justify-content:flex-start}}
+@media(max-width:680px){header nav .tab{flex:0 0 auto;font-size:13px!important;padding:9px 10px!important}}
+#wl-wordstock-repaired .wl6-audio-controls{display:flex;gap:9px;flex-wrap:wrap;align-items:center;padding:10px 0}
+#wl-wordstock-repaired .wl6-audio-controls audio{max-width:100%;height:38px}
+#wl-wordstock-repaired .wl6-target-instruction{background:#eef7f2;border-left:4px solid #308362;padding:10px 14px;border-radius:7px;line-height:1.5}
+</style>
+</head>
 <body>
 <a class="skip-ai" href="#module-main">Skip to main content</a>
 <header>
@@ -431,11 +441,11 @@ nav .tab{white-space:normal}
     <button class="tab" data-tab="reading">📖 Reading</button>
     <button class="tab" data-tab="wordstock">📘 My Word Stock</button>
     <button class="tab" data-tab="grammar">🧩 Grammar</button>
+    <button class="tab" data-tab="roleplays">🎭 Roleplays</button>
     <button class="tab" data-tab="listening">▶ Listening</button>
     <button class="tab" data-tab="writing">✍️ Writing</button>
     <button class="tab" data-tab="speaking">💬 Speaking</button>
     <button class="tab" data-tab="grammarstock">🧩 My Grammar Stock</button>
-    <button class="tab" data-tab="roleplays">🎭 Roleplays</button>
     <button class="tab" data-tab="game">🎮 Game</button>
   </nav>
 </header>
