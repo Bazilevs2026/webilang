@@ -48,6 +48,73 @@ $('jvsReturn').onclick=()=>{if($('jvrBegin').disabled){$('jvsState').textContent
 $('jvsEnd').onclick=()=>{if(!$('jvrFinish').disabled){$('jvrFinish').click();screen.querySelector('.jvs-transcript').open=true}else{$('jvsState').textContent='Start the interview first.'}};
 $('jvsReset').onclick=()=>{if(!$('jvrFinish').disabled)$('jvrFinish').click();screen.hidden=true;work.hidden=true;cards.hidden=false;$('jvrReset').click();cards.scrollIntoView({behavior:'smooth',block:'start'})};
 $('jvsEdit').onclick=()=>$('jvsReturn').click();
+
+/* Card-based preparation exactly following Video Games: keep both scenarios
+   on the chooser, with their own job choices, collapsible preparation, AI check,
+   save notes, and two functional interview-start buttons. */
+const jobs=['NASA Curiosity Driver','Professional Criminal (ethical security tester)','Island Caretaker','Ice Cream Taster'];
+const descriptions=[
+'Explore Mars using cameras, computers and a robotic arm.',
+'Test security legally and explain weaknesses to a company.',
+'Look after a tropical island, photograph nature and write reports.',
+'Taste new ice cream flavours and describe quality.'
+];
+const ideaBanks=[
+'planning carefully · controlling robots · computer skills · teamwork',
+'honesty · noticing details · solving problems · reporting clearly',
+'working outdoors · nature · photography · writing online',
+'describing flavours · trying new foods · good communication · attention to detail'
+];
+const cardsArray=[...cards.querySelectorAll('.jvr-card')];
+const forms={};
+cardsArray.forEach((card,i)=>{
+ const applicant=i===0,key=applicant?'applicant':'employer';
+ const oldStart=card.querySelector('.jvr-start');oldStart.hidden=true;
+ const body=card.querySelector('.jvr-card-body');
+ const holder=document.createElement('div');holder.className='jvs-card-form';
+ holder.innerHTML='<label class="jvs-job-label">Choose your curious job<select data-job-select>'+
+ jobs.map((j,k)=>'<option value="'+k+'">'+j+'</option>').join('')+'</select></label>'+
+ '<details class="jvs-prep-accordion"><summary><b>🧩 '+(applicant?'Prepare for my job interview':'Prepare my questions')+'</b><small>'+(applicant?'Choose ideas · Practise English · Check with AI':'Write your own questions · Check with AI · Save for interview')+'</small></summary>'+
+ '<div class="jvs-prep-inside"><h3>'+(applicant?'🎯 Get ready: Convince Nova':'🎯 Get ready: Ask YOUR questions')+'</h3><p>'+(applicant?'You are the applicant. Prepare useful ideas, not a speech to memorise.':'You are the employer. You decide which skills matter and ask original questions.')+'</p>'+
+ '<div class="jvs-prep-stages"><span>1 · Think of ideas</span><span>2 · Check English</span><span>3 · Interview</span></div>'+
+ '<div class="jvs-idea-bank">💡 <b>Ideas, not ready-made answers:</b> <span data-ideas></span></div>'+
+ '<p class="jvs-toolbox">'+(applicant?'I am good at… · I can… · I have experience… · I would like…':'What…? · Why…? · How…? · Can you…? · Have you ever…?')+'</p>'+
+ '<div class="jvs-prep-fields">'+(applicant?['My strength 1','My strength 2','My experience','Why I want this job','My question for Nova']:['My question 1','My question 2','My question 3','Optional question 4','Optional question 5']).map((label,n)=>'<label>'+label+'<textarea data-note="'+n+'" placeholder="'+(applicant?['I am good at…','I can…','I have experience with…','I want this job because…','Could you tell me about…?'][n]:['Why do you want this job?','Can you…?','What would you do if…?','What is your greatest skill?','Something unexpected…'][n])+'"></textarea></label>').join('')+'</div>'+
+ '<div class="jvs-prepare-actions"><button data-check>✨ Check my English with AI</button><button data-save>✓ Save my interview notes</button></div><div data-prep-status aria-live="polite"></div><div data-feedback></div><p class="jvs-prep-small">Your original ideas stay yours. The avatar can ask unexpected questions.</p></div></details>'+
+ '<button data-start-voice class="jvs-card-voice">🎙 Start Voice Interview →</button><p class="jvs-caption">Speak at your own pace. No student video.</p>'+
+ '<button data-start-video class="jvs-card-video">🎥 Start Live Avatar Interview →</button><p class="jvs-caption">Large live 3D character · up to five minutes.</p>';
+ body.append(holder);forms[key]=holder;
+ const jobSelect=holder.querySelector('[data-job-select]');
+ const updateIdeas=()=>{holder.querySelector('[data-ideas]').textContent=ideaBanks[Number(jobSelect.value)]};
+ jobSelect.onchange=updateIdeas;updateIdeas();
+ const getNotes=()=>[...holder.querySelectorAll('textarea[data-note]')].map(x=>x.value.trim());
+ const fillWorkspace=()=>{
+    oldStart.click();$('jJob').value=jobSelect.value;$('jJob').dispatchEvent(new Event('change'));
+    [...$('jvrFields').querySelectorAll('textarea')].forEach((input,n)=>input.value=getNotes()[n]||'');
+    $('jvrSave').click();
+ };
+ const status=holder.querySelector('[data-prep-status]');
+ holder.querySelector('[data-save]').onclick=()=>{const arr=getNotes();if(!arr.some(Boolean)){status.textContent='Write at least one question or answer first.';return}fillWorkspace();status.textContent='✓ Saved for your interview.';work.hidden=true;cards.hidden=false};
+ holder.querySelector('[data-check]').onclick=async()=>{
+   const arr=getNotes().filter(Boolean);
+   if(!arr.length){status.textContent='Write your own ideas first.';return}
+   status.textContent='Checking grammar and clarity…';
+   try{const response=await fetch('/api/jobs-a2-coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'feedback',scene:(applicant?'Applicant preparation':'Employer interview questions')+' · '+jobs[Number(jobSelect.value)],transcript:arr.join('\n')})});const f=await response.json();if(!response.ok)throw Error(f.error||'AI feedback unavailable');
+     const out=holder.querySelector('[data-feedback]');out.replaceChildren();
+     const title=document.createElement('b');title.textContent='AI language feedback';out.append(title);
+     for(const [label,value] of [['Interaction',f.interaction],['Grammar',f.grammar],['Vocabulary',f.vocabulary],['Next step',f.nextStep]]){if(!value)continue;const p=document.createElement('p');p.textContent=label+': '+value;out.append(p)}
+     status.textContent='Review the suggestions; your writing has not been overwritten.';
+   }catch(e){status.textContent=e.message}
+ };
+ const launch=()=>{
+  const entries=getNotes();if(!entries.some(Boolean)){holder.querySelector('details').open=true;status.textContent='Prepare at least one answer or question first.';return}
+  fillWorkspace();showScreen(true);
+ };
+ holder.querySelector('[data-start-voice]').onclick=launch;
+ holder.querySelector('[data-start-video]').onclick=launch;
+});
+const moreStyle=document.createElement('style');moreStyle.textContent='#jobsVideoRoleplays .jvr-card-body>.jvr-start[hidden]{display:none!important}#jobsVideoRoleplays .jvs-job-label{font-size:13px;font-weight:850;display:block;margin:15px 0 10px}#jobsVideoRoleplays .jvs-job-label select{width:100%;padding:12px;margin-top:7px;border-radius:10px;border:1px solid #c5d6e8;background:#f0f5ff;font:inherit;box-sizing:border-box}#jobsVideoRoleplays .jvs-prep-accordion{background:#f1eafb;border-radius:15px;margin:16px 0;padding:0;border:1px solid #e7dafa}#jobsVideoRoleplays .jvs-prep-accordion summary{cursor:pointer;list-style:none;padding:17px;display:block;color:#5b428b}#jobsVideoRoleplays .jvs-prep-accordion summary small{display:block;margin-top:4px;color:#716489;font-size:12px}#jobsVideoRoleplays .jvs-prep-inside{padding:16px;background:#fff;line-height:1.55;border-radius:0 0 14px 14px}#jobsVideoRoleplays .jvs-prep-inside h3{font-size:17px}#jobsVideoRoleplays .jvs-prep-inside p{font-size:13px;color:#536779;min-height:0}#jobsVideoRoleplays .jvs-prep-stages{display:flex;gap:5px;flex-wrap:wrap;margin:12px 0}#jobsVideoRoleplays .jvs-prep-stages span{font-size:11px;padding:7px;border-radius:9px;background:#e6f1ff;color:#35648e;font-weight:800}#jobsVideoRoleplays .jvs-prep-stages span:nth-child(2){background:#efe5ff;color:#67418d}#jobsVideoRoleplays .jvs-prep-stages span:nth-child(3){background:#e6f7eb;color:#2c7446}#jobsVideoRoleplays .jvs-idea-bank{background:#fff6e0;border:1px solid #f1d38c;padding:12px;border-radius:12px;font-size:13px}#jobsVideoRoleplays .jvs-toolbox{font-size:12px!important}#jobsVideoRoleplays .jvs-prep-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#jobsVideoRoleplays .jvs-prep-fields label{font-size:12px;font-weight:850}#jobsVideoRoleplays .jvs-prep-fields textarea{width:100%;height:64px;resize:vertical;box-sizing:border-box;border:1px solid #bed1e2;border-radius:9px;padding:9px;font:inherit;margin-top:5px}#jobsVideoRoleplays .jvs-prepare-actions{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}#jobsVideoRoleplays .jvs-prepare-actions button{border:1px solid #bccee0;border-radius:9px;background:#fff;padding:9px;color:#455981;font-weight:800;cursor:pointer}#jobsVideoRoleplays .jvs-prepare-actions button:first-child{background:#eae2fd;color:#5e408c}#jobsVideoRoleplays .jvs-prep-small{font-size:11px!important}#jobsVideoRoleplays .jvs-card-voice,#jobsVideoRoleplays .jvs-card-video{width:100%;display:block;border-radius:11px;padding:14px;font-size:14px;font-weight:850;cursor:pointer}#jobsVideoRoleplays .jvs-card-voice{background:#e8f1ff;border:1px solid #cddff6;color:#225b99;margin-top:12px}#jobsVideoRoleplays .jvs-card-video{background:#6745bd;color:white;border:0;margin-top:16px}#jobsVideoRoleplays .jvs-caption{text-align:center;font-size:12px!important;color:#60778c;min-height:0!important;margin:7px 0 12px!important}@media(max-width:570px){#jobsVideoRoleplays .jvs-prep-fields{grid-template-columns:1fr}}';document.head.append(moreStyle);
+
 const mirror=()=>{$('jvsState').textContent=$('jvrStatus').textContent||'Ready.';$('jvsClock').textContent=$('jvrClock').textContent||'05:00';$('jvsTurns').textContent=$('jvrTurns').textContent||'0 / 15 turns';$('jvsConnection').textContent=$('jvrBegin').disabled?'🟢 In progress':'🔴 Ready'};
 ['jvrStatus','jvrClock','jvrTurns'].forEach(id=>new MutationObserver(mirror).observe($(id),{childList:true,subtree:true,characterData:true}));mirror();configurePortrait();
 })();
