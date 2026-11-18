@@ -7,10 +7,10 @@ export default async function handler(req,res){
  if(practiceMode){
   try{
    const kind=b.kind==='grammar'?'grammar':'words';
-   const targets=Array.isArray(b.items)?b.items.map(x=>String(x||'').trim().slice(0,130)).filter(Boolean).slice(0,6):[];
-   if(!targets.length)return res.status(400).json({error:'Choose at least one saved item first.'});
+   const targets=Array.isArray(b.items)?b.items.map(x=>String(x||'').trim().slice(0,130)).filter(Boolean):[];
+   if(targets.length!==1)return res.status(400).json({error:'Choose exactly one saved word or grammar rule.'});
    if(!process.env.OPENAI_API_KEY)return res.status(503).json({error:'AI service not configured'});
-   const prompt='Create exactly 4 varied A2 English practice questions for the selected '+kind+' items. Use a realistic jobs and money context. Include two multiple-choice questions with exactly three plausible options and one correct option, one short gap-fill with one unambiguous answer, and one personal production question. Every item must test the provided targets. Keep instructions simple A2 English. Return only JSON object {"exercises":[{"type":"choice"|"gap"|"open","prompt":"string","options":["string"],"answer":"string","explanation":"string"}]}. For open questions use a helpful example as answer. Do not use C1 grammar or vocabulary.';
+   const prompt='Create exactly 4 varied A2 English practice questions for the single selected '+kind+' item. Use a realistic jobs and money context. Include two multiple-choice questions with exactly three plausible options and one correct option, one short gap-fill with one unambiguous answer, and one personal production question. Every exercise must focus on the ONE selected target. Keep instructions simple A2 English. Return only JSON object {"exercises":[{"type":"choice"|"gap"|"open","prompt":"string","options":["string"],"answer":"string","explanation":"string"}]}. For open questions use a helpful example as answer. Do not use C1 grammar or vocabulary.';
    const response=await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{Authorization:'Bearer '+process.env.OPENAI_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({model:process.env.JOBS_A2_MODEL||'gpt-4o-mini',temperature:.35,max_tokens:1100,response_format:{type:'json_object'},messages:[{role:'system',content:prompt},{role:'user',content:JSON.stringify({kind,targets})}]})});
    if(!response.ok)return res.status(502).json({error:'AI practice service unavailable'});
    const result=await response.json(),parsed=JSON.parse(result.choices?.[0]?.message?.content||'{}');
