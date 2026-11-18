@@ -115,7 +115,7 @@ async function loadAssignedLessons(){
  for(const item of data){const info=assignCatalog[item.lesson_id];if(!info)continue;
   const card=document.createElement('article');card.className='assigned-card';
   const preview=document.createElement('img');preview.className='lesson-preview';
-  preview.src= item.lesson_id==='video-games-a2'?'/avatar-lab/backgrounds/game-studio.jpg':item.lesson_id==='gender-roles-b2'?'/avatar-lab/backgrounds/family-home.jpg':'/avatar-lab/backgrounds/university-cafe-michael.jpg';
+  preview.src= item.lesson_id==='russian-transportation-a1a2'?'/webilang-global/transportation-cover.svg':item.lesson_id==='video-games-a2'?'/avatar-lab/backgrounds/game-studio.jpg':item.lesson_id==='gender-roles-b2'?'/avatar-lab/backgrounds/family-home.jpg':'/avatar-lab/backgrounds/university-cafe-michael.jpg';
   preview.alt=item.lesson_id==='video-games-a2'?'Video game setting':item.lesson_id==='gender-roles-b2'?'Conversation setting':'Café conversation setting';
   preview.loading='lazy';card.append(preview);
   const heading=document.createElement('h3');heading.textContent=info[0];card.append(heading);
