@@ -58,8 +58,8 @@
   out.replaceChildren();const section=node('section','wl6-practice-card');
   const head=node('div','wl6-head');
   head.append(node('div','wl6-eyebrow','YOUR WORD · '+(session.stage+1)+' OF 3'));
-  head.append(node('h3','',session.word));
-  head.append(button('▶ Pronounce',()=>say(session.word),'wl6-mini'));
+  head.append(node('h3','',stage===1?'Recall the missing expression':session.word));
+  if(stage!==1)head.append(button('▶ Pronounce',()=>say(session.word),'wl6-mini'));
   section.append(head,progressBar(session));
   if(stage===0&&q.context)section.append(node('p','wl6-context',q.context));
   section.append(node('p','wl6-prompt',q.prompt));
