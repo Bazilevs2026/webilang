@@ -122,11 +122,16 @@
        }catch(e){status.textContent='Could not transcribe: '+e.message+'. You can type the answer.'}
        finally{mic.disabled=false;mic.textContent='🎙 Say your answer'}
       };
+      const originalClick=mic.onclick;
       mic.onclick=()=>{if(recorder.state==='recording')recorder.stop()};
+      recorder.onstop=((prior)=>async (...args)=>{mic.onclick=originalClick;await prior(...args)})(recorder.onstop);
       recorder.start();
      }catch(e){mic.disabled=false;mic.textContent='🎙 Say your answer';status.textContent='Microphone unavailable: '+e.message}
     },'wl6-mini');
-    voice.append(mic);section.append(voice);
+    // Keep the target hidden until the learner attempts retrieval.
+    const listen=button('🔊 Hear correct pronunciation',()=>say(session.word),'wl6-mini');
+    listen.hidden=!session.attempted[1];
+    voice.append(mic,listen);section.append(voice);
    }
    if(stage===2){
     const voice=node('div','wl6-audio-controls');
@@ -181,6 +186,7 @@
     if(stage===0||stage===1){
       const ok=norm(answer)===norm(q.answer);
       session.attempted[stage]=true;
+      if(stage===1){const listen=section.querySelector('.wl6-audio-controls button:nth-child(2)');if(listen)listen.hidden=false}
       if(ok)session.maxStage=Math.max(session.maxStage,stage+1);
       status.textContent=ok?'✓ Correct — this stage is complete.':'Not quite. '+(stage===0?'Compare the three definitions carefully.':'Think about the meaning of the situation and try again.');
       status.dataset.correct=String(ok);
