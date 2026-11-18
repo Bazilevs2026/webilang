@@ -636,9 +636,6 @@ body.baz-modal-open{overflow:hidden}
 }
 
 
-.jobs-own-idea-card .jobs-own-idea-symbol{display:grid;place-items:center;width:72px;height:60px;border-radius:12px;background:linear-gradient(135deg,#e1efe8,#e6e5d4);color:#397c6c;font-size:35px;margin-bottom:10px}
-.jobs-own-idea-card .jobs-own-job-input{width:100%;max-width:360px;display:block;margin:11px 0 2px;padding:10px 13px;border:1px solid #bacdc4;border-radius:10px;background:#fff;font:inherit;font-size:14px}
-.jobs-own-idea-card .jobs-own-job-input:focus{outline:2px solid #51a58a;outline-offset:1px}
 </style></head>
 <body>
 <header><div class="head"><div class="brand"><div class="logo">💸</div><div>Jobs &amp; Money<br/><small style="color:#758397">MISSION · A2</small></div></div><div class="header-actions">
@@ -3834,11 +3831,11 @@ newGame();
 <b>Video-game tester</b><small>You play new games before they are released. You look for problems, test different levels and write clear reports. It sounds fun, but you may repeat the same part many times and must notice small mistakes.</small>
 </span>
 </label>
-<label class="job-apply-card jobs-own-idea-card">
-<input name="applyJob" onchange="selectApplyJob(this.value)" type="radio" value="Your idea"/>
-<span><span class="jobs-own-idea-symbol" aria-hidden="true">✦</span>
-<b>Your idea</b><small>Choose any job you would like to apply for. Write the job title below.</small>
-<input id="jobsOwnJobTitle" class="jobs-own-job-input" type="text" placeholder="Your job title…" maxlength="90" autocomplete="off" onclick="event.stopPropagation()" oninput="updateOwnJobIdea(this.value)"/>
+<label class="job-apply-card">
+<input name="applyJob" onchange="selectApplyJob(this.value)" type="radio" value="Travel content creator"/>
+<span>
+<button class="apply-img-btn" content="" creator")"="" onclick="event.preventDefault();event.stopPropagation();openImage(this.querySelector('img').src," travel="" type="button"><img alt="Travel content creator" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MjAgMzIwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9InIiIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjZmY4ZjcwIi8+PHN0b3Agb2Zmc2V0PSIuNTUiIHN0b3AtY29sb3I9IiNmZmQ5NmEiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM1NmMyZDYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNTIwIiBoZWlnaHQ9IjMyMCIgcng9IjM0IiBmaWxsPSJ1cmwoI3IpIi8+PHBhdGggZD0iTTAgMjQ1IEwxMTAgMTM4IEwxODQgMjE1IEwyNzQgMTE2IEwzODAgMjMwIEw1MjAgMTUxIFYzMjAgSDBaIiBmaWxsPSIjMzQ1ZjU1IiBvcGFjaXR5PSIuNyIvPjxjaXJjbGUgY3g9IjQyNCIgY3k9IjYyIiByPSIzNiIgZmlsbD0iI2ZmZjFhMCIvPjxjaXJjbGUgY3g9IjE1NCIgY3k9IjkzIiByPSIzOSIgZmlsbD0iI2U5YWQ4OSIvPjxwYXRoIGQ9Ik0xMTggODkgUTEyNSA0NSAxNjEgNTAgUTE5MiA1NCAxOTUgODkgUTE2OSA2OSAxNDQgNzEgUTEyOSA3MiAxMTggODkiIGZpbGw9IiMzYjJiMjQiLz48cmVjdCB4PSIxMTUiIHk9IjEzMSIgd2lkdGg9IjkxIiBoZWlnaHQ9IjEwMiIgcng9IjI0IiBmaWxsPSIjMmI2ZjhhIi8+PHBhdGggZD0iTTEyOCAyMjYgTDEwMSAzMDYgSDE0NSBMMTYzIDI0MSBMMTgzIDMwNiBIMjI2IEwyMDUgMjI1WiIgZmlsbD0iIzJhMzU0YSIvPjxwYXRoIGQ9Ik0yMDIgMTU0IFEyNDYgMTQxIDI4MiAxNjUiIHN0cm9rZT0iI2U5YWQ4OSIgc3Ryb2tlLXdpZHRoPSIyMSIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHJlY3QgeD0iMjYwIiB5PSIxMzMiIHdpZHRoPSI3NyIgaGVpZ2h0PSIxMTIiIHJ4PSIxNCIgZmlsbD0iIzFmMjkzNyIvPjxyZWN0IHg9IjI3MSIgeT0iMTQ3IiB3aWR0aD0iNTUiIGhlaWdodD0iNzIiIHJ4PSI2IiBmaWxsPSIjOWRlN2YwIi8+PC9zdmc+"/><i>⛶</i></button>
+<b>Travel content creator</b><small>You travel, take photos and videos, tell stories and share useful information online. You need creativity and communication skills. It looks exciting, but you must plan, edit and post content regularly, even when you are tired.</small>
 </span>
 </label>
 <label class="job-apply-card">
@@ -3848,13 +3845,7 @@ newGame();
 <b>Formula 1 driver</b><small>You drive a Formula 1 car in races and practise on tracks and simulators. You need very fast reactions, fitness, concentration and strong teamwork. Drivers also study data with engineers. It is exciting, but training is difficult and the competition is extremely high.</small>
 </span>
 </label>
-<label class="job-apply-card">
-<input name="applyJob" onchange="selectApplyJob(this.value)" type="radio" value="Travel content creator"/>
-<span>
-<button class="apply-img-btn" content="" creator")"="" onclick="event.preventDefault();event.stopPropagation();openImage(this.querySelector('img').src," travel="" type="button"><img alt="Travel content creator" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MjAgMzIwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9InIiIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjZmY4ZjcwIi8+PHN0b3Agb2Zmc2V0PSIuNTUiIHN0b3AtY29sb3I9IiNmZmQ5NmEiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM1NmMyZDYiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNTIwIiBoZWlnaHQ9IjMyMCIgcng9IjM0IiBmaWxsPSJ1cmwoI3IpIi8+PHBhdGggZD0iTTAgMjQ1IEwxMTAgMTM4IEwxODQgMjE1IEwyNzQgMTE2IEwzODAgMjMwIEw1MjAgMTUxIFYzMjAgSDBaIiBmaWxsPSIjMzQ1ZjU1IiBvcGFjaXR5PSIuNyIvPjxjaXJjbGUgY3g9IjQyNCIgY3k9IjYyIiByPSIzNiIgZmlsbD0iI2ZmZjFhMCIvPjxjaXJjbGUgY3g9IjE1NCIgY3k9IjkzIiByPSIzOSIgZmlsbD0iI2U5YWQ4OSIvPjxwYXRoIGQ9Ik0xMTggODkgUTEyNSA0NSAxNjEgNTAgUTE5MiA1NCAxOTUgODkgUTE2OSA2OSAxNDQgNzEgUTEyOSA3MiAxMTggODkiIGZpbGw9IiMzYjJiMjQiLz48cmVjdCB4PSIxMTUiIHk9IjEzMSIgd2lkdGg9IjkxIiBoZWlnaHQ9IjEwMiIgcng9IjI0IiBmaWxsPSIjMmI2ZjhhIi8+PHBhdGggZD0iTTEyOCAyMjYgTDEwMSAzMDYgSDE0NSBMMTYzIDI0MSBMMTgzIDMwNiBIMjI2IEwyMDUgMjI1WiIgZmlsbD0iIzJhMzU0YSIvPjxwYXRoIGQ9Ik0yMDIgMTU0IFEyNDYgMTQxIDI4MiAxNjUiIHN0cm9rZT0iI2U5YWQ4OSIgc3Ryb2tlLXdpZHRoPSIyMSIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHJlY3QgeD0iMjYwIiB5PSIxMzMiIHdpZHRoPSI3NyIgaGVpZ2h0PSIxMTIiIHJ4PSIxNCIgZmlsbD0iIzFmMjkzNyIvPjxyZWN0IHg9IjI3MSIgeT0iMTQ3IiB3aWR0aD0iNTUiIGhlaWdodD0iNzIiIHJ4PSI2IiBmaWxsPSIjOWRlN2YwIi8+PC9zdmc+"/><i>⛶</i></button>
-<b>Travel content creator</b><small>You travel, take photos and videos, tell stories and share useful information online. You need creativity and communication skills. It looks exciting, but you must plan, edit and post content regularly, even when you are tired.</small>
-</span>
-</label>
+
 <label class="job-apply-card">
 <input name="applyJob" onchange="selectApplyJob(this.value)" type="radio" value="Other job"/>
 <span><div class="other-job-visual">💡 <strong>YOUR IDEA</strong></div><b>Other job</b>
@@ -4116,9 +4107,8 @@ async function recordVideoAnswer(i){
 }
 
 let selectedApply=state.applyJob||'';
-function selectApplyJob(v){if(v==='Your idea'){const entry=document.getElementById('jobsOwnJobTitle')?.value.trim();v=entry||'Your idea'}selectedApply=v;state.applyJob=v;document.getElementById('selectedJob').textContent='Selected: '+v;saveState()}
-function updateOwnJobIdea(v){const radio=document.querySelector('input[name="applyJob"][value="Your idea"]');if(radio)radio.checked=true;selectedApply=v.trim()||'Your idea';state.applyJob=selectedApply;document.getElementById('selectedJob').textContent='Selected: '+selectedApply;saveState()}
-if(selectedApply){document.getElementById('selectedJob').textContent='Selected: '+selectedApply;const radio=[...document.querySelectorAll('input[name="applyJob"]')].find(x=>x.value===selectedApply);if(radio)radio.checked=true;else{const custom=document.querySelector('input[name="applyJob"][value="Your idea"]'),field=document.getElementById('jobsOwnJobTitle');if(custom)custom.checked=true;if(field&&selectedApply!=='Your idea')field.value=selectedApply}}
+function selectApplyJob(v){selectedApply=v;state.applyJob=v;document.getElementById('selectedJob').textContent='Selected: '+v;saveState()}
+if(selectedApply){document.getElementById('selectedJob').textContent='Selected: '+selectedApply;const radio=[...document.querySelectorAll('input[name="applyJob"]')].find(x=>x.value===selectedApply);if(radio)radio.checked=true;else if(selectedApply==='Your idea'){const other=document.querySelector('input[name="applyJob"][value="Other job"]');if(other){other.checked=true;selectedApply='Other job';state.applyJob='Other job';document.getElementById('selectedJob').textContent='Selected: Other job';saveState()}}}
 const wt=document.getElementById('writingText');if(state.writing)wt.value=state.writing;
 function countWords(t){return (String(t).trim().match(/\b[\w’'-]+\b/g)||[]).length}
 function updateWordCount(){const n=countWords(wt.value),e=document.getElementById('wordCount');e.textContent=n+' words';e.className='wordcount '+(n>=80&&n<=100?'good':'bad')}
