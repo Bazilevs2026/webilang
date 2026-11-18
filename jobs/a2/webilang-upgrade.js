@@ -37,7 +37,7 @@ navOrder.forEach(([tab,label])=>{
  if(button){button.textContent=label;nav.appendChild(button)}
 });
 const navStyle=document.createElement('style');
-navStyle.textContent='header nav{max-width:1600px;width:100%;box-sizing:border-box;display:flex;flex-wrap:nowrap;gap:7px;justify-content:flex-start;overflow-x:auto;scrollbar-width:thin;padding:0 14px 9px}header nav .tab{flex:0 0 auto;white-space:nowrap;padding:9px 10px;font-size:13px;line-height:1.2;border-radius:10px}@media(min-width:1300px){header nav{gap:8px}header nav .tab{font-size:14px;padding:9px 11px}}@media(max-width:1099px){header nav{gap:6px;overflow-x:auto}header nav .tab{font-size:13px;padding:9px 9px}}';
+navStyle.textContent='header nav{width:100%;max-width:1600px;box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;justify-content:center;gap:5px;overflow-x:auto;scrollbar-width:thin;padding:0 12px 10px;margin:0 auto}header nav .tab{flex:0 0 auto;white-space:nowrap;padding:9px 9px;font-size:13px;line-height:1.2;border-radius:10px}@media(min-width:1380px){header nav{gap:7px}header nav .tab{font-size:14px;padding:9px 11px}}@media(max-width:1150px){header nav{justify-content:flex-start;gap:5px}header nav .tab{font-size:12px;padding:9px 8px}}';
 document.head.append(navStyle);
 
 /* Keep microphone support, remove the unnecessary page-wide setup banner.
@@ -259,12 +259,97 @@ let actions=[];
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const sect=b.closest('main section.panel');if(!sect)return;actions.push({tab:sect.id,action:(b.textContent||'').trim().slice(0,75)});actions=actions.slice(-10)},true);
 function snapshot(){const panel=document.querySelector('main>.panel.active');return {module:'Jobs & Money A2',activeTab:panel?.id,heading:panel?.querySelector('h2')?.textContent,job:jobs[Number($('jJob').value)],role,inputs:[...panel?.querySelectorAll('textarea,input,select')||[]].filter(x=>!x.disabled&&x.offsetParent).slice(0,12).map(x=>({label:x.placeholder||x.id,value:String(x.value||'').slice(0,350)})),recentActions:actions,interviewSpeech:lines.filter(x=>x.role==='student').slice(-4)}}
 async function ask(type,data){const r=await fetch('/api/jobs-a2-coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type,...data})});const d=await r.json();if(!r.ok)throw Error(d.error||'AI unavailable');return d}
-function showFeedback(f,holder){lastKostyaCheck={kind:'ai_feedback',button:'AI feedback',task:holder.closest('section.panel')?.querySelector('h2')?.textContent||'Jobs activity',visibleFeedbackAfter:[f.interaction,f.grammar,f.vocabulary,f.nextStep].filter(Boolean).map(x=>String(x).slice(0,650)),grammarItems:(f.grammarItems||[]).slice(0,5),studentAnswer:'',verifiedCorrectness:'unknown',source:'jobs-ai-feedback',at:Date.now()};sendKostyaContext();holder.innerHTML='<div class="jobs-v3"><h3>AI feedback</h3>'+['interaction','grammar','vocabulary','nextStep'].map(k=>'<p><b>'+escape(k)+':</b> '+escape(f[k]||'No specific issue.')+'</p>').join('')+'</div>';[...(f.grammarItems||[]).map(x=>({...x,kind:'grammar'})),...(f.vocabularyItems||[]).map(x=>({...x,kind:'words'})),...(f.newWords||[]).map(x=>({kind:'words',corrected:x.word,original:x.word,example:x.example}))].forEach(item=>{const b=document.createElement('button');b.textContent='＋ Save '+(item.kind==='words'?'word: ':'grammar: ')+item.corrected;b.onclick=async()=>{b.disabled=true;try{await saveStock(item);b.textContent='✓ Saved to Stock'}catch(e){b.disabled=false;b.textContent=e.message}};holder.lastElementChild.append(b)})}
+function showFeedback(f,holder){
+ lastKostyaCheck={kind:'ai_feedback',button:'AI feedback',task:holder.closest('section.panel')?.querySelector('h2')?.textContent||'Jobs activity',visibleFeedbackAfter:[f.interaction,f.grammar,f.vocabulary,f.nextStep].filter(Boolean).map(x=>String(x).slice(0,650)),grammarItems:(f.grammarItems||[]).slice(0,5),studentAnswer:'',verifiedCorrectness:'unknown',source:'jobs-ai-feedback',at:Date.now()};
+ sendKostyaContext();
+ holder.replaceChildren();
+ const wrap=document.createElement('div');wrap.className='jobs-feedback';
+ const title=document.createElement('h3');title.textContent='AI feedback · Choose what to save';wrap.append(title);
+ const sections=[
+  {key:'interaction',label:'Communication',icon:'💬',items:[],kind:null},
+  {key:'vocabulary',label:'Vocabulary',icon:'📚',items:[...(f.vocabularyItems||[]).map(x=>({...x,kind:'words'})),...(f.newWords||[]).map(x=>({kind:'words',corrected:x.word,example:x.example,explanation:'Useful new expression'}))],kind:'words'},
+  {key:'grammar',label:'Grammar',icon:'🧩',items:(f.grammarItems||[]).map(x=>({...x,kind:'grammar'})),kind:'grammar'}
+ ];
+ for(const section of sections){
+  const block=document.createElement('section');block.className='jobs-feedback-section jobs-feedback-'+section.key;
+  const heading=document.createElement('h4');heading.textContent=section.icon+' '+section.label;block.append(heading);
+  const para=document.createElement('p');para.textContent=f[section.key]||'No specific issue identified.';block.append(para);
+  if(section.items.length){
+   const prompt=document.createElement('div');prompt.className='jobs-feedback-select';prompt.textContent='Select the useful items to add to '+(section.kind==='words'?'My Words':'My Grammar')+':';block.append(prompt);
+   const options=document.createElement('div');options.className='jobs-feedback-options';
+   section.items.forEach(item=>{
+    const value=String(item.corrected||'').trim();if(!value)return;
+    const label=document.createElement('label');label.className='jobs-feedback-option';
+    const checkbox=document.createElement('input');checkbox.type='checkbox';
+    const content=document.createElement('span');
+    const word=document.createElement('strong');word.textContent=value;content.append(word);
+    if(item.explanation||item.example){const info=document.createElement('small');info.textContent=item.explanation||item.example;content.append(info)}
+    label.append(checkbox,content);options.append(label);
+   });
+   block.append(options);
+   const save=document.createElement('button');save.type='button';save.className='jobs-save-selected';save.textContent='＋ Save selected to '+(section.kind==='words'?'My Words':'My Grammar');
+   const status=document.createElement('span');status.className='jobs-stock-status';status.setAttribute('role','status');
+   save.onclick=async()=>{
+    const selected=[...options.children].filter(x=>x.querySelector('input')?.checked&&!x.dataset.saved);
+    if(!selected.length){status.textContent='Choose at least one item.';return}
+    save.disabled=true;status.textContent='Saving…';
+    try{
+     for(const option of selected){
+      const text=option.querySelector('strong').textContent;
+      const entry=section.items.find(x=>String(x.corrected||'').trim()===text);
+      await saveStock({...entry,kind:section.kind,corrected:text});
+      option.dataset.saved='true';option.querySelector('input').disabled=true;
+     }
+     status.textContent='✓ Saved. Open '+(section.kind==='words'?'My Words':'My Grammar')+' for AI practice.';
+    }catch(e){status.textContent=e.message||'Unable to save.'}finally{save.disabled=false}
+   };
+   block.append(save,status);
+  }else if(section.kind){const note=document.createElement('small');note.textContent='No specific items suggested for saving in this attempt.';block.append(note)}
+  wrap.append(block);
+ }
+ const next=document.createElement('p');next.className='jobs-feedback-next';next.textContent='🎯 Next step: '+(f.nextStep||'Try again and use the feedback.');wrap.append(next);holder.append(wrap);
+}
 $('jFeedback').onclick=async()=>{const t=$('jAnswer').value.trim();if(current<0||!t)return alert('Spin first, then answer.');$('jResult').textContent='Analysing…';try{showFeedback(await ask('feedback',{transcript:t,scene:topics[current][2]}),$('jResult'))}catch(e){$('jResult').textContent=e.message}};
 $('jCheckNotes').onclick=async()=>{const t=$('jNotes').value.trim();if(!t)return alert('Write your preparation notes first.');$('jStatus').textContent='Checking your notes…';try{showFeedback(await ask('feedback',{transcript:t,scene:role+' '+jobs[+$('jJob').value]}),$('jInterviewFeedback'));$('jStatus').textContent='Preparation checked. Edit your notes if needed.'}catch(e){$('jStatus').textContent=e.message}};
 let db=null;async function getDb(){if(db)return db;const [{createClient},c]=await Promise.all([import('https://esm.sh/@supabase/supabase-js@2'),import('/student-memory/config.js')]);return db=createClient(c.SUPABASE_URL,c.SUPABASE_PUBLISHABLE_KEY)}
 async function saveStock(item){const client=await getDb(),u=(await client.auth.getUser()).data.user;if(!u)throw Error('Sign in to Webilang Global first.');const value=item.corrected;const {error}=await client.from('student_learning_entries').insert({user_id:u.id,module:'Jobs & Money A2',kind:'memory_note',content:{source:'webilang-ai-stock-v1',type:item.kind,text:value,item:item.kind==='words'?{word:value,source:'Jobs & Money A2'}:{pattern:value,source:'Jobs & Money A2'}}});if(error)throw Error(error.message)}
 async function loadStocks(){try{const client=await getDb(),u=(await client.auth.getUser()).data.user;if(!u)throw Error('Please sign in to Webilang Global.');const {data,error}=await client.from('student_learning_entries').select('content').eq('user_id',u.id).eq('module','Jobs & Money A2').eq('kind','memory_note').order('created_at',{ascending:false}).limit(300);if(error)throw Error(error.message);for(const [id,kind] of [['mywords','words'],['mygrammar','grammar']]){const p=$('panel-'+id);p.innerHTML='<h2>'+((kind==='words')?'My Word Stock':'My Grammar Stock')+'</h2><p>Select an expression, retrieve it and use it in an original workplace sentence.</p>';const arr=(data||[]).filter(x=>x.content?.type===kind).map(x=>x.content.text);arr.forEach(x=>{const b=document.createElement('button');b.textContent=x;b.onclick=()=>{p.querySelector('.jobs-v3')?.remove();const area=document.createElement('div');area.className='jobs-v3';area.innerHTML='<h3>Recognition → Retrieval → Production</h3><p>Study: <b>'+escape(x)+'</b></p><p>Now write the expression without looking:</p><input id="jRecall"><button id="jTest">Check</button><p>Use it in a new sentence about work:</p><textarea></textarea><button id="jAskStock">Ask Kostya to review</button><p id="jRecallReply"></p>';p.append(area);area.querySelector('#jTest').onclick=()=>area.querySelector('#jRecallReply').textContent=area.querySelector('#jRecall').value.trim().toLowerCase()===x.toLowerCase()?'Correct!':'Try again. Check the spelling.';area.querySelector('#jAskStock').onclick=()=>{openKostya();$('jQuestionCoach').value='Please check my use of '+x+': '+area.querySelector('textarea').value}};p.append(b)});if(!arr.length)p.innerHTML+='<p>No saved expressions yet. Save them from AI feedback.</p>'}}catch(e){$('panel-mywords').textContent=e.message;$('panel-mygrammar').textContent=e.message}}
+
+/* Reading → learner-selected words → Stock; feedback categories match Webilang. */
+const stockFlowStyle=document.createElement('style');
+stockFlowStyle.textContent='.jobs-feedback{background:#fff;border:1px solid #d7e2eb;border-radius:16px;padding:17px;margin:10px 0}.jobs-feedback h3{margin:0 0 13px;color:#24384b}.jobs-feedback-section{border-left:4px solid;padding:12px 15px;margin:10px 0;border-radius:0 12px 12px 0}.jobs-feedback-section h4{font-size:17px;margin:0 0 5px}.jobs-feedback-section p{margin:0 0 9px;line-height:1.55}.jobs-feedback-interaction{border-color:#5b9adb;background:#ebf4ff}.jobs-feedback-vocabulary{border-color:#25a67c;background:#e8f7ef}.jobs-feedback-grammar{border-color:#a178de;background:#f2ebff}.jobs-feedback-select{font-size:12px;font-weight:750;margin:8px 0}.jobs-feedback-options{display:grid;gap:7px}.jobs-feedback-option{display:flex;align-items:flex-start;gap:9px;background:#ffffffc9;border:1px solid #d5e2e9;border-radius:9px;padding:8px;cursor:pointer}.jobs-feedback-option input{margin-top:4px;accent-color:#277d63}.jobs-feedback-option strong,.jobs-feedback-option small{display:block}.jobs-feedback-option small{font-size:12px;margin-top:4px;color:#5f7182}.jobs-save-selected,.jobs-practice-generate{border:0;background:#178658;color:#fff;border-radius:9px;padding:10px 12px;font-weight:800;cursor:pointer;margin:10px 7px 5px 0}.jobs-stock-status{font-size:12px;color:#23654b}.jobs-feedback-next{font-weight:700;color:#46586e;margin-top:13px}.jobs-reading-guide{font-size:13px;background:#ebf6ee;padding:10px 13px;border-radius:11px;margin:9px 0}.jobs-selection-toolbar{position:fixed;z-index:10050;background:#fff;border:1px solid #a7cfc0;box-shadow:0 10px 32px #142c3d33;padding:7px 9px;border-radius:12px;display:flex;align-items:center;gap:8px;max-width:min(440px,95vw)}.jobs-selection-toolbar[hidden]{display:none!important}.jobs-selection-toolbar button{background:#19885a;color:#fff;border:0;padding:9px;border-radius:8px;white-space:nowrap;cursor:pointer}.jobs-selection-toolbar small{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#panel-reading .story-text::selection,#panel-reading .story-copy p::selection{background:#ffe39d}';
+document.head.append(stockFlowStyle);
+const readingPanel=$('panel-reading');
+if(readingPanel){
+ const guide=document.createElement('p');guide.className='jobs-reading-guide';guide.textContent='📚 Find an unfamiliar word or phrase? Select it in the story, then choose “Save to My Words”. You can practise saved words with AI.';
+ readingPanel.querySelector('.section-head')?.after(guide);
+ const toolbar=document.createElement('div');toolbar.className='jobs-selection-toolbar';toolbar.hidden=true;
+ const chosenText=document.createElement('small');const save=document.createElement('button');save.type='button';save.textContent='＋ Save to My Words';
+ const message=document.createElement('span');message.setAttribute('role','status');message.style.fontSize='12px';
+ toolbar.append(chosenText,save,message);document.body.append(toolbar);
+ let selectionText='';
+ const hideToolbar=()=>{toolbar.hidden=true};
+ const showSelection=()=>{
+  const selection=window.getSelection();const text=selection?.toString().replace(/\s+/g,' ').trim()||'';
+  if(!text||text.length>95||!selection.rangeCount){hideToolbar();return}
+  const range=selection.getRangeAt(0),node=range.commonAncestorContainer;
+  const parent=node.nodeType===1?node:node.parentElement;
+  if(!parent?.closest('#panel-reading .story-text,#panel-reading .story-copy')){hideToolbar();return}
+  selectionText=text;chosenText.textContent=text;message.textContent='';toolbar.hidden=false;
+  const rect=range.getBoundingClientRect();toolbar.style.left=Math.max(8,Math.min(window.innerWidth-310,rect.left))+'px';toolbar.style.top=Math.max(8,Math.min(window.innerHeight-60,rect.bottom+9))+'px';
+ };
+ readingPanel.addEventListener('mouseup',()=>setTimeout(showSelection,0));
+ readingPanel.addEventListener('keyup',e=>{if(e.key==='Shift'||e.key.startsWith('Arrow'))showSelection()});
+ save.addEventListener('click',async()=>{
+  if(!selectionText)return;
+  save.disabled=true;message.textContent='Saving…';
+  try{await saveStock({kind:'words',corrected:selectionText});message.textContent='✓ Saved';setTimeout(hideToolbar,850)}
+  catch(e){message.textContent=e.message||'Unable to save'}
+  finally{save.disabled=false}
+ });
+ document.addEventListener('pointerdown',e=>{if(!toolbar.contains(e.target)&&!readingPanel.contains(e.target))hideToolbar()});
+}
+
 const realKostyaStyle=document.createElement('style');realKostyaStyle.textContent="\n#jCoach.jcoach{width:min(480px,calc(100vw - 26px))!important;max-width:480px!important;max-height:min(760px,calc(100dvh - 20px))!important;padding:12px!important}\n#jCoach .jcoach-title{justify-content:space-between!important;cursor:move}\n#jCoach .jcoach-title>div{display:flex;gap:5px}\n#jCoach .jcoach-title strong{font-size:15px!important}\n#jCoach .jcoach-frame{height:min(565px,calc(100dvh - 190px));min-height:300px;width:100%;border-radius:12px;overflow:hidden;background:#eef3ef}\n#jCoach .jcoach-frame iframe{display:block;width:100%;height:100%;border:0}\n#jCoach .jcoach-note{font-size:11px!important;margin:8px 0!important}\n#jCoach .jcoach-text{border-top:1px solid #e1e8e3;padding-top:8px;font-size:12px}\n#jCoach .jcoach-text summary{cursor:pointer;font-weight:700;color:#345b4b}\n#jCoach.minimized{height:auto!important;max-height:none!important}\n#jCoach.minimized .jcoach-frame,#jCoach.minimized .jcoach-note,#jCoach.minimized .jcoach-text,#jCoach.minimized #jCoachStatus{display:none!important}\n@media(max-width:520px){#jCoach.jcoach{width:calc(100vw - 16px)!important;max-width:none!important;right:8px!important;bottom:8px!important}#jCoach .jcoach-frame{height:min(540px,calc(100dvh - 180px))}}\n";document.head.append(realKostyaStyle);
 const coach=document.createElement('div');coach.className='jcoach jobs-v3';coach.hidden=true;coach.id='jCoach';
 coach.innerHTML='<div class="jrow jcoach-title"><strong>🎙 Kostya · AI English Teacher</strong><div><button type="button" id="jCoachMin" title="Minimize">−</button><button type="button" id="jCoachClose" title="Close">✕</button></div></div><div id="jCoachFrameHost" class="jcoach-frame"></div><p class="jcoach-note">Meet Kostya, then press ▶ Talk to Kostya in his window. His cloned English voice is provided by Qwen.</p><details class="jcoach-text"><summary>Type a question instead</summary><div id="jCoachReply" class="jreply ai"></div><textarea id="jQuestionCoach" placeholder="Ask about your current task…"></textarea><div class="jrow"><button id="jCoachAsk" class="primary">Ask</button><button id="jCoachSpeak">🔊 Hear reply</button></div></details><div class="jcoach-legacy" hidden><button id="jCoachLive" type="button">Live voice</button><button id="jCoachStop" type="button">Stop</button></div><span id="jCoachStatus" role="status"></span><audio id="jCoachAudio" autoplay playsinline></audio>';
