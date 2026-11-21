@@ -12,7 +12,7 @@ function guestItems(){
 }
 function guestWrite(){
  try{localStorage.setItem(GUEST_KEY,JSON.stringify({words:wordRows.map(wordOf),grammar:grammarRows.map(grammarOf)}));}
- catch{console.warn('Guest Word Stock could not be saved in this browser');}
+ catch{throw Error('Браузер не разрешает сохранять данные на этом устройстве. Разрешите сохранение данных сайта.');}
 }
 function guestRows(){
  const data=guestItems();
@@ -26,9 +26,23 @@ const grammarOf=r=>r.content?.item?.pattern||r.content?.item?.rule||r.content?.i
 // Russian Unscripted displays only Cyrillic-language material. Foreign-language
 // entries are not deleted; they stay available in their original modules.
 const russianEntry=(row,value)=>/[А-Яа-яЁё]/.test(String(value||'')) && !(/art lab|gender roles|video games/i.test(String(row.module||'')+' '+String(row.content?.item?.source||'')));
-async function ensureUser(){let data;try{({data}=await db.auth.getUser());}catch{}if(!data?.user){currentUser=null;return null;}if(currentUser&&currentUser!==data.user.id)throw Error('Аккаунт изменился. Обновите страницу.');currentUser=data.user.id;return currentUser}
+async function ensureUser(){let data;try{({data}=await db.auth.getUser());}catch{}if(!data?.user){if(currentUser){currentUser=null;guestRows();}return null;}if(currentUser&&currentUser!==data.user.id)throw Error('Аккаунт изменился. Обновите страницу.');currentUser=data.user.id;return currentUser}
 async function getRows(){const user=await ensureUser(),rows=[];if(!user)return [];for(let i=0;i<5000;i+=500){const {data,error}=await db.from('student_learning_entries').select('id,user_id,module,kind,content,created_at').eq('user_id',user).eq('kind','memory_note').order('created_at',{ascending:false}).range(i,i+499);if(error)throw error;rows.push(...(data||[]));if(!data||data.length<500)break}return rows}
-function refreshUI(){window.ruStockState.words.length=0;window.ruStockState.grammar.length=0;window.ruStockState.words.push(...[...new Map(wordRows.map(x=>[norm(wordOf(x)),wordOf(x)]))].map(x=>x[1]));window.ruStockState.grammar.push(...[...new Map(grammarRows.map(x=>[norm(grammarOf(x)),grammarOf(x)]))].map(x=>x[1]));if([7,8].includes(window.ruStockState.getActive()))window.ruStockState.render()}
+function refreshUI(){
+ window.ruStockState.words.length=0;window.ruStockState.grammar.length=0;
+ window.ruStockState.words.push(...[...new Map(wordRows.map(x=>[norm(wordOf(x)),wordOf(x)]))].map(x=>x[1]));
+ window.ruStockState.grammar.push(...[...new Map(grammarRows.map(x=>[norm(grammarOf(x)),grammarOf(x)]))].map(x=>x[1]));
+ if([7,8].includes(window.ruStockState.getActive())){
+  window.ruStockState.render();
+  const holder=document.getElementById('stockListing');
+  if(holder){
+   let note=document.getElementById('ruStockStorageMode');
+   if(!note){note=document.createElement('p');note.id='ruStockStorageMode';note.className='tiny';holder.parentNode.insertBefore(note,holder);}
+   note.textContent=currentUser?'✓ Аккаунт подключён · слова и правила сохраняются в Webilang Global.':
+     'Гостевой режим · слова и правила сохраняются в этом браузере. Вход в аккаунт нужен только для синхронизации между устройствами.';
+  }
+ }
+}
 async function refresh(){
  const stamp=++sessionSerial;
  try{
