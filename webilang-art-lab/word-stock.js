@@ -6,8 +6,38 @@ const db = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { persis
 const $ = id => document.getElementById(id);
 let user = null, rows = [], selected = '', epoch = 0, revision = 0, controller = null, queue = Promise.resolve(), ready = false;
 const staged = new Map(); let savingStage = false;
+const pendingSelectionKey = 'webilang-art-lab-pending-words-v1';
+// Keep unsaved selections while a student visits the sign-in page in the same tab.
+try {
+  const pending = JSON.parse(sessionStorage.getItem(pendingSelectionKey) || 'null');
+  if (pending && Date.now() - pending.savedAt < 24*60*60*1000 && Array.isArray(pending.words)) {
+    for (const item of pending.words.slice(0,80)) {
+      const word = String(item||'').trim().replace(/\s+/g,' ');
+      if(word && word.length<=130) staged.set(normal(word),word);
+    }
+  }
+} catch {}
+function rememberSelection() {
+  try {
+    if (staged.size) sessionStorage.setItem(pendingSelectionKey, JSON.stringify({savedAt:Date.now(),words:[...staged.values()]}));
+    else sessionStorage.removeItem(pendingSelectionKey);
+  } catch {}
+}
+function showSignInPrompt(message) {
+  renderStaged(message);
+  for(const target of ['comicWordStatus','readingWordStatus']){
+    const holder=$(target); if(!holder)continue;
+    holder.append(document.createTextNode(' '));
+    const link=document.createElement('a');
+    link.href='/webilang-global/';
+    link.textContent='Sign in to Webilang Global →';
+    link.style.cssText='display:inline-block;margin-top:8px;font-weight:800;text-decoration:underline;color:#125bb0';
+    holder.append(link);
+  }
+}
 const status = message => { $('wordStockStatus').textContent = message; $('comicWordStatus').textContent = message; };
 function renderStaged(message) {
+  rememberSelection();
   const list = $('comicSelectedWords'); if (!list) return;
   list.replaceChildren(); $('readingSelectedWords')?.replaceChildren();
   for (const [key, word] of staged) {
@@ -21,9 +51,9 @@ function renderStaged(message) {
   }
   $('comicSelectedCount').textContent = staged.size+' selected';
   if ($('readingSelectedCount')) $('readingSelectedCount').textContent = staged.size+' selected';
-  $('comicSaveWords').disabled = !staged.size || savingStage || !ready;
+  $('comicSaveWords').disabled = !staged.size || savingStage;
   $('comicClearSelection').disabled = !staged.size || savingStage;
-  if ($('readingSaveWords')) $('readingSaveWords').disabled = !staged.size || savingStage || !ready;
+  if ($('readingSaveWords')) $('readingSaveWords').disabled = !staged.size || savingStage;
   if ($('readingClearSelection')) $('readingClearSelection').disabled = !staged.size || savingStage;
   document.querySelectorAll('.selectable-word,.vocab-select').forEach(button => { button.classList.toggle('word-staged', staged.has(normal(button.dataset.expression || button.textContent))); });
   if (message !== undefined) { $('comicWordStatus').textContent = message; if ($('readingWordStatus')) $('readingWordStatus').textContent=message; }
@@ -32,7 +62,7 @@ function stageWord(value) {
   const word = String(value||'').trim().replace(/\s+/g,' '), key = normal(word);
   if (!key || word.length > 130) return;
   if (!staged.has(key)) staged.set(key,word);
-  renderStaged('✓ “'+word+'” selected. '+staged.size+' word(s) ready. Press Save selected words.');
+  renderStaged('✓ “'+word+'” selected. '+staged.size+' word(s) ready. Tap Save selected words to keep them in your account.');
   document.querySelectorAll('.selectable-word,.vocab-select').forEach(button => {
     const active = staged.has(normal(button.dataset.expression||button.textContent));
     button.classList.toggle('word-staged',active);
@@ -42,7 +72,16 @@ function stageWord(value) {
 function clearStaged(){staged.clear();document.querySelectorAll('.word-staged').forEach(el=>el.classList.remove('word-staged'));renderStaged('Selection cleared. Saved vocabulary was not deleted.');}
 async function saveStaged(){
   if(savingStage || !staged.size)return;
-  if(!ready || !user){ renderStaged('Sign in to Webilang Global to save words. Your selection is still here.');return; }
+  if(!ready || !user) {
+    renderStaged('Connecting to your Webilang account…');
+    await refresh();
+    if(!ready || !user) {
+      const {data} = await db.auth.getUser().catch(()=>({data:{}}));
+      if(!data?.user) showSignInPrompt('Your words are selected, but you need to sign in on this website before saving. Your selection will be kept while you sign in.');
+      else renderStaged('Your account is signed in, but Word Stock could not load. Check your connection and tap Save again. Your selection is safe.');
+      return;
+    }
+  }
   savingStage=true;const items=[...staged.values()];renderStaged('Saving '+items.length+' word(s)…');
   try {
     for (const word of items) {
