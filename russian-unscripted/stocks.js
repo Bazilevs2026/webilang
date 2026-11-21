@@ -26,7 +26,21 @@ const grammarOf=r=>r.content?.item?.pattern||r.content?.item?.rule||r.content?.i
 // Russian Unscripted displays only Cyrillic-language material. Foreign-language
 // entries are not deleted; they stay available in their original modules.
 const russianEntry=(row,value)=>/[А-Яа-яЁё]/.test(String(value||'')) && !(/art lab|gender roles|video games/i.test(String(row.module||'')+' '+String(row.content?.item?.source||'')));
-async function ensureUser(){let data;try{({data}=await db.auth.getUser());}catch{}if(!data?.user){if(currentUser){currentUser=null;guestRows();}return null;}if(currentUser&&currentUser!==data.user.id)throw Error('Аккаунт изменился. Обновите страницу.');currentUser=data.user.id;return currentUser}
+async function ensureUser(){
+ let session=null;
+ try{({data:{session}}=await db.auth.getSession());}catch{}
+ if(!session?.user){
+  if(currentUser){currentUser=null;guestRows();}
+  return null;
+ }
+ let data;try{({data}=await db.auth.getUser());}catch{}
+ if(!data?.user){
+  if(currentUser){currentUser=null;guestRows();}
+  return null;
+ }
+ if(currentUser&&currentUser!==data.user.id)throw Error('Аккаунт изменился. Обновите страницу.');
+ currentUser=data.user.id;return currentUser;
+}
 async function getRows(){const user=await ensureUser(),rows=[];if(!user)return [];for(let i=0;i<5000;i+=500){const {data,error}=await db.from('student_learning_entries').select('id,user_id,module,kind,content,created_at').eq('user_id',user).eq('kind','memory_note').order('created_at',{ascending:false}).range(i,i+499);if(error)throw error;rows.push(...(data||[]));if(!data||data.length<500)break}return rows}
 function refreshUI(){
  window.ruStockState.words.length=0;window.ruStockState.grammar.length=0;
