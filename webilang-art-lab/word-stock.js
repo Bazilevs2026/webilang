@@ -6,6 +6,28 @@ const db = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, { auth: { persis
 const $ = id => document.getElementById(id);
 let user = null, rows = [], selected = '', epoch = 0, revision = 0, controller = null, queue = Promise.resolve(), ready = false;
 const staged = new Map(); let savingStage = false;
+
+const GUEST_WORDS_KEY = 'webilang-art-lab-guest-words-v1';
+function loadGuestRows() {
+  let words=[];
+  try { const saved=JSON.parse(localStorage.getItem(GUEST_WORDS_KEY)||'[]'); if(Array.isArray(saved))words=saved; } catch {}
+  return words.filter(x=>typeof x==='string'&&x.trim()&&x.length<=130).slice(0,500)
+    .map((word,index)=>({id:'guest-'+index,user_id:null,module:'Art Lab',content:{type:'words',item:{word:word.trim(),source:'Art Lab'}}}));
+}
+function persistGuestRows() {
+  try { localStorage.setItem(GUEST_WORDS_KEY,JSON.stringify(rows.map(wordOf).filter(Boolean).slice(0,500))); return true; }
+  catch { return false; }
+}
+function showStockScope() {
+  const heading=document.querySelector('#p8 .card.mint > h3');
+  if(heading)heading.textContent=user?'Your saved words · all connected modules':'Your saved words · saved on this device';
+}
+function loadGuestWordStock() {
+  user=null; rows=loadGuestRows(); ready=true; selected=rows.some(r=>normal(wordOf(r))===selected)?selected:'';
+  render();renderStaged();showStockScope();
+  status('Guest mode · words saved in this browser. No sign-in needed. To sync across devices, sign in to Webilang Global.');
+}
+
 const pendingSelectionKey = 'webilang-art-lab-pending-words-v1';
 // Keep unsaved selections while a student visits the sign-in page in the same tab.
 try {
@@ -23,18 +45,7 @@ function rememberSelection() {
     else sessionStorage.removeItem(pendingSelectionKey);
   } catch {}
 }
-function showSignInPrompt(message) {
-  renderStaged(message);
-  for(const target of ['comicWordStatus','readingWordStatus']){
-    const holder=$(target); if(!holder)continue;
-    holder.append(document.createTextNode(' '));
-    const link=document.createElement('a');
-    link.href='/webilang-global/';
-    link.textContent='Sign in to Webilang Global →';
-    link.style.cssText='display:inline-block;margin-top:8px;font-weight:800;text-decoration:underline;color:#125bb0';
-    holder.append(link);
-  }
-}
+
 const status = message => { $('wordStockStatus').textContent = message; $('comicWordStatus').textContent = message; };
 function renderStaged(message) {
   rememberSelection();
@@ -72,16 +83,6 @@ function stageWord(value) {
 function clearStaged(){staged.clear();document.querySelectorAll('.word-staged').forEach(el=>el.classList.remove('word-staged'));renderStaged('Selection cleared. Saved vocabulary was not deleted.');}
 async function saveStaged(){
   if(savingStage || !staged.size)return;
-  if(!ready || !user) {
-    renderStaged('Connecting to your Webilang account…');
-    await refresh();
-    if(!ready || !user) {
-      const {data} = await db.auth.getUser().catch(()=>({data:{}}));
-      if(!data?.user) showSignInPrompt('Your words are selected, but you need to sign in on this website before saving. Your selection will be kept while you sign in.');
-      else renderStaged('Your account is signed in, but Word Stock could not load. Check your connection and tap Save again. Your selection is safe.');
-      return;
-    }
-  }
   savingStage=true;const items=[...staged.values()];renderStaged('Saving '+items.length+' word(s)…');
   try {
     for (const word of items) {
@@ -90,7 +91,7 @@ async function saveStaged(){
       staged.delete(normal(word));
       renderStaged('Saved “'+word+'” to your account.');
     }
-    renderStaged('✓ Saved '+items.length+' word(s) to My Word Stock. Open My Word Stock to practise.');
+    renderStaged('✓ Saved '+items.length+' word(s) to My Word Stock '+(user?'in your account.':'on this device. No sign-in needed.')+' Open My Word Stock to practise.');
   } catch(error){renderStaged('Could not save all words: '+(error.message||'Please retry.')+' Unsaved words remain selected.');}
   finally{savingStage=false;renderStaged();}
 }
@@ -119,7 +120,8 @@ function render() {
     choose.onclick = () => { if (selected !== key) { selected = key; clear(); render(); } };
     const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'word-stock-remove'; remove.textContent = 'Remove'; remove.setAttribute('aria-label', `Remove ${word}`);
     remove.onclick = () => {
-      if (!confirm(`Remove “${word}” from your account Word Stock? This also removes its saved records from the listed modules.`)) return;
+      if (!confirm(user ? `Remove “${word}” from your account Word Stock? This also removes its saved records from the listed modules.` : `Remove “${word}” from My Word Stock on this device?`)) return;
+      if (!user) { rows=rows.filter(r=>normal(wordOf(r))!==key); persistGuestRows(); render();status(`Removed “${word}” from this device.`);return; }
       const owner = user?.id, version = epoch;
       enqueue(async () => {
         await verify(owner, version);
@@ -152,21 +154,42 @@ async function verify(owner, version) {
   if (error || !owner || data?.user?.id !== owner || epoch !== version) throw Error('Sign in to Webilang Global and try again.');
 }
 async function refresh() {
-  const version = epoch;
+  const version=epoch;
+  let authenticatedUser=null;
   try {
-    const { data, error } = await db.auth.getUser();
-    if (version !== epoch) return;
-    if (error || !data?.user) throw Error('Sign in to Webilang Global to save and practise your words.');
-    if (user?.id !== data.user.id) { rows = []; selected = ''; clear(); }
-    user = data.user; ready = false;
-    const loaded = await readWords(db, user.id);
-    if (version !== epoch) return;
-    rows = loaded; ready = true; render(); renderStaged(); status('Your account Word Stock · saved vocabulary from all connected modules.');
-  } catch (error) { if (version === epoch) { ready = false; rows = []; selected = ''; clear(); render(); renderStaged(); status(error.message); } }
+    const {data,error}=await db.auth.getUser();
+    if(!error) authenticatedUser=data?.user||null;
+  } catch {}
+  if(version!==epoch)return;
+  if(!authenticatedUser) { loadGuestWordStock(); return; }
+  try {
+    user=authenticatedUser;ready=false;
+    const loaded=await readWords(db,user.id);
+    if(version!==epoch)return;
+    rows=loaded;ready=true;
+    if(!rows.some(row=>normal(wordOf(row))===selected))selected='';
+    render();renderStaged();showStockScope();
+    status('Your account Word Stock · saved vocabulary from all connected modules.');
+  } catch(error) {
+    if(version===epoch) {
+      loadGuestWordStock();
+      status('Account Word Stock could not sync. Guest practice is available on this device; signed-in words have not been changed.');
+    }
+  }
 }
 function add(value) {
   const word = String(value || '').trim().replace(/\s+/g, ' '), owner = user?.id, version = epoch;
-  if (!word || word.length > 130) return;
+  if (!word || word.length > 130) return Promise.resolve();
+  if (!user) {
+    if(!rows.some(row=>normal(wordOf(row))===normal(word)))rows.unshift({
+      id:'guest-'+Date.now()+'-'+rows.length,user_id:null,module:'Art Lab',
+      content:{type:'words',item:{word,source:'Art Lab'}}
+    });
+    const stored=persistGuestRows();ready=true;render();
+    status(stored ? `“${word}” saved on this device. Select it in My Word Stock to practise.` :
+      `“${word}” added for this session. Your browser blocked local storage, so it may not remain after closing.`);
+    return Promise.resolve();
+  }
   return enqueue(async () => {
     await verify(owner, version);
     const loaded = await readWords(db, owner);
@@ -177,10 +200,20 @@ function add(value) {
   });
 }
 async function request(payload, signal) {
-  const { data: { session } } = await db.auth.getSession();
-  if (!session || session.user.id !== user?.id) throw Error('Sign in again to practise.');
-  const response = await fetch('/api/artlab-word-practice', { method: 'POST', signal, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` }, body: JSON.stringify(payload) });
-  const data = await response.json(); if (!response.ok) throw Error(data.error || 'AI practice is unavailable.'); return data;
+  const headers={'Content-Type':'application/json'};
+  // Signed-in learners keep the existing authenticated API flow; guests can practise too.
+  if(user) {
+    try {
+      const {data:{session}}=await db.auth.getSession();
+      if(session?.user?.id===user.id)headers.Authorization='Bearer '+session.access_token;
+    } catch {}
+  }
+  const response=await fetch('/api/artlab-word-practice',{
+    method:'POST',signal,headers,body:JSON.stringify(payload)
+  });
+  const data=await response.json();
+  if(!response.ok)throw Error(data.error||'AI practice is unavailable.');
+  return data;
 }
 function equivalentRetrieval(actual, expected) {
   const tidy = value => normal(value).replace(/[.!?]+$/, '').replace(/\s+/g, ' ');
@@ -354,12 +387,12 @@ async function generate() {
   finally{if(version===revision)$('wordPracticeGenerate').disabled=false;}
 }
 
-renderStaged();
+loadGuestWordStock();
 $('wordPracticeGenerate').onclick = generate; $('wordPracticeClear').onclick = clear; $('wordStockRefresh').onclick = () => enqueue(refresh);
 window.artWordStock = { add, generate, clear, refresh };
 db.auth.onAuthStateChange((_event, session) => {
   if (session?.user?.id === user?.id) return;
-  epoch++; user = null; ready = false; rows = []; selected = ''; clear(); render(); renderStaged(); status('Connecting to your account…');
+  epoch++; user = null; ready = false; rows = []; selected = ''; clear(); loadGuestWordStock();
   setTimeout(refresh, 0);
 });
 refresh();
