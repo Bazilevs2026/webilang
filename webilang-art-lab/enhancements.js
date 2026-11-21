@@ -34,6 +34,8 @@ if(readingArticle){
 
 function showWord(word,anchor){selection=word;pop.replaceChildren();let desc=document.createElement('div');desc.innerHTML='<strong></strong><p style="margin:5px 0;font-size:12px">Added to your selection below the story. Press Save selected words to keep it.</p>';desc.querySelector('strong').textContent=word;let speak=document.createElement('button');speak.textContent='🔊 Listen';speak.onclick=()=>window.artSpeakWord(word);pop.append(desc,speak);const r=anchor.getBoundingClientRect();pop.style.left=Math.max(8,Math.min(innerWidth-330,r.left))+'px';pop.style.top=Math.max(6,Math.min(innerHeight-150,r.bottom+8))+'px';pop.classList.remove('hide')}
 document.addEventListener('click',e=>{if(!pop.contains(e.target)&&!e.target.closest('.selectable-word'))pop.classList.add('hide')});
+// On iPhone, dismiss the floating word card when scrolling to the Save tray.
+document.addEventListener('scroll',()=>pop.classList.add('hide'),{passive:true,capture:true});
 window.artSpeakWord=async function(word){try{const r=await fetch('/api/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:word,module:'art-lab',targetLanguage:'en'})});if(!r.ok)throw Error('No server voice');const blob=await r.blob();let a=new Audio(URL.createObjectURL(blob));a.onended=()=>URL.revokeObjectURL(a.src);await a.play()}catch{if('speechSynthesis'in window){let utter=new SpeechSynthesisUtterance(word);utter.lang='en-US';utter.rate=.9;speechSynthesis.cancel();speechSynthesis.speak(utter)}}};
 window.artAddSelectedWord=word=>window.artStageWord?.(word);
 const blobs={};const recorders={};
