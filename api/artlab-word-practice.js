@@ -7,9 +7,13 @@ const guestRequests=new Map();
 function guestAccess(req,mode) {
   // Guest AI requests must come from the Art Lab site, not a third-party browser.
   const host=String(req.headers.host||'').toLowerCase().trim();
-  const source=req.headers.origin||req.headers.referer;
-  try {if(!host||!source||new URL(String(source)).host.toLowerCase()!==host)return {code:403,error:'Open this exercise from Webilang Art Lab.'};}
-  catch{return {code:403,error:'Open this exercise from Webilang Art Lab.'};}
+  // Some mobile browser views omit Origin; accept a verified same-origin Fetch Metadata request.
+  const source=req.headers.origin&&req.headers.origin!=='null'?req.headers.origin:req.headers.referer;
+  try {
+    if(!host|| (source ? new URL(String(source)).host.toLowerCase()!==host :
+      req.headers['sec-fetch-site']!=='same-origin'))
+      return {code:403,error:'Open this exercise from Webilang Art Lab.'};
+  } catch{return {code:403,error:'Open this exercise from Webilang Art Lab.'};}
   const ip=String(req.headers['x-forwarded-for']||req.headers['x-real-ip']||'guest').split(',')[0].trim().slice(0,90);
   const key=ip+':'+mode,now=Date.now(),windowMs=60*60*1000,limit=mode==='generate'?30:90;
   let entry=guestRequests.get(key);
