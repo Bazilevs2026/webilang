@@ -312,20 +312,52 @@ function showFeedback(f,holder){
 $('jFeedback').onclick=async()=>{const t=$('jAnswer').value.trim();if(current<0||!t)return alert('Spin first, then answer.');$('jResult').textContent='Analysing…';try{showFeedback(await ask('feedback',{transcript:t,scene:topics[current][2]}),$('jResult'))}catch(e){$('jResult').textContent=e.message}};
 $('jCheckNotes').onclick=async()=>{const t=$('jNotes').value.trim();if(!t)return alert('Write your preparation notes first.');$('jStatus').textContent='Checking your notes…';try{showFeedback(await ask('feedback',{transcript:t,scene:role+' '+jobs[+$('jJob').value]}),$('jInterviewFeedback'));$('jStatus').textContent='Preparation checked. Edit your notes if needed.'}catch(e){$('jStatus').textContent=e.message}};
 let db=null;async function getDb(){if(db)return db;const [{createClient},c]=await Promise.all([import('https://esm.sh/@supabase/supabase-js@2'),import('/student-memory/config.js')]);return db=createClient(c.SUPABASE_URL,c.SUPABASE_PUBLISHABLE_KEY)}
-async function saveStock(item){const client=await getDb(),u=(await client.auth.getUser()).data.user;if(!u)throw Error('Sign in to Webilang Global first.');const value=item.corrected;const {error}=await client.from('student_learning_entries').insert({user_id:u.id,module:'Jobs & Money A2',kind:'memory_note',content:{source:'webilang-ai-stock-v1',type:item.kind,text:value,item:item.kind==='words'?{word:value,source:'Jobs & Money A2'}:{pattern:value,source:'Jobs & Money A2'}}});if(error)throw Error(error.message)}
+const JOBS_GUEST_STOCK_KEY='webilang-jobs-a2-guest-stocks-v1';
+function jobsGuestStockRead(){
+ try{const entries=JSON.parse(localStorage.getItem(JOBS_GUEST_STOCK_KEY)||'[]');
+ return Array.isArray(entries)?entries.filter(x=>x&&['words','grammar'].includes(x.type)&&typeof x.text==='string').slice(0,300):[];}
+ catch{return []}
+}
+function jobsGuestStockSave(kind,value){
+ const records=jobsGuestStockRead();
+ if(!records.some(x=>x.type===kind&&x.text.trim().toLowerCase()===value.toLowerCase()))records.unshift({type:kind,text:value});
+ try{localStorage.setItem(JOBS_GUEST_STOCK_KEY,JSON.stringify(records.slice(0,300)));}
+ catch{throw Error('Your browser blocked local storage. Please allow site data to save your words.')}
+}
+async function jobsStockAccount(){
+ try{const client=await getDb(),user=(await client.auth.getUser()).data.user;return user?{client,user}:null;}
+ catch{return null}
+}
+async function saveStock(item){
+ const value=String(item?.corrected||'').trim(),kind=item?.kind;
+ if(!value||value.length>500||!['words','grammar'].includes(kind))throw Error('Choose a valid word or grammar item.');
+ const account=await jobsStockAccount();
+ if(!account){jobsGuestStockSave(kind,value);return}
+ const {error}=await account.client.from('student_learning_entries').insert({
+ user_id:account.user.id,module:'Jobs & Money A2',kind:'memory_note',
+ content:{source:'webilang-ai-stock-v1',type:kind,text:value,item:kind==='words'?{word:value,source:'Jobs & Money A2'}:{pattern:value,source:'Jobs & Money A2'}}
+ });
+ if(error)throw Error(error.message)
+}
 async function loadStocks(){
- let data;
- try{
-  const client=await getDb(),user=(await client.auth.getUser()).data.user;
-  if(!user)throw Error('Please sign in to Webilang Global to access your private Stocks.');
-  const response=await client.from('student_learning_entries').select('content').eq('user_id',user.id).eq('module','Jobs & Money A2').eq('kind','memory_note').order('created_at',{ascending:false}).limit(300);
-  if(response.error)throw Error(response.error.message);
+ let data=[],guest=false;
+ const account=await jobsStockAccount();
+ if(!account){guest=true;data=jobsGuestStockRead().map(entry=>({content:entry}));}
+ else{
+  const response=await account.client.from('student_learning_entries').select('content')
+   .eq('user_id',account.user.id).eq('module','Jobs & Money A2').eq('kind','memory_note')
+   .order('created_at',{ascending:false}).limit(300);
+  if(response.error){
+   for(const name of ['mywords','mygrammar'])$('panel-'+name).textContent='Account Stock temporarily unavailable. Please try again.';
+   return;
+  }
   data=response.data||[];
- }catch(e){for(const name of ['mywords','mygrammar']){$('panel-'+name).textContent=e.message}return}
+ }
+
  for(const [panelId,kind] of [['mywords','words'],['mygrammar','grammar']]){
   const panel=$('panel-'+panelId);panel.replaceChildren();
   const h=document.createElement('h2');h.textContent=kind==='words'?'My Words':'My Grammar';panel.append(h);
-  const intro=document.createElement('p');intro.textContent='Choose one '+(kind==='words'?'word or phrase':'grammar rule')+' to practise. AI will create four A2 exercises focused on that item.';panel.append(intro);
+  const intro=document.createElement('p');intro.textContent=(guest?'Guest mode · saved on this device. ':'')+'Choose one '+(kind==='words'?'word or phrase':'grammar rule')+' to practise. AI will create four A2 exercises focused on that item.';panel.append(intro);
   const saved=[...new Map(data.filter(row=>row.content?.type===kind&&row.content?.text).map(row=>[String(row.content.text).toLowerCase(),String(row.content.text)])).values()];
   const pool=document.createElement('div');pool.className='jobs-stock-picker';
   for(const target of saved){
