@@ -202,7 +202,7 @@ The school's success should be evaluated by …" rows="6"></textarea>
   <div class="atlas-add-row"><input id="atlas-add-phrase" maxlength="100" placeholder="e.g., pedagogical judgement"><button type="button" class="btn" id="atlas-add-phrase-btn">+ Add</button></div></div>
  </div>
  <div class="atlas-stock-actions"><button type="button" class="btn primary" id="atlas-stock-save">✓ Save selected items to my Stocks</button><span id="atlas-stock-status" role="status" class="muted small"></span></div>
- <p class="muted small">Sign in with your Webilang Global student account to save selected items securely in your personal cloud Stocks. Each module stays separate. You can practise the items here whenever you choose.</p>
+ <p class="muted small">You can save and practise without signing in. Guest items stay on this device; signing in lets you use your personal Webilang Global Stocks.</p>
 </section>
 
 <p class="muted small">Feedback is formative, not a certified CEFR examination or a school grade. Recordings and transcripts may be processed by Tavus and OpenAI when you request evaluation; avoid sharing sensitive information.</p>
@@ -481,8 +481,8 @@ saveStock.addEventListener('click',async()=>{
  const entries=[...selectedGrammar.map(g=>({type:'grammar',pattern:normal(g.pattern)||'Grammar correction',original:normal(g.original),corrected:normal(g.correction),rule:normal(g.explanation),source:'ATLAS · The Last Human Teacher'})),...selectedWords.map(w=>({type:'words',word:normal(w),source:'ATLAS · The Last Human Teacher'}))];
  const cloud=window.WebilangAIStocks;
  if(!cloud){stockStatus.textContent='Cloud Stocks are still loading. Please try again.';return;}
- saveStock.disabled=true;stockStatus.textContent='Saving selected items to your Webilang account…';
- try{const result=await cloud.addMany(entries);stockStatus.textContent=`Saved ${result.added} new items to your Webilang account. ${result.skipped} already saved.`;}
+ saveStock.disabled=true;stockStatus.textContent='Saving selected items to My Stocks…';
+ try{const result=await cloud.addMany(entries);stockStatus.textContent=`Saved ${result.added} new item(s) to My Stocks. ${result.skipped} already saved. ${result.guest?'Stored on this device.':'Synced with your account.'}`;}
  catch(e){stockStatus.textContent='Nothing was saved. '+e.message;}
  finally{saveStock.disabled=false;}
 });
@@ -538,6 +538,9 @@ import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY} from '/student-memory/config.js';
 import {readWords,deleteWord} from '/student-memory/word-stock.js';
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const MODULE='AI C1',SOURCE='webilang-ai-stock-v1';
+const GUEST_STOCK_KEY='webilang-ai-c1-guest-stocks-v1';
+function guestEntries(){try{const a=JSON.parse(localStorage.getItem(GUEST_STOCK_KEY)||'[]');return Array.isArray(a)?a.filter(e=>e?.content&&['words','grammar'].includes(e.content.type)).slice(0,500):[];}catch{return []}}
+function saveGuestEntries(){try{localStorage.setItem(GUEST_STOCK_KEY,JSON.stringify(entries.slice(0,500)));return true;}catch{return false}}
 let currentUser=null,entries=[],errorMessage='',stockRevision=0;
 const get=id=>document.getElementById(id);
 const normal=s=>String(s||'').trim().replace(/\s+/g,' ');
@@ -545,37 +548,65 @@ const announce=s=>{const x=get('ai-cloud-status');if(x)x.textContent=s;};
 function key(type,item){return type==='words'?normal(item.word||item.phrase||item.text||'').toLowerCase():[normal(item.original),normal(item.corrected)].join('|').toLowerCase();}
 function text(parent,tag,value,cls){const e=document.createElement(tag);e.textContent=String(value||'');if(cls)e.className=cls;parent.append(e);return e;}
 function items(type){return entries.filter(e=>e.content?.type===type).map(e=>({...e.content.item,cloudId:e.id}));}
-async function login(){const {data,error}=await db.auth.getUser();if(error||!data?.user)throw Error('Sign in to Webilang Global first. Your Stocks are stored under your student account.');currentUser=data.user;return currentUser;}
+async function login(){try{const {data,error}=await db.auth.getUser();if(!error&&data?.user){currentUser=data.user;return currentUser;}}catch{}currentUser=null;return null;}
 async function refresh(){
  const ticket=++stockRevision;entries=[];render('words');render('grammar');
- try{const owner=await login();const {data,error}=await db.from('student_learning_entries').select('id,content,created_at').eq('user_id',owner.id).eq('module',MODULE).eq('kind','memory_note').contains('content',{source:SOURCE}).order('created_at',{ascending:false}).limit(500);if(error)throw error;
- const words=await readWords(db,owner.id);if(ticket!==stockRevision)return;
- entries=[...(data||[]).filter(e=>e.content?.type!=='words'),...words];errorMessage='';announce('Signed in · Account Word Stock includes all connected modules.');}
- catch(e){if(ticket!==stockRevision)return;entries=[];errorMessage=e.message;announce(e.message+' Open /webilang-global/ to sign in.');}
+ const owner=await login();if(ticket!==stockRevision)return;
+ if(!owner){entries=guestEntries();errorMessage='';announce('Guest mode · My Stocks are saved on this device. Sign in only to sync between devices.');}
+ else try{
+  const {data,error}=await db.from('student_learning_entries').select('id,content,created_at').eq('user_id',owner.id).eq('module',MODULE).eq('kind','memory_note').contains('content',{source:SOURCE}).order('created_at',{ascending:false}).limit(500);
+  if(error)throw error;
+  const words=await readWords(db,owner.id);if(ticket!==stockRevision)return;
+  entries=[...(data||[]).filter(e=>e.content?.type!=='words'),...words];errorMessage='';
+  announce('Signed in · Account Word Stock includes all connected modules.');
+ }catch(e){
+  if(ticket!==stockRevision)return;
+  errorMessage='Account Stocks temporarily unavailable: '+e.message;entries=[];announce(errorMessage);
+ }
  render('words');render('grammar');
 }
 async function addMany(selected){
- await login();if(errorMessage)await refresh();
- let added=0,skipped=0;const unique=new Set(entries.map(e=>e.content.type+':'+key(e.content.type,e.content.item)));
- for(const item of selected){const type=item.type;if(!['words','grammar'].includes(type))continue;const cleaned={...item};delete cleaned.type;
- const k=type+':'+key(type,cleaned);if(unique.has(k)){skipped++;continue;}
- if(!key(type,cleaned))continue;
- const {data,error}=await db.from('student_learning_entries').insert({user_id:currentUser.id,kind:'memory_note',module:MODULE,content:{source:SOURCE,version:1,type,item:cleaned,text:type==='words'?cleaned.word:(cleaned.pattern+' · '+cleaned.original+' → '+cleaned.corrected)}}).select('id,content,created_at').single();if(error)throw error;
- entries.unshift(data);unique.add(k);added++;
+ const owner=await login();
+ if(owner&&errorMessage)await refresh();
+ let added=0,skipped=0;
+ const unique=new Set(entries.map(e=>e.content.type+':'+key(e.content.type,e.content.item)));
+ for(const item of selected){
+  const type=item.type;if(!['words','grammar'].includes(type))continue;
+  const cleaned={...item};delete cleaned.type;
+  const k=type+':'+key(type,cleaned);if(unique.has(k)){skipped++;continue;}
+  if(!key(type,cleaned))continue;
+  const content={source:SOURCE,version:1,type,item:cleaned,text:type==='words'?cleaned.word:(cleaned.pattern+' · '+cleaned.original+' → '+cleaned.corrected)};
+  if(!owner){entries.unshift({id:'guest-'+Date.now()+'-'+Math.random().toString(36).slice(2,9),content});}
+  else{
+   const {data,error}=await db.from('student_learning_entries').insert({user_id:owner.id,kind:'memory_note',module:MODULE,content}).select('id,content,created_at').single();
+   if(error)throw error;
+   entries.unshift(data);
+  }
+  unique.add(k);added++;
  }
- render('words');render('grammar');return {added,skipped};
+ if(!owner&&!saveGuestEntries())throw Error('Your browser does not allow local saving. Enable website storage to keep these words.');
+ render('words');render('grammar');return {added,skipped,guest:!owner};
 }
-async function remove(id){await login();const entry=entries.find(e=>e.id===id);if(!entry)return;if(entry.content?.type==='words'){await deleteWord(db,currentUser.id,id);}else{const {error}=await db.from('student_learning_entries').delete().eq('id',id).eq('user_id',currentUser.id).eq('module',MODULE);if(error)throw error;}entries=entries.filter(e=>e.id!==id);render('words');render('grammar');}
+async function remove(id){
+ const owner=await login(),entry=entries.find(e=>String(e.id)===String(id));if(!entry)return;
+ if(!owner){entries=entries.filter(e=>String(e.id)!==String(id));if(!saveGuestEntries())throw Error('Could not update guest storage on this device.');}
+ else{
+  if(entry.content?.type==='words')await deleteWord(db,owner.id,id);
+  else{const {error}=await db.from('student_learning_entries').delete().eq('id',id).eq('user_id',owner.id).eq('module',MODULE);if(error)throw error;}
+  entries=entries.filter(e=>e.id!==id);
+ }
+ render('words');render('grammar');
+}
 function render(type){
  const isWord=type==='words',root=get(isWord?'word-stock-library':'grammar-stock-library'),count=get(isWord?'word-stock-count':'grammar-stock-count');if(!root||!count)return;
  root.replaceChildren();const list=items(type);count.textContent=list.length+(isWord?' expressions':' patterns');
  if(errorMessage){const p=text(root,'p',errorMessage+' ','stock-empty');const a=text(p,'a','Sign in to Webilang Global');a.href='/webilang-global/';return;}
- if(!list.length){text(root,'p',isWord?'No account expressions saved yet. Add vocabulary in Art Lab or save expressions after ATLAS feedback.':'No AI-module grammar patterns saved yet. Choose grammar items from your ATLAS feedback.','stock-empty');return;}
+ if(!list.length){text(root,'p',isWord?'No words saved yet. Select expressions after ATLAS feedback or from other activities.':'No grammar patterns saved yet. Choose grammar items from your ATLAS feedback.','stock-empty');return;}
  list.forEach(item=>{const row=text(root,'div','','stock-library-item');const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=true;checkbox.dataset.cloudId=item.cloudId;checkbox.dataset.type=type;checkbox.setAttribute('aria-label','Include this item in practice');checkbox.style.marginRight='12px';row.append(checkbox);
  const body=text(row,'div','','stock-item-text');text(body,'strong',isWord?(item.word||item.phrase||item.text):(item.pattern||'Grammar pattern'));
  if(!isWord){text(body,'span',(item.original||'')+' → '+(item.corrected||''),'stock-example');if(item.rule)text(body,'small',item.rule);}
  if(item.source)text(body,'small','Source: '+item.source);
- const button=text(row,'button','Remove','stock-remove');button.type='button';button.onclick=async()=>{if(!confirm('Remove this item from your personal cloud Stock?'))return;button.disabled=true;try{await remove(item.cloudId);}catch(e){announce('Could not remove item: '+e.message);button.disabled=false;}};
+ const button=text(row,'button','Remove','stock-remove');button.type='button';button.onclick=async()=>{if(!confirm('Remove this item from My Stock?'))return;button.disabled=true;try{await remove(item.cloudId);}catch(e){announce('Could not remove item: '+e.message);button.disabled=false;}};
  });
 }
 function showPractice(type,exercises){
@@ -591,13 +622,19 @@ function showPractice(type,exercises){
  });
 }
 async function generate(type){
- const btn=get(type==='words'?'ai-word-practice':'ai-grammar-practice'),status=get(type==='words'?'ai-word-practice-status':'ai-grammar-practice-status');
- try{const user=await login();const chosen=[...document.querySelectorAll(`#${type==='words'?'word-stock-library':'grammar-stock-library'} input[type=checkbox]:checked`)].map(e=>entries.find(row=>row.id===e.dataset.cloudId)?.content?.item).filter(Boolean).slice(0,6);
- if(!chosen.length)throw Error('Select at least one saved item.');
- const {data:{session}}=await db.auth.getSession();if(!session?.access_token)throw Error('Sign in again to renew your session.');
- btn.disabled=true;status.textContent='Generating a new C1 practice round…';
- const response=await fetch('/api/ai-stock-practice',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},body:JSON.stringify({type,level:'C1',items:chosen})});const data=await response.json();if(!response.ok)throw Error(data.error||'Practice generation failed');
- showPractice(type,data.exercises||[]);status.textContent='New practice ready. Your choices remain in your personal Stock.';
+ const btn=get(type==='words'?'ai-word-practice':'ai-grammar-practice'),
+ status=get(type==='words'?'ai-word-practice-status':'ai-grammar-practice-status');
+ try{
+  const chosen=[...document.querySelectorAll(`#${type==='words'?'word-stock-library':'grammar-stock-library'} input[type=checkbox]:checked`)]
+   .map(e=>entries.find(row=>String(row.id)===String(e.dataset.cloudId))?.content?.item).filter(Boolean).slice(0,6);
+  if(!chosen.length)throw Error('Select at least one saved item.');
+  const headers={'Content-Type':'application/json'};
+  if(currentUser)try{const {data:{session}}=await db.auth.getSession();
+   if(session?.user?.id===currentUser.id)headers.Authorization='Bearer '+session.access_token;}catch{}
+  btn.disabled=true;status.textContent='Generating a new C1 practice round…';
+  const response=await fetch('/api/ai-stock-practice',{method:'POST',headers,body:JSON.stringify({type,level:'C1',items:chosen})});
+  const data=await response.json();if(!response.ok)throw Error(data.error||'Practice generation failed');
+  showPractice(type,data.exercises||[]);status.textContent='New practice ready. Your saved items remain available.';
  }catch(e){status.textContent=e.message;}finally{btn.disabled=false;}
 }
 window.WebilangAIStocks={addMany,refresh};
