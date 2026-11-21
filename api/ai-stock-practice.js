@@ -1,19 +1,36 @@
 /** Webilang AI C1 personalised Stock practice.
- * Requires a genuine Webilang Global Supabase login (validated server-side).
+ * Accepts account sessions or limited same-origin guest practice; cloud data stays protected.
  * The browser supplies the student's explicitly selected items; it never exposes the OpenAI key.
  */
 const SUPABASE_URL=process.env.SUPABASE_URL||'https://molfznxvxuhuaklyfmmc.supabase.co';
 const PUBLISHABLE=process.env.SUPABASE_PUBLISHABLE_KEY||'sb_publishable_m4NmBJBx8Lnibu69Vwd1mQ_C5iPw0bI';
+const guestLimits=new Map();
 function respond(res,status,data){res.setHeader('Cache-Control','no-store');return res.status(status).json(data);}
 export default async function handler(req,res){
  if(req.method!=='POST')return respond(res,405,{error:'POST only'});
  try{
   const access=(req.headers.authorization||'').match(/^Bearer\s+(\S+)$/i)?.[1];
-  if(!access)return respond(res,401,{error:'Sign in to Webilang Global to practise your Stocks.'});
-  const verify=await fetch(SUPABASE_URL+'/auth/v1/user',{headers:{apikey:PUBLISHABLE,Authorization:'Bearer '+access}});
-  if(!verify.ok)return respond(res,401,{error:'Your Webilang session has expired. Please sign in again.'});
-  const account=await verify.json();if(!account?.id)return respond(res,401,{error:'Please sign in again.'});
   const body=req.body||{},kind=body.type;
+  let authenticated=false;
+  if(access)try{
+   const verify=await fetch(SUPABASE_URL+'/auth/v1/user',{headers:{apikey:PUBLISHABLE,Authorization:'Bearer '+access},signal:AbortSignal.timeout(6000)});
+   authenticated=verify.ok&&!!(await verify.json())?.id;
+  }catch{}
+  if(!authenticated){
+   const host=String(req.headers.host||'').toLowerCase();
+   const origin=req.headers.origin&&req.headers.origin!=='null'?req.headers.origin:req.headers.referer;
+   try {
+    if(!host||(origin?new URL(origin).host.toLowerCase()!==host:req.headers['sec-fetch-site']!=='same-origin'))
+     return respond(res,403,{error:'Start AI practice from the Webilang module.'});
+   }catch{return respond(res,403,{error:'Start AI practice from the Webilang module.'});}
+   const ip=String(req.headers['x-forwarded-for']||req.headers['x-real-ip']||'guest').split(',')[0].trim().slice(0,90);
+   const key=ip,now=Date.now(),windowMs=3600000,limit=20;
+   const counter=guestLimits.get(key)||{start:now,count:0};
+   if(now-counter.start>=windowMs){counter.start=now;counter.count=0;}
+   counter.count++;guestLimits.set(key,counter);
+   if(guestLimits.size>1500)for(const [k,v] of guestLimits)if(now-v.start>=windowMs)guestLimits.delete(k);
+   if(counter.count>limit)return respond(res,429,{error:'Guest AI practice limit reached for now. Please try later.'});
+  }
   if(!['words','grammar'].includes(kind))return respond(res,400,{error:'Invalid practice type'});
   if(!Array.isArray(body.items)||body.items.length<1||body.items.length>6)return respond(res,400,{error:'Select between 1 and 6 saved items.'});
   const items=body.items.map(x=>{
